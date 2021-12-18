@@ -4,7 +4,7 @@
 
 ### Resume
 Here is my current [resume](./directorys/resume/base.md)!
-[resume](./assets/images/shot.png)
+![resume](./assets/images/shot.png)
 
 ### Projects
 My current [projects](./directorys/projects/base.md) and their GitHub repositories!
