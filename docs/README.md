@@ -9,4 +9,4 @@ Here is my current [resume](./directorys/resume/base.md)!
 My current [projects](./directorys/projects/base.md) and their GitHub repositories!
 
 ### Contact
-Feel free to [contact](./directorys/contact/base.md) me
+Feel free to [contact](./directorys/contacts/base.md) me
