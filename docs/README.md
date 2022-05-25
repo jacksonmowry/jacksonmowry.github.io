@@ -3,7 +3,7 @@ layout: default
 ---
 
 # Welcome to my GitHub website!
-## You will find links below to my resume, current projects, and contact information
+You will find links below to my resume, current projects, and contact information
 
 
 ### Resume
