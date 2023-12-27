@@ -1,7 +1,5 @@
-#+title: Jackson Mowry
+#+title: Build a Shell in C
 #+author: Jackson
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
-* Articles
-** Build a Shell in C
-[[file:shell.org]]
+* Introduction
