@@ -3,26 +3,786 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2023-12-26 Tue 19:09 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Build a Shell in C</title>
+<title>/Build a Shell in C/</title>
 <meta name="author" content="Jackson" />
 <meta name="generator" content="Org Mode" />
 <style type="text/css">
-/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: #333; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} h3,h4,h5,h6{text-decoration: underline;} code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;}
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} h3,h4,h5,h6{text-decoration: underline;} code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
 </style>
 </head>
 <body>
-<div id="content" class="content">
-<h1 class="title">Build a Shell in C</h1>
-<div id="outline-container-orge7974d7" class="outline-2">
-<h2 id="orge7974d7">Introduction</h2>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Build a Shell in C</i></h1>
+<div id="outline-container-org342d9ad" class="outline-2">
+<h2 id="org342d9ad"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org342d9ad">
+<p>
+A shell is something most developers use every single day, so I thought why not learn to create one. Even if it ends up missing some of the nice to have features I would like to be able to execute commands, pipe outputs to each other, and time command execution.
+</p>
+
+<p>
+When searching online I came across the excellent shell tutorial from <a href="https://brennan.io/2015/01/16/write-a-shell-in-c/">Stephen Brennan</a>, which guides the user through crafting a simple shell in C. By the end of the walkthrough the shell can execute commands, change directory, display a help page, and exit. All of which make for a very good introduction to a shell, but as <i>Stephen</i> says in his tutorial, readers should take his shell and expand upon it, which is exactly what we will be doing here.
+</p>
+
+<p>
+This shell pulls ideas from <i>Stephen</i>, mostly in the handling of builtin functions, on top of which we will be adding many features. You will probably be surprised how usable we can make a shell with a fairly small amount of code.
+</p>
+</div>
+</div>
+<div id="outline-container-org757ef88" class="outline-2">
+<h2 id="org757ef88"><span class="underline">Includes</span></h2>
+<div class="outline-text-2" id="text-org757ef88">
+<p>
+I don&rsquo;t like when articles leave the includes block for the very end, so I am going to place all the necessary imports here at the beginning for those of you like me.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;linux/limits.h&gt;</span> <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Size constants specific to your machine</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;pwd.h&gt;</span>          <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Present working directory</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdbool.h&gt;</span>      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">True/False in C</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Printing</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>       <span style="color: #579C4C;">// </span><span style="color: #579C4C;">A lot</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;string.h&gt;</span>       <span style="color: #579C4C;">// </span><span style="color: #579C4C;">C-style string functions</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;sys/types.h&gt;</span>    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Process type definitions</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;sys/wait.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Wait for child processes to exit</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;time.h&gt;</span>         <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Time functions</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;unistd.h&gt;</span>       <span style="color: #579C4C;">// </span><span style="color: #579C4C;">POSIX system APIs</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org955bac7" class="outline-2">
+<h2 id="org955bac7"><span class="underline">Header File</span></h2>
+<div class="outline-text-2" id="text-org955bac7">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#if</span><span style="color: #85DDFF; font-weight: bold;">n</span><span style="color: #85DDFF; font-weight: bold;">def</span> SHELL_H_
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">SHELL_H_</span>
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_cd</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_help</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_exit</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_time</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_num_builtins</span>();
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_run</span>(<span style="color: #35CDAF;">char</span>***, <span style="color: #35CDAF;">int</span>);
+
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">read_line</span>();
+<span style="color: #35CDAF;">char</span> **<span style="color: #D9DAA2;">split_pipes</span>(<span style="color: #35CDAF;">char</span>*);
+<span style="color: #35CDAF;">char</span> ***<span style="color: #D9DAA2;">split_args</span>(<span style="color: #35CDAF;">char</span>**, <span style="color: #35CDAF;">int</span>*);
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">execute_command</span>(<span style="color: #35CDAF;">char</span>**, <span style="color: #35CDAF;">int</span>, <span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">execute_pipeline</span>(<span style="color: #35CDAF;">char</span>***, <span style="color: #35CDAF;">int</span>);
+
+<span style="color: #85DDFF; font-weight: bold;">#endif</span> <span style="color: #579C4C;">// </span><span style="color: #579C4C;">SHELL_H_</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org84195d4" class="outline-2">
+<h2 id="org84195d4"><span class="underline">Main Loop</span></h2>
+<div class="outline-text-2" id="text-org84195d4">
+<p>
+Our shell won&rsquo;t stray far from the norm in this area, grabbing an entire line of text, parsing it, and executing it.
+</p>
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">status</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #339CDB;">while</span> (<span style="color: #339CDB;">true</span>) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Prompt</span>
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">cwd</span> = getcwd(<span style="color: #339CDB;">NULL</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
+    printf(<span style="color: #DB8E73;">"%s =&gt; "</span>, cwd);
+
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span> = read_line();
+    <span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">commands</span> = split_pipes(test);
+    <span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span> = split_args(commands, &amp;status);
+    <span style="color: #339CDB;">if</span> (status == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+      fprintf(stderr, <span style="color: #DB8E73;">"shell: Expected end of quoted string\n"</span>);
+    } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (sh_run(args, status) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+    }
+
+    <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; args[i]; i++) {
+      free(args[i]);
+    }
+    free(args);
+    free(commands);
+    free(line);
+    free(cwd);
+  }
+}
+</pre>
+</div>
+
+<p>
+The prompt simply displays the current working directory, and a symbol to let the user know they can type. After that we grab their input, parse it, execute it, and free up any memory that we allocated in the loop, before doing it all over again.
+</p>
+
+<p>
+The hardest part about main is the memory management. If you&rsquo;re not used to C I think the easiest way to think about this is that every call to malloc (or any similar alloc function) needs to be matched with a free call. This will become easier to see once we are actually allocating memory, but for now just know that the original line that we read in is the only C-style string that we allocate. The commands and args arrays just hold pointers into this original string, so it would cause a double free error if we tried to free pieces of the string, and then the entire string at the end.
+</p>
+
+<p>
+Another thing to note is that there are some C functions that will allocate memory for you, I like using these functions, but I know others prefer to do all their own allocations. Either way, it is important to free the memory associated with these functions, which we do in the last significant line of main.
+</p>
+</div>
+</div>
+<div id="outline-container-org07f543a" class="outline-2">
+<h2 id="org07f543a"><span class="underline">Parsing input</span></h2>
+<div class="outline-text-2" id="text-org07f543a">
+</div>
+<div id="outline-container-org98dfe9c" class="outline-3">
+<h3 id="org98dfe9c"><code>read_line()</code></h3>
+<div class="outline-text-3" id="text-org98dfe9c">
+<p>
+The first step to input parsing is getting the input to parse. We do this using a simple wrapper around the <code>getline()</code> function in C. This is another function that can allocate memory for you, but feel free to allocate your own buffer if you&rsquo;d like.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">read_line</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">bufsize</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #339CDB;">if</span> (getline(&amp;line, &amp;bufsize, stdin) == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    <span style="color: #339CDB;">if</span> (feof(stdin)) {
+      exit(EXIT_SUCCESS); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">EOF ctrl-D</span>
+    } <span style="color: #339CDB;">else</span> {
+      perror(<span style="color: #DB8E73;">"readline"</span>);
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  <span style="color: #339CDB;">return</span> line;
+}
+</pre>
+</div>
+
+<p>
+As we can see, not much code here, but we do need to handle some possible error cases. The first condition is checking for a return value of -1, meaning <code>getline()</code> wasn&rsquo;t able to get a line. This means that either the user has stopped input (EOF), or there was an actual failure from the function. We exit in both cases, but use <code>perror()</code> to let the user know which error actually occurred. <code>perror()</code> stands for &ldquo;print error&rdquo;, and it will use the last function call, along with a global error code to figure out what error occurred, and print out its associated message.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb37fcce" class="outline-3">
+<h3 id="orgb37fcce"><code>split_pipes()</code></h3>
+<div class="outline-text-3" id="text-orgb37fcce">
+<p>
+The next step in our program is to split the input string into different commands. Let&rsquo;s say for example you wanted to take the output of <code>apt list</code> and pipe that into <code>grep "sql"</code>, in order for this to work we need to treat each command as its own block in our pipeline.
+</p>
+
+<p>
+When I first started learning C I found string handling to be the thing that got in my way most. I could handle allocating and freeing memory (on a small scale), and building my own data structures, but string handling was something I mostly stayed away from. It wasn&rsquo;t that string handling in C was particularly hard, it was just a different way to think about strings, and it got in the way of me coding.
+</p>
+
+<p>
+This project is almost entirely string handling, so I decided I would finally need to learn how all the functions worked, and I must say I was very surprised at how easy string handling in C is. Don&rsquo;t get me wrong, they&rsquo;re not like strings in high level languages with an attached length, and a dynamically allocated backing buffer of memory, but strings in C are easy to work with. Let&rsquo;s take a look at the first example of that.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> **<span style="color: #D9DAA2;">split_pipes</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span>) {
+  <span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">commands</span> = calloc(<span style="color: #B5CEA8; font-weight: bold;">16</span>, <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">char</span>*));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>commands) {
+    perror(<span style="color: #DB8E73;">"calloc failed"</span>)
+      exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">command</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">pos</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+
+  command = strtok(line, <span style="color: #DB8E73;">"|"</span>);
+  <span style="color: #339CDB;">while</span> (command) {
+    commands[pos++] = command;
+    command = strtok(<span style="color: #339CDB;">NULL</span>, <span style="color: #DB8E73;">"|"</span>);
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Trim whitespace</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; pos; i++) {
+    <span style="color: #339CDB;">while</span> (*commands[i] == <span style="color: #DB8E73;">' '</span> ||  *commands[i] == <span style="color: #DB8E73;">'\n'</span>) {
+      commands[i]++;
+    }
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">end_of_str</span> = strrchr(commands[i], <span style="color: #DB8E73;">'\0'</span>);
+    --end_of_str;
+    <span style="color: #339CDB;">while</span> (*last_spc == <span style="color: #DB8E73;">' '</span> || *last_spc == <span style="color: #DB8E73;">'\n'</span>) {
+      *last_spc = <span style="color: #DB8E73;">'\0'</span>;
+      --last_spc;
+    }
+  }
+  <span style="color: #339CDB;">return</span> commands;
+}
+</pre>
+</div>
+
+<p>
+See, not too bad to split a string on pipes and trim any whitespace. Honestly <code>strtok()</code> and <code>strrchr()</code> felt a bit like magic until I read up on their implementation and then things became a lot clearer. The important thing to know is that C-style strings use a null terminator (&rsquo;\0&rsquo;) to indicate the end of a string, so breaking a string apart is as simple as replacing all the delimiter characters with &rsquo;\0&rsquo; and returning a pointer to the beginning of each &ldquo;token&rdquo;, which is exactly how <code>strtok()</code> works.
+</p>
+
+<p>
+You may also notice that we call <code>strtok()</code> in 2 different ways, once with a string and once with NULL. This is because strtok is smart enough to know that when given NULL as it&rsquo;s first argument the caller wants it to continue on parsing the string from its last position. The other string function we are using here is <code>strrchr()</code> which simply returns a pointer to the last occurrence of a character in a string, which can also include the null terminator as shown above.
+</p>
+
+<p>
+The other thing that may look different here is that we are using <code>calloc()</code> instead of the normal <code>malloc()</code>. <code>calloc()</code> stands for clear allocator, which zeros out the memory after being allocated. I find this to be a nice to have when working with strings or pointers, because a NULL or 0 version of either is treated as the end of their associated &ldquo;container&rdquo;. Strings end on a null terminator, and arrays of pointers either have a length, or continue until they reach a null pointer. Another nice thing about calloc is that the size and amount being allocated are passed as separate arguments to the function. In the example above we are allocating 16 <code>char *</code> sized elements.
+</p>
+
+<p>
+As a side note, a real shell would either handle memory allocation dynamically, or statically allocate a very large buffer to handle user input. Here we are hard coding a limit of 16 commands being piped into each other, which is just fine for a small shell like ours.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb1a7df8" class="outline-3">
+<h3 id="orgb1a7df8"><code>split_args()</code></h3>
+<div class="outline-text-3" id="text-orgb1a7df8">
+<p>
+We now need to split each command into an array of arguments. For example the command <code>echo "hello world"</code> has only 2 arguments, <code>echo</code> and <code>hello world</code>. If we were to simply split arguments by spaces we would end up with 3 arguments, <code>echo</code>, <code>"hello</code> and <code>world"</code>. The code to handle this isn&rsquo;t too bad, we just need to keep track of our current state, if we are in a string or not.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> ***<span style="color: #D9DAA2;">split_args</span>(<span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">commands</span>, <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">status</span>) {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">outer_pos</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">command_args</span> = calloc(<span style="color: #B5CEA8; font-weight: bold;">16</span>, <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">char</span>**));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>command_args) {
+    perror(<span style="color: #DB8E73;">"calloc failed"</span>);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; commands[i]; i++) {
+    <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">pos</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+    <span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">args</span> = calloc(<span style="color: #B5CEA8; font-weight: bold;">16</span>, <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">char</span>*));
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>args) {
+      perror(<span style="color: #DB8E73;">"calloc failed"</span>);
+      exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+    }
+
+    <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">inside_string</span> = <span style="color: #339CDB;">false</span>;
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">current_token</span> = &amp;commands[i][<span style="color: #B5CEA8; font-weight: bold;">0</span>];
+
+    <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">j</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; commands[i][j]; j++) {
+      <span style="color: #339CDB;">if</span> (commands[i][j] == <span style="color: #DB8E73;">'"'</span> &amp;&amp; <span style="color: #85DDFF; font-weight: bold;">!</span>inside_string) {
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Beginning of a string</span>
+        commands[i][j++] = <span style="color: #DB8E73;">'\0'</span>;
+        <span style="color: #339CDB;">if</span> (commands[i][j] != <span style="color: #DB8E73;">'"'</span>) {
+          inside_string = <span style="color: #339CDB;">true</span>;
+          current_token = &amp;commands[i][j];
+        } <span style="color: #339CDB;">else</span> {
+          commands[i][j] = <span style="color: #DB8E73;">'\0'</span>;
+          current_token = &amp;commands[i][++j];
+        }
+      } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (inside_string) {
+        <span style="color: #339CDB;">if</span> (commands[i][j] == <span style="color: #DB8E73;">'"'</span>) {
+          <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Ending of a string</span>
+          inside_string = <span style="color: #339CDB;">false</span>;
+          commands[i][j] = <span style="color: #DB8E73;">'\0'</span>;
+          args[pos++] = current_token;
+          current_token = <span style="color: #339CDB;">NULL</span>;
+        } <span style="color: #339CDB;">else</span> {
+          <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Character in string</span>
+          <span style="color: #339CDB;">continue</span>;
+        }
+      } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (commands[i][j] == <span style="color: #DB8E73;">' '</span>) {
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Space delimeter</span>
+        <span style="color: #339CDB;">if</span> (current_token &amp;&amp; *current_token != <span style="color: #DB8E73;">' '</span>) {
+          args[pos++] = current_token;
+        }
+        current_token = &amp;commands[i][j+<span style="color: #B5CEA8; font-weight: bold;">1</span>]; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Go past the space</span>
+        commands[i][j] = <span style="color: #DB8E73;">'\0'</span>;
+      } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (commands[i][j] == <span style="color: #DB8E73;">'$'</span> &amp;&amp; commands[i][j+<span style="color: #B5CEA8; font-weight: bold;">1</span>] &amp;&amp; commands[i][j+<span style="color: #B5CEA8; font-weight: bold;">1</span>] != <span style="color: #DB8E73;">' '</span>) {
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Environment variable</span>
+        args[pos++] = getenv(&amp;commands[i][++j]);
+        <span style="color: #339CDB;">while</span> (commands[i][j]) {
+          ++j;
+        }
+        current_token = &amp;commands[i][j+<span style="color: #B5CEA8; font-weight: bold;">1</span>];
+      } <span style="color: #339CDB;">else</span> {
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Regular character</span>
+        <span style="color: #339CDB;">continue</span>;
+      }
+    }
+
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Check if string literal was finished</span>
+    <span style="color: #339CDB;">if</span> (inside_string) {
+      *status = -<span style="color: #B5CEA8; font-weight: bold;">1</span>;
+      <span style="color: #339CDB;">return</span> command_args;
+    } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (current_token &amp;&amp; *current_token != <span style="color: #DB8E73;">' '</span>) {
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Add last argument to the array</span>
+      args[pos++] = current_token;
+    }
+
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Add this commands arguments array to the outer array</span>
+    command_args[outer_pos++] = args;
+  }
+
+  *status = outer_pos;
+  <span style="color: #339CDB;">return</span> command_args;
+}
+</pre>
+</div>
+
+<p>
+Quite a bit of complexity is introduced when handling quoted arguments, along with the ability to evaluate variables (also known as environment variables) like $HOME or $PATH. Let go through the bits of code one at a time. Make sure to keep track of each time we call <code>calloc()</code>, so we can pair this up with a call to <code>free()</code> back in main.
+</p>
+
+<p>
+The first section sets up our array (<code>char***</code>), which separates first by command, then by argument. Then we need to fill this array up with pointers to each argument. Remember in C that a string is really just a null terminated <code>char*</code>, so <code>char***</code> looks a little more scary than it actually is. If pointers are still confusing here, I will try and help by showing each level.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">C-style Type</th>
+<th scope="col" class="org-left">How we Access</th>
+<th scope="col" class="org-left">Other Languages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>char***</code></td>
+<td class="org-left"><code>command_args</code></td>
+<td class="org-left"><code>[][]string</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>char**</code></td>
+<td class="org-left"><code>commands_args[i]</code></td>
+<td class="org-left"><code>[]string</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>char*</code></td>
+<td class="org-left"><code>command_args[i][j]</code></td>
+<td class="org-left"><code>string</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>char</code></td>
+<td class="org-left"><code>command_args[i][j][k]</code></td>
+<td class="org-left"><code>char</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Now we need to go through each pipe separated command and parse its arguments into a <code>char**</code> array, which we can eventually point to from our outer <code>char***</code> array. There are 3 cases that we are going to handle here (an actual shell would have a more complicated parser to handle a broader range of inputs), quoted arguments (string literals), environment variables ($HOME), and space delimited values.
+</p>
+
+<p>
+For quoted arguments we are either inside a string, or outside of one, so we can keep track of this state and use it to make decisions about what to do when we encounter a <code>"</code> character. First we enter a string, and update our state. Then we set the starting quote to a null character, this is because a shell does not include the quote mark in the argument, just what is inside it. We then set our <code>current_token</code> to the first character of the string, or skip past it entirely if the string is empty. This continues on until we find the end of the string, however if we never find the end of the string we will end up throwing an error.
+</p>
+
+<p>
+The next case to handle is any space-separated arguments, which are much easier than a string. If we encounter a space and our <code>current_token</code> is not whitespace we add it to our array of arguments, set the space to a null character, and set <code>current_token</code> one character after the space.
+</p>
+
+<p>
+Lastly we need to handle the evaluation of environment variables. A normal shell will interpret a single <code>$</code> character as itself, but a <code>$</code> with any characters directly after it will be evaluated as an environment variable. To do this we first check if the is anything past the &rsquo;$&rsquo;, then if it is not a space. After that we can call <code>getenv()</code> which returns a pointer to the string value associated with the key.
+</p>
+
+<pre class="example" id="orgfffa4f9">
+We can do something pretty cool here because of how we have set up our argument arrays. Instead of trying to replace '$HOME' in the original string we can simply use the pointer returned from calling getenv. This allows us to avoid splicing a new string into the middle of the line, which would be slower, and more prone to errors.
+
+Our initial call to getline is the only time we allocate memory directly for a string, the rest of our allocations are just to point into this string, so replacing memory in the middle of the string would be wasteful when we can just point somewhere else. The last important thing to note is that we must only free the line once, and not try to free each individual part of the string we have split up. We only free the pointers into the string, the string can be freed at the very end in one call.
+</pre>
+
+<p>
+Now that we have gone over our parsing code, the last thing to address is the error handling. You will notice that our function takes a pointer to an integer called status, which has 2 purposes. If the status returned is negative we know that the input contained an unfinished string literal, which we will treat as an error in our basic shell. The other purpose is to indicate how many commands we encountered, which will be necessary for our next stage.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org1127b65" class="outline-2">
+<h2 id="org1127b65"><span class="underline">Running Commands</span></h2>
+<div class="outline-text-2" id="text-org1127b65">
+</div>
+<div id="outline-container-org3aa2bbb" class="outline-3">
+<h3 id="org3aa2bbb"><code>sh_run()</code></h3>
+<div class="outline-text-3" id="text-org3aa2bbb">
+<p>
+Once we have our input fully parsed we can move on to executing the commands. <code>sh_run()</code> serves as our entry point for execution. First checking for empty input, then checking all shell builtins, and lastly executing any command that doesn&rsquo;t match the first 2 conditions.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_run</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">commands</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">num_commands</span>) {
+  <span style="color: #339CDB;">if</span> (commands[<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">0</span>]) == <span style="color: #339CDB;">NULL</span>) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">No command given</span>
+    <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Check shell builtins</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; sh_num_builtins(); i++) {
+    <span style="color: #339CDB;">if</span> (strcmp(commands[<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">0</span>], builtin_strs[i]) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      <span style="color: #339CDB;">return</span> (*builtin_func[i])(commands);)
+    }
+  }
+
+  <span style="color: #339CDB;">return</span> execute_pipeline(commands, num_commands);
+}
+</pre>
+</div>
+
+<p>
+As with any normal shell a blank input should just move the cursor to the next line and wait for more input.
+</p>
+
+<p>
+We will cover shell builtins later, but just know for now that commands like <code>cd</code>, <code>time</code>, and others are not their own programs, instead they are small functions that out shell can call to either change the current environment, or to measure the execution of other programs.
+</p>
+
+<p>
+Finally, if we don&rsquo;t match either of the other cases we move on to executing the command.
+</p>
+</div>
+</div>
+<div id="outline-container-org9919ae7" class="outline-3">
+<h3 id="org9919ae7"><span class="underline">Shell Builtins</span></h3>
+<div class="outline-text-3" id="text-org9919ae7">
+<p>
+Some of the functionality of the shell you may be used to like <code>cd</code> or <code>time</code> needs to manipulate the shell directly, instead of running another program and displaying it&rsquo;s output. If <code>cd</code> were to be a program it would be able to change its current directory, but this state change would not be reflected in our shell when it returns. For this reason some commands are built directly into the shell.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_cd</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_help</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_exit</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_time</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>);
+
+<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">builtin_strs</span>[] = {<span style="color: #DB8E73;">"cd"</span>, <span style="color: #DB8E73;">"help"</span>, <span style="color: #DB8E73;">"exit"</span>, <span style="color: #DB8E73;">"time"</span>};
+
+<span style="color: #35CDAF;">int</span> (*<span style="color: #D9DAA2;">builtin_func</span>[])(<span style="color: #35CDAF;">char</span> ***) = {&amp;sh_cd, &amp;sh_help, &amp;sh_exit, &amp;sh_time};
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_num_builtins</span>() { <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">sizeof</span>(builtin_strs) / <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">char</span> *); }
+</pre>
+</div>
+
+<p>
+We can start out by defining the glue code of our builtins. We give a function prototype, map strings to their position, and create an array of function pointers, along with the number of builtins. Of this section function pointers are probably the most confusing, so let&rsquo;s dig into those a bit more.
+</p>
+
+<p>
+The type of the array we are defining is an array of function pointers, with each function accepting a single <code>char ***</code> argument, and returning an integer. The right-hand side of the declaration contains the memory address of each of these functions. Now we have an array containing 4 function pointers, each of which can be used by dereferencing the appropriate position in the array, and then calling the function using the normal syntax, which we saw in the <code>sh_run()</code> function above.
+</p>
+</div>
+<div id="outline-container-org6e33e50" class="outline-4">
+<h4 id="org6e33e50"><code>sh_cd()</code></h4>
+<div class="outline-text-4" id="text-org6e33e50">
+<p>
+<code>cd</code> is one of those commands that is doing a lot for you under the hood. At the end of the day the function is just executing <code>chdir()</code>, which takes in a path, and if possible moves you to that directory. What you might not know is that this can only take in fully expanded paths, meaning that any symlinks or tilda symbols must be resolved before running the function. What does this mean for us in a shell? Well, our shell will need to be at least a little smart, knowing that if the use just types <code>cd</code>, we should find their home directory and take them to it, or if they type a path like <code>~/Downloads</code>, we need to first find home, and then go to Downloads.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_cd</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>) {
+  <span style="color: #35CDAF;">uid_t</span> <span style="color: #85DDFF;">uid</span> = getuid();
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">passwd</span> *<span style="color: #85DDFF;">pw</span> = getpwuid(uid);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>pw) {
+    perror(<span style="color: #DB8E73;">"Retreive Home Dir"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  }
+  <span style="color: #339CDB;">if</span> (args[<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">1</span>] == <span style="color: #339CDB;">NULL</span>) {
+    <span style="color: #339CDB;">if</span> (chdir(pw-&gt;pw_dir) != <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      perror(<span style="color: #DB8E73;">"sh: cd"</span>);
+    }
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">path</span>[PATH_MAX];
+    <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">expanded_path</span>[PATH_MAX];
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">tilda</span> = strchr(args[<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">1</span>], <span style="color: #DB8E73;">'~'</span>);
+    <span style="color: #339CDB;">if</span> (tilda) {
+      strcpy(path, pw-&gt;pw_dir);
+      strcat(path, tild+<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+    } <span style="color: #339CDB;">else</span> {
+      strcpy(path, args[<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">1</span>]);
+    }
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">exp_path</span> = realpath(path, expanded_path);
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>exp_path) {
+      perror(<span style="color: #DB8E73;">"realpath"</span>);
+      <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+    }
+    <span style="color: #339CDB;">if</span> (chdir(exp_path) != <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      perror(<span style="color: #DB8E73;">"sh: cd"</span>);
+    }
+  }
+
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+}
+</pre>
+</div>
+
+<p>
+Quite a few things going here, but like we said before, it all comes down to running <code>chdir()</code>. The first thing we do is grab the current users home directory, it is possible we won&rsquo;t end up needing this, but that is an optimization you can try in a refactor. Then we check the arguments passed to <code>cd</code>, if there aren&rsquo;t any we try to move to the users home directory, and return based on the result.
+</p>
+
+<p>
+If they did give <code>cd</code> an argument our job is a little harder, we have to expand the path they did give us, taking care to replace any tilda characters with the users home directory. We create 2 static buffers, one to hold our scratch work, and another to hold the full path. Then we form the full path by placing our strings into the scratch buffer, finally calling realpath on the result. Then just like before we call <code>chdir()</code>.
+</p>
+
+<p>
+<code>realpath</code> is a function that is able to give you a fully qualified path after resolving symlinks and any relative paths, which makes things more consistent for our shell. Here is an excellent video on the subject, along with a wealth of other knowledge on C and systems programming, <a href="https://www.youtube.com/watch?v=ewqX1IuYzC8">Jacob Sorber realpath</a>.
+</p>
+</div>
+</div>
+<div id="outline-container-orge11982b" class="outline-4">
+<h4 id="orge11982b"><code>sh_help()</code></h4>
+<div class="outline-text-4" id="text-orge11982b">
+<p>
+Hopefully every shell has a help command, and ours will be no different. Feel free to expand upon this with any information you see fit.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_help</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>) {
+  printf(<span style="color: #DB8E73;">"Shell Help Page\n\n"</span>);
+  printf(<span style="color: #DB8E73;">"Available commands: \n"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; sh_num_builtins(); i++) {
+    printf(<span style="color: #DB8E73;">"- %s\n"</span>, builtin_strs[i]);
+  }
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+}
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org91a1b71" class="outline-4">
+<h4 id="org91a1b71"><code>sh_exit()</code></h4>
+<div class="outline-text-4" id="text-org91a1b71">
+<p>
+I believe every shell has the ability to exit, or at least to log out of the system by leaving the shell. Our shell will keep this nice and simple.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_exit</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>) { <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>; }
+</pre>
+</div>
+
+<p>
+Now would probably be a good time to explain why our functions are returning integers. Our shell will continue to run as long as we get a non-zero return from calling <code>sh_run()</code>, we can use this to represent 3 possible states: negative numbers indicating and error, zero indicating an exit condition, and positive numbers telling the program to continue. With our simple shell we only use 1 possible error, but it would be easy to expand this to cover other possible errors you may encounter.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb739c2a" class="outline-4">
+<h4 id="orgb739c2a"><code>sh_time()</code></h4>
+<div class="outline-text-4" id="text-orgb739c2a">
+<p>
+Our last builtin is one of my favorite commands to use in the shell. <code>time</code> allows the user to quickly and easily get the runtime of an arbitrary string of commands.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">sh_time</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">args</span>) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Advance past "time"</span>
+  args[<span style="color: #B5CEA8; font-weight: bold;">0</span>]++;
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Count Commands</span>
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #339CDB;">while</span> (args[i++]){;}
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Get time</span>
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">timespec</span> <span style="color: #85DDFF;">start</span>, <span style="color: #85DDFF;">end</span>;
+  <span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">elapsed_time</span>;
+
+  clock_gettime(CLOCK_MONOTONIC, &amp;start);
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">res</span> = sh_run(args, i);
+  clock_gettime(CLOCK_MONOTONIC, &amp;end);
+
+  elapsed_time = (end.tv_sec - start.tv_sec) * <span style="color: #B5CEA8; font-weight: bold;">1000.0</span> +
+                 (end.tv_nsec - start.tv_nsec) / <span style="color: #B5CEA8; font-weight: bold;">1e6</span>;
+  printf(<span style="color: #DB8E73;">"Time: %.3f milliseconds\n"</span>, elapsed_time);
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Return pointer to "time" for free()</span>
+  args[<span style="color: #B5CEA8; font-weight: bold;">0</span>]--;
+  <span style="color: #339CDB;">return</span> res;
+}
+</pre>
+</div>
+
+<p>
+In order for <code>time</code> to work with the other shell builtins we have to run our own mini shell pipeline within the time function. After counting the number of commands without <code>time</code> we set up a stopwatch and time the execution of our pipeline. Then we can print out the time it took, and return the result code to our main loop.
+</p>
+
+<p>
+We have to mess around with pointers a little bit here, which is not ideal, but in order to make sure we don&rsquo;t leak memory it is necessary. We just ignore the first token (<code>time</code>) when calling <code>sh_run()</code> again, and then restore the pointer to its original position before we return.
+</p>
+
+<p>
+With all the parsing and builtins covered we can finally move to the real systems programming part of this project.
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org2e85e7e" class="outline-2">
+<h2 id="org2e85e7e"><span class="underline">Command Execution</span></h2>
+<div class="outline-text-2" id="text-org2e85e7e">
+</div>
+<div id="outline-container-org3c6307c" class="outline-3">
+<h3 id="org3c6307c"><code>execute_pipeline()</code></h3>
+<div class="outline-text-3" id="text-org3c6307c">
+<p>
+A simple shell can call <code>execvp</code> directly on its argument, but we would like to be able to support piping between commands. Of course that complicates things quite a bit, but nothing we can&rsquo;t solve. At an operating system level we can open up a <code>pipe</code> which is a one way channel of communication between 2 endpoints (which in our case will be each command). If we are running 3 commands we will need 2 pipes to facilitate the intermediate communication between them. We do not need a third pipe because the very beginning and end of the command chain will use standard in and standard out respectively.
+</p>
+
+<p>
+After we set up the pipes between endpoints we attach each command to its associated input/output and execute the command. It then writes its result and exits. The only special case we have to handle here is the final command, which takes care of either a single command, or the final in the pipeline.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">execute_pipeline</span>(<span style="color: #35CDAF;">char</span> ***<span style="color: #85DDFF;">commands</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">num_commands</span>) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">No command given</span>
+  <span style="color: #339CDB;">if</span> (commands[<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">0</span>][<span style="color: #B5CEA8; font-weight: bold;">0</span>] == <span style="color: #DB8E73;">'\0'</span>) {
+    <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Create pipes</span>
+  <span style="color: #35CDAF;">int</span> **<span style="color: #85DDFF;">pipes</span> = malloc((num_commands - <span style="color: #B5CEA8; font-weight: bold;">1</span>) * <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">int</span> *));
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_commands - <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    pipes[i] = malloc(<span style="color: #B5CEA8; font-weight: bold;">2</span> * <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">int</span>)); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">pipes[i][0] = in, pipes[i][1] = out</span>
+    <span style="color: #339CDB;">if</span> (pipe(pipes[i]) == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+      perror(<span style="color: #DB8E73;">"pipe"</span>);
+      <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+    }
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Execute commands in the pipeline</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_commands - <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">input_fd</span> = (i == <span style="color: #B5CEA8; font-weight: bold;">0</span>) ? STDIN_FILENO : pipes[i-<span style="color: #B5CEA8; font-weight: bold;">1</span>][<span style="color: #B5CEA8; font-weight: bold;">0</span>];
+    <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">output_fd</span> = pipes[i][<span style="color: #B5CEA8; font-weight: bold;">1</span>];
+
+    execute_command(commands[i], input_fd, output_fd);
+    close(output_fd); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">We are done writing to this pipe</span>
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Execute last (or only) command</span>
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">input_fd</span> = (num_commands &gt; <span style="color: #B5CEA8; font-weight: bold;">1</span>) ? pipes[num_commands-<span style="color: #B5CEA8; font-weight: bold;">2</span>][<span style="color: #B5CEA8; font-weight: bold;">0</span>] : STDIN_FILENO;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">output_fd</span> = STDOUT_FILENO;
+  execute_command(commands[num_commands-<span style="color: #B5CEA8; font-weight: bold;">1</span>], input_fd, output_fd);
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Close/Cleanup pipes</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_commands - <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    close(pipes[i][<span style="color: #B5CEA8; font-weight: bold;">0</span>]);
+    close(pipes[i][<span style="color: #B5CEA8; font-weight: bold;">1</span>]);
+    free(pipes[i]);
+  }
+  free(pipes);
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+}
+</pre>
+</div>
+
+<p>
+Just like before, we do a bounds check to ensure that there is a command to be executed. Then we set up the pipes to facilitate communication between the different commands. When we set up the pipes we have to call <code>pipe</code> on each index in the array, this assigns a file descriptor (int) to each index, which we will eventually use to read and write data.
+</p>
+
+<p>
+We then loop through the commands choosing either stdin, or the previous pipe as our input, and stdout or the next pipe as our output. An important thing here is that we close the write end of the pipe (our output) as soon as we are done with it. If we don&rsquo;t do this the next command in the pipeline will hand, as it is waiting for more input. Closing the pipe tells that next command that we won&rsquo;t be sending any more information.
+</p>
+
+<p>
+The last step is to clean up the allocated memory, note that we allocate one outer array, and fill it with individual calls to malloc in a loop, so our free calls should first happen in a loop, then free the outer pointer.
+</p>
+</div>
+</div>
+<div id="outline-container-org03282bd" class="outline-3">
+<h3 id="org03282bd"><code>execute_command()</code></h3>
+<div class="outline-text-3" id="text-org03282bd">
+<p>
+We only have one more function to write, and it is arguably the most important to how a shell works. In order to execute an entirely separate program from within our shell we have to somehow tell the operating system to start a new process that can run the program for us. We can accomplish this by &ldquo;forking&rdquo; ourselves into a new process, then executing the command from the new process.
+</p>
+
+<p>
+Fork is a system call on Linux which creates a child process with a different process ID (PID), and execution space, but the child is an exact copy of the parent, meaning it has the same code. The code below shows a very simple example of calling fork. Inside the child process calling fork returns <code>0</code>, this tells us that we are executing in the child process. At the same time the parent process continues to execute, the result of calling fork in the parent process is the PID of the child. We can use these 2 return values to execute different code depending on the context. We will take advantage of this in our shell by executing commands in the child, then waiting for the child to finish before returning to the shell.
+</p>
+
+
+<div id="org33c02fb" class="figure">
+<p><img src="Untitled-2023-12-27-1851.png" alt="Untitled-2023-12-27-1851.png" />
+</p>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">execute_command</span>(<span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">args</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">input_fd</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">output_fd</span>) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Create child</span>
+  <span style="color: #35CDAF;">pid_t</span> <span style="color: #85DDFF;">pid</span>;
+  <span style="color: #35CDAF;">pid_t</span> <span style="color: #85DDFF;">wpid</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">status</span>;
+
+  <span style="color: #339CDB;">if</span> ((pid = fork()) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Child Process context</span>
+
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Redirect in and out file descriptors if needed</span>
+    <span style="color: #339CDB;">if</span> (input_fd != STDIN_FILENO) {
+      dup2(input_fd, STDIN_FILENO);
+      close(input_fd);
+    }
+
+    <span style="color: #339CDB;">if</span> (output_fd != STDOUT_FILENO) {
+      dup2(output_fd, STDOUT_FILENO);
+      close(output_fd);
+    }
+
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Execute command</span>
+    <span style="color: #339CDB;">if</span> (execvp(args[<span style="color: #B5CEA8; font-weight: bold;">0</span>], args) == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+      perror(<span style="color: #DB8E73;">"execvp"</span>);
+      exit(EXIT_FAILURE);
+    }
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (pid &lt; <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Fork failed</span>
+    perror(<span style="color: #DB8E73;">"fork"</span>);
+    exit(EXIT_FAILURE);
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Parent process</span>
+    <span style="color: #339CDB;">do</span> {
+      wpid = waitpid(pid, &amp;status, WUNTRACED);
+    } <span style="color: #339CDB;">while</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>WIFEXITED(status) &amp;&amp; <span style="color: #85DDFF; font-weight: bold;">!</span>WIFESIGNALED(status));
+  }
+}
+</pre>
+</div>
+
+<p>
+After forking, we can set up out input and output streams. We first check if the streams need to be duplicated, and if they do, we call <code>dup2</code> which duplicates the given file descriptor to our processes standard in/out. After that we can close the passed file descriptor because it is not redundant. Our last step here is to execute the command using <code>execvp</code>.
+</p>
+
+<p>
+The reason we have to call <code>execvp</code> from a child process is that it will replace our current process in memory, and never return (unless we encounter an error). So we execute the command in the child process because we are ok with its memory being replaced. We than wait for it to exit from the parent.
+</p>
+
+<p>
+There is a whole family of exec functions, but the one we are using here has a few features important to our shell. The &rsquo;p&rsquo; in <code>execvp</code> tells us that this command will first look at the users <code>$PATH</code> variable when determining which command to execute. The other important feature is that we can pass an array of C-style strings to be executed, which perfectly matches with how we parsed the input.
+</p>
+
+<p>
+In the parent process we want to ensure we do not return to the shell before the command has finished executing. The parent waits using <code>waitpid()</code>, which takes the PID to monitor, a place to store its status, and we also pass <code>WUNTRACED</code> to get results of any processes that are stopped. This loop continues until the process exits or is terminated with a signal.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgae3e1be" class="outline-2">
+<h2 id="orgae3e1be"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-orgae3e1be">
+<p>
+That&rsquo;s it! The whole shell comes together in around 325 lines of code. Honestly not too bad for the amount of functionality we were able to include in our little program. Of course there are plenty of improvements to be made, but this entire article was written with a live reloading server running in our shell, along with managing the git repo my site lives inside.
+</p>
+
+<p>
+After walking through the original lsh tutorial I found that my biggest pain point was the fact that spaces were the only delimiters allowed for the shell. Now after adding quoted argument support and piping my biggest pain point is shell autocomplete. However, this would require a rewrite of the main event loop and input code, so we might save that for another day.
+</p>
+
+<p>
+Overall I found that C is not difficult at all to work with, manually allocating and deallocating memory really makes you think about if the allocation is really necessary, and it helps me to understand my programs flow. I think once you get the hang of pointers the only possible hurdle in this project is wrapping your head around Linux system calls, which is a vital skill to have when it comes to understanding systems programming.
+</p>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
+<p class="date">Date: 12/27/23</p>
 <p class="author">Author: Jackson</p>
-<p class="date">Created: 2023-12-26 Tue 19:09</p>
 </div>
 </body>
 </html>
