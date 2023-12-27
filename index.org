@@ -1,0 +1,519 @@
+#+title: Midterm 3
+#+author: Jackson
+#+OPTIONS: toc:nil num:nil html-style:nil
+#+SETUPFILE: retro_dark.theme
+* Methods & Classes
+** Classes
+*** Constructors
+- In order to use a class we must first initialize it, or construct it
+- This is accomplished by using the ~new~ keyword
+- Class constructors can take 0 or more arguments
+- When a constructor is called with 0 arguments we call this it's *default constructor*
+- Class constructors can also call other constructors, referred to as constructor chaining
+
+#+begin_src java :output results :exports both
+class rectangle {
+    public static void main(String[] args) {
+        // rectangle unit_square = new rectangle();
+        rectangle square = new rectangle(5);
+        rectangle rec = new rectangle(2, 4);
+        // unit_square.print();
+        square.print();
+        rec.print();
+    }
+
+    // public rectangle() {
+    //     this.width = 1;
+    //     this.height = 1;
+    // }
+
+    public rectangle(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    public rectangle(int side_length) { // Constructs a Square through constructor chaining
+        this(side_length, side_length);
+    }
+
+    public void print() {
+        System.out.printf("Height: %d, Width: %d, Area: %d\n",
+                          this.width, this.height, this.width * this.height);
+    }
+
+    private int width;
+    private int height;
+}
+#+end_src
+
+#+RESULTS:
+: Height: 5, Width: 5, Area: 25
+: Height: 2, Width: 4, Area: 8
+
+*** Class vs Instance Members
+- Each instance has it's own copy of all the /instance variables/
+- There is only one copy of the /static fields/
+- Static fields might be something like Math.PI
+- It is important to remember that static methods cannot access instance variables or instance methods directly
+#+begin_src java :output results :exports both
+class Car {
+    public static void main(String[] args) {
+        System.out.println(Car.num_cars());
+        Car red_car = new Car("Red");
+        Car blue_car = new Car("Blue");
+
+        // I can print out red_car.num_cars() because it is a class member
+        // Although this is discouraged by most
+        System.out.println(red_car.num_cars());
+        // Or on the Car class itself
+        System.out.println(Car.num_cars());
+    }
+
+    public Car(String color) {
+        this.color = color;
+        num_cars++;
+    }
+
+    public static int num_cars() {
+        return num_cars;
+    }
+
+    private String color;
+
+    private static int num_cars = 0;
+}
+#+end_src
+
+#+RESULTS:
+: 0
+: 2
+: 2
+
+** _Method Structure_
+A method has 5 main parts
+1. Access Protection
+2. Return Type
+3. Name
+4. Parameter List
+5. Body
+
+#+begin_src java :output results :exports code
+public String say_hello(String name) {
+    return "Hi there " + name + "!";
+}
+#+end_src
+
+*** _Access Protection_
+- Focus in on public vs private
+  - Public methods and fields can be accessed from outside the class they are defined within
+  - Private methods and fields can only be accessed by the class's own methods, or derived class methods
+
+*** Parameter List
+- Parameter names do not matter when it comes to matching arguments with parameters
+- Arguments are matched to parameters by order, meaning if a method signature looks like ~add(int a, double b)~ you must pass and int and then a double
+
+*** Body
+- The body of a method can execute any normal java code that we might see in main
+- A method is it's own scope, meaning it only has access to it's parameters, and any class members
+- The simpliest way to get a result out of a method is by returning it
+
+** _Static Methods_
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        System.out.println(test.hello());
+    }
+
+    static String hello() {
+        return "Hello World!";
+    }
+}
+#+end_src
+
+#+RESULTS:
+: Hello World!
+
+- Static methods cannot use the /this/ pointer
+- Static methods are available for use even without creating an instance of the class
+- Static methods can return void, or any data type
+
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        test.hello();
+    }
+
+    static void hello() {
+        System.out.println("Hello World!");
+    }
+}
+#+end_src
+
+#+RESULTS:
+: Hello World!
+
+** Member Methods
+- Also known as member functions
+- Allow us to execute instructions within a class, meaning the method can modify class fields
+- Public methods allow safe access to private fields
+- We may want the user of our class to not set the age outside of a certain range, and we can perform this validation in a setter function, as opposed to letting the user directly call ~age = 70;~
+- A common pattern is the getter/setter pattern
+
+#+begin_src java :output results :exports both
+class Test {
+    public static void main(String[] args) {
+        Test t = new Test();
+        System.out.printf("Initial age: %d\n", t.get_age());
+        t.set_age(20);
+        System.out.printf("Updated age: %d\n", t.get_age());
+    }
+
+    void set_age(int new_age) {
+        this.age = new_age;
+    }
+
+    int get_age() {
+        return this.age;
+    }
+
+    public Test() {}
+
+    private int age;
+}
+#+end_src
+
+#+RESULTS:
+: Initial age: 0
+: Updated age: 20
+
+** Method Overloading
+- Methods can be called "dynamically" depending on which arguments are passed to them
+- These methods are even allowed to return different types as long as their parameter list is unique 🤯
+
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        var a = test.product(4, 5);
+        var b = test.product(4, 5.0);
+        var c = test.product(4.0, 5.0);
+        System.out.printf("Type of a is %s\n", getType(a));
+        System.out.printf("Type of b is %s\n", getType(b));
+        System.out.printf("Type of c is %s\n", getType(c));
+    }
+
+    static Integer product(int a, int b) {
+        return a * b;
+    }
+
+    static Double product(double a, double b) {
+        return a * b;
+    }
+
+    public static String getType(Object obj) {
+        return obj.getClass().getSimpleName();
+    }
+
+}
+#+end_src
+
+#+RESULTS:
+: Type of a is Integer
+: Type of b is Double
+: Type of c is Double
+
+** Shadowing
+- Variable in Java are allowed to shadow the parent namespace
+- Meaning that a variable can have the same name as long as it is within an subscope
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        test t = new test();
+        t.set_a(5);
+    }
+
+    public void set_a(int a) {
+        a = b;
+    }
+
+    private int a;
+    private int b;
+}
+#+end_src
+
+#+RESULTS:
+
+** Reference Types
+# [[file:mem.png]]
+- There are 2 categories of types in Java: *Primative* and *Reference*
+- For this section it is most important to understand that a primative holds its actual value, and a reference holds the memory address where its actual value is stored
+- If this is confusing don't worry, pointers and references are something that you will spend a lot more time on in future classes
+- References are created with the ~new~ keyword, which is like asking the computer for space to store your data
+- This has an effect that may be hard to see at first, two different reference type variables can point to the same memory address
+
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        int a = 5;
+        test t = new test(a);
+        t.print();              // What does this print
+
+        a = 6;
+        t.print();              // What does this print
+    }
+
+    public test(int a) {
+        this.value = a;
+    }
+
+    public void print() {
+        System.out.println(this.value);
+    }
+
+    private int value;
+}
+#+end_src
+
+#+RESULTS:
+: 5
+: 5
+
+- This first example shows us that *value/primative* types are copied into the class during construction
+- Even if that value is later changed, we will not see that change reflected in our class instance
+
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        test t = new test(5);
+        test another_one = t;
+
+        t.print();              // What does this print
+        another_one.print();    // What does this print
+
+        t.set_value(7);
+
+        t.print();              // What does this print
+        another_one.print();    // What does this print
+    }
+
+    public test(int a) {
+        this.value = a;
+    }
+
+    public void set_value(int val) {
+        this.value = val;
+    }
+
+    public void print() {
+        System.out.println(this.value);
+    }
+
+    private int value;
+}
+#+end_src
+
+#+RESULTS:
+: 5
+: 5
+: 7
+: 7
+
+** Jeopardy
+https://jeopardylabs.com/play/midterm-3-92
+
+* Array & ArrayList
+** Arrays
+- Arrays are considered primative in java, and can hold any data type
+- We index into them to access one element at a time
+- Indexing starts at zero and continues on to ~array.length - 1~
+- Arrays have a fixed size, meaning that once an array is full we cannot add any more elements
+- Arrays have no concept of a size because all spots are 'full', with the zero value for that type
+- Instead we use ~array.length~ to tell us how long an array is, we must then traverse through the array to perform any operations
+
+
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        int[] a = {1, 2, 3, 4};
+
+        int[] b = new int[4];
+        for (int i = 0; i < 4; i++) {
+            b[i] = i + 1;
+        }
+
+        for (int num : a) {
+            System.out.print(num + " ");
+        }
+        System.out.println("");
+
+        for (int num : b) {
+            System.out.print(num + " ");
+        }
+        System.out.println("");
+    }
+}
+#+end_src
+
+#+RESULTS:
+: 1 2 3 4
+: 1 2 3 4
+
+- Both ways to initialize an array do the same thing
+- The first one is what we used in the Piglatin lab to list out vowels
+
+*** Arrays with Reference Types
+#+begin_src java :output results :exports both
+class test {
+    public static void main(String[] args) {
+        Double[] a = new Double[5];
+        for (int i = 0; i < a.length; i++) {
+            System.out.println(a[i]);
+        }
+        System.out.println("");
+        for (int i = 0; i < a.length; i++) {
+            a[i] = 0.0;
+        }
+        for (int i = 0; i < a.length; i++) {
+            System.out.println(a[i]);
+        }
+    }
+}
+#+end_src
+
+#+RESULTS:
+#+begin_example
+null
+null
+null
+null
+null
+
+0.0
+0.0
+0.0
+0.0
+0.0
+#+end_example
+
+** ArrayList
+- An ArrayList offers many advantages over the standard Java Array
+- It can be resized, have elements removed, and even converted to a standard array
+- It is most useful when you need to hold an unknown number of items, that can grow or shrink depending on how the program is used
+- ~.add(value)~ is used to *append* something to the end of the list
+- ~.add(index, value)~ is used to set a specific *index* to the value
+- ArrayLists are also one of the first times we encounter *generics*
+- A generic container in this case means that we always use the same ArrayList, but we have to tell it what type we would like to store by passing it in the <>
+*** ArrayList Methods
+| Method                    | Usage                                                                            |
+|---------------------------+----------------------------------------------------------------------------------|
+| add(int index, E element) | Adds the element at the given index. The element at this index is pushed forward |
+| add(E element)            | Adds the element to the end of the list                                          |
+| clear()                   | Empties out list                                                                 |
+| get(int index)            | Returns the element at the given index, will throw an exception if out of range  |
+| indexOf(Object value)     | Returns the index of the element matching value, or -1 if not found              |
+| isEmpty()                 | Returns .size()==0                                                               |
+| remove(int index)         | Returns the element at index after removing it from the list                     |
+| remove(Object value)      | Removes the first element equal to value, returns true is element was found      |
+| set(int index, E value)   | Sets the element at position index to value                                      |
+| size()                    | Returns an integer equal to how many elements are in the list                    |
+| subList(int beg, int end) | Returns a new list [beg, end)                                                    |
+| toArray()                 | Returns a standard Java Array of the same datatype                               |
+
+- When removing or adding an element to an ArrayList in the middle all elements following the changed position will have to be shifted
+- Just like with a standard Java Array we are only allowed to access an ArrayList within it's bounds
+- ~.get()~ will throw and exception/error if called with a value < 0 or > ~.size() - 1~
+
+#+begin_src java :output results :exports both
+import java.util.ArrayList;
+class test {
+    public static void main(String[] args) {
+        ArrayList<Integer> al = new ArrayList<>(9999);
+        System.out.println(al.size());  // Size?
+
+        al.add(42);
+        System.out.println(al.size());
+    }
+}
+#+end_src
+
+#+RESULTS:
+: 0
+: 1
+
+** Jeopardy
+https://jeopardylabs.com/play/midterm-3-array-arraylist
+
+* Questions
+** Variables
+#+begin_src java :output results :exports code
+public class Testing {
+    public static int x = 7;
+    public int y = 3;
+}
+#+end_src
+
+- What are the class variables?
+#+RESULTS:
+: x
+
+- What are the instance variables?
+#+RESULTS:
+: y
+
+** Objects
+#+begin_src java :output results :exports code
+public class SomethingIsWrong {
+    public static void main(String[] args) {
+        Rectangle myRect;
+        myRect.width = 40;
+        myRect.height = 50;
+        System.out.println("myRect's area is " + myRect.area());
+    }
+}
+#+end_src
+
+- What is wrong with the above program? (Assume the Rectangle class has been defined.)
+#+RESULTS:
+: The code never creates a Rectangle object. With this simple program, the compiler generates an error. However, in a more realistic situation, myRect might be initialized to null in one place, say in a constructor, and used later. In that case, the program will compile just fine, but will generate a NullPointerException at runtime.
+
+- Now lets fix the code!
+
+
+* Sources
+- https://docs.oracle.com/javase/tutorial/java/TOC.html
+- https://marz.utk.edu/my-courses/cosc101/notes/classes/
+- https://marz.utk.edu/my-courses/cosc101/notes/collections/
+- Marz's COSC 101 Methods/Math Library Homework
+- Marz's COSC 101 Arrays Homework
+- Marz's COSC 101 ArrayList Homework
+- Marz's COSC 101 Classes Homework
+
+#+begin_src java :output results :exports both
+import java.util.ArrayList;
+class rectangle {
+    public static void main(String[] args) {
+        ArrayList<Integer> a = new ArrayList<>();
+        for (int i = 1; i < 6; i++) {
+            a.add(i);
+        }
+        for (int num : a) {
+            System.out.print(num+" ");
+        }
+        a.remove(3);
+        System.out.println("");
+        for (int num : a) {
+            System.out.print(num+" ");
+        }
+        a.remove(3);
+        System.out.println("");
+        for (int num : a) {
+            System.out.print(num+" ");
+        }
+    }
+
+}
+#+end_src
+
+#+RESULTS:
+: 1 2 3 4 5
+: 1 2 3 5
+: 1 2 3
