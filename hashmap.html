@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Hashmap/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Hashmap</i></h1>
+<div id="outline-container-orga11a811" class="outline-2">
+<h2 id="orga11a811"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-orga11a811">
+<p>
+A hashmap is a data structure that gets a ton of use, but it&rsquo;s implementation can be a bit of a black box. This is further complicated by the face that even language to language a hashmap does not have the same implementation. Some hashmaps choose to preserve the ordering of insertion (Python, V), others have different maps for unordered and ordered (sorted) storage (C++), and yet others differ on their choice of backing storage (arrays vs trees). Even among those that use an array for storage, there are 2 different ways to manage collisions.
+</p>
+
+<p>
+The actual implementation shouldn&rsquo;t matter for the majority of users, as they just want to treat it as a fast key-value store. Yet the speed of our hashmap is something that can be greatly impacted by our choice of collision resolution.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org75bf809" class="outline-2">
+<h2 id="org75bf809"><span class="underline">Architecture</span></h2>
+<div class="outline-text-2" id="text-org75bf809">
+<p>
+When we store our hasmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
+</p>
+
+<p>
+For the purposes of experimentation and extensibility we are going to allow our implementation to take a function pointer to a hash function. This way we can check the speed and collision rate with various different hashing methods.
+</p>
+</div>
+
+<div id="outline-container-org6ad521a" class="outline-3">
+<h3 id="org6ad521a"><span class="underline">Hashing</span></h3>
+<div class="outline-text-3" id="text-org6ad521a">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">basic_hash</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span>) {
+  <span style="color: #51afef;">return</span> (<span style="color: #ECBE7B;">uint64_t</span>)pointer ^ ((<span style="color: #ECBE7B;">uint64_t</span>)pointer &gt;&gt; <span style="color: #da8548; font-weight: bold;">32</span>);
+}
+
+</pre>
+</div>
+
+<p>
+Our first has function is relatively simple, it XORs the bottom half and the lower half together and returns the result. Not the best hash function, but with only 2 instructions it is about as quick as we can get without returning a constant value.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdint.h&gt;</span>
+<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">fnv_hash</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span>) {
+  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Prime and offset basis values for 64-bit values</span>
+  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">14695981039346656037U</span>;
+  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">byte_pointer</span> = (<span style="color: #ECBE7B;">uint64_t</span>)pointer;
+  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">8</span>; i++) {
+    hash *= <span style="color: #da8548; font-weight: bold;">1099511628211</span>;
+    hash ^= byte_pointer &amp; <span style="color: #da8548; font-weight: bold;">0xFF</span>;
+    byte_pointer &gt;&gt;= <span style="color: #da8548; font-weight: bold;">8</span>;
+  }
+  <span style="color: #51afef;">return</span> hash;
+}
+</pre>
+</div>
+
+<p>
+The second hash function is much more complex, and we should expect a lower rate of collisions because of this. Even with added complexity the actual function should still be fairly quick to compute. This is something we will be able to measure once our hashmap is fully implemented.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #ECBE7B;">Basic</span> <span style="color: #ECBE7B;">Hash</span>
+<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942a0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x558908191729</span>
+<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942c0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x558908191749</span>
+<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942e0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x558908191769</span>
+<span style="color: #ECBE7B;">FNV</span> <span style="color: #ECBE7B;">Hash</span>
+<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942a0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x6fb6159253d2b95a</span>
+<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942c0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x63c1db2f83d3da3a</span>
+<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942e0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0xe114c79be4e359a</span>
+</pre>
+</div>
+
+<p>
+For a first test I made 3 pointers just like you might when making 3 C-style strings. These values are on the stack, so they are all just a few bytes apart, which is a great test for our hash functions. There is a term called the <a href="https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function">avalanche effect</a> in which a single bit change in the value to be hashed produces a very large change in the resulting hash.
+</p>
+
+<p>
+Our more basic hash function does nothing to the upper 32 bits, and the lower 32 bits only differ by their second hexadecimal digit. This may not be that big of an issue with a large table, but a smaller table may expose some issues. The FNV hash produces vastly different has values from small differences in input values.
+</p>
+
+<p>
+Let&rsquo;s now take a look at how data is stored in a hashmap, so we can see why our choice of hashing function may impact the speed of our data structure.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org4b83e7b" class="outline-3">
+<h3 id="org4b83e7b"><span class="underline">Storage and Retrieval</span></h3>
+<div class="outline-text-3" id="text-org4b83e7b">
+<p>
+How does a hashmap actually store the data we want to retrieve?
+</p>
+
+<p>
+At first it seems like it would make sense to just store the value, since we know that it&rsquo;s key will only ever map to one index. However, this quickly falls apart when collisions come into the picture. If all of our &ldquo;boxes&rdquo; just stored the values we would have no way to tell them apart in case of a collision. Instead we store elements as pair or their key and value.
+</p>
+
+<p>
+The structure of this pair is not as important to our implementation, and may vary from language to language. We will use a struct here, python may use a tuple, others may use a class. The point here is that we need our elements to be either a fixed size, or something we can point to in memory. Our struct will contain two 8-byte values, totaling to a 16-byte struct.
+</p>
+
+<p>
+With our elements wrapped up in a struct we can easily probe along and find when our key matches, or with separate chaining we will walk the linked list until we find our desired key. Due to our hash being a <a href="https://en.wikipedia.org/wiki/Pure_function">pure function</a>, we know that our resulting index and probing order will always be the same for any given key. This means if we do not find a match, we know with 100% certainity that the key is not present in our map.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org54c690f" class="outline-3">
+<h3 id="org54c690f"><span class="underline">Backing Storage</span></h3>
+<div class="outline-text-3" id="text-org54c690f">
+<p>
+One of the main characteristics of a hashmap is its O(1) insertion and retrieval time. If you&rsquo;re familiar with an array we know that insertion and lookup with a known index is constant time, but forcing our users to keep track of every last index would be quite a pain. This is where a hashmap comes in. Instead of having users keep track of specific indexes, or performing a search to find a specific element, we will combine the backing storage of an array and a hashing function to figure out where each item should be placed.
+</p>
+
+<p>
+This is great because adding an item to an array is as simple as adding an offset to a pointer and writing to some memory, which is constant with any amount of elements. We load a value into a register, and store it with a known offset into the array. Even in RISC-V assembly we only have 2 instructions to store our value.
+</p>
+
+
+<div id="orgea54abf" class="figure">
+<p><img src="array.png" alt="array.png" />
+</p>
+</div>
+
+<p>
+In order to get the index for each element, we have to somehow reduce its value down to our array size. The hash functions return <code>uint64_t</code> values, which are much larger than our table indexes allow. The easiest way to &ldquo;clamp&rdquo; this hash value to our array is with a <code>modulo</code> operation. This allows us to take a value in the billions, and reduce it down to any table size. If our array has a size of 14 let&rsquo;s see what indexs our different hash functions product.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #ECBE7B;">Basic</span> <span style="color: #ECBE7B;">Hash</span>
+<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x55e8f951e748</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">6</span>
+<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x55e8f951e728</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">2</span>
+<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x55e8f951e708</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">12</span>
+<span style="color: #ECBE7B;">FNV</span> <span style="color: #ECBE7B;">Hash</span>
+<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0xa7130ebc6001a9f8</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">4</span>
+<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5c21814efdd7ab98</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">12</span>
+<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x9eb867d5a95e6e38</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">4</span>
+
+</pre>
+</div>
+
+<p>
+Huh. Even our more advanced hash function, with vastly different values, ends up producing the same index twice. Well that&rsquo;s not good for our users, if they try to store 2 different values we would end up overwriting the first value. We can continue to increase our array size to limit the amount of collisions, but we reach a point where we end up with a large number of empty spaces.
+</p>
+
+<p>
+So we now know we need an array to store our elements, but how big should our array be? Well, we need to have a concept of how full we should allow our hashmap to get. Of course if we made an array that is as long as a <code>uint64_t</code> could address we would have the fewest number of collisions. Or we could have a super small array, with an element occupying every single index. The former wastes a lot of memory, and the latter would require reallocation on every insert.
+</p>
+
+<p>
+This is where our &ldquo;load factor&rdquo; comes in to play. Load factor describes the ratio between the number of elements in the haspmap, and the total capacity of the hash map. We should aim for a load factor that maximizes &ldquo;fullness&rdquo;, and minimizes the chance of collisions. This is impacted greatly by the choice of hash function, so we will allow this to be tunable in our implementation.
+</p>
+
+<p>
+If a user is not concerned about memory usage they can choose a very low load factor (0.1-0.2), that will almost entirely eliminate that chance of collisions. Most users would likely choose a value around 0.5, which we will later see produces a pretty good balance.
+</p>
+
+<p>
+You may notice that even with a low load factor we can still have collisions, so how do we handle this?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgedbccc2" class="outline-3">
+<h3 id="orgedbccc2"><span class="underline">Collision Resolution</span></h3>
+<div class="outline-text-3" id="text-orgedbccc2">
+<p>
+We will cover 2 different groups of strategies when it comes to resolving collisions in a hashmap.
+</p>
+</div>
+
+<div id="outline-container-orga478978" class="outline-4">
+<h4 id="orga478978">Open Addressing</h4>
+<div class="outline-text-4" id="text-orga478978">
+<p>
+<i>Linear Probing</i>
+<img src="linear_probe.png" alt="linear_probe.png" />
+</p>
+
+<p>
+In open addressing when 2 elements map to the same index we simply move to a different index to store that element. This process continues until we find an empty space, and we store the element there. The example above uses linear probing, in which the index is increased by 1 as we search for an empty space. This is in contrast to quadratic probing, where the index is increased by n<sup>2</sup>, where n is the number of collisions we have encountered. Increasing by a larger amount spaces the elements out more and decreases the chances of collisions.
+</p>
+
+<p>
+<i>Quadratic Probing</i>
+<img src="quad_probe.png" alt="quad_probe.png" />
+</p>
+
+<pre class="example" id="org9fbbd1b">
+An interesting thing to note with quadratic probing is its ideal conditions. Quadradic probing performs best when using a prime number table size, and a load factor &lt; 0.5. In these conditions quadratic probing will not only always find a valid position, it will also do it in size/2 jumps.
+
+When we go to implement our hashmap with open addressing later we will  see if we can ensure that both of these conditions are always met.
+</pre>
+
+<p>
+<i>Double Hashing</i>
+</p>
+
+<p>
+There is one more type of open addressing called double hashing. Without a collisions this strategy performs exactly the same as before, but when we run into a collision we do something new to try and resolve that. Instead our index by a consistent pattern we introduce a second hash function that is called for each collision.
+</p>
+
+<p>
+Double hashing has some advantages, but it is very reliant on choosing a good hash function. The hash function must ensure that ever index of the table is explored, otherwise this offers no advantages over other probing strategies. It also must never return a value of 0, as this would stall probing and thus the program it is being used in.
+</p>
+
+<p>
+With that being said, double hashing would be a good strategy to explore if it fits your data, and you can tolerate the cost to compute a hash at each step of probing.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9c3760f" class="outline-4">
+<h4 id="org9c3760f">Separate Chaining</h4>
+<div class="outline-text-4" id="text-org9c3760f">
+<p>
+The other main strategy to resolve collisions in a hashmap is separate chaining.
+</p>
+
+
+<div id="org31a8970" class="figure">
+<p><img src="separate_chaining.png" alt="separate_chaining.png" />
+</p>
+</div>
+
+<p>
+Elements themselves are not stored directly in the array, instead each index in the array serves as the head node of a linked list which stores all collisions in a chain. At first separate chaining may look more complicated to implement, but it is much easier when it comes to writing the code.
+</p>
+
+<p>
+When we go to insert an element all we have to do is make our new node point to the old list, and make our head node point to us. This handles both the case where the list is empty, and where the list has elements. Lookup works in much the same way, we go to the index and walked the linked list searching for the element, and if we find it we return it.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgccb2383" class="outline-4">
+<h4 id="orgccb2383">Speed Considerations</h4>
+<div class="outline-text-4" id="text-orgccb2383">
+<p>
+As you may have noticed with open addressing this also increases the time it takes to find an element if we have a high number of collisions. While separate chaining may be easier to implement, it is potentially a slower implementation of a hashmap.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;time.h&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdlib.h&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
+
+<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span> {
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">value</span>;
+    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">next</span>;
+};
+
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>(){
+  <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">timespec</span> <span style="color: #dcaeea;">start</span>, <span style="color: #dcaeea;">end</span>;
+
+  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Heap Allocated Array</span>
+  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">array</span> = calloc(<span style="color: #da8548; font-weight: bold;">1024</span>, <span style="color: #51afef;">sizeof</span>(<span style="color: #ECBE7B;">int</span>));
+  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">1024</span>; i++) {
+    array[i] = i;
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &amp;start);
+  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp</span>;
+  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">64000</span>; i++) {
+    temp = array[i%<span style="color: #da8548; font-weight: bold;">1024</span>];
+  }
+  clock_gettime(CLOCK_MONOTONIC, &amp;end);
+
+  <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">array_elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #da8548; font-weight: bold;">1000.0</span> +
+    (end.tv_nsec - start.tv_nsec) / <span style="color: #da8548; font-weight: bold;">1e6</span>;
+  printf(<span style="color: #98be65;">"Time_Arr: %.3f milliseconds\n"</span>, array_elapsed_time);
+
+  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Linked List</span>
+  <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">head</span> = <span style="color: #a9a1e1;">NULL</span>;
+  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">1024</span>; i++) {
+    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">new_node</span> = (<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>*)malloc(<span style="color: #51afef;">sizeof</span>(<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>));
+    new_node-&gt;value = i;
+    new_node-&gt;next = head;
+    head = new_node;
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &amp;start);
+  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">64000</span>; i++) {
+    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">temp</span> = head;
+    <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">j</span> = <span style="color: #da8548; font-weight: bold;">0</span>; j &lt; i % <span style="color: #da8548; font-weight: bold;">1024</span>; j++) {
+      temp = temp-&gt;next;
+    }
+  }
+  clock_gettime(CLOCK_MONOTONIC, &amp;end);
+
+ <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">list_elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #da8548; font-weight: bold;">1000.0</span> +
+    (end.tv_nsec - start.tv_nsec) / <span style="color: #da8548; font-weight: bold;">1e6</span>;
+  printf(<span style="color: #98be65;">"Time_LL: %.3f mlliseconds\n"</span>, list_elapsed_time);
+
+  printf(<span style="color: #98be65;">"%.0fx Slower"</span>, list_elapsed_time/array_elapsed_time);
+}
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Time<sub>Arr</sub>:</td>
+<td class="org-right">0.542</td>
+<td class="org-left">milliseconds</td>
+</tr>
+
+<tr>
+<td class="org-left">Time<sub>LL</sub>:</td>
+<td class="org-right">146.428</td>
+<td class="org-left">mlliseconds</td>
+</tr>
+
+<tr>
+<td class="org-left">270x</td>
+<td class="org-right">Slower</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Run to run variation messes with the calculations a bit, but we can see that a linked list is around 150-200x slower than direct array access, when accessing a container of length 1024, 64000 times. This shouldnt be a surprise once you understand how memory access works at a lower level
+</p>
+
+<p>
+Computers are very good at accessing contiguous blocks of memory. This is because an entire linear chunk is brought into the CPU at a time, and placed into the cache, called a cache line. Arrays, vectors, and structs fit into this model perfectly, a contiguous chunk of memory where we are likely to access every element.
+</p>
+
+<p>
+Our open addressing strategy allows us to take advantage of this linear memory access (referred to as the <i><a href="https://en.wikipedia.org/wiki/Principle_of_locality">principle of locality</a></i>). As we probe through our array all of these memory accesses will come through the CPU&rsquo;s cache, which is orders of magnitude faster than going out to RAM.
+</p>
+
+<p>
+As for separate chaining, its memory access may be spaced out all over in memory. When we store elements in a linked list each node much be allocated separately, and then made to point at the next element in the list. This means we must dereference a pointer at each step in the chain in order to see the value that is actually at that memory address. On top of that, dynamically allocated nodes have no garuntee of being contiguous in memory (if they did we would just store them in an array), so they cannot take advantage of the CPU&rsquo;s cache.
+</p>
+
+<p>
+Having said all of that, theory does not always map 1:1 to the real world. So we will implement both stragegies of collision resolution for our hashmap and see which one works best for our data.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc552a07" class="outline-4">
+<h4 id="orgc552a07">C Data Structures</h4>
+<div class="outline-text-4" id="text-orgc552a07">
+<p>
+As an aside, one of the biggest reasons I enjoy C is that is encourages users to implement their own data structures. These can have specific behavior that suits their use case. For example, we will be implementing as general of a hashmap as we can here, with <code>void*</code> keys, and <code>uint64_t</code> values. The keys can be a pointer to any value, or be used to store a 64-bit integer, and same with the values. We are doing this to show the flexability of this implementation, but using pointers will slow down our hashmap.
+</p>
+
+<p>
+If you know that your hash map will always use strings as keys, and integers as values you can encode that behavior in the implementation. You can also perfectly tune a hash function for your specific input data.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org95fb170" class="outline-3">
+<h3 id="org95fb170"><span class="underline">Deletion</span></h3>
+<div class="outline-text-3" id="text-org95fb170">
+<p>
+At this point we would have a nearly complete hashmap, with the ability set and get any arbitrary pair. The last thing we need to implement for our user facing API is the removal of an element.
+</p>
+
+<p>
+<i>Separate Chaining</i>
+</p>
+
+<p>
+In the case of separate chaining this is no different than a removal of an element in our linked list. Nothing to complicated to handle, other than checking our position in the list and updating the head if necessary.
+</p>
+
+<p>
+<i>Open Addressing</i>
+</p>
+
+<p>
+Our implementation with open addressing will be more complicated to handle. At first it may seem like we could just zero out the memory at that array index and call it a day. Which we could easily do, but this would make our probing very inefficient. Instead of stopping our probe when we hit an empty index, we would need to continue probing until we loop back around to an element we have already checked. On a small scale this probably isn&rsquo;t too bad, but once we get into the 1000&rsquo;s of elements we would be looking for ways to optimize lookups.
+</p>
+
+<p>
+Instead we can use a concept called a &ldquo;tombstone&rdquo;.
+</p>
+
+
+<div id="org2c8f4f7" class="figure">
+<p><img src="tombstone.png" alt="tombstone.png" />
+</p>
+</div>
+
+<p>
+The basis of our entire hashtable is the hash and probe sequence. Inserstion, retreival, and deletion will all use this pipeline. Without introducing the complications of deletion they first 2 seemed simple, but our probing algorithm will have to change once we introduce tombstones. A tombstone essentially tells us that an element used to be here, so we should continue on searching.
+</p>
+
+<p>
+This also slightly complicated the concept of insertion. We can no longer find the first &ldquo;free&rdquo; space to insert our element. We may run into the case where we find a tombstone space while we probe along, but if we were to instantly insert ourselves into this space we run the risk of having a duplicate key in the map. For this reason we have to run our entire probing sequence on an insert before deciding to insert ourselves at the first available spot. Of course if we do happen to run into a truly empty space before any tombstones we are safe to insert oursevles there instead.
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-org2cb6e0a" class="outline-3">
+<h3 id="org2cb6e0a"><span class="underline">Memory Management and Resizing</span></h3>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 12/27/23</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>
