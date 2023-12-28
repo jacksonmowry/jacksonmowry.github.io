@@ -2,7 +2,7 @@
 #+HTML_LINK_UP: index.html
 #+title: /Hashmap/
 #+author: Jackson
-#+date: 12/27/23
+#+date: 12/28/23
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
 * _Introduction_
@@ -11,7 +11,7 @@ A hashmap is a data structure that gets a ton of use, but it's implementation ca
 The actual implementation shouldn't matter for the majority of users, as they just want to treat it as a fast key-value store. Yet the speed of our hashmap is something that can be greatly impacted by our choice of collision resolution.
 
 * _Architecture_
-When we store our hasmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
+When we store our hashmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
 
 For the purposes of experimentation and extensibility we are going to allow our implementation to take a function pointer to a hash function. This way we can check the speed and collision rate with various different hashing methods.
 
@@ -228,17 +228,24 @@ Instead we can use a concept called a "tombstone".
 
 [[file:tombstone.png]]
 
-The basis of our entire hashtable is the hash and probe sequence. Inserstion, retreival, and deletion will all use this pipeline. Without introducing the complications of deletion they first 2 seemed simple, but our probing algorithm will have to change once we introduce tombstones. A tombstone essentially tells us that an element used to be here, so we should continue on searching.
+The basis of our entire open addressing hashmap is the hash and probe sequence. Insertion, retrieval, and deletion will all use this pipeline. Without introducing the complications of deletion they first 2 seemed simple, but our probing algorithm will have to change once we introduce tombstones. A tombstone essentially tells us that an element used to be here, so we should continue on searching.
 
-This also slightly complicated the concept of insertion. We can no longer find the first "free" space to insert our element. We may run into the case where we find a tombstone space while we probe along, but if we were to instantly insert ourselves into this space we run the risk of having a duplicate key in the map. For this reason we have to run our entire probing sequence on an insert before deciding to insert ourselves at the first available spot. Of course if we do happen to run into a truly empty space before any tombstones we are safe to insert oursevles there instead.
+This also slightly complicated the concept of insertion. We can no longer find the first "free" space to insert our element. We may run into the case where we find a tombstone space while we probe along, but if we were to instantly insert ourselves into this space we run the risk of having a duplicate key in the map. For this reason we have to run our entire probing sequence on an insert before deciding to insert ourselves at the first available spot. Of course if we do happen to run into a truly empty space before any tombstones we are safe to insert ourselves there instead.
 
 
 ** _Memory Management and Resizing_
 With our user facing API covered now we have to talk about the management of all this data.
 
-Earlier we discussed the concept of load factor, and we would ideally like to keep this as low as possible (and below 50% in the case of quadratic probing). We wouldn't be able to acomplish this without dynamically allocating memory, so that is exatly what we have to do. However, we should probably keep a few things in mind when decided how our hashmap should behave.
+Earlier we discussed the concept of load factor, and we would ideally like to keep this as low as possible (and below 50% in the case of quadratic probing). We wouldn't be able to accomplish this without dynamically allocating memory, so that is exactly what we have to do. However, we should probably keep a few things in mind when decided how our hashmap should behave.
 
 *** Initial Size
-If a user is going to instantiate a hashmap is is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specific at create time. They both sound reasonable, so why not both.
+If a user is going to instantiate a hashmap it is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specific at create time. They both sound reasonable, so why not both.
 
 *** Resizing is Expensive
+We haven't covered this part of a hashmap yet, but it is more complex than it might first appear. My first thought was to simply expand the backing array and copy all the elements over, thus lowering our load factor. However, this won't help the speed of our hashmap at all, because elements that had collisions before will still have the same collision, and we may end up losing track of elements due to the new table size. Instead, we need to rebuild our hashmap each time we resize.
+
+The process is similar for both methods of collision management. We first create a new array to hold our bigger hashmap, and place each element into its new spot, one by one. This involves rehashing every single key to figure out where it should be placed, which gets expensive once a table is large enough. For this reason we want to try and avoid resizing the table when possible.
+
+
+
+#  LocalWords:  hashmap hashmaps
