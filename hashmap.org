@@ -10,26 +10,108 @@ A hashmap is a data structure that gets a ton of use, but it's implementation ca
 
 The actual implementation shouldn't matter for the majority of users, as they just want to treat it as a fast key-value store. Yet the speed of our hashmap is something that can be greatly impacted by our choice of collision resolution.
 
+* _Includes_
+#+begin_src C :exports code
+#include <stdint.h>     // uint64_t int64_t size_t
+#include <stdio.h>      // Printing (not necessary as a library, just for testing)
+#include <stdlib.h>     // Lots
+#include <stdbool.h>    // True/False
+#include <string.h>     // Nice to have string functions in C
+#include "hashmap.h"    // Our own header file
+#+end_src
+
+#+RESULTS:
+
+* _Header_
+I will be mixing the entire code for our hashmap throughout the article, to break up the reading, and to make I show you the code that goes along with the thought. Having this header file will ensure that even if our code is out of order, the compiler will be able to make sense of it.
+
+#+begin_src C :exports code
+#pragma once
+#include <stdint.h>
+#include <stdbool.h>
+
+#define TOMBSTONE UINT64_MAX
+#define STR_BUF_LEN 64
+
+bool is_prime(int);
+int next_prime(int);
+
+typedef struct {
+  void *key;
+  uint64_t value;
+} pair;
+
+// Pretty Printing Functions, char[STR_BUF_LEN] max output
+// Can be used to define a custom print function for more complex datatypes
+typedef void (*print_function)(char*, void*);
+void unsigned_print(char*, void*);
+void signed_print(char*, void*);
+void double_print(char*, void*);
+void address_print(char*, void*);
+void string_print(char*, void*);
+
+// Hashing Functions
+typedef uint64_t (*hash_function)(void *);
+uint64_t no_hash(void *);
+uint64_t basic_hash(void *);
+uint64_t fnv_hash(void *);
+uint64_t fnv_string_hash(void *);
+
+// Equality Functions
+typedef bool (*equals_function)(void*, void*);
+bool value_equals(void*, void*);
+bool str_equals(void*, void*);
+
+//Hashmap
+typedef struct {
+  float load_factor;
+  int capacity;
+  int size;
+  int collisions;
+  hash_function hash_func;
+  equals_function equals_func;
+  pair *array;
+} hashmap;
+
+hashmap hashmap_init(hash_function, equals_function, float, int);
+void hashmap_free(hashmap*);
+pair *hashmap_find(hashmap*, void*);
+pair *hashmap_first_avail(hashmap*, void*, int*);
+void hashmap_resize(hashmap*, int);
+void hashmap_insert(hashmap*, void*, uint64_t);
+uint64_t hashmap_get(hashmap*, void*);
+uint64_t hashmap_delete(hashmap*, void*);
+void hashmap_print(hashmap*, print_function, print_function);
+#+end_src
+
+#+RESULTS:
+
 * _Architecture_
 When we store our hashmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
 
 For the purposes of experimentation and extensibility we are going to allow our implementation to take a function pointer to a hash function. This way we can check the speed and collision rate with various different hashing methods.
 
 ** _Hashing_
+#+begin_src C :exports code
+uint64_t no_hash(void *pointer) {
+  return 0;
+}
+#+end_src
+Our first hash function is more of a nice to have during testing as opposed to an actually useful hashing function. It is quite fast however 🤓. We will later use this to test how our hashmap handles the case where multiple elements produce the same hash, and since they will all produce 0 this is a great way to test that.
+
+
 #+begin_src C exports: code
 uint64_t basic_hash(void *pointer) {
   return (uint64_t)pointer ^ ((uint64_t)pointer >> 32);
 }
-
 #+end_src
 
-Our first has function is relatively simple, it XORs the bottom half and the lower half together and returns the result. Not the best hash function, but with only 2 instructions it is about as quick as we can get without returning a constant value.
+Our first real hash function is relatively simple, it XORs the bottom half and the lower half together and returns the result. Not the best hash function, but with only 2 instructions it is about as quick as we can get without returning a constant value.
 
 #+begin_src C exports: code
-#include <stdint.h>
 uint64_t fnv_hash(void *pointer) {
   // Prime and offset basis values for 64-bit values
-  uint64_t hash = 14695981039346656037U;
+  uint64_t hash = 14695981039346656037ull;
   uint64_t byte_pointer = (uint64_t)pointer;
   for (int i = 0; i < 8; i++) {
     hash *= 1099511628211;
@@ -66,9 +148,57 @@ At first it seems like it would make sense to just store the value, since we kno
 
 The structure of this pair is not as important to our implementation, and may vary from language to language. We will use a struct here, python may use a tuple, others may use a class. The point here is that we need our elements to be either a fixed size, or something we can point to in memory. Our struct will contain two 8-byte values, totaling to a 16-byte struct.
 
+#+begin_src C
+typedef struct {
+  void *key;
+  uint64_t value;
+} pair;
+#+end_src
+
 With our elements wrapped up in a struct we can easily probe along and find when our key matches, or with separate chaining we will walk the linked list until we find our desired key. Due to our hash being a [[https://en.wikipedia.org/wiki/Pure_function][pure function]], we know that our resulting index and probing order will always be the same for any given key. This means if we do not find a match, we know with 100% certainity that the key is not present in our map.
 
 ** _Backing Storage_
+Lets now look at how we can initialize our hashmap, and eventually clean up the memory is uses.
+
+#+begin_src  C :exports code
+// `hash` is any hash function that takes a `void*` and returns a `uint64_t`
+// Set `load_factor` to `0` for default value
+// Set `size` to `0` for default value
+hashmap hashmap_init(hash_function hash, equals_function eq, float load_factor, int capacity) {
+  if (!hash) {
+    fprintf(stderr, "Please specify a valid hash function\n");
+    exit(EXIT_FAILURE);
+  }
+  if (!load_factor) {
+    load_factor = 0.5;
+  }
+  if (!capacity) {
+    capacity = 11;
+  }
+
+  pair *array = calloc(capacity, sizeof(pair));
+  if (!array) {
+    perror("calloc failed");
+    exit(EXIT_FAILURE);
+}
+  return (hashmap){load_factor, capacity, 0, 0, hash, eq, array};
+}
+
+// Frees all dynamically associated memory with a hashmap
+// the hashmap becomes invalid after calling free
+void hashmap_free(hashmap *h) {
+  if (!h) {
+    return;
+  }
+  free(h->array);
+  h = NULL;
+}
+#+end_src
+
+Don't worry too much about the ability to pass in a hashing function, or an equals function for now. We will discuss those later. For now let's focus on the memory allocation, for which I prefer to use ~calloc~. I find working with zereod our memory to not only be safer, but faster to catch any errors in my algorithms. If the user passes a specific capacity we use that, otherwise we set it to a reasonable prime number.
+
+Once the user is done with the hash map we need some way to cleanup all the memory that it occupies. Since we are focusing on an open addressing implementation we only need to free the memory allocated for our array. The last thing here is to set the hashmap itself to ~NULL~, this is a good idea when cleaning up our hashmap, as the rest of our user facing API will be setup to fail if the hashmap is ~NULL~.
+
 One of the main characteristics of a hashmap is its O(1) insertion and retrieval time. If you're familiar with an array we know that insertion and lookup with a known index is constant time, but forcing our users to keep track of every last index would be quite a pain. This is where a hashmap comes in. Instead of having users keep track of specific indexes, or performing a search to find a specific element, we will combine the backing storage of an array and a hashing function to figure out where each item should be placed.
 
 This is great because adding an item to an array is as simple as adding an offset to a pointer and writing to some memory, which is constant with any amount of elements. We load a value into a register, and store it with a known offset into the array. Even in RISC-V assembly we only have 2 instructions to store our value.
@@ -99,7 +229,9 @@ If a user is not concerned about memory usage they can choose a very low load fa
 
 You may notice that even with a low load factor we can still have collisions, so how do we handle this?
 
-** _Collision Resolution_
+** _Insertion and Collision Resolution_
+
+
 We will cover 2 different groups of strategies when it comes to resolving collisions in a hashmap.
 
 *** Open Addressing

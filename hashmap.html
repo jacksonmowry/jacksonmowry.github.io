@@ -19,9 +19,9 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Hashmap</i></h1>
-<div id="outline-container-orgca51e80" class="outline-2">
-<h2 id="orgca51e80"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-orgca51e80">
+<div id="outline-container-org40cf351" class="outline-2">
+<h2 id="org40cf351"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org40cf351">
 <p>
 A hashmap is a data structure that gets a ton of use, but it&rsquo;s implementation can be a bit of a black box. This is further complicated by the face that even language to language a hashmap does not have the same implementation. Some hashmaps choose to preserve the ordering of insertion (Python, V), others have different maps for unordered and ordered (sorted) storage (C++), and yet others differ on their choice of backing storage (arrays vs trees). Even among those that use an array for storage, there are 2 different ways to manage collisions.
 </p>
@@ -31,9 +31,91 @@ The actual implementation shouldn&rsquo;t matter for the majority of users, as t
 </p>
 </div>
 </div>
-<div id="outline-container-org9855661" class="outline-2">
-<h2 id="org9855661"><span class="underline">Architecture</span></h2>
-<div class="outline-text-2" id="text-org9855661">
+<div id="outline-container-orgc524d24" class="outline-2">
+<h2 id="orgc524d24"><span class="underline">Includes</span></h2>
+<div class="outline-text-2" id="text-orgc524d24">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">uint64_t int64_t size_t</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Printing (not necessary as a library, just for testing)</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Lots</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdbool.h&gt;</span>    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">True/False</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;string.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Nice to have string functions in C</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">"hashmap.h"</span>    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Our own header file</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org302d105" class="outline-2">
+<h2 id="org302d105"><span class="underline">Header</span></h2>
+<div class="outline-text-2" id="text-org302d105">
+<p>
+I will be mixing the entire code for our hashmap throughout the article, to break up the reading, and to make I show you the code that goes along with the thought. Having this header file will ensure that even if our code is out of order, the compiler will be able to make sense of it.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#pragma</span> once
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdbool.h&gt;</span>
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">TOMBSTONE</span> UINT64_MAX
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">STR_BUF_LEN</span> <span style="color: #B5CEA8; font-weight: bold;">64</span>
+
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">is_prime</span>(<span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">next_prime</span>(<span style="color: #35CDAF;">int</span>);
+
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> {
+  <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>;
+} <span style="color: #35CDAF;">pair</span>;
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pretty Printing Functions, char[STR_BUF_LEN] max output</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Can be used to define a custom print function for more complex datatypes</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">void</span> (*<span style="color: #35CDAF;">print_function</span>)(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">unsigned_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">signed_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">double_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">address_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">string_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Hashing Functions</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">uint64_t</span> (*<span style="color: #35CDAF;">hash_function</span>)(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">no_hash</span>(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">basic_hash</span>(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_hash</span>(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_string_hash</span>(<span style="color: #35CDAF;">void</span> *);
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Equality Functions</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">bool</span> (*<span style="color: #35CDAF;">equals_function</span>)(<span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">value_equals</span>(<span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">str_equals</span>(<span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">void</span>*);
+
+<span style="color: #579C4C;">//</span><span style="color: #579C4C;">Hashmap</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> {
+  <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">load_factor</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">capacity</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">size</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">collisions</span>;
+  <span style="color: #35CDAF;">hash_function</span> <span style="color: #85DDFF;">hash_func</span>;
+  <span style="color: #35CDAF;">equals_function</span> <span style="color: #85DDFF;">equals_func</span>;
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">array</span>;
+} <span style="color: #35CDAF;">hashmap</span>;
+
+<span style="color: #35CDAF;">hashmap</span> <span style="color: #D9DAA2;">hashmap_init</span>(<span style="color: #35CDAF;">hash_function</span>, <span style="color: #35CDAF;">equals_function</span>, <span style="color: #35CDAF;">float</span>, <span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_free</span>(<span style="color: #35CDAF;">hashmap</span>*);
+<span style="color: #35CDAF;">pair</span> *<span style="color: #D9DAA2;">hashmap_find</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">pair</span> *<span style="color: #D9DAA2;">hashmap_first_avail</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">int</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_resize</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_insert</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">uint64_t</span>);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_get</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_delete</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_print</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">print_function</span>, <span style="color: #35CDAF;">print_function</span>);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org12eef83" class="outline-2">
+<h2 id="org12eef83"><span class="underline">Architecture</span></h2>
+<div class="outline-text-2" id="text-org12eef83">
 <p>
 When we store our hashmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
 </p>
@@ -42,26 +124,35 @@ When we store our hashmap in an array each key should ideally map to a unique in
 For the purposes of experimentation and extensibility we are going to allow our implementation to take a function pointer to a hash function. This way we can check the speed and collision rate with various different hashing methods.
 </p>
 </div>
-<div id="outline-container-org45d8d20" class="outline-3">
-<h3 id="org45d8d20"><span class="underline">Hashing</span></h3>
-<div class="outline-text-3" id="text-org45d8d20">
+<div id="outline-container-org9236af0" class="outline-3">
+<h3 id="org9236af0"><span class="underline">Hashing</span></h3>
+<div class="outline-text-3" id="text-org9236af0">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">no_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+}
+</pre>
+</div>
+<p>
+Our first hash function is more of a nice to have during testing as opposed to an actually useful hashing function. It is quite fast however 🤓. We will later use this to test how our hashmap handles the case where multiple elements produce the same hash, and since they will all produce 0 this is a great way to test that.
+</p>
+
+
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">basic_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
   <span style="color: #339CDB;">return</span> (<span style="color: #35CDAF;">uint64_t</span>)pointer ^ ((<span style="color: #35CDAF;">uint64_t</span>)pointer &gt;&gt; <span style="color: #B5CEA8; font-weight: bold;">32</span>);
 }
-
 </pre>
 </div>
 
 <p>
-Our first has function is relatively simple, it XORs the bottom half and the lower half together and returns the result. Not the best hash function, but with only 2 instructions it is about as quick as we can get without returning a constant value.
+Our first real hash function is relatively simple, it XORs the bottom half and the lower half together and returns the result. Not the best hash function, but with only 2 instructions it is about as quick as we can get without returning a constant value.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>
-<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
+<pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
   <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Prime and offset basis values for 64-bit values</span>
-  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">hash</span> = <span style="color: #B5CEA8; font-weight: bold;">14695981039346656037U</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">hash</span> = <span style="color: #B5CEA8; font-weight: bold;">14695981039346656037ull</span>;
   <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">byte_pointer</span> = (<span style="color: #35CDAF;">uint64_t</span>)pointer;
   <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">8</span>; i++) {
     hash *= <span style="color: #B5CEA8; font-weight: bold;">1099511628211</span>;
@@ -102,9 +193,9 @@ Let&rsquo;s now take a look at how data is stored in a hashmap, so we can see wh
 </p>
 </div>
 </div>
-<div id="outline-container-org36734e4" class="outline-3">
-<h3 id="org36734e4"><span class="underline">Storage and Retrieval</span></h3>
-<div class="outline-text-3" id="text-org36734e4">
+<div id="outline-container-org5d6ebfd" class="outline-3">
+<h3 id="org5d6ebfd"><span class="underline">Storage and Retrieval</span></h3>
+<div class="outline-text-3" id="text-org5d6ebfd">
 <p>
 How does a hashmap actually store the data we want to retrieve?
 </p>
@@ -117,14 +208,22 @@ At first it seems like it would make sense to just store the value, since we kno
 The structure of this pair is not as important to our implementation, and may vary from language to language. We will use a struct here, python may use a tuple, others may use a class. The point here is that we need our elements to be either a fixed size, or something we can point to in memory. Our struct will contain two 8-byte values, totaling to a 16-byte struct.
 </p>
 
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> {
+  <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>;
+} <span style="color: #35CDAF;">pair</span>;
+</pre>
+</div>
+
 <p>
 With our elements wrapped up in a struct we can easily probe along and find when our key matches, or with separate chaining we will walk the linked list until we find our desired key. Due to our hash being a <a href="https://en.wikipedia.org/wiki/Pure_function">pure function</a>, we know that our resulting index and probing order will always be the same for any given key. This means if we do not find a match, we know with 100% certainity that the key is not present in our map.
 </p>
 </div>
 </div>
-<div id="outline-container-org95e6a0a" class="outline-3">
-<h3 id="org95e6a0a"><span class="underline">Backing Storage</span></h3>
-<div class="outline-text-3" id="text-org95e6a0a">
+<div id="outline-container-orgfeadda6" class="outline-3">
+<h3 id="orgfeadda6"><span class="underline">Backing Storage</span></h3>
+<div class="outline-text-3" id="text-orgfeadda6">
 <p>
 One of the main characteristics of a hashmap is its O(1) insertion and retrieval time. If you&rsquo;re familiar with an array we know that insertion and lookup with a known index is constant time, but forcing our users to keep track of every last index would be quite a pain. This is where a hashmap comes in. Instead of having users keep track of specific indexes, or performing a search to find a specific element, we will combine the backing storage of an array and a hashing function to figure out where each item should be placed.
 </p>
@@ -134,7 +233,7 @@ This is great because adding an item to an array is as simple as adding an offse
 </p>
 
 
-<div id="org5ab97f8" class="figure">
+<div id="org93152c1" class="figure">
 <p><img src="array.png" alt="array.png" />
 </p>
 </div>
@@ -173,20 +272,68 @@ If a user is not concerned about memory usage they can choose a very low load fa
 </p>
 
 <p>
+Lets now look at how we can initialize our hashmap, and eventually clean up the memory is uses.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">`hash` is any hash function that takes a `void*` and returns a `uint64_t`</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set `load_factor` to `0` for default value</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set `size` to `0` for default value</span>
+<span style="color: #35CDAF;">hashmap</span> <span style="color: #D9DAA2;">hashmap_init</span>(<span style="color: #35CDAF;">hash_function</span> <span style="color: #85DDFF;">hash</span>, <span style="color: #35CDAF;">equals_function</span> <span style="color: #85DDFF;">eq</span>, <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">load_factor</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">capacity</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>hash) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Please specify a valid hash function\n"</span>);
+    exit(EXIT_FAILURE);
+  }
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>load_factor) {
+    load_factor = <span style="color: #B5CEA8; font-weight: bold;">0.5</span>;
+  }
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>capacity) {
+    capacity = <span style="color: #B5CEA8; font-weight: bold;">11</span>;
+  }
+
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">array</span> = calloc(capacity, <span style="color: #339CDB;">sizeof</span>(pair));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>array) {
+    perror(<span style="color: #DB8E73;">"calloc failed"</span>);
+    exit(EXIT_FAILURE);
+}
+  <span style="color: #339CDB;">return</span> (hashmap){load_factor, capacity, <span style="color: #B5CEA8; font-weight: bold;">0</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>, hash, eq, array};
+}
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Frees all dynamically associated memory with a hashmap</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">the hashmap becomes invalid after calling free</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_free</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    <span style="color: #339CDB;">return</span>;
+  }
+  free(h-&gt;array);
+  h = <span style="color: #339CDB;">NULL</span>;
+}
+</pre>
+</div>
+
+<p>
+Don&rsquo;t worry too much about the ability to pass in a hashing function, or an equals function for now. We will discuss those later. For now let&rsquo;s focus on the memory allocation, for which I prefer to use <code>calloc</code>. I find working with zereod our memory to not only be safer, but faster to catch any errors in my algorithms. If the user passes a specific capacity we use that, otherwise we set it to a reasonable prime number.
+</p>
+
+<p>
+Once the user is done with the hash map we need some way to cleanup all the memory that it occupies. Since we are focusing on an open addressing implementation we only need to free the memory allocated for our array. The last thing here is to set the hashmap itself to <code>NULL</code>, this is a good idea when cleaning up our hashmap, as the rest of our user facing API will be setup to fail if the hashmap is <code>NULL</code>.
+</p>
+
+<p>
 You may notice that even with a low load factor we can still have collisions, so how do we handle this?
 </p>
 </div>
 </div>
-<div id="outline-container-org4ac1541" class="outline-3">
-<h3 id="org4ac1541"><span class="underline">Collision Resolution</span></h3>
-<div class="outline-text-3" id="text-org4ac1541">
+<div id="outline-container-org06aeb41" class="outline-3">
+<h3 id="org06aeb41"><span class="underline">Insertion and Collision Resolution</span></h3>
+<div class="outline-text-3" id="text-org06aeb41">
 <p>
 We will cover 2 different groups of strategies when it comes to resolving collisions in a hashmap.
 </p>
 </div>
-<div id="outline-container-org2538151" class="outline-4">
-<h4 id="org2538151">Open Addressing</h4>
-<div class="outline-text-4" id="text-org2538151">
+<div id="outline-container-org0beb8ce" class="outline-4">
+<h4 id="org0beb8ce">Open Addressing</h4>
+<div class="outline-text-4" id="text-org0beb8ce">
 <p>
 <i>Linear Probing</i>
 <img src="linear_probe.png" alt="linear_probe.png" />
@@ -201,7 +348,7 @@ In open addressing when 2 elements map to the same index we simply move to a dif
 <img src="quad_probe.png" alt="quad_probe.png" />
 </p>
 
-<pre class="example" id="org4eacc79">
+<pre class="example" id="orgc5c6e53">
 An interesting thing to note with quadratic probing is its ideal conditions. Quadradic probing performs best when using a prime number table size, and a load factor &lt; 0.5. In these conditions quadratic probing will not only always find a valid position, it will also do it in size/2 jumps.
 
 When we go to implement our hashmap with open addressing later we will  see if we can ensure that both of these conditions are always met.
@@ -224,15 +371,15 @@ With that being said, double hashing would be a good strategy to explore if it f
 </p>
 </div>
 </div>
-<div id="outline-container-orgaea1250" class="outline-4">
-<h4 id="orgaea1250">Separate Chaining</h4>
-<div class="outline-text-4" id="text-orgaea1250">
+<div id="outline-container-org33af32b" class="outline-4">
+<h4 id="org33af32b">Separate Chaining</h4>
+<div class="outline-text-4" id="text-org33af32b">
 <p>
 The other main strategy to resolve collisions in a hashmap is separate chaining.
 </p>
 
 
-<div id="orge39075a" class="figure">
+<div id="org7657b66" class="figure">
 <p><img src="separate_chaining.png" alt="separate_chaining.png" />
 </p>
 </div>
@@ -246,9 +393,9 @@ When we go to insert an element all we have to do is make our new node point to 
 </p>
 </div>
 </div>
-<div id="outline-container-orgc2085ab" class="outline-4">
-<h4 id="orgc2085ab">Speed Considerations</h4>
-<div class="outline-text-4" id="text-orgc2085ab">
+<div id="outline-container-org54f4f3e" class="outline-4">
+<h4 id="org54f4f3e">Speed Considerations</h4>
+<div class="outline-text-4" id="text-org54f4f3e">
 <p>
 As you may have noticed with open addressing this also increases the time it takes to find an element if we have a high number of collisions. While separate chaining may be easier to implement, it is potentially a slower implementation of a hashmap.
 </p>
@@ -323,18 +470,18 @@ As you may have noticed with open addressing this also increases the time it tak
 <tbody>
 <tr>
 <td class="org-left">Time<sub>Arr</sub>:</td>
-<td class="org-right">0.079</td>
+<td class="org-right">0.131</td>
 <td class="org-left">milliseconds</td>
 </tr>
 
 <tr>
 <td class="org-left">Time<sub>LL</sub>:</td>
-<td class="org-right">44.838</td>
+<td class="org-right">40.539</td>
 <td class="org-left">mlliseconds</td>
 </tr>
 
 <tr>
-<td class="org-left">565x</td>
+<td class="org-left">309x</td>
 <td class="org-right">Slower</td>
 <td class="org-left">&#xa0;</td>
 </tr>
@@ -362,9 +509,9 @@ Having said all of that, theory does not always map 1:1 to the real world. So we
 </p>
 </div>
 </div>
-<div id="outline-container-org7acdba5" class="outline-4">
-<h4 id="org7acdba5">C Data Structures</h4>
-<div class="outline-text-4" id="text-org7acdba5">
+<div id="outline-container-org81522f6" class="outline-4">
+<h4 id="org81522f6">C Data Structures</h4>
+<div class="outline-text-4" id="text-org81522f6">
 <p>
 As an aside, one of the biggest reasons I enjoy C is that is encourages users to implement their own data structures. These can have specific behavior that suits their use case. For example, we will be implementing as general of a hashmap as we can here, with <code>void*</code> keys, and <code>uint64_t</code> values. The keys can be a pointer to any value, or be used to store a 64-bit integer, and same with the values. We are doing this to show the flexability of this implementation, but using pointers will slow down our hashmap.
 </p>
@@ -375,9 +522,9 @@ If you know that your hash map will always use strings as keys, and integers as 
 </div>
 </div>
 </div>
-<div id="outline-container-org7d1db43" class="outline-3">
-<h3 id="org7d1db43"><span class="underline">Deletion</span></h3>
-<div class="outline-text-3" id="text-org7d1db43">
+<div id="outline-container-org3c59371" class="outline-3">
+<h3 id="org3c59371"><span class="underline">Deletion</span></h3>
+<div class="outline-text-3" id="text-org3c59371">
 <p>
 At this point we would have a nearly complete hashmap, with the ability set and get any arbitrary pair. The last thing we need to implement for our user facing API is the removal of an element.
 </p>
@@ -403,7 +550,7 @@ Instead we can use a concept called a &ldquo;tombstone&rdquo;.
 </p>
 
 
-<div id="orgf44cd4a" class="figure">
+<div id="orgdd0be18" class="figure">
 <p><img src="tombstone.png" alt="tombstone.png" />
 </p>
 </div>
@@ -417,9 +564,9 @@ This also slightly complicated the concept of insertion. We can no longer find t
 </p>
 </div>
 </div>
-<div id="outline-container-org99872dc" class="outline-3">
-<h3 id="org99872dc"><span class="underline">Memory Management and Resizing</span></h3>
-<div class="outline-text-3" id="text-org99872dc">
+<div id="outline-container-orgfae4db3" class="outline-3">
+<h3 id="orgfae4db3"><span class="underline">Memory Management and Resizing</span></h3>
+<div class="outline-text-3" id="text-orgfae4db3">
 <p>
 With our user facing API covered now we have to talk about the management of all this data.
 </p>
@@ -428,17 +575,17 @@ With our user facing API covered now we have to talk about the management of all
 Earlier we discussed the concept of load factor, and we would ideally like to keep this as low as possible (and below 50% in the case of quadratic probing). We wouldn&rsquo;t be able to accomplish this without dynamically allocating memory, so that is exactly what we have to do. However, we should probably keep a few things in mind when decided how our hashmap should behave.
 </p>
 </div>
-<div id="outline-container-orgb3913db" class="outline-4">
-<h4 id="orgb3913db">Initial Size</h4>
-<div class="outline-text-4" id="text-orgb3913db">
+<div id="outline-container-org8bef2ab" class="outline-4">
+<h4 id="org8bef2ab">Initial Size</h4>
+<div class="outline-text-4" id="text-org8bef2ab">
 <p>
 If a user is going to instantiate a hashmap it is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specific at create time. They both sound reasonable, so why not both.
 </p>
 </div>
 </div>
-<div id="outline-container-org2843a27" class="outline-4">
-<h4 id="org2843a27">Resizing is Expensive</h4>
-<div class="outline-text-4" id="text-org2843a27">
+<div id="outline-container-org1f9ce60" class="outline-4">
+<h4 id="org1f9ce60">Resizing is Expensive</h4>
+<div class="outline-text-4" id="text-org1f9ce60">
 <p>
 We haven&rsquo;t covered this part of a hashmap yet, but it is more complex than it might first appear. My first thought was to simply expand the backing array and copy all the elements over, thus lowering our load factor. However, this won&rsquo;t help the speed of our hashmap at all, because elements that had collisions before will still have the same collision, and we may end up losing track of elements due to the new table size. Instead, we need to rebuild our hashmap each time we resize.
 </p>
