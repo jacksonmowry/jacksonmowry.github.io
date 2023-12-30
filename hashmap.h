@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 #define TOMBSTONE UINT64_MAX
 #define STR_BUF_LEN 64
