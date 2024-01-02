@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Memory Allocator/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Memory Allocator</i></h1>
+<div id="outline-container-org46231af" class="outline-2">
+<h2 id="org46231af"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org46231af">
+<p>
+We use memory allocators nearly every time we write software. They allow our programs to be dynamic and handle a wide variety of input, or user interactions. In languages like C the programmer interracts directly with the memory allocator through calling <code>malloc()</code> and <code>free()</code>. Higher level languages extract away the need for the programmer to worry about memory management, usually through a garbage collector. But what does a memory allocator do? Hopefully we can figure that out through exploring one possible implementation.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3e9e16e" class="outline-2">
+<h2 id="org3e9e16e"><span class="underline">Headers</span></h2>
+<div class="outline-text-2" id="text-org3e9e16e">
+<p>
+Here are all the headers I believe we will need to complete this project. Apologies if we don&rsquo;t end up using some of them, just try to cover my bases.
+</p>
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #4078f2; font-weight: bold;">#include</span> <span style="color: #50a14f;">&lt;assert.h&gt;</span>
+<span style="color: #4078f2; font-weight: bold;">#include</span> <span style="color: #50a14f;">&lt;linux/limits.h&gt;</span>
+<span style="color: #4078f2; font-weight: bold;">#include</span> <span style="color: #50a14f;">&lt;stdint.h&gt;</span>
+<span style="color: #4078f2; font-weight: bold;">#include</span> <span style="color: #50a14f;">&lt;stdio.h&gt;</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3f6b8d1" class="outline-2">
+<h2 id="org3f6b8d1"><span class="underline">Exploration</span></h2>
+<div class="outline-text-2" id="text-org3f6b8d1">
+<p>
+You have hopefully heard a concept in programming called the &ldquo;heap&rdquo;. Each time we dynamically allocate memory in our program it ends up on the heap. We know that the computer has all the memory available, so it must have given some of this memory to our heap. For now let&rsquo;s just imagine that asking for this memory in our program is super complicated, so we will use a statically allocated buffer the we manage ourselves.
+</p>
+
+<p>
+Let&rsquo;s start off by laying our ground work for this exploration.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #4078f2; font-weight: bold;">#define</span> <span style="color: #6a1868;">HEAP_SIZE</span> <span style="color: #da8548; font-weight: bold;">1024</span>
+
+<span style="color: #986801;">void</span>* <span style="color: #6a1868;">heap_base</span>;
+
+<span style="color: #e45649;">typedef</span> <span style="color: #e45649;">struct</span> {
+  <span style="color: #986801;">size_t</span> <span style="color: #6a1868;">size</span>;
+} <span style="color: #986801;">heap_seg</span>;
+</pre>
+</div>
+
+<p>
+For now we will set our heap to a fixed size of <code>1024</code> bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of out heap. Then we define a struct for each segment of our heap, which for now just holds a <code>size_t</code> to hold the size in bytes. We will later see how we can perform some cleaver transformations on this single number to store more information.
+</p>
+</div>
+
+<div id="outline-container-org87df69f" class="outline-3">
+<h3 id="org87df69f"><span class="underline">Initialization</span></h3>
+<div class="outline-text-3" id="text-org87df69f">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #986801;">int</span> <span style="color: #a626a4;">heap_init</span>(<span style="color: #986801;">void</span>* <span style="color: #6a1868;">base</span>) {
+  <span style="color: #e45649;">if</span> (<span style="color: #4078f2; font-weight: bold;">!</span>base) { <span style="color: #e45649;">return</span> -<span style="color: #da8548; font-weight: bold;">1</span>; }
+  heap_base = base;
+
+  *(<span style="color: #986801;">heap_seg</span>*)heap_base = (heap_seg){HEAP_SIZE - <span style="color: #e45649;">sizeof</span>(heap_seg)};
+  <span style="color: #e45649;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+}
+
+</pre>
+</div>
+
+<p>
+From ther we need to set our heap up so that users can begin to use it. In a real heap implementation this would be included in the first call to malloc, but with our static version this won&rsquo;t be possible. Our only real setup here is to initialize our first heap segment, which will occupy the entire space by itself. We want to keep heap segments as large as possible so that we have a higher likelihood of being able to fit a requested allocation.
+</p>
+
+<p>
+Once our heap is ready to go we can begin handing out pointers to different segments. Sounds easy right?
+</p>
+</div>
+</div>
+
+<div id="outline-container-org6ceb46b" class="outline-3">
+<h3 id="org6ceb46b"><span class="underline">Allocation</span></h3>
+<div class="outline-text-3" id="text-org6ceb46b">
+<p>
+We will leave error handling out for right now to focus in on the core logic.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #986801;">void</span> *<span style="color: #a626a4;">heap_malloc</span>(<span style="color: #986801;">size_t</span> <span style="color: #6a1868;">bytes</span>) {
+  <span style="color: #986801;">heap_seg</span> *<span style="color: #6a1868;">ptr</span> = heap_base;
+  <span style="color: #e45649;">while</span> (ptr &lt; (<span style="color: #986801;">heap_seg</span>*)(heap_base + HEAP_SIZE)) {
+    <span style="color: #e45649;">if</span> ((ptr-&gt;size &amp; <span style="color: #da8548; font-weight: bold;">0x1</span>) == <span style="color: #da8548; font-weight: bold;">0</span> &amp;&amp; ptr-&gt;size &gt;= bytes + <span style="color: #e45649;">sizeof</span>(heap_seg)) {
+      <span style="color: #9ca0a4;">// </span><span style="color: #9ca0a4;">Store old capacity</span>
+      <span style="color: #986801;">size_t</span> <span style="color: #6a1868;">old_cap</span> = ptr-&gt;size;
+      <span style="color: #9ca0a4;">// </span><span style="color: #9ca0a4;">Heap segment is free, and big enough</span>
+      ptr-&gt;size = <span style="color: #e45649;">sizeof</span>(heap_seg) +
+                      ((bytes + (<span style="color: #e45649;">sizeof</span>(heap_seg) - <span style="color: #da8548; font-weight: bold;">1</span>)) / <span style="color: #e45649;">sizeof</span>(heap_seg)) *
+                          <span style="color: #e45649;">sizeof</span>(heap_seg) |
+                  <span style="color: #da8548; font-weight: bold;">0x1</span>;
+      <span style="color: #986801;">void</span> *<span style="color: #6a1868;">user_block</span> = (<span style="color: #986801;">void</span> *)(ptr + <span style="color: #da8548; font-weight: bold;">1</span>);
+      <span style="color: #e45649;">if</span> (old_cap &gt; ptr-&gt;size) {
+        <span style="color: #986801;">heap_seg</span> *<span style="color: #6a1868;">next_block</span> = ptr + ptr-&gt;size / <span style="color: #e45649;">sizeof</span>(heap_seg);
+        next_block-&gt;size = old_cap - (ptr-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+      }
+      <span style="color: #e45649;">return</span> user_block;
+    }
+    ptr += ptr-&gt;size / <span style="color: #e45649;">sizeof</span>(heap_seg);
+  }
+
+  <span style="color: #e45649;">return</span> <span style="color: #b751b6;">NULL</span>;
+}
+</pre>
+</div>
+
+<p>
+Yeah, it&rsquo;s a bit more going on that I would have assumed at first, but it won&rsquo;t be too hard to step through. Also note that we are currently covering what is called <i>first fit</i> right now, where we find the first chunk able to fulfil the allocation request, we will cover a different allocation strategy later.
+</p>
+
+<p>
+We first start at the base of our heap, and beging checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it&rsquo;s size to hold the requested amount of bytes. You may notice that we don&rsquo;t set the size to be equal to <code>bytes</code> as the user requested, instead we have to factor in a few more things.
+</p>
+
+<p>
+The first portion of the size is the <code>heap_seg</code> struct itself, which in the current implementation is 8 bytes. The next section is the data, which needs to be aligned on 8 byte boundries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
+</p>
+
+<p>
+Once we put this all together we set the least significant bit to 1. This final bit allows us to keep track of if the heap segment is in use. We are able to do this because each size will be a multiple of 8, meaning that its lower 3 bits will always be 0. We are currently using 1 of the 3 bits, so we can potentially even store more flags if needed.
+</p>
+
+<p>
+There we go, we have now produced a heap segment that can be returned back to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity e get a pointer to the start of the next heap segment, and  then set it&rsquo;s size to the remaining space in the heap.
+</p>
+
+
+<div id="org857ff27" class="figure">
+<p><img src="heap_segmenting.png" alt="heap_segmenting.png" />
+</p>
+</div>
+
+<p>
+Thats how we hand out segments of our heap to users! If we don&rsquo;t find a sutible segment we advance to the next segment and start over again.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #986801;">int</span> <span style="color: #a626a4;">main</span>() {
+  <span style="color: #986801;">uint8_t</span> <span style="color: #6a1868;">heap</span>[HEAP_SIZE];
+  heap_init(heap);
+
+  <span style="color: #986801;">int</span> *<span style="color: #6a1868;">block</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
+  assert(block != <span style="color: #b751b6;">NULL</span>);
+  *block = <span style="color: #da8548; font-weight: bold;">4</span>;
+
+  <span style="color: #986801;">int</span> *<span style="color: #6a1868;">num</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
+  assert(num != <span style="color: #b751b6;">NULL</span>);
+  *num = <span style="color: #da8548; font-weight: bold;">7</span>;
+
+  printf(<span style="color: #50a14f;">"Num holds: %d\n"</span>, *num);
+  printf(<span style="color: #50a14f;">"Block holds: %d\n"</span>, *block);
+}
+</pre>
+</div>
+
+<pre class="example" id="orge905c88">
+Num holds: 7
+Block holds: 4
+</pre>
+
+<p>
+It was fairly easy to hand out memory, so how does the user give that memory back?
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9792955" class="outline-3">
+<h3 id="org9792955"><span class="underline">Freeing</span></h3>
+<div class="outline-text-3" id="text-org9792955">
+<p>
+In our most basic implementation &ldquo;freeing&rdquo; memory will be nothing more than setting its least significant bit back to 0.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #986801;">void</span> <span style="color: #a626a4;">heap_free</span>(<span style="color: #986801;">void</span>* <span style="color: #6a1868;">block</span>) {
+  <span style="color: #e45649;">if</span> (<span style="color: #4078f2; font-weight: bold;">!</span>block) { <span style="color: #e45649;">return</span>; }
+  <span style="color: #986801;">heap_seg</span> *<span style="color: #6a1868;">header</span> = (<span style="color: #986801;">heap_seg</span>*)block - <span style="color: #da8548; font-weight: bold;">1</span>;
+  header-&gt;size ^= <span style="color: #da8548; font-weight: bold;">1</span>;
+}
+</pre>
+</div>
+
+<p>
+But we may run into a bit of a problem here. What happens if a user allocated a whole bunch of 8 byte segments right at the start of their program, and then frees them all back once their program gets under way. Then they need to allocated some much larger segments of memory. With our current free function we would have to skip over all of these tiny segments till we found one large chunk to hand back to the user. What if all of those small segments added together would have been enough to handle their allocation.
+</p>
+
+<p>
+This is where we have to rejoin our heap segments to ensure that we do not &ldquo;fragment&rdquo; the heap. Surprisngly this is also fairly easy to accomplish once you can visualize the possible states our heap may be in.
+</p>
+
+<p>
+When a user requests to free a block there are only 3 possible states that it may be in.
+</p>
+
+
+<div id="org39c2f93" class="figure">
+<p><img src="freeing_patterns.png" alt="freeing_patterns.png" />
+</p>
+</div>
+<ol class="org-ol">
+<li>The segment above or below is free, in which case we need to combine our segment with the adjacent free segment.</li>
+<li>Both segments above and below are free, in which case we need to combine all 3 into a larger block.</li>
+<li>The segments above and below are still in use, in which case we simply set the LSB to 0.</li>
+</ol>
+
+<p>
+If we follow this behavior on every free call we ensure that every block in our heap will fall into 1 of these 3 states. The implementation here is just to check the block above and below the current block, then apply any needed transformations.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #986801;">void</span> <span style="color: #a626a4;">heap_free</span>(<span style="color: #986801;">void</span>* <span style="color: #6a1868;">block</span>) {
+  <span style="color: #e45649;">if</span> (<span style="color: #4078f2; font-weight: bold;">!</span>block) { <span style="color: #e45649;">return</span>; }
+  <span style="color: #986801;">heap_seg</span> *<span style="color: #6a1868;">header</span> = (<span style="color: #986801;">heap_seg</span>*)block - <span style="color: #da8548; font-weight: bold;">1</span>;
+  <span style="color: #9ca0a4;">// </span><span style="color: #9ca0a4;">Get prev/next pointers</span>
+  <span style="color: #986801;">heap_seg</span> *<span style="color: #6a1868;">prev</span> = header - header-&gt;size / <span style="color: #e45649;">sizeof</span>(heap_seg);
+  <span style="color: #986801;">heap_seg</span> *<span style="color: #6a1868;">next</span> = header + header-&gt;size / <span style="color: #e45649;">sizeof</span>(heap_seg);
+  <span style="color: #e45649;">if</span> (prev &gt; (<span style="color: #986801;">heap_seg</span>*)heap_base &amp;&amp; <span style="color: #4078f2; font-weight: bold;">!</span>(prev-&gt;size &amp; <span style="color: #da8548; font-weight: bold;">1</span>)) {
+    prev-&gt;size += header-&gt;size;
+    header = prev;
+  }
+  <span style="color: #e45649;">if</span> (next &lt; heap_base + HEAP_SIZE &amp;&amp; <span style="color: #4078f2; font-weight: bold;">!</span>(next-&gt;size &amp; <span style="color: #da8548; font-weight: bold;">1</span>)) {
+    header-&gt;size += next-&gt;size;
+  }
+
+  header-&gt;size ^= <span style="color: #da8548; font-weight: bold;">1</span>;
+}
+</pre>
+</div>
+
+<p>
+Expanding on the previous function we obtain pointers to the blocks directly before and after the current block. Then we can check each block, and see if it needs to be merged. If they previous block is free we update it&rsquo;s size to include the current block, and update our <code>header</code> pointer to this previous block. Then the next block is checked, and we update our size accordingly. The last step is to zero out the &ldquo;in use&rdquo; bit of our header.
+</p>
+
+<p>
+Note that we do not need to explicitly do anything with the freed memory. By updating the size of the nodes around it we ensure that it will be skipped over when searching for the closest free block. Also, by updating our <code>header</code> pointer we ensure that the following logic will work for any of the 3 possible states of our segment.
+</p>
+
+<p>
+With our allocation and freeing functions complete, that is pretty much it for the most basic of heap allocators.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5ae5163" class="outline-3">
+<h3 id="org5ae5163"><span class="underline">Example Usage</span></h3>
+<div class="outline-text-3" id="text-org5ae5163">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #986801;">int</span> <span style="color: #a626a4;">main</span>() {
+  <span style="color: #986801;">uint8_t</span> <span style="color: #6a1868;">heap</span>[HEAP_SIZE];
+  heap_init(heap);
+
+  <span style="color: #986801;">int</span> *<span style="color: #6a1868;">block</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
+  *block = <span style="color: #da8548; font-weight: bold;">4</span>;
+
+  <span style="color: #986801;">int</span> *<span style="color: #6a1868;">num</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
+  *num = <span style="color: #da8548; font-weight: bold;">7</span>;
+
+  <span style="color: #986801;">int</span> *<span style="color: #6a1868;">test</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
+  *test = <span style="color: #da8548; font-weight: bold;">66</span>;
+
+  printf(<span style="color: #50a14f;">"Address of block: %p\n"</span>, block);
+  printf(<span style="color: #50a14f;">"Address of num: %p\n"</span>, num);
+  printf(<span style="color: #50a14f;">"Address of test: %p\n"</span>, test);
+
+  printf(<span style="color: #50a14f;">"Size of block: %d\n"</span>, ((<span style="color: #986801;">heap_seg</span>*)block-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #50a14f;">"Size of num: %d\n"</span>, ((<span style="color: #986801;">heap_seg</span>*)num-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #50a14f;">"Size of test: %d\n"</span>, ((<span style="color: #986801;">heap_seg</span>*)test-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+
+  heap_free(num);
+  heap_free(test);
+
+  num = heap_malloc(<span style="color: #da8548; font-weight: bold;">32</span>);
+  *num = <span style="color: #da8548; font-weight: bold;">1</span>;
+
+  printf(<span style="color: #50a14f;">"Address of block: %p\n"</span>, block);
+  printf(<span style="color: #50a14f;">"Address of num: %p\n"</span>, num);
+  printf(<span style="color: #50a14f;">"Size of block: %d\n"</span>, ((<span style="color: #986801;">heap_seg</span>*)block-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #50a14f;">"Size of num: %d\n"</span>, ((<span style="color: #986801;">heap_seg</span>*)num-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+}
+</pre>
+</div>
+
+<pre class="example" id="orge7c1429">
+Address of block: 0x7ffcef5b94a8  &lt;-- Heap Base
+Address of num: 0x7ffcef5b94b8    &lt;-- Heap Base + 16
+Address of test: 0x7ffcef5b94c8   &lt;-- Heap Base + 32
+
+Size of block: 16
+Size of num: 16
+Size of test: 16
+
+Address of block: 0x7ffcef5b94a8  &lt;-- Heap Base
+Address of num: 0x7ffcef5b94b8    &lt;-- Heap Base + 16 (same address as above)
+
+Size of block: 16
+Size of num: 40   &lt;-- 32 byte allocation + 8 byte header
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgff6d1e8" class="outline-3">
+<h3 id="orgff6d1e8"><span class="underline">Takeaways</span></h3>
+<div class="outline-text-3" id="text-orgff6d1e8">
+<p>
+Implementing a naive memory allocator is fairly easy. It won&rsquo;t be the fastest one in the world, nor the most secure. Either way, this small explorations shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
+</p>
+
+<p>
+The <i>first fit</i> algorithm that we choce to implement above is one of the quicker ways to allocate memory (we can also add an additional global variable that points to the first free block, to further increase speed). While speed is an important factor when it comes to allocating memory, sometimes the user might wish to be more space efficient as opposed to time efficient.
+</p>
+
+
+<div id="orgc52358b" class="figure">
+<p><img src="first_fit.png" alt="first_fit.png" />
+</p>
+</div>
+
+<p>
+Instead of finding the first available spot we can find the <i>best fit</i> segment which is the smallest segment large enough to handle the requested allocation. One of the major advantages of this algorithm is that it avoids splitting large heap segments, which we should try to preserve for large allocations.
+</p>
+
+
+<div id="orgf0e95e0" class="figure">
+<p><img src="best_fit.png" alt="best_fit.png" />
+</p>
+</div>
+
+<p>
+The biggest problem with splitting large heap segments is that we fragment our heap. Our next large allocation may not be able to find a contiguous segment to hold it, thus requiring our allocator to go out to the operating system and request more memory. For this reason, our next iteration will explore this algorithm.
+</p>
+
+<p>
+Our current implementation also relies on a statically allocated buffer, meaning once we fill this up we won&rsquo;t be able to hand out more memory. Lets see how we can make this behavior more dynamic by requested more memory from the operating system.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4533944" class="outline-2">
+<h2 id="org4533944"><span class="underline">sbrk()</span></h2>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 12/30/23</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>

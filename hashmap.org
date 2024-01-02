@@ -2,7 +2,7 @@
 #+HTML_LINK_UP: index.html
 #+title: /Hashmap/
 #+author: Jackson
-#+date: 12/28/23
+#+date: 12/30/23
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
 * _Introduction_
@@ -110,6 +110,7 @@ Our first real hash function is relatively simple, it XORs the bottom half and t
 
 #+begin_src C exports: code
 uint64_t fnv_hash(void *pointer) {
+  if (!pointer) { return 0; }
   // Prime and offset basis values for 64-bit values
   uint64_t hash = 14695981039346656037ull;
   uint64_t byte_pointer = (uint64_t)pointer;
@@ -135,12 +136,16 @@ Original: 0x5589081942c0  |  Hashed: 0x63c1db2f83d3da3a
 Original: 0x5589081942e0  |  Hashed: 0xe114c79be4e359a
 #+end_src
 
-For a first test I made 3 pointers just like you might when making 3 C-style strings. These values are on the stack, so they are all just a few bytes apart, which is a great test for our hash functions. There is a term called the [[https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function][avalanche effect]] in which a single bit change in the value to be hashed produces a very large change in the resulting hash.
+For a first test I made 3 pointers just like you might when making 3 C-style strings. These values are on the stack, so they are all just a few bytes apart, which is a great test for our hash functions. There is a term called the [[https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function][avalanche effect]] in which a single bit change in the value to be hashed produces a very large change in the resulting hash. In order for our hash function to minimize collisions we should choose a function that has a very high avalanche effect.
 
-Our more basic hash function does nothing to the upper 32 bits, and the lower 32 bits only differ by their second hexadecimal digit. This may not be that big of an issue with a large table, but a smaller table may expose some issues. The FNV hash produces vastly different has values from small differences in input values.
+Our more basic hash function does nothing to the upper 32 bits, and the lower 32 bits only differ by their second hexadecimal digit. This may not be that big of an issue with a large table, but a smaller table may expose some issues.
+
+Our last hash is called an FNV hash, which produces vastly different has values from small differences in input values. It works by starting with a base seed, then apply 2 transformations to this seed per byte in our input number.
+
+We also have a string hashing function that is based on the original FNV hash, just adapted to using the bytes of a string as opposed to the bytes of a number.
 
 *** Hashing Speed
-As we have just seen, hashing is its own complex topic, but for our cases we are concerned with fast, non-cryptographic hashes. We have 4 potential hash functions, so we can take a look at their speed differences in code.
+As we have just seen, hashing is its own complex topic, but for our case we are concerned with fast, non-cryptographic hashes. We have 4 potential hash functions, so we can take a look at their speed differences in code.
 
 #+begin_src C :output results :exports code
 #include <time.h>
@@ -174,7 +179,7 @@ Let's now take a look at how data is stored in a hashmap, so we can see why our 
 ** _Storage and Retrieval_
 How does a hashmap actually store the data we want to retrieve?
 
-At first it seems like it would make sense to just store the value, since we know that it's key will only ever map to one index. However, this quickly falls apart when collisions come into the picture. If all of our "boxes" just stored the values we would have no way to tell them apart in case of a collision. Instead we store elements as pair or their key and value.
+At first it seems like it would make sense to just store the value, since we know that its key will only ever map to one index. However, this quickly falls apart when collisions come into the picture. If all of our "boxes" just stored the values we would have no way to tell them apart in case of a collision. Instead we store elements as pair of their key and value.
 
 The structure of this pair is not as important to our implementation, and may vary from language to language. We will use a struct here, python may use a tuple, others may use a class. The point here is that we need our elements to be either a fixed size, or something we can point to in memory. Our struct will contain two 8-byte values, totaling to a 16-byte struct.
 
@@ -185,12 +190,20 @@ typedef struct {
 } pair;
 #+end_src
 
-With our elements wrapped up in a struct we can easily probe along and find when our key matches, or with separate chaining we will walk the linked list until we find our desired key. Due to our hash being a [[https://en.wikipedia.org/wiki/Pure_function][pure function]], we know that our resulting index and probing order will always be the same for any given key. This means if we do not find a match, we know with 100% certainity that the key is not present in our map.
+With each element wrapped up in a struct we can easily probe along and find when our key matches, or with separate chaining we will walk the linked list until we find our desired key. Due to our hash being a [[https://en.wikipedia.org/wiki/Pure_function][pure function]], we know that our resulting index and probing order will always be the same for any given key. This means if we do not find a match, we know with 100% certainity that the key is not present in our map.
 
 #+begin_src C :exports code
 // Returns TOMBSTONE if element is not found (marker element)
 // returns value if found
 uint64_t hashmap_get(hashmap *h, void *key) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key) {
+    fprintf(stderr, "Attempting to get with a NULL key");
+    exit(EXIT_FAILURE);
+  }
   pair pair_ptr;
   uint64_t index = h->hash_func(key) % h->capacity;
   for (int i = 0; i < h->capacity/2 + 1; i++) {
@@ -208,7 +221,7 @@ uint64_t hashmap_get(hashmap *h, void *key) {
 }
 #+end_src
 
-This is our introduction to the main strategy we will use throughout our hashmap to find an element. Our first step is rehash the key, then we follow the a /quadratic probing/ sequence, which we will cover in more depth soon. At each step in our check we look for equality on our keys, which just compares 2 ~void*~ values, not the values they may or may not point to.
+This is our introduction to the main strategy we will use throughout the hashmap to find an element. Our first step is rehash the key, then we follow the a /quadratic probing/ sequence, which we will cover in more depth soon. At each step in our check we look for equality on our keys, which just compares 2 ~void*~ values, not the values they may or may not point to.
 
 ** _Backing Storage_
 Lets now look at how we can initialize our hashmap, and eventually clean up the memory is uses.
@@ -220,6 +233,10 @@ Lets now look at how we can initialize our hashmap, and eventually clean up the 
 hashmap hashmap_init(hash_function hash, equals_function eq, float load_factor, int capacity) {
   if (!hash) {
     fprintf(stderr, "Please specify a valid hash function\n");
+    exit(EXIT_FAILURE);
+  }
+  if (!equals_function) {
+    fprintf(stderr, "Please specify a valid equald function\n");
     exit(EXIT_FAILURE);
   }
   if (!load_factor) {
@@ -252,11 +269,11 @@ void hashmap_free(hashmap *h) {
 
 Don't worry too much about the ability to pass in a hashing function, or an equals function for now. We will discuss those later. For now let's focus on the memory allocation, for which I prefer to use ~calloc~. I find working with zereod our memory to not only be safer, but faster to catch any errors in my algorithms. If the user passes a specific capacity we use that, otherwise we set it to a reasonable prime number.
 
-Once the user is done with the hash map we need some way to cleanup all the memory that it occupies. Since we are focusing on an open addressing implementation we only need to free the memory allocated for our array. The last thing here is to set the hashmap itself to ~NULL~, this is a good idea when cleaning up our hashmap, as the rest of our user facing API will be setup to fail if the hashmap is ~NULL~.
+Once the user is done with the hash map we need some way to clean up all the memory that it occupies. Since we are focusing on an open addressing implementation we only need to free the memory allocated for our array. The last thing here is to set the hashmap itself to ~NULL~, this is a good idea when cleaning up our hashmap, as the rest of our user facing API will be setup to fail if the hashmap is ~NULL~.
 
 One of the main characteristics of a hashmap is its O(1) insertion and retrieval time. If you're familiar with an array we know that insertion and lookup with a known index is constant time, but forcing our users to keep track of every last index would be quite a pain. This is where a hashmap comes in. Instead of having users keep track of specific indexes, or performing a search to find a specific element, we will combine the backing storage of an array and a hashing function to figure out where each item should be placed.
 
-This is great because adding an item to an array is as simple as adding an offset to a pointer and writing to some memory, which is constant with any amount of elements. We load a value into a register, and store it with a known offset into the array. Even in RISC-V assembly we only have 2 instructions to store our value.
+This is great because adding an item to an array is as simple as adding an offset to a pointer and writing to some memory, which runs at a constant time, no matter the amount of elements. We load a value into a register, and store it with a known offset into the array. Even in RISC-V assembly we only have 2 instructions to store our value.
 
 [[file:array.png]]
 
@@ -276,17 +293,16 @@ Hashed: 0x9eb867d5a95e6e38  |  [14]Array Index 4
 
 Huh. Even our more advanced hash function, with vastly different values, ends up producing the same index twice. Well that's not good for our users, if they try to store 2 different values we would end up overwriting the first value. We can continue to increase our array size to limit the amount of collisions, but we reach a point where we end up with a large number of empty spaces.
 
-So we now know we need an array to store our elements, but how big should our array be? Well, we need to have a concept of how full we should allow our hashmap to get. Of course if we made an array that is as long as a ~uint64_t~ could address we would have the fewest number of collisions. Or we could have a super small array, with an element occupying every single index. The former wastes a lot of memory, and the latter would require reallocation on every insert.
+*** Load Factor
+So we know we need an array to store our elements, but how big should our array be? Well, it will need to have a concept of how full it can get before resizing. Of course if we made an array that is as long as a ~uint64_t~ could address we would have the fewest number of collisions. Or we could have a super small array, with an element occupying every single index. The former wastes a lot of memory, and the latter would require reallocation on every insert.
 
-This is where our "load factor" comes in to play. Load factor describes the ratio between the number of elements in the haspmap, and the total capacity of the hash map. We should aim for a load factor that maximizes "fullness", and minimizes the chance of collisions. This is impacted greatly by the choice of hash function, so we will allow this to be tunable in our implementation.
+This is where our "load factor" comes in to play. Load factor describes the ratio between the number of elements in the hashmap, and the total capacity of the hash map. We should aim for a load factor that maximizes "fullness", and minimizes the chance of collisions. This is impacted greatly by the choice of hash function, so we will allow this to be tunable in our implementation.
 
 If a user is not concerned about memory usage they can choose a very low load factor (0.1-0.2), that will almost entirely eliminate that chance of collisions. Most users would likely choose a value around 0.5, which we will later see produces a pretty good balance.
 
 You may notice that even with a low load factor we can still have collisions, so how do we handle this?
 
 ** _Insertion and Collision Resolution_
-
-
 We will cover 2 different groups of strategies when it comes to resolving collisions in a hashmap.
 
 *** Open Addressing
@@ -294,7 +310,7 @@ We will cover 2 different groups of strategies when it comes to resolving collis
 
 [[file:linear_probe.png]]
 
-In open addressing when 2 elements map to the same index we simply move to a different index to store that element. This process continues until we find an empty space, and we store the element there. The example above uses linear probing, in which the index is increased by 1 as we search for an empty space. This is in contrast to quadratic probing, where the index is increased by n^{2}, where n is the number of collisions we have encountered. Increasing by a larger amount spaces the elements out more and decreases the chances of collisions.
+In open addressing when 2 elements map to the same index we simply move to a different index to store that element. This process continues until we find an empty space, and we store the element there. The example above uses linear probing, in which the index is increased by 1 as we search for an empty space. This is in contrast to quadratic probing, where the index is increased by n^{2}, where n is the number of collisions we have encountered. Increasing by a larger amount spaces the elements out more, and decreases the chances of collisions.
 
 /Quadratic Probing/
 
@@ -308,16 +324,24 @@ When we go to implement our hashmap with open addressing later we will  see if w
 
 /Double Hashing/
 
-There is one more type of open addressing called double hashing. Without a collisions this strategy performs exactly the same as before, but when we run into a collision we do something new to try and resolve that. Instead our index by a consistent pattern we introduce a second hash function that is called for each collision.
+There is one more type of open addressing called double hashing. Without a collision this strategy performs exactly the same as before, but when we run into a collision we do something new to try and resolve that. Instead of increasing our index by a consistent pattern we introduce a second hash function that is called for each collision.
 
-Double hashing has some advantages, but it is very reliant on choosing a good hash function. The hash function must ensure that ever index of the table is explored, otherwise this offers no advantages over other probing strategies. It also must never return a value of 0, as this would stall probing and thus the program it is being used in.
+Double hashing has some advantages, but it is very reliant on choosing a good hash function. The hash function must ensure that every index of the table is explored, otherwise this offers no advantages over other probing strategies. It also must never return a value of 0, as this would stall probing and thus stall the program it is being used in.
 
-With that being said, double hashing would be a good strategy to explore if it fits your data, and you can tolerate the cost to compute a hash at each step of probing.
+With that being said, double hashing would be a good strategy to explore if it fits your data, and you can tolerate the cost to compute another hash at each step of probing.
 
 Our implementation is going to use quadratic probing, so let's take a look at one way our insert function can look. Don't worry about the messy code for now, we should just try and understand the basics.
 
 #+begin_src C :exports code
 void hashmap_insert(hashmap *h, void *key, uint64_t value) {
+  if (!h) {
+    fprintf(stderr, "No a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key) {
+   fprintf(stderr, "Attempting to insert a null key");
+    exit(EXIT_FAILURE);
+  }
   pair new_pair = {key, value};
 
   // Find if the pair already exists
@@ -364,12 +388,12 @@ The other main strategy to resolve collisions in a hashmap is separate chaining.
 
 [[file:separate_chaining.png]]
 
-Elements themselves are not stored directly in the array, instead each index in the array serves as the head node of a linked list which stores all collisions in a chain. At first separate chaining may look more complicated to implement, but it is much easier when it comes to writing the code.
+Elements themselves are not stored directly in the array, instead each index in the array serves as the head node of a linked list which stores all collisions in a chain. At first separate chaining may look more complicated to implement, but it is much easier when it comes to writing the code. For this reason we will write our implementation to use open addressing, as it is a more challenging problem to solve.
 
-When we go to insert an element all we have to do is make our new node point to the old list, and make our head node point to us. This handles both the case where the list is empty, and where the list has elements. Lookup works in much the same way, we go to the index and walked the linked list searching for the element, and if we find it we return it.
+When we go to insert an element all we have to do is make our new node point to the old list, and make our head node point to the new element. This handles both the case where the list is empty, and where the list has elements. Lookup works in much the same way, we go to the index and walked the linked list searching for the element, and if we find it we return it.
 
 *** Speed Considerations
-As you may have noticed with open addressing this also increases the time it takes to find an element if we have a high number of collisions. While separate chaining may be easier to implement, it is potentially a slower implementation of a hashmap.
+As you may have noticed with open addressing, collisions increases the time it takes to find an element if we have a high number of collisions. Separate chaining runs into the same problem, so lets take a look at how the 2 differ in terms of speed.
 
 #+begin_src C :output results :exports both
 #include <time.h>
@@ -434,13 +458,13 @@ int main(){
 
 Run to run variation messes with the calculations a bit, but we can see that a linked list is around 150-200x slower than direct array access, when accessing a container of length 1024, 64000 times. This shouldnt be a surprise once you understand how memory access works at a lower level
 
-Computers are very good at accessing contiguous blocks of memory. This is because an entire linear chunk is brought into the CPU at a time, and placed into the cache, called a cache line. Arrays, vectors, and structs fit into this model perfectly, a contiguous chunk of memory where we are likely to access every element.
+Computers are very good at accessing contiguous blocks of memory. This is because an entire linear chunk is brought into the CPU at a time, and placed into the cache, called a cache line. Arrays, vectors, and structs fit into this model perfectly, providing us a contiguous chunk of memory where we are likely to access every element sequentially.
 
 Our open addressing strategy allows us to take advantage of this linear memory access (referred to as the /[[https://en.wikipedia.org/wiki/Principle_of_locality][principle of locality]]/). As we probe through our array all of these memory accesses will come through the CPU's cache, which is orders of magnitude faster than going out to RAM.
 
 As for separate chaining, its memory access may be spaced out all over in memory. When we store elements in a linked list each node much be allocated separately, and then made to point at the next element in the list. This means we must dereference a pointer at each step in the chain in order to see the value that is actually at that memory address. On top of that, dynamically allocated nodes have no garuntee of being contiguous in memory (if they did we would just store them in an array), so they cannot take advantage of the CPU's cache.
 
-Having said all of that, theory does not always map 1:1 to the real world. So we will implement both stragegies of collision resolution for our hashmap and see which one works best for our data.
+Having said all of that, theory does not always map 1:1 to the real world. So it might be best to explore both strategies of collision resolution.
 
 *** C Data Structures
 As an aside, one of the biggest reasons I enjoy C is that is encourages users to implement their own data structures. These can have specific behavior that suits their use case. For example, we will be implementing as general of a hashmap as we can here, with ~void*~ keys, and ~uint64_t~ values. The keys can be a pointer to any value, or be used to store a 64-bit integer, and same with the values. We are doing this to show the flexability of this implementation, but using pointers will slow down our hashmap.
@@ -452,7 +476,7 @@ At this point we would have a nearly complete hashmap, with the ability set and 
 
 /Separate Chaining/
 
-In the case of separate chaining this is no different than a removal of an element in our linked list. Nothing to complicated to handle, other than checking our position in the list and updating the head if necessary.
+In the case of separate chaining this is no different than a removal of an element in our linked list. Nothing too complicated to handle, other than checking our position in the list and updating the head if necessary.
 
 /Open Addressing/
 
@@ -462,12 +486,20 @@ Instead we can use a concept called a "tombstone".
 
 [[file:tombstone.png]]
 
-The basis of our entire open addressing hashmap is the hash and probe sequence. Insertion, retrieval, and deletion will all use this pipeline. Without introducing the complications of deletion they first 2 seemed simple, but our probing algorithm will have to change once we introduce tombstones. A tombstone essentially tells us that an element used to be here, so we should continue on searching.
+The basis of our entire open addressing hashmap will have to change with the introduction of tombstones. Insertion, retrieval, and deletion will all have to take this into account when probing along. Without introducing the complications of deletion they first 2 seemed simple, but our probing algorithm will be taking these into consideration. A tombstone essentially tells us that an element used to be here, so we should continue on searching.
 
 #+begin_src C :exports code
 // Returns a pointer to the pair if found,
 // otherwise returns NULL
 uint64_t hashmap_delete(hashmap *h, void *key) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key) {
+    fprintf(stderr, "Attempting to delete a NULL key");
+    exit(EXIT_FAILURE);
+  }
   uint64_t index = h->hash_func(key) % h->capacity;
   for (int i = 0; i < h->capacity/2 + 1; i++) {
     uint64_t new_index = (index + (i * i)) % h->capacity;
@@ -491,10 +523,18 @@ uint64_t hashmap_delete(hashmap *h, void *key) {
 }
 #+end_src
 
-This also slightly complicated the concept of insertion. We can no longer find the first "free" space to insert our element. We may run into the case where we find a tombstone space while we probe along, but if we were to instantly insert ourselves into this space we run the risk of having a duplicate key in the map. For this reason we have to run our entire probing sequence on an insert before deciding to insert ourselves at the first available spot. Of course if we do happen to run into a truly empty space before any tombstones we are safe to insert ourselves there instead.
+This also slightly complicates the concept of insertion. We can no longer find the first "free" space to insert our element. We may run into the case where we find a tombstone space while we probe along, but if we were to instantly insert the new element into this space we run the risk of having a duplicate key in the map. For this reason we have to run our entire probing sequence on an insert before deciding to insert ourselves at the first available spot. Of course if we do happen to run into a truly empty space before any tombstones we are safe to insert ourselves there instead.
 
 #+begin_src C :exports code
 void hashmap_insert(hashmap *h, void *key, uint64_t value) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key) {
+    fprintf(stderr, "Attempting to insert a NULL key");
+    exit(EXIT_FAILURE);
+  }
   pair new_pair = {key, value};
 
   // Find if the pair already exists
@@ -517,7 +557,7 @@ void hashmap_insert(hashmap *h, void *key, uint64_t value) {
 
   // Pair already exists
   if (pair_ptr) {
-    ,*pair_ptr = new_pair;
+    *pair_ptr = new_pair;
     return;
   }
 
@@ -547,7 +587,7 @@ void hashmap_insert(hashmap *h, void *key, uint64_t value) {
   }
 
   h->size++;
-  ,*first_avail = new_pair;
+  *first_avail = new_pair;
 }
 #+end_src
 
@@ -557,6 +597,14 @@ This also complicates are retrieval logic slightly. Instead of either finding th
 // Returns TOMBSTONE if element is not found (marker element)
 // returns value if found
 uint64_t hashmap_get(hashmap *h, void *key) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key) {
+    fprintf(stderr, "Attempting to get a NULL key");
+    exit(EXIT_FAILURE);
+  }
   pair pair_ptr;
   uint64_t index = h->hash_func(key) % h->capacity;
   for (int i = 0; i < h->capacity/2 + 1; i++) {
@@ -576,12 +624,20 @@ uint64_t hashmap_get(hashmap *h, void *key) {
 }
 #+end_src
 
-You may have noticed at this point that we are repeating a lot of code. Now, I am not exactly a fan of hard rules in coding like number of lines in a function, or overly descriptive variable names, but breaking out common logic into a function that has many benefits. In our use case we want to avoid having to change our finding logic in 3 places at once. Let do exactly that, create a function that returns a pointer to the element we are searching for.
+You may have noticed at this point that we are repeating a lot of code. Now, I am not exactly a fan of hard rules in coding like number of lines in a function, or overly descriptive variable names, but breaking out common logic into a function that has many benefits. In our use case we want to avoid having to change our searching logic in 3 places at once. Let do exactly that, create a function that returns a pointer to the element we are searching for.
 
 #+begin_src C :exports code
 // Returns a pointer to the pair if found,
 // otherwise returns NULL
 pair *hashmap_find(hashmap *h, void *key) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key) {
+    fprintf(stderr, "Attempting to find a NULL key");
+    exit(EXIT_FAILURE);
+  }
   uint64_t index = h->hash_func(key) % h->capacity;
   for (int i = 0; i < h->capacity/2 + 1; i++) {
     uint64_t new_index = (index + (i * i)) % h->capacity;
@@ -631,7 +687,7 @@ uint64_t hashmap_delete(hashmap *h, void *key) {
 }
 #+end_src
 
-The logic doesn't change, but both functions get much shorter. Our insertion function won't be quite as easy to change. We can reuse the finding logic for the first half, but we also need a way to scan for the first available element, as we discussed above with the addition of tombstones. We will also break this out into a function, and make our insertion function much easier to understand.
+The logic doesn't change, but both functions get much shorter. You may also notice that we were able to consolidate our error checking into the ~hashmap_find()~ function. Our insertion function won't be quite as easy to change. We can reuse the finding logic for the first half, but we also need a way to scan for the first available element, as we discussed above with the addition of tombstones. We will also break this out into a function, and make our insertion function much easier to understand.
 
 #+begin_src C :exports code
 // Returns a pointer to the first available spot,
@@ -696,7 +752,7 @@ With our user facing API covered now we have to talk about the management of all
 Earlier we discussed the concept of load factor, and we would ideally like to keep this as low as possible (and below 50% in the case of quadratic probing). We wouldn't be able to accomplish this without dynamically allocating memory, so that is exactly what we have to do. However, we should probably keep a few things in mind when decided how our hashmap should behave.
 
 *** Initial Size
-If a user is going to instantiate a hashmap it is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specific at create time. They both sound reasonable, so why not both.
+If a user is going to instantiate a hashmap it is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specified at initialization time. They both sound reasonable, so why not both.
 
 As we said earlier, for our quadratic probing strategy it is best to keep the table size a prime number. We will do this automatically for the user by calculating the next prime in the sequence above their current capacity.
 
@@ -732,6 +788,10 @@ The process is similar for both methods of collision management. We first create
 // Set `new_cap` to NULL automatically find the best table size
 // `new_cap` should be set to a prime number for best performace
 void hashmap_resize(hashmap *h, int new_cap) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
   if (!new_cap) {
     new_cap = next_prime(h->capacity);
   }
@@ -767,9 +827,9 @@ void hashmap_resize(hashmap *h, int new_cap) {
 }
 #+end_src
 
-Our first step is to create our new array, which involves calculating a new capacity if the user doesn't specify one. After that we create a copy of the old data so we don't lose track of it once we start moving elements over. Our memory allocation can fail so we check that, and finally update our hashmap to the new data.
+Our first step is to create our new array, which involves calculating a new capacity if the user doesn't specify one. After that, we create a copy of the old data so we maintain a reference to the old array once we start moving elements over. Our memory allocation can fail so we check that, and finally update our hashmap to the new data.
 
-Then comes the rehashing and migration. Hashmaps like ours don't maintain a specific order of iteration, if it did we would be writing an entirely different data structure. Instead we have to manually walk the array checking for an element, if we find one we move it over to the new array. Due to this elements will likely end up in an entirely different order when we resize, which wont matter for our hashmap. In fact, resizing will likely improve lookup times depending on how many collisions are present in our current hashmap.
+Then comes the rehashing and migration. Hashmaps like ours don't maintain a specific order of iteration, if it did we would be writing an entirely different data structure. Instead we have to manually walk the array checking for an element, everytime we find one we move it over to the new array. Due to this, elements will likely end up in an entirely different order when we resize, which wont matter for our hashmap. In fact, resizing will likely improve lookup times depending on how many collisions we can resolve.
 
 With that done our hashmap is functionally complete. Let's look at some example usage.
 
@@ -895,10 +955,18 @@ There we go! Our hashmap is now able to handle keys directly by value, and by th
 * _Debugging_
 One of the things I miss from other languages is a good pretty printer. Of course firing up ~gdb~ and stepping through a program is always a viable option (and saved me a few times while writing this), but having a quick visual representation of the data helps me move quicker. If you write your own data structures when working in C you may find this pattern helpful. Just remember to also include a way to enable/disable this functionality when compiling code for distribution.
 
-There are a few ways we would go about this, so don't feel like you need to copy the implementation directly.
+There are a few ways we could go about this, so don't feel like you need to copy the implementation directly.
 
 #+begin_src C :exports code
 void hashmap_print(hashmap *h, print_function key_print, print_function value_print) {
+  if (!h) {
+    fprintf(stderr, "Not a valid hashmap, did you forget to init it?");
+    exit(EXIT_FAILURE);
+  }
+  if (!key_print || !value_print) {
+    fprintf(stderr, "Please provide valid print functions");
+    exit(EXIT_FAILURE);
+  }
   printf("Size: %d\n", h->size);
   printf("Capacity: %d\n", h->capacity);
   printf("Collisions: %d\n", h->collisions);
@@ -933,7 +1001,7 @@ Let's break down the function bit by bit.
 
 Our first section prints out the primitive values in the struct, and another value we haven't addressed yet. ~Collisions~ is keeping track of the /total/ number of collisions each element encountered as it was placed. This is not a perfect way to measure collisions, but for testing different hash functions this should be more than enough to compare their efficiency. If you would like to expand upon this functionality it would be nice to have way to keep track collisions on a per element basis (potentially using another hashmap?). Then we show the current load factor, and our limit on how high we are allowing it to get.
 
-The last section is what will print out the key-value pair in our map. We have three cases in our switch statement to handle. Empty and tombstone spots are easy to handle, but actual elements require a bit more consideration. We could hardcode keys to be strings, and values to be signed integers, but this doesn't fit with out model of generic programming. Instead we should let our users specify exactly how their datatype should be printed out.
+The last section is what will print out the key-value pair in our map. We have three cases in our switch statement to handle. Empty and tombstone spots are easy to handle, but actual elements require a bit more consideration. We could hardcode keys to be strings, and values to be signed integers, but this doesn't fit with our model of generic programming. Instead, we should let our users specify exactly how their datatype should be printed out.
 
 #+begin_src C :exports code
 // Pretty Printing Functions, char[STR_BUF_LEN] max output
@@ -1005,7 +1073,7 @@ Index:   9, Key:            Dylan, Value:               17 <-- 3 Collisions
 Index:  10, Key:            EMPTY, Value:            EMPTY
 #+end_example
 
-With our hash function set to always return 0 each element will counter n+1 collisions that the previous element. This is the worst case for a hashmap, but quadratic probing helps us solve this. You may notice how our current load factor is just below the desired 0.5, meaning if we insert another element it will cause the table to resize. Earlier we talked about how quadratic probing will always find a spot for our element in ~capacity/2~ steps, which in our case would be 5 steps (original step + 4 collisions). So even with the worst possible hash function we still have some semblance of performance, even through it is not ideal.
+With our hash function set to always return 0 each element will encounter n+1 collisions compared to the previous element. This is the worst case for a hashmap, but quadratic probing helps us solve this. You may notice how our current load factor is just below the desired 0.5, meaning if we insert another element it will cause the table to resize. Earlier we talked about how quadratic probing will always find a spot for our element in ~capacity/2~ steps, which in our case would be 5 steps (original step + 4 collisions). So even with the worst possible hash function we still have some semblance of performance, even through it is not ideal.
 
 Even just switching to a our ~basic_hash~ will greatly improve our collision rate.
 
@@ -1035,5 +1103,19 @@ Switching brought our collision rate down from 100% to 20%, a great improvement 
 Well for starters this code is meant to be taken as an example, a real hashmap might be much more complicated, and would definitely be safer to work with. I wanted this to be used for exploration, so that we could experiment with different hash functions and see how they impact the performance. A user may also have an entirely different use case for our hashmap. They may be working in a memory constrained environment, in which case they are willing to tolerate a much higher load factor. For this use case we would need a much better hash function that reduces that chance of collisions lower than that of the ~fnv_hash~. Or a user might not be concerned about space, so they can tolerate a worse hash function, while still avoiding collisions.
 
 It all comes down to the trade-off between memory and speed. Which is exactly why learning to implement your own data structures is so important in programming.
+
+* _Conclusion_
+There we go! Everything we need to implement our own hashmap from scratch in C, with some added comforts to aid in debugging. I hope you can see that the code we had to write wasn't bad at all. Of course writing in C will always be a bit more verbose as opposed to a higher level language, but it helps to see what is going on.
+
+#+begin_example
+Another data structure to explore in the same realm is a bloom filter. They can be used alongside a hashmap to tell you with 100% certaintity that an item is not in the map. So why would we use a second hashmap to tell us what is in the main hashmap?
+
+Well, bloom filters don't store the elements themselves, instead they use a bitmap to to indicate true/false for an index. This way a bloom filter occupies 1 64-bit integer per 64 elements in the hash map.
+
+Hopefully have a better understanding of how open addressing works. Now, can you think of why a bloom filter is only able to tell you with 100% certainity that an element is *not* in the map?
+#+end_example
+
+Take some time to explore the various different implementation of hashmaps, and see how you may be able to implement them in your code.
+
 
 #  LocalWords:  hashmap hashmaps fnv_hash hashmap

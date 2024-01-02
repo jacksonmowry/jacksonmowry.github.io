@@ -5,3 +5,5 @@
 * Articles
 ** Build a Shell in C
 [[file:shell.org]]
+** Build a Hashmap in C
+[[file:hashmap.org]]
