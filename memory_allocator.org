@@ -6,7 +6,7 @@
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
 * _Introduction_
-We use memory allocators nearly every time we write software. They allow our programs to be dynamic and handle a wide variety of input, or user interactions. In languages like C the programmer interracts directly with the memory allocator through calling ~malloc()~ and ~free()~. Higher level languages extract away the need for the programmer to worry about memory management, usually through a garbage collector. But what does a memory allocator do? Hopefully we can figure that out through exploring one possible implementation.
+We use memory allocators nearly every time we write software. They allow our programs to be dynamic and handle a wide variety of input, or user interactions. In languages like C the programmer interacts directly with the memory allocator through calling ~malloc()~ and ~free()~. Higher level languages extract away the need for the programmer to worry about memory management, usually through a garbage collector. But what does a memory allocator do? Hopefully we can figure that out through exploring one possible implementation.
 
 * _Headers_
 Here are all the headers I believe we will need to complete this project. Apologies if we don't end up using some of them, just try to cover my bases.
@@ -18,9 +18,9 @@ Here are all the headers I believe we will need to complete this project. Apolog
 #+end_src
 
 * _Exploration_
-You have hopefully heard a concept in programming called the "heap". Each time we dynamically allocate memory in our program it ends up on the heap. We know that the computer has all the memory available, so it must have given some of this memory to our heap. For now let's just imagine that asking for this memory in our program is super complicated, so we will use a statically allocated buffer the we manage ourselves.
+You have hopefully heard a concept in programming called the "heap". Each time we dynamically allocate memory in our program it ends up on the heap. We know that the computer has all the memory available, so it must have given some of this memory to our heap. For now let's just imagine that asking for this memory in our program is super complicated, so we will use a statically allocated buffer that we manage ourselves.
 
-Let's start off by laying our ground work for this exploration.
+Let's start off by laying our groundwork for this exploration.
 
 #+begin_src C
 #define HEAP_SIZE 1024
@@ -32,7 +32,7 @@ typedef struct {
 } heap_seg;
 #+end_src
 
-For now we will set our heap to a fixed size of ~1024~ bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of out heap. Then we define a struct for each segment of our heap, which for now just holds a ~size_t~ to hold the size in bytes. We will later see how we can perform some cleaver transformations on this single number to store more information.
+For now, we will set our heap to a fixed size of ~1024~ bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of our heap. Then we define a struct for each segment of our heap, which for now just holds a ~size_t~ to hold the size in bytes. We will later see how we can perform some cleaver transformations on this single number to store more information.
 
 ** _Initialization_
 
@@ -47,7 +47,7 @@ int heap_init(void* base) {
 
 #+end_src
 
-From ther we need to set our heap up so that users can begin to use it. In a real heap implementation this would be included in the first call to malloc, but with our static version this won't be possible. Our only real setup here is to initialize our first heap segment, which will occupy the entire space by itself. We want to keep heap segments as large as possible so that we have a higher likelihood of being able to fit a requested allocation.
+From there we need to set our heap up so that users can begin to use it. In a real heap implementation this would be included in the first call to ~malloc~, but with our static version this won't be possible. Our only real setup here is to initialize our first heap segment, which will occupy the entire space by itself. We want to keep heap segments as large as possible so that we have a higher likelihood of being able to fit a requested allocation.
 
 Once our heap is ready to go we can begin handing out pointers to different segments. Sounds easy right?
 
@@ -83,17 +83,17 @@ void *heap_malloc(size_t bytes) {
 
 Yeah, it's a bit more going on that I would have assumed at first, but it won't be too hard to step through. Also note that we are currently covering what is called /first fit/ right now, where we find the first chunk able to fulfil the allocation request, we will cover a different allocation strategy later.
 
-We first start at the base of our heap, and beging checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it's size to hold the requested amount of bytes. You may notice that we don't set the size to be equal to ~bytes~ as the user requested, instead we have to factor in a few more things.
+We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it's size to hold the requested amount of bytes. You may notice that we don't set the size to be equal to ~bytes~ as the user requested, instead we have to factor in a few more things.
 
-The first portion of the size is the ~heap_seg~ struct itself, which in the current implementation is 8 bytes. The next section is the data, which needs to be aligned on 8 byte boundries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
+The first portion of the size is the ~heap_seg~ struct itself, which in the current implementation is 8 bytes. The next section is the data, which needs to be aligned on 8 byte boundaries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
 
 Once we put this all together we set the least significant bit to 1. This final bit allows us to keep track of if the heap segment is in use. We are able to do this because each size will be a multiple of 8, meaning that its lower 3 bits will always be 0. We are currently using 1 of the 3 bits, so we can potentially even store more flags if needed.
 
-There we go, we have now produced a heap segment that can be returned back to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity e get a pointer to the start of the next heap segment, and  then set it's size to the remaining space in the heap.
+There we go, we have now produced a heap segment that can be returned to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity e get a pointer to the start of the next heap segment, and then set its size to the remaining space in the heap.
 
 [[file:heap_segmenting.png]]
 
-Thats how we hand out segments of our heap to users! If we don't find a sutible segment we advance to the next segment and start over again.
+That's how we hand out segments of our heap to users! If we don't find a suitable segment we advance to the next segment and start over again.
 
 #+begin_src  C
 int main() {
@@ -131,9 +131,9 @@ void heap_free(void* block) {
 }
 #+end_src
 
-But we may run into a bit of a problem here. What happens if a user allocated a whole bunch of 8 byte segments right at the start of their program, and then frees them all back once their program gets under way. Then they need to allocated some much larger segments of memory. With our current free function we would have to skip over all of these tiny segments till we found one large chunk to hand back to the user. What if all of those small segments added together would have been enough to handle their allocation.
+But we may run into a bit of a problem here. What happens if a user allocated a many 8 byte segments at the start of their program, and then frees them all back once their program gets under way. Then they need to allocate larger segments of memory. With our current free function we would have to skip over all of these tiny segments till we found one large chunk to hand back to the user. What if all of those small segments added together would have been enough to handle their allocation.
 
-This is where we have to rejoin our heap segments to ensure that we do not "fragment" the heap. Surprisngly this is also fairly easy to accomplish once you can visualize the possible states our heap may be in.
+This is where we have to rejoin our heap segments to ensure that we do not "fragment" the heap. Surprisingly this is also fairly easy to accomplish once you can visualize the possible states our heap may be in.
 
 When a user requests to free a block there are only 3 possible states that it may be in.
 
@@ -163,9 +163,9 @@ void heap_free(void* block) {
 }
 #+end_src
 
-Expanding on the previous function we obtain pointers to the blocks directly before and after the current block. Then we can check each block, and see if it needs to be merged. If they previous block is free we update it's size to include the current block, and update our ~header~ pointer to this previous block. Then the next block is checked, and we update our size accordingly. The last step is to zero out the "in use" bit of our header.
+Expanding on the previous function we obtain pointers to the blocks directly before and after the current block. Then we can check each block, and see if it needs to be merged. If the previous block is free we update it's size to include the current block, and update our ~header~ pointer to this previous block. Then the next block is checked, and we update our size accordingly. The last step is to zero out the "in use" bit of our header.
 
-Note that we do not need to explicitly do anything with the freed memory. By updating the size of the nodes around it we ensure that it will be skipped over when searching for the closest free block. Also, by updating our ~header~ pointer we ensure that the following logic will work for any of the 3 possible states of our segment.
+Note that we do not need to explicitly do anything with the freed memory. By updating the size of the nodes around it, we ensure that it will be skipped over when searching for the closest free block. Also, by updating our ~header~ pointer we ensure that the following logic will work for any of the 3 possible states of our segment.
 
 With our allocation and freeing functions complete, that is pretty much it for the most basic of heap allocators.
 
@@ -222,9 +222,9 @@ Size of num: 40   <-- 32 byte allocation + 8 byte header
 #+end_example
 
 ** _Takeaways_
-Implementing a naive memory allocator is fairly easy. It won't be the fastest one in the world, nor the most secure. Either way, this small explorations shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
+Implementing a naive memory allocator is fairly easy. It won't be the fastest one in the world, nor the most secure. Either way, this small exploration shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
 
-The /first fit/ algorithm that we choce to implement above is one of the quicker ways to allocate memory (we can also add an additional global variable that points to the first free block, to further increase speed). While speed is an important factor when it comes to allocating memory, sometimes the user might wish to be more space efficient as opposed to time efficient.
+The /first fit/ algorithm that we chose to implement above is one of the quicker ways to allocate memory (we can also add a global variable that points to the first free block, to further increase speed). While speed is an important factor when it comes to allocating memory, sometimes the user might wish to be more space efficient as opposed to time efficient.
 
 [[file:first_fit.png]]
 
@@ -234,8 +234,22 @@ Instead of finding the first available spot we can find the /best fit/ segment w
 
 The biggest problem with splitting large heap segments is that we fragment our heap. Our next large allocation may not be able to find a contiguous segment to hold it, thus requiring our allocator to go out to the operating system and request more memory. For this reason, our next iteration will explore this algorithm.
 
-Our current implementation also relies on a statically allocated buffer, meaning once we fill this up we won't be able to hand out more memory. Lets see how we can make this behavior more dynamic by requested more memory from the operating system.
+Our current implementation also relies on a statically allocated buffer, meaning once we fill this up we won't be able to hand out more memory. Let's see how we can make this behavior more dynamic by requested more memory from the operating system.
 
 * _sbrk()_
+While the exact details of how a program is laid out in memory is not required to understand this portion, it will be very helpful.
+
+Any of the programs that you choose run on your computer are running in [[https://en.wikipedia.org/wiki/User_space_and_kernel_space][/user-space/]]. The CPU scheduling that an operating system does won't apply here, as we are more concerned with the memory layout of our program. Essentially, when our program is running the operating system provides it a virtual memory space, which our program sees as one contiguous memory space that it has control over.
+
+A program like Firefox or OBS does not need to be concerned with the other programs running on the computer. Under the hood each program may be spread out all over physical memory, or intertwined together with other programs. For our /user-space/ programs to work the operating system "lies" to them, providing a single contiguous section of memory. Our program then runs as if it is the only program on the computer.
+
+When are program is run it is loaded into memory with a layout as depicted below.
 
 [[file:memory_layout.png]]
+
+I have been referring to our memory allocator as a "heap allocator", where the heap refers to the "heap" in memory. Just like our buffer of ~1024~ bytes in our original implementation the heap is a large contiguous section of memory. Yet unlike our ~1024~ byte buffer the heap can grow and shrink as needed. This is accomplished with the system call ~sbrk()~.
+
+
+
+
+#  LocalWords:  sbrk size_t malloc
