@@ -19,11 +19,11 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Hashmap</i></h1>
-<div id="outline-container-org3566274" class="outline-2">
-<h2 id="org3566274"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-org3566274">
+<div id="outline-container-orgf5ae84d" class="outline-2">
+<h2 id="orgf5ae84d"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-orgf5ae84d">
 <p>
-A hashmap is a data structure that gets a ton of use, but it&rsquo;s implementation can be a bit of a black box. This is further complicated by the face that even language to language a hashmap does not have the same implementation. Some hashmaps choose to preserve the ordering of insertion (Python, V), others have different maps for unordered and ordered (sorted) storage (C++), and yet others differ on their choice of backing storage (arrays vs trees). Even among those that use an array for storage, there are 2 different ways to manage collisions.
+A hashmap is a data structure that gets a ton of use, but its implementation can be a bit of a black box. This is further complicated by the face that even language to language a hashmap does not have the same implementation. Some hashmaps choose to preserve the ordering of insertion (Python, V), others have different maps for unordered and ordered (sorted) storage (C++), and yet others differ on their choice of backing storage (arrays vs trees). Even among those that use an array for storage, there are 2 different ways to manage collisions.
 </p>
 
 <p>
@@ -31,94 +31,91 @@ The actual implementation shouldn&rsquo;t matter for the majority of users, as t
 </p>
 </div>
 </div>
-
-<div id="outline-container-org68b5e14" class="outline-2">
-<h2 id="org68b5e14"><span class="underline">Includes</span></h2>
-<div class="outline-text-2" id="text-org68b5e14">
+<div id="outline-container-org5981e8e" class="outline-2">
+<h2 id="org5981e8e"><span class="underline">Includes</span></h2>
+<div class="outline-text-2" id="text-org5981e8e">
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdint.h&gt;</span>     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">uint64_t int64_t size_t</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>      <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Printing (not necessary as a library, just for testing)</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdlib.h&gt;</span>     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Lots</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdbool.h&gt;</span>    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">True/False</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;string.h&gt;</span>     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Nice to have string functions in C</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">"hashmap.h"</span>    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Our own header file</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">uint64_t int64_t size_t</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Printing (not necessary as a library, just for testing)</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Lots</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdbool.h&gt;</span>    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">True/False</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;string.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Nice to have string functions in C</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">"hashmap.h"</span>    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Our own header file</span>
 </pre>
 </div>
 </div>
 </div>
-
-<div id="outline-container-orgb3d95c7" class="outline-2">
-<h2 id="orgb3d95c7"><span class="underline">Header</span></h2>
-<div class="outline-text-2" id="text-orgb3d95c7">
+<div id="outline-container-org4913f5a" class="outline-2">
+<h2 id="org4913f5a"><span class="underline">Header</span></h2>
+<div class="outline-text-2" id="text-org4913f5a">
 <p>
 I will be mixing the entire code for our hashmap throughout the article, to break up the reading, and to make I show you the code that goes along with the thought. Having this header file will ensure that even if our code is out of order, the compiler will be able to make sense of it.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#pragma</span> once
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdint.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdbool.h&gt;</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#pragma</span> once
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdbool.h&gt;</span>
 
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">TOMBSTONE</span> UINT64_MAX
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">STR_BUF_LEN</span> <span style="color: #da8548; font-weight: bold;">64</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">TOMBSTONE</span> UINT64_MAX
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">STR_BUF_LEN</span> <span style="color: #B5CEA8; font-weight: bold;">64</span>
 
-<span style="color: #ECBE7B;">bool</span> <span style="color: #c678dd;">is_prime</span>(<span style="color: #ECBE7B;">int</span>);
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">next_prime</span>(<span style="color: #ECBE7B;">int</span>);
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">is_prime</span>(<span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">next_prime</span>(<span style="color: #35CDAF;">int</span>);
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> {
-  <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>;
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">value</span>;
-} <span style="color: #ECBE7B;">pair</span>;
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> {
+  <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>;
+} <span style="color: #35CDAF;">pair</span>;
 
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Pretty Printing Functions, char[STR_BUF_LEN] max output</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Can be used to define a custom print function for more complex datatypes</span>
-<span style="color: #51afef;">typedef</span> <span style="color: #ECBE7B;">void</span> (*<span style="color: #ECBE7B;">print_function</span>)(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">unsigned_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">signed_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">double_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">address_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">string_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pretty Printing Functions, char[STR_BUF_LEN] max output</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Can be used to define a custom print function for more complex datatypes</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">void</span> (*<span style="color: #35CDAF;">print_function</span>)(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">unsigned_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">signed_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">double_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">address_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">string_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
 
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Hashing Functions</span>
-<span style="color: #51afef;">typedef</span> <span style="color: #ECBE7B;">uint64_t</span> (*<span style="color: #ECBE7B;">hash_function</span>)(<span style="color: #ECBE7B;">void</span> *);
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">no_hash</span>(<span style="color: #ECBE7B;">void</span> *);
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">basic_hash</span>(<span style="color: #ECBE7B;">void</span> *);
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">fnv_hash</span>(<span style="color: #ECBE7B;">void</span> *);
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">fnv_string_hash</span>(<span style="color: #ECBE7B;">void</span> *);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Hashing Functions</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">uint64_t</span> (*<span style="color: #35CDAF;">hash_function</span>)(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">no_hash</span>(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">basic_hash</span>(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_hash</span>(<span style="color: #35CDAF;">void</span> *);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_string_hash</span>(<span style="color: #35CDAF;">void</span> *);
 
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Equality Functions</span>
-<span style="color: #51afef;">typedef</span> <span style="color: #ECBE7B;">bool</span> (*<span style="color: #ECBE7B;">equals_function</span>)(<span style="color: #ECBE7B;">void</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">bool</span> <span style="color: #c678dd;">value_equals</span>(<span style="color: #ECBE7B;">void</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">bool</span> <span style="color: #c678dd;">str_equals</span>(<span style="color: #ECBE7B;">void</span>*, <span style="color: #ECBE7B;">void</span>*);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Equality Functions</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">bool</span> (*<span style="color: #35CDAF;">equals_function</span>)(<span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">value_equals</span>(<span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">str_equals</span>(<span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">void</span>*);
 
-<span style="color: #5B6268;">//</span><span style="color: #5B6268;">Hashmap</span>
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> {
-  <span style="color: #ECBE7B;">float</span> <span style="color: #dcaeea;">load_factor</span>;
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">capacity</span>;
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">size</span>;
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">collisions</span>;
-  <span style="color: #ECBE7B;">hash_function</span> <span style="color: #dcaeea;">hash_func</span>;
-  <span style="color: #ECBE7B;">equals_function</span> <span style="color: #dcaeea;">equals_func</span>;
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">array</span>;
-} <span style="color: #ECBE7B;">hashmap</span>;
+<span style="color: #579C4C;">//</span><span style="color: #579C4C;">Hashmap</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> {
+  <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">load_factor</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">capacity</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">size</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">collisions</span>;
+  <span style="color: #35CDAF;">hash_function</span> <span style="color: #85DDFF;">hash_func</span>;
+  <span style="color: #35CDAF;">equals_function</span> <span style="color: #85DDFF;">equals_func</span>;
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">array</span>;
+} <span style="color: #35CDAF;">hashmap</span>;
 
-<span style="color: #ECBE7B;">hashmap</span> <span style="color: #c678dd;">hashmap_init</span>(<span style="color: #ECBE7B;">hash_function</span>, <span style="color: #ECBE7B;">equals_function</span>, <span style="color: #ECBE7B;">float</span>, <span style="color: #ECBE7B;">int</span>);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_free</span>(<span style="color: #ECBE7B;">hashmap</span>*);
-<span style="color: #ECBE7B;">pair</span> *<span style="color: #c678dd;">hashmap_find</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">pair</span> *<span style="color: #c678dd;">hashmap_first_avail</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">void</span>*, <span style="color: #ECBE7B;">int</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_resize</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">int</span>);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_insert</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">void</span>*, <span style="color: #ECBE7B;">uint64_t</span>);
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_get</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_delete</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_print</span>(<span style="color: #ECBE7B;">hashmap</span>*, <span style="color: #ECBE7B;">print_function</span>, <span style="color: #ECBE7B;">print_function</span>);
+<span style="color: #35CDAF;">hashmap</span> <span style="color: #D9DAA2;">hashmap_init</span>(<span style="color: #35CDAF;">hash_function</span>, <span style="color: #35CDAF;">equals_function</span>, <span style="color: #35CDAF;">float</span>, <span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_free</span>(<span style="color: #35CDAF;">hashmap</span>*);
+<span style="color: #35CDAF;">pair</span> *<span style="color: #D9DAA2;">hashmap_find</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">pair</span> *<span style="color: #D9DAA2;">hashmap_first_avail</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">int</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_resize</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">int</span>);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_insert</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*, <span style="color: #35CDAF;">uint64_t</span>);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_get</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_delete</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_print</span>(<span style="color: #35CDAF;">hashmap</span>*, <span style="color: #35CDAF;">print_function</span>, <span style="color: #35CDAF;">print_function</span>);
 </pre>
 </div>
 </div>
 </div>
-
-<div id="outline-container-org8c9dde3" class="outline-2">
-<h2 id="org8c9dde3"><span class="underline">Architecture</span></h2>
-<div class="outline-text-2" id="text-org8c9dde3">
+<div id="outline-container-orgf227592" class="outline-2">
+<h2 id="orgf227592"><span class="underline">Architecture</span></h2>
+<div class="outline-text-2" id="text-orgf227592">
 <p>
 When we store our hashmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
 </p>
@@ -127,13 +124,12 @@ When we store our hashmap in an array each key should ideally map to a unique in
 For the purposes of experimentation and extensibility we are going to allow our implementation to take a function pointer to a hash function. This way we can check the speed and collision rate with various different hashing methods.
 </p>
 </div>
-
-<div id="outline-container-org74e719e" class="outline-3">
-<h3 id="org74e719e"><span class="underline">Hashing</span></h3>
-<div class="outline-text-3" id="text-org74e719e">
+<div id="outline-container-org624bccd" class="outline-3">
+<h3 id="org624bccd"><span class="underline">Hashing</span></h3>
+<div class="outline-text-3" id="text-org624bccd">
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">no_hash</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span>) {
-  <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+<pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">no_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
 }
 </pre>
 </div>
@@ -143,8 +139,8 @@ Our first hash function is more of a nice to have during testing as opposed to a
 
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">basic_hash</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span>) {
-  <span style="color: #51afef;">return</span> (<span style="color: #ECBE7B;">uint64_t</span>)pointer ^ ((<span style="color: #ECBE7B;">uint64_t</span>)pointer &gt;&gt; <span style="color: #da8548; font-weight: bold;">32</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">basic_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
+  <span style="color: #339CDB;">return</span> (<span style="color: #35CDAF;">uint64_t</span>)pointer ^ ((<span style="color: #35CDAF;">uint64_t</span>)pointer &gt;&gt; <span style="color: #B5CEA8; font-weight: bold;">32</span>);
 }
 </pre>
 </div>
@@ -154,17 +150,17 @@ Our first real hash function is relatively simple, it XORs the bottom half and t
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">fnv_hash</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>pointer) { <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>; }
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Prime and offset basis values for 64-bit values</span>
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">14695981039346656037ull</span>;
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">byte_pointer</span> = (<span style="color: #ECBE7B;">uint64_t</span>)pointer;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">8</span>; i++) {
-    hash *= <span style="color: #da8548; font-weight: bold;">1099511628211</span>;
-    hash ^= byte_pointer &amp; <span style="color: #da8548; font-weight: bold;">0xFF</span>;
-    byte_pointer &gt;&gt;= <span style="color: #da8548; font-weight: bold;">8</span>;
+<pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>pointer) { <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>; }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Prime and offset basis values for 64-bit values</span>
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">hash</span> = <span style="color: #B5CEA8; font-weight: bold;">14695981039346656037ull</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">byte_pointer</span> = (<span style="color: #35CDAF;">uint64_t</span>)pointer;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">8</span>; i++) {
+    hash *= <span style="color: #B5CEA8; font-weight: bold;">1099511628211</span>;
+    hash ^= byte_pointer &amp; <span style="color: #B5CEA8; font-weight: bold;">0xFF</span>;
+    byte_pointer &gt;&gt;= <span style="color: #B5CEA8; font-weight: bold;">8</span>;
   }
-  <span style="color: #51afef;">return</span> hash;
+  <span style="color: #339CDB;">return</span> hash;
 }
 </pre>
 </div>
@@ -174,14 +170,14 @@ The second hash function is much more complex, and we should expect a lower rate
 </p>
 
 <div class="org-src-container">
-<pre class="src src-v"><span style="color: #ECBE7B;">Basic</span> <span style="color: #ECBE7B;">Hash</span>
-<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942a0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x558908191729</span>
-<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942c0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x558908191749</span>
-<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942e0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x558908191769</span>
-<span style="color: #ECBE7B;">FNV</span> <span style="color: #ECBE7B;">Hash</span>
-<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942a0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x6fb6159253d2b95a</span>
-<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942c0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x63c1db2f83d3da3a</span>
-<span style="color: #ECBE7B;">Original</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5589081942e0</span>  <span style="color: #51afef;">|</span>  <span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0xe114c79be4e359a</span>
+<pre class="src src-v"><span style="color: #35CDAF;">Basic</span> <span style="color: #35CDAF;">Hash</span>
+<span style="color: #35CDAF;">Original</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5589081942a0</span>  <span style="color: #339CDB;">|</span>  <span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x558908191729</span>
+<span style="color: #35CDAF;">Original</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5589081942c0</span>  <span style="color: #339CDB;">|</span>  <span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x558908191749</span>
+<span style="color: #35CDAF;">Original</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5589081942e0</span>  <span style="color: #339CDB;">|</span>  <span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x558908191769</span>
+<span style="color: #35CDAF;">FNV</span> <span style="color: #35CDAF;">Hash</span>
+<span style="color: #35CDAF;">Original</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5589081942a0</span>  <span style="color: #339CDB;">|</span>  <span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x6fb6159253d2b95a</span>
+<span style="color: #35CDAF;">Original</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5589081942c0</span>  <span style="color: #339CDB;">|</span>  <span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x63c1db2f83d3da3a</span>
+<span style="color: #35CDAF;">Original</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5589081942e0</span>  <span style="color: #339CDB;">|</span>  <span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0xe114c79be4e359a</span>
 </pre>
 </div>
 
@@ -201,31 +197,30 @@ Our last hash is called an FNV hash, which produces vastly different has values 
 We also have a string hashing function that is based on the original FNV hash, just adapted to using the bytes of a string as opposed to the bytes of a number.
 </p>
 </div>
-
-<div id="outline-container-org37b0cce" class="outline-4">
-<h4 id="org37b0cce">Hashing Speed</h4>
-<div class="outline-text-4" id="text-org37b0cce">
+<div id="outline-container-org2af75d8" class="outline-4">
+<h4 id="org2af75d8">Hashing Speed</h4>
+<div class="outline-text-4" id="text-org2af75d8">
 <p>
 As we have just seen, hashing is its own complex topic, but for our case we are concerned with fast, non-cryptographic hashes. We have 4 potential hash functions, so we can take a look at their speed differences in code.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;time.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdlib.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;time.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
 
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>(){
-  <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">timespec</span> <span style="color: #dcaeea;">start</span>, <span style="color: #dcaeea;">end</span>;
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>(){
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">timespec</span> <span style="color: #85DDFF;">start</span>, <span style="color: #85DDFF;">end</span>;
   clock_gettime(CLOCK_MONOTONIC, &amp;start);
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">64000</span>; i++) {
-    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Perform hashing here</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">64000</span>; i++) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Perform hashing here</span>
   }
   clock_gettime(CLOCK_MONOTONIC, &amp;end);
 
-  <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #da8548; font-weight: bold;">1000.0</span> +
-    (end.tv_nsec - start.tv_nsec) / <span style="color: #da8548; font-weight: bold;">1e6</span>;
-  printf(<span style="color: #98be65;">"Time: %.3f milliseconds\n"</span>, elapsed_time);
+  <span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #B5CEA8; font-weight: bold;">1000.0</span> +
+    (end.tv_nsec - start.tv_nsec) / <span style="color: #B5CEA8; font-weight: bold;">1e6</span>;
+  printf(<span style="color: #DB8E73;">"Time: %.3f milliseconds\n"</span>, elapsed_time);
 }
 </pre>
 </div>
@@ -271,16 +266,15 @@ Let&rsquo;s now take a look at how data is stored in a hashmap, so we can see wh
 </div>
 </div>
 </div>
-
-<div id="outline-container-org701ebf0" class="outline-3">
-<h3 id="org701ebf0"><span class="underline">Storage and Retrieval</span></h3>
-<div class="outline-text-3" id="text-org701ebf0">
+<div id="outline-container-orgd91b612" class="outline-3">
+<h3 id="orgd91b612"><span class="underline">Storage and Retrieval</span></h3>
+<div class="outline-text-3" id="text-orgd91b612">
 <p>
 How does a hashmap actually store the data we want to retrieve?
 </p>
 
 <p>
-At first it seems like it would make sense to just store the value, since we know that its key will only ever map to one index. However, this quickly falls apart when collisions come into the picture. If all of our &ldquo;boxes&rdquo; just stored the values we would have no way to tell them apart in case of a collision. Instead we store elements as pair of their key and value.
+At first, it seems like it would make sense to just store the value, since we know that its key will only ever map to one index. However, this quickly falls apart when collisions come into the picture. If all of our &ldquo;boxes&rdquo; just stored the values we would have no way to tell them apart in case of a collision. Instead, we store elements as a pair of their key and value.
 </p>
 
 <p>
@@ -288,10 +282,10 @@ The structure of this pair is not as important to our implementation, and may va
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> {
-  <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>;
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">value</span>;
-} <span style="color: #ECBE7B;">pair</span>;
+<pre class="src src-C"><span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> {
+  <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>;
+} <span style="color: #35CDAF;">pair</span>;
 </pre>
 </div>
 
@@ -300,28 +294,28 @@ With each element wrapped up in a struct we can easily probe along and find when
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns TOMBSTONE if element is not found (marker element)</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">returns value if found</span>
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_get</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you init it?"</span>);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns TOMBSTONE if element is not found (marker element)</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">returns value if found</span>
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_get</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key) {
-    fprintf(stderr, <span style="color: #98be65;">"Attempting to get with a NULL key"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Attempting to get with a NULL key"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">pair_ptr</span>;
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-      <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-        <span style="color: #51afef;">return</span> TOMBSTONE;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">if</span> (p.key == key) {
-        <span style="color: #51afef;">return</span> h-&gt;array[new_index].value;
+  <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">pair_ptr</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+      <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+        <span style="color: #339CDB;">return</span> TOMBSTONE;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">if</span> (p.key == key) {
+        <span style="color: #339CDB;">return</span> h-&gt;array[new_index].value;
       }
     }
   }
@@ -330,54 +324,53 @@ With each element wrapped up in a struct we can easily probe along and find when
 </div>
 
 <p>
-This is our introduction to the main strategy we will use throughout the hashmap to find an element. Our first step is rehash the key, then we follow the a <i>quadratic probing</i> sequence, which we will cover in more depth soon. At each step in our check we look for equality on our keys, which just compares 2 <code>void*</code> values, not the values they may or may not point to.
+This is our introduction to the main strategy we will use throughout the hashmap to find an element. Our first step is to rehash the key, then we follow the a <i>quadratic probing</i> sequence, which we will cover in more depth soon. At each step in our check we look for equality on our keys, which just compares 2 <code>void*</code> values, not the values they may or may not point to.
 </p>
 </div>
 </div>
-
-<div id="outline-container-org70f7af4" class="outline-3">
-<h3 id="org70f7af4"><span class="underline">Backing Storage</span></h3>
-<div class="outline-text-3" id="text-org70f7af4">
+<div id="outline-container-orgde914e4" class="outline-3">
+<h3 id="orgde914e4"><span class="underline">Backing Storage</span></h3>
+<div class="outline-text-3" id="text-orgde914e4">
 <p>
 Lets now look at how we can initialize our hashmap, and eventually clean up the memory is uses.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">`hash` is any hash function that takes a `void*` and returns a `uint64_t`</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Set `load_factor` to `0` for default value</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Set `size` to `0` for default value</span>
-<span style="color: #ECBE7B;">hashmap</span> <span style="color: #c678dd;">hashmap_init</span>(<span style="color: #ECBE7B;">hash_function</span> <span style="color: #dcaeea;">hash</span>, <span style="color: #ECBE7B;">equals_function</span> <span style="color: #dcaeea;">eq</span>, <span style="color: #ECBE7B;">float</span> <span style="color: #dcaeea;">load_factor</span>, <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">capacity</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>hash) {
-    fprintf(stderr, <span style="color: #98be65;">"Please specify a valid hash function\n"</span>);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">`hash` is any hash function that takes a `void*` and returns a `uint64_t`</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set `load_factor` to `0` for default value</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set `size` to `0` for default value</span>
+<span style="color: #35CDAF;">hashmap</span> <span style="color: #D9DAA2;">hashmap_init</span>(<span style="color: #35CDAF;">hash_function</span> <span style="color: #85DDFF;">hash</span>, <span style="color: #35CDAF;">equals_function</span> <span style="color: #85DDFF;">eq</span>, <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">load_factor</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">capacity</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>hash) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Please specify a valid hash function\n"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>equals_function) {
-    fprintf(stderr, <span style="color: #98be65;">"Please specify a valid equald function\n"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>equals_function) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Please specify a valid equald function\n"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>load_factor) {
-    load_factor = <span style="color: #da8548; font-weight: bold;">0.5</span>;
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>load_factor) {
+    load_factor = <span style="color: #B5CEA8; font-weight: bold;">0.5</span>;
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>capacity) {
-    capacity = <span style="color: #da8548; font-weight: bold;">11</span>;
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>capacity) {
+    capacity = <span style="color: #B5CEA8; font-weight: bold;">11</span>;
   }
 
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">array</span> = calloc(capacity, <span style="color: #51afef;">sizeof</span>(pair));
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>array) {
-    perror(<span style="color: #98be65;">"calloc failed"</span>);
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">array</span> = calloc(capacity, <span style="color: #339CDB;">sizeof</span>(pair));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>array) {
+    perror(<span style="color: #DB8E73;">"calloc failed"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">return</span> (hashmap){load_factor, capacity, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, hash, eq, array};
+  <span style="color: #339CDB;">return</span> (hashmap){load_factor, capacity, <span style="color: #B5CEA8; font-weight: bold;">0</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>, hash, eq, array};
 }
 
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Frees all dynamically associated memory with a hashmap</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">the hashmap becomes invalid after calling free</span>
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_free</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    <span style="color: #51afef;">return</span>;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Frees all dynamically associated memory with a hashmap</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">the hashmap becomes invalid after calling free</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_free</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    <span style="color: #339CDB;">return</span>;
   }
   free(h-&gt;array);
-  h = <span style="color: #a9a1e1;">NULL</span>;
+  h = <span style="color: #339CDB;">NULL</span>;
 }
 </pre>
 </div>
@@ -399,7 +392,7 @@ This is great because adding an item to an array is as simple as adding an offse
 </p>
 
 
-<div id="org10afb5d" class="figure">
+<div id="org9bb1d96" class="figure">
 <p><img src="array.png" alt="array.png" />
 </p>
 </div>
@@ -409,28 +402,27 @@ In order to get the index for each element, we have to somehow reduce its value 
 </p>
 
 <div class="org-src-container">
-<pre class="src src-v"><span style="color: #ECBE7B;">Basic</span> <span style="color: #ECBE7B;">Hash</span>
-<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x55e8f951e748</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">6</span>
-<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x55e8f951e728</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">2</span>
-<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x55e8f951e708</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">12</span>
-<span style="color: #ECBE7B;">FNV</span> <span style="color: #ECBE7B;">Hash</span>
-<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0xa7130ebc6001a9f8</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">4</span>
-<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x5c21814efdd7ab98</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">12</span>
-<span style="color: #ECBE7B;">Hashed</span><span style="color: #5B6268;">:</span> <span style="color: #a9a1e1;">0x9eb867d5a95e6e38</span>  <span style="color: #51afef;">|</span>  <span style="color: #5B6268;">[</span><span style="color: #da8548; font-weight: bold;">14</span><span style="color: #5B6268;">]</span><span style="color: #ECBE7B;">Array</span> <span style="color: #ECBE7B;">Index</span> <span style="color: #da8548; font-weight: bold;">4</span>
+<pre class="src src-v"><span style="color: #35CDAF;">Basic</span> <span style="color: #35CDAF;">Hash</span>
+<span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55e8f951e748</span>  <span style="color: #339CDB;">|</span>  <span style="color: #579C4C;">[</span><span style="color: #B5CEA8; font-weight: bold;">14</span><span style="color: #579C4C;">]</span><span style="color: #35CDAF;">Array</span> <span style="color: #35CDAF;">Index</span> <span style="color: #B5CEA8; font-weight: bold;">6</span>
+<span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55e8f951e728</span>  <span style="color: #339CDB;">|</span>  <span style="color: #579C4C;">[</span><span style="color: #B5CEA8; font-weight: bold;">14</span><span style="color: #579C4C;">]</span><span style="color: #35CDAF;">Array</span> <span style="color: #35CDAF;">Index</span> <span style="color: #B5CEA8; font-weight: bold;">2</span>
+<span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55e8f951e708</span>  <span style="color: #339CDB;">|</span>  <span style="color: #579C4C;">[</span><span style="color: #B5CEA8; font-weight: bold;">14</span><span style="color: #579C4C;">]</span><span style="color: #35CDAF;">Array</span> <span style="color: #35CDAF;">Index</span> <span style="color: #B5CEA8; font-weight: bold;">12</span>
+<span style="color: #35CDAF;">FNV</span> <span style="color: #35CDAF;">Hash</span>
+<span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0xa7130ebc6001a9f8</span>  <span style="color: #339CDB;">|</span>  <span style="color: #579C4C;">[</span><span style="color: #B5CEA8; font-weight: bold;">14</span><span style="color: #579C4C;">]</span><span style="color: #35CDAF;">Array</span> <span style="color: #35CDAF;">Index</span> <span style="color: #B5CEA8; font-weight: bold;">4</span>
+<span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x5c21814efdd7ab98</span>  <span style="color: #339CDB;">|</span>  <span style="color: #579C4C;">[</span><span style="color: #B5CEA8; font-weight: bold;">14</span><span style="color: #579C4C;">]</span><span style="color: #35CDAF;">Array</span> <span style="color: #35CDAF;">Index</span> <span style="color: #B5CEA8; font-weight: bold;">12</span>
+<span style="color: #35CDAF;">Hashed</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x9eb867d5a95e6e38</span>  <span style="color: #339CDB;">|</span>  <span style="color: #579C4C;">[</span><span style="color: #B5CEA8; font-weight: bold;">14</span><span style="color: #579C4C;">]</span><span style="color: #35CDAF;">Array</span> <span style="color: #35CDAF;">Index</span> <span style="color: #B5CEA8; font-weight: bold;">4</span>
 
 </pre>
 </div>
 
 <p>
-Huh. Even our more advanced hash function, with vastly different values, ends up producing the same index twice. Well that&rsquo;s not good for our users, if they try to store 2 different values we would end up overwriting the first value. We can continue to increase our array size to limit the amount of collisions, but we reach a point where we end up with a large number of empty spaces.
+Huh. Even our more advanced hash function, with vastly different values, ends up producing the same index twice. Well that&rsquo;s not good for our users, if they try to store 2 different values we would end up overwriting the first value. We can continue to increase our array size to limit the amount of collisions, but we reach a point where we end up with numerous empty spaces.
 </p>
 </div>
-
-<div id="outline-container-org27fd67c" class="outline-4">
-<h4 id="org27fd67c">Load Factor</h4>
-<div class="outline-text-4" id="text-org27fd67c">
+<div id="outline-container-orge575ce7" class="outline-4">
+<h4 id="orge575ce7">Load Factor</h4>
+<div class="outline-text-4" id="text-orge575ce7">
 <p>
-So we know we need an array to store our elements, but how big should our array be? Well, it will need to have a concept of how full it can get before resizing. Of course if we made an array that is as long as a <code>uint64_t</code> could address we would have the fewest number of collisions. Or we could have a super small array, with an element occupying every single index. The former wastes a lot of memory, and the latter would require reallocation on every insert.
+So we know we need an array to store our elements, but how big should our array be? Well, it will need to have a concept of how full it can get before resizing. Of course if we made an array that is as long as a <code>uint64_t</code> could address we would have the fewest number of collisions. Or we could have a tiny  array, with an element occupying every single index. The former wastes a lot of memory, and the latter would require reallocation on every insert.
 </p>
 
 <p>
@@ -447,24 +439,22 @@ You may notice that even with a low load factor we can still have collisions, so
 </div>
 </div>
 </div>
-
-<div id="outline-container-org3ce80ce" class="outline-3">
-<h3 id="org3ce80ce"><span class="underline">Insertion and Collision Resolution</span></h3>
-<div class="outline-text-3" id="text-org3ce80ce">
+<div id="outline-container-orgee02a8d" class="outline-3">
+<h3 id="orgee02a8d"><span class="underline">Insertion and Collision Resolution</span></h3>
+<div class="outline-text-3" id="text-orgee02a8d">
 <p>
 We will cover 2 different groups of strategies when it comes to resolving collisions in a hashmap.
 </p>
 </div>
-
-<div id="outline-container-org51e30e3" class="outline-4">
-<h4 id="org51e30e3">Open Addressing</h4>
-<div class="outline-text-4" id="text-org51e30e3">
+<div id="outline-container-orgf19f9e0" class="outline-4">
+<h4 id="orgf19f9e0">Open Addressing</h4>
+<div class="outline-text-4" id="text-orgf19f9e0">
 <p>
 <i>Linear Probing</i>
 </p>
 
 
-<div id="orgcca5529" class="figure">
+<div id="orgfa35364" class="figure">
 <p><img src="linear_probe.png" alt="linear_probe.png" />
 </p>
 </div>
@@ -478,15 +468,15 @@ In open addressing when 2 elements map to the same index we simply move to a dif
 </p>
 
 
-<div id="org6caa1c8" class="figure">
+<div id="orgc3aaf9e" class="figure">
 <p><img src="quad_probe.png" alt="quad_probe.png" />
 </p>
 </div>
 
-<pre class="example" id="orgcb12ac1">
+<pre class="example" id="org54c113d">
 An interesting thing to note with quadratic probing is its ideal conditions. Quadradic probing performs best when using a prime number table size, and a load factor &lt; 0.5. In these conditions quadratic probing will not only always find a valid position, it will also do it in size/2 jumps.
 
-When we go to implement our hashmap with open addressing later we will  see if we can ensure that both of these conditions are always met.
+When we go to implement our hashmap with open addressing later we will see if we can ensure that both of these conditions are always met.
 </pre>
 
 <p>
@@ -510,47 +500,47 @@ Our implementation is going to use quadratic probing, so let&rsquo;s take a look
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_insert</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">value</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"No a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_insert</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>, <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"No a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key) {
-   fprintf(stderr, <span style="color: #98be65;">"Attempting to insert a null key"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key) {
+   fprintf(stderr, <span style="color: #DB8E73;">"Attempting to insert a null key"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">new_pair</span> = {key, value};
+  <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">new_pair</span> = {key, value};
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Find if the pair already exists</span>
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">pair_ptr</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Set to NULL if it doesn't exist</span>
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-    <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-      pair_ptr = <span style="color: #a9a1e1;">NULL</span>;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
-      <span style="color: #51afef;">continue</span>;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">if</span> (p.key == key) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Find if the pair already exists</span>
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">pair_ptr</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set to NULL if it doesn't exist</span>
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+    <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+      pair_ptr = <span style="color: #339CDB;">NULL</span>;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
+      <span style="color: #339CDB;">continue</span>;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">if</span> (p.key == key) {
         pair_ptr = &amp;h-&gt;array[new_index];
       }
     }
   }
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Pair already exists</span>
-  <span style="color: #51afef;">if</span> (pair_ptr) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pair already exists</span>
+  <span style="color: #339CDB;">if</span> (pair_ptr) {
     *pair_ptr = new_pair;
-    <span style="color: #51afef;">return</span>;
+    <span style="color: #339CDB;">return</span>;
   }
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Pair does not yet exist</span>
-  <span style="color: #51afef;">if</span> (((<span style="color: #ECBE7B;">float</span>)h-&gt;size + <span style="color: #da8548; font-weight: bold;">1</span>) / (<span style="color: #ECBE7B;">float</span>)h-&gt;capacity &gt; h-&gt;load_factor) {
-    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We are over capacity</span>
-    hashmap_resize(h, <span style="color: #da8548; font-weight: bold;">0</span>);
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pair does not yet exist</span>
+  <span style="color: #339CDB;">if</span> (((<span style="color: #35CDAF;">float</span>)h-&gt;size + <span style="color: #B5CEA8; font-weight: bold;">1</span>) / (<span style="color: #35CDAF;">float</span>)h-&gt;capacity &gt; h-&gt;load_factor) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">We are over capacity</span>
+    hashmap_resize(h, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
     hashmap_insert(h, key, value);
-    <span style="color: #51afef;">return</span>;
+    <span style="color: #339CDB;">return</span>;
   }
 
   h-&gt;size++;
@@ -560,20 +550,19 @@ Our implementation is going to use quadratic probing, so let&rsquo;s take a look
 </div>
 
 <p>
-The core of our insert logic is finding where this pair belongs. From there we just have to check if we need a new pair, or if we can update an existing one. Our only check here is that we do not push our hashmap over the desired load factor, and if we do we handle it. Of course, dont forget to increase the size we we sucessfully insert an element.
+The core of our insert logic is finding where this pair belongs. From there we just have to check if we need a new pair, or if we can update an existing one. Our only check here is that we do not push our hashmap over the desired load factor, and if we do, we handle it. Of course, don&rsquo;t forget to increase the size when we sucessfully insert an element.
 </p>
 </div>
 </div>
-
-<div id="outline-container-orgd812c58" class="outline-4">
-<h4 id="orgd812c58">Separate Chaining</h4>
-<div class="outline-text-4" id="text-orgd812c58">
+<div id="outline-container-orgb5017cd" class="outline-4">
+<h4 id="orgb5017cd">Separate Chaining</h4>
+<div class="outline-text-4" id="text-orgb5017cd">
 <p>
 The other main strategy to resolve collisions in a hashmap is separate chaining.
 </p>
 
 
-<div id="org12e6253" class="figure">
+<div id="orgb59740e" class="figure">
 <p><img src="separate_chaining.png" alt="separate_chaining.png" />
 </p>
 </div>
@@ -587,67 +576,66 @@ When we go to insert an element all we have to do is make our new node point to 
 </p>
 </div>
 </div>
-
-<div id="outline-container-orgb7380bd" class="outline-4">
-<h4 id="orgb7380bd">Speed Considerations</h4>
-<div class="outline-text-4" id="text-orgb7380bd">
+<div id="outline-container-org93e90b1" class="outline-4">
+<h4 id="org93e90b1">Speed Considerations</h4>
+<div class="outline-text-4" id="text-org93e90b1">
 <p>
-As you may have noticed with open addressing, collisions increases the time it takes to find an element if we have a high number of collisions. Separate chaining runs into the same problem, so lets take a look at how the 2 differ in terms of speed.
+As you may have noticed with open addressing, collisions increases the time it takes to find an element if we have a high number of collisions. Separate chaining runs into the same problem, so let&rsquo;s take a look at how the 2 differ in terms of speed.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;time.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdlib.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;time.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
 
-<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span> {
-    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">value</span>;
-    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">next</span>;
+<span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span> {
+    <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">value</span>;
+    <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span>* <span style="color: #85DDFF;">next</span>;
 };
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>(){
-  <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">timespec</span> <span style="color: #dcaeea;">start</span>, <span style="color: #dcaeea;">end</span>;
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>(){
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">timespec</span> <span style="color: #85DDFF;">start</span>, <span style="color: #85DDFF;">end</span>;
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Heap Allocated Array</span>
-  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">array</span> = calloc(<span style="color: #da8548; font-weight: bold;">1024</span>, <span style="color: #51afef;">sizeof</span>(<span style="color: #ECBE7B;">int</span>));
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">1024</span>; i++) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Heap Allocated Array</span>
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">array</span> = calloc(<span style="color: #B5CEA8; font-weight: bold;">1024</span>, <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">int</span>));
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">1024</span>; i++) {
     array[i] = i;
   }
 
   clock_gettime(CLOCK_MONOTONIC, &amp;start);
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp</span>;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">64000</span>; i++) {
-    temp = array[i%<span style="color: #da8548; font-weight: bold;">1024</span>];
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">temp</span>;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">64000</span>; i++) {
+    temp = array[i%<span style="color: #B5CEA8; font-weight: bold;">1024</span>];
   }
   clock_gettime(CLOCK_MONOTONIC, &amp;end);
 
-  <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">array_elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #da8548; font-weight: bold;">1000.0</span> +
-    (end.tv_nsec - start.tv_nsec) / <span style="color: #da8548; font-weight: bold;">1e6</span>;
-  printf(<span style="color: #98be65;">"Time_Arr: %.3f milliseconds\n"</span>, array_elapsed_time);
+  <span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">array_elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #B5CEA8; font-weight: bold;">1000.0</span> +
+    (end.tv_nsec - start.tv_nsec) / <span style="color: #B5CEA8; font-weight: bold;">1e6</span>;
+  printf(<span style="color: #DB8E73;">"Time_Arr: %.3f milliseconds\n"</span>, array_elapsed_time);
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Linked List</span>
-  <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">head</span> = <span style="color: #a9a1e1;">NULL</span>;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">1024</span>; i++) {
-    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">new_node</span> = (<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>*)malloc(<span style="color: #51afef;">sizeof</span>(<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>));
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Linked List</span>
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span>* <span style="color: #85DDFF;">head</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">1024</span>; i++) {
+    <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span>* <span style="color: #85DDFF;">new_node</span> = (<span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span>*)malloc(<span style="color: #339CDB;">sizeof</span>(<span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span>));
     new_node-&gt;value = i;
     new_node-&gt;next = head;
     head = new_node;
   }
 
   clock_gettime(CLOCK_MONOTONIC, &amp;start);
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; <span style="color: #da8548; font-weight: bold;">64000</span>; i++) {
-    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Node</span>* <span style="color: #dcaeea;">temp</span> = head;
-    <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">j</span> = <span style="color: #da8548; font-weight: bold;">0</span>; j &lt; i % <span style="color: #da8548; font-weight: bold;">1024</span>; j++) {
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">64000</span>; i++) {
+    <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">Node</span>* <span style="color: #85DDFF;">temp</span> = head;
+    <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">j</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; j &lt; i % <span style="color: #B5CEA8; font-weight: bold;">1024</span>; j++) {
       temp = temp-&gt;next;
     }
   }
   clock_gettime(CLOCK_MONOTONIC, &amp;end);
 
- <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">list_elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #da8548; font-weight: bold;">1000.0</span> +
-    (end.tv_nsec - start.tv_nsec) / <span style="color: #da8548; font-weight: bold;">1e6</span>;
-  printf(<span style="color: #98be65;">"Time_LL: %.3f mlliseconds\n"</span>, list_elapsed_time);
+ <span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">list_elapsed_time</span> = (end.tv_sec - start.tv_sec) * <span style="color: #B5CEA8; font-weight: bold;">1000.0</span> +
+    (end.tv_nsec - start.tv_nsec) / <span style="color: #B5CEA8; font-weight: bold;">1e6</span>;
+  printf(<span style="color: #DB8E73;">"Time_LL: %.3f mlliseconds\n"</span>, list_elapsed_time);
 
-  printf(<span style="color: #98be65;">"%.0fx Slower"</span>, list_elapsed_time/array_elapsed_time);
+  printf(<span style="color: #DB8E73;">"%.0fx Slower"</span>, list_elapsed_time/array_elapsed_time);
 }
 </pre>
 </div>
@@ -665,18 +653,18 @@ As you may have noticed with open addressing, collisions increases the time it t
 <tbody>
 <tr>
 <td class="org-left">Time<sub>Arr</sub>:</td>
-<td class="org-right">0.841</td>
+<td class="org-right">0.097</td>
 <td class="org-left">milliseconds</td>
 </tr>
 
 <tr>
 <td class="org-left">Time<sub>LL</sub>:</td>
-<td class="org-right">224.369</td>
+<td class="org-right">43.017</td>
 <td class="org-left">mlliseconds</td>
 </tr>
 
 <tr>
-<td class="org-left">267x</td>
+<td class="org-left">445x</td>
 <td class="org-right">Slower</td>
 <td class="org-left">&#xa0;</td>
 </tr>
@@ -684,7 +672,7 @@ As you may have noticed with open addressing, collisions increases the time it t
 </table>
 
 <p>
-Run to run variation messes with the calculations a bit, but we can see that a linked list is around 150-200x slower than direct array access, when accessing a container of length 1024, 64000 times. This shouldnt be a surprise once you understand how memory access works at a lower level
+Run to run variation messes with the calculations a bit, but we can see that a linked list is around 150-200x slower than direct array access, when accessing a container of length 1024, 64000 times. This shouldn&rsquo;t be a surprise once you understand how memory access works at a lower level
 </p>
 
 <p>
@@ -704,12 +692,11 @@ Having said all of that, theory does not always map 1:1 to the real world. So it
 </p>
 </div>
 </div>
-
-<div id="outline-container-org2c279d4" class="outline-4">
-<h4 id="org2c279d4">C Data Structures</h4>
-<div class="outline-text-4" id="text-org2c279d4">
+<div id="outline-container-orgce90c94" class="outline-4">
+<h4 id="orgce90c94">C Data Structures</h4>
+<div class="outline-text-4" id="text-orgce90c94">
 <p>
-As an aside, one of the biggest reasons I enjoy C is that is encourages users to implement their own data structures. These can have specific behavior that suits their use case. For example, we will be implementing as general of a hashmap as we can here, with <code>void*</code> keys, and <code>uint64_t</code> values. The keys can be a pointer to any value, or be used to store a 64-bit integer, and same with the values. We are doing this to show the flexability of this implementation, but using pointers will slow down our hashmap.
+As an aside, one of the biggest reasons I enjoy C is that it encourages users to implement their own data structures. These can have specific behavior that suits their use case. For example, we will be implementing as general of a hashmap as we can here, with <code>void*</code> keys, and <code>uint64_t</code> values. The keys can be a pointer to any value, or be used to store a 64-bit integer, and same with the values. We are doing this to show the flexability of this implementation, but using pointers will slow down our hashmap.
 </p>
 
 <p>
@@ -718,10 +705,9 @@ If you know that your hash map will always use strings as keys, and integers as 
 </div>
 </div>
 </div>
-
-<div id="outline-container-orgf7d25e9" class="outline-3">
-<h3 id="orgf7d25e9"><span class="underline">Deletion</span></h3>
-<div class="outline-text-3" id="text-orgf7d25e9">
+<div id="outline-container-orgc31a607" class="outline-3">
+<h3 id="orgc31a607"><span class="underline">Deletion</span></h3>
+<div class="outline-text-3" id="text-orgc31a607">
 <p>
 At this point we would have a nearly complete hashmap, with the ability set and get any arbitrary pair. The last thing we need to implement for our user facing API is the removal of an element.
 </p>
@@ -731,7 +717,7 @@ At this point we would have a nearly complete hashmap, with the ability set and 
 </p>
 
 <p>
-In the case of separate chaining this is no different than a removal of an element in our linked list. Nothing too complicated to handle, other than checking our position in the list and updating the head if necessary.
+In the case of separate chaining this is no different from a removal of an element in our linked list. Nothing too complicated to handle, other than checking our position in the list and updating the head if necessary.
 </p>
 
 <p>
@@ -739,15 +725,15 @@ In the case of separate chaining this is no different than a removal of an eleme
 </p>
 
 <p>
-Our implementation with open addressing will be more complicated to handle. At first it may seem like we could just zero out the memory at that array index and call it a day. Which we could easily do, but this would make our probing very inefficient. Instead of stopping our probe when we hit an empty index, we would need to continue probing until we loop back around to an element we have already checked. On a small scale this probably isn&rsquo;t too bad, but once we get into the 1000&rsquo;s of elements we would be looking for ways to optimize lookups.
+Our implementation with open addressing will be more complicated to handle. At first, it may seem like we could just zero out the memory at that array index and call it a day. Which we could easily do, but this would make our probing very inefficient. Instead of stopping our probe when we hit an empty index, we would need to continue probing until we loop back around to an element we have already checked. On a small scale this probably isn&rsquo;t too bad, but once we get into the 1000s of elements we would be looking for ways to optimize lookups.
 </p>
 
 <p>
-Instead we can use a concept called a &ldquo;tombstone&rdquo;.
+Instead, we can use a concept called a &ldquo;tombstone&rdquo;.
 </p>
 
 
-<div id="org4f061a6" class="figure">
+<div id="org4df13e9" class="figure">
 <p><img src="tombstone.png" alt="tombstone.png" />
 </p>
 </div>
@@ -757,37 +743,37 @@ The basis of our entire open addressing hashmap will have to change with the int
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns a pointer to the pair if found,</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">otherwise returns NULL</span>
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_delete</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a pointer to the pair if found,</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">otherwise returns NULL</span>
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_delete</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key) {
-    fprintf(stderr, <span style="color: #98be65;">"Attempting to delete a NULL key"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Attempting to delete a NULL key"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-      <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-        <span style="color: #51afef;">return</span> TOMBSTONE;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
-      <span style="color: #51afef;">continue</span>;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">if</span> (p.key == key) {
-        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">temp_val</span> = p-&gt;value;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+      <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+        <span style="color: #339CDB;">return</span> TOMBSTONE;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
+      <span style="color: #339CDB;">continue</span>;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">if</span> (p.key == key) {
+        <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">temp_val</span> = p-&gt;value;
         h-&gt;size--;
-        p-&gt;key = (<span style="color: #ECBE7B;">void</span>*)TOMBSTONE;
-        p-&gt;value = <span style="color: #da8548; font-weight: bold;">0</span>;
-        <span style="color: #51afef;">return</span> temp_val;
+        p-&gt;key = (<span style="color: #35CDAF;">void</span>*)TOMBSTONE;
+        p-&gt;value = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+        <span style="color: #339CDB;">return</span> temp_val;
       }
     }
   }
-  <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
 }
 </pre>
 </div>
@@ -797,63 +783,63 @@ This also slightly complicates the concept of insertion. We can no longer find t
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_insert</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">value</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_insert</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>, <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key) {
-    fprintf(stderr, <span style="color: #98be65;">"Attempting to insert a NULL key"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Attempting to insert a NULL key"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">new_pair</span> = {key, value};
+  <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">new_pair</span> = {key, value};
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Find if the pair already exists</span>
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">pair_ptr</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Set to NULL if it doesn't exist</span>
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-    <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-      pair_ptr = <span style="color: #a9a1e1;">NULL</span>;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
-      <span style="color: #51afef;">continue</span>;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">if</span> (p.key == key) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Find if the pair already exists</span>
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">pair_ptr</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set to NULL if it doesn't exist</span>
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+    <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+      pair_ptr = <span style="color: #339CDB;">NULL</span>;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
+      <span style="color: #339CDB;">continue</span>;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">if</span> (p.key == key) {
         pair_ptr = &amp;h-&gt;array[new_index];
       }
     }
   }
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Pair already exists</span>
-  <span style="color: #51afef;">if</span> (pair_ptr) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pair already exists</span>
+  <span style="color: #339CDB;">if</span> (pair_ptr) {
     *pair_ptr = new_pair;
-    <span style="color: #51afef;">return</span>;
+    <span style="color: #339CDB;">return</span>;
   }
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Pair does not yet exist</span>
-  <span style="color: #51afef;">if</span> (((<span style="color: #ECBE7B;">float</span>)h-&gt;size + <span style="color: #da8548; font-weight: bold;">1</span>) / (<span style="color: #ECBE7B;">float</span>)h-&gt;capacity &gt; h-&gt;load_factor) {
-    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We are over capacity</span>
-    hashmap_resize(h, <span style="color: #da8548; font-weight: bold;">0</span>);
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pair does not yet exist</span>
+  <span style="color: #339CDB;">if</span> (((<span style="color: #35CDAF;">float</span>)h-&gt;size + <span style="color: #B5CEA8; font-weight: bold;">1</span>) / (<span style="color: #35CDAF;">float</span>)h-&gt;capacity &gt; h-&gt;load_factor) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">We are over capacity</span>
+    hashmap_resize(h, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
     hashmap_insert(h, key, value);
-    <span style="color: #51afef;">return</span>;
+    <span style="color: #339CDB;">return</span>;
   }
 
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">first_avail</span>;
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">first_avail</span>;
   index = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-    <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+    <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
       first_avail = &amp;h-&gt;array[new_index];
-      <span style="color: #51afef;">break</span>;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
+      <span style="color: #339CDB;">break</span>;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
       first_avail = &amp;h-&gt;array[new_index];
-      <span style="color: #51afef;">break</span>;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">continue</span>;
+      <span style="color: #339CDB;">break</span>;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">continue</span>;
     }
   }
 
@@ -868,30 +854,30 @@ This also complicates are retrieval logic slightly. Instead of either finding th
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns TOMBSTONE if element is not found (marker element)</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">returns value if found</span>
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_get</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns TOMBSTONE if element is not found (marker element)</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">returns value if found</span>
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_get</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key) {
-    fprintf(stderr, <span style="color: #98be65;">"Attempting to get a NULL key"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Attempting to get a NULL key"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">pair_ptr</span>;
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-      <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-        <span style="color: #51afef;">return</span> TOMBSTONE;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
-      <span style="color: #51afef;">continue</span>;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">if</span> (p.key == key) {
-        <span style="color: #51afef;">return</span> h-&gt;array[new_index].value;
+  <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">pair_ptr</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+      <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+        <span style="color: #339CDB;">return</span> TOMBSTONE;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
+      <span style="color: #339CDB;">continue</span>;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">if</span> (p.key == key) {
+        <span style="color: #339CDB;">return</span> h-&gt;array[new_index].value;
       }
     }
   }
@@ -904,33 +890,33 @@ You may have noticed at this point that we are repeating a lot of code. Now, I a
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns a pointer to the pair if found,</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">otherwise returns NULL</span>
-<span style="color: #ECBE7B;">pair</span> *<span style="color: #c678dd;">hashmap_find</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a pointer to the pair if found,</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">otherwise returns NULL</span>
+<span style="color: #35CDAF;">pair</span> *<span style="color: #D9DAA2;">hashmap_find</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key) {
-    fprintf(stderr, <span style="color: #98be65;">"Attempting to find a NULL key"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Attempting to find a NULL key"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-      <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-        <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
-      <span style="color: #51afef;">continue</span>;
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">if</span> (p.key == key) {
-        <span style="color: #51afef;">return</span> &amp;h-&gt;array[new_index];
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+      <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+        <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
+      <span style="color: #339CDB;">continue</span>;
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">if</span> (p.key == key) {
+        <span style="color: #339CDB;">return</span> &amp;h-&gt;array[new_index];
       }
     }
   }
-  <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
 }
 </pre>
 </div>
@@ -940,29 +926,29 @@ There we go, just a more generic version of the logic we have used in finding, i
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns TOMBSTONE if element is not found</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">returns value if found</span>
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_get</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>) {
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">p</span> = hashmap_find(h, key);
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>p) {
-    <span style="color: #51afef;">return</span> TOMBSTONE;
-  } <span style="color: #51afef;">else</span> {
-    <span style="color: #51afef;">return</span> p-&gt;value;
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns TOMBSTONE if element is not found</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">returns value if found</span>
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_get</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>) {
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">p</span> = hashmap_find(h, key);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>p) {
+    <span style="color: #339CDB;">return</span> TOMBSTONE;
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #339CDB;">return</span> p-&gt;value;
   }
 }
 
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns TOMBSTONE if element is not found</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">returns value if found</span>
-<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">hashmap_delete</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>) {
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">p</span> = hashmap_find(h, key);
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>p) {
-    <span style="color: #51afef;">return</span> TOMBSTONE;
-  } <span style="color: #51afef;">else</span> {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">tmp_val</span> = p-&gt;value;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns TOMBSTONE if element is not found</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">returns value if found</span>
+<span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">hashmap_delete</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>) {
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">p</span> = hashmap_find(h, key);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>p) {
+    <span style="color: #339CDB;">return</span> TOMBSTONE;
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">tmp_val</span> = p-&gt;value;
     h-&gt;size--;
-    p-&gt;key = (<span style="color: #ECBE7B;">void</span>*)TOMBSTONE;
-    p-&gt;value = <span style="color: #da8548; font-weight: bold;">0</span>;
-    <span style="color: #51afef;">return</span> tmp_val;
+    p-&gt;key = (<span style="color: #35CDAF;">void</span>*)TOMBSTONE;
+    p-&gt;value = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+    <span style="color: #339CDB;">return</span> tmp_val;
   }
 }
 </pre>
@@ -973,25 +959,25 @@ The logic doesn&rsquo;t change, but both functions get much shorter. You may als
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns a pointer to the first available spot,</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">empty or TOMBSTONE</span>
-<span style="color: #ECBE7B;">pair</span> *<span style="color: #c678dd;">hashmap_first_avail</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">collisions</span>) {
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++) {
-    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[new_index];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-      <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a pointer to the first available spot,</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">empty or TOMBSTONE</span>
+<span style="color: #35CDAF;">pair</span> *<span style="color: #D9DAA2;">hashmap_first_avail</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>, <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">collisions</span>) {
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(key) % h-&gt;capacity;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity/<span style="color: #B5CEA8; font-weight: bold;">2</span> + <span style="color: #B5CEA8; font-weight: bold;">1</span>; i++) {
+    <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (i * i)) % h-&gt;capacity;
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[new_index];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+      <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
         *collisions = i;
-        <span style="color: #51afef;">return</span> &amp;h-&gt;array[new_index];
-    <span style="color: #51afef;">case</span> TOMBSTONE:
+        <span style="color: #339CDB;">return</span> &amp;h-&gt;array[new_index];
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
         *collisions = i;
-        <span style="color: #51afef;">return</span> &amp;h-&gt;array[new_index];
-    <span style="color: #51afef;">default</span>:
-      <span style="color: #51afef;">continue</span>;
+        <span style="color: #339CDB;">return</span> &amp;h-&gt;array[new_index];
+    <span style="color: #339CDB;">default</span>:
+      <span style="color: #339CDB;">continue</span>;
     }
   }
-  <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
 }
 </pre>
 </div>
@@ -1001,25 +987,25 @@ Instead of returning a pointer to a match or NULL, we return the first spot avai
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_insert</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">value</span>) {
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">p</span> = hashmap_find(h, key);
-  <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">new</span> = {key, value};
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_insert</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">key</span>, <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">value</span>) {
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">p</span> = hashmap_find(h, key);
+  <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">new</span> = {key, value};
 
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Key already exists</span>
-  <span style="color: #51afef;">if</span> (p) {
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Key already exists</span>
+  <span style="color: #339CDB;">if</span> (p) {
     *p = new;
-    <span style="color: #51afef;">return</span>;
+    <span style="color: #339CDB;">return</span>;
   }
 
-  <span style="color: #51afef;">if</span> (((<span style="color: #ECBE7B;">float</span>)h-&gt;size + <span style="color: #da8548; font-weight: bold;">1</span>) / (<span style="color: #ECBE7B;">float</span>)h-&gt;capacity &gt; h-&gt;load_factor) {
-    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We are over capacity</span>
-    hashmap_resize(h, <span style="color: #da8548; font-weight: bold;">0</span>);
+  <span style="color: #339CDB;">if</span> (((<span style="color: #35CDAF;">float</span>)h-&gt;size + <span style="color: #B5CEA8; font-weight: bold;">1</span>) / (<span style="color: #35CDAF;">float</span>)h-&gt;capacity &gt; h-&gt;load_factor) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">We are over capacity</span>
+    hashmap_resize(h, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
     hashmap_insert(h, key, value);
-    <span style="color: #51afef;">return</span>;
+    <span style="color: #339CDB;">return</span>;
   }
 
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">collisions</span>;
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">first_avail</span> = hashmap_first_avail(h, key, &amp;collisions);
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">collisions</span>;
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">first_avail</span> = hashmap_first_avail(h, key, &amp;collisions);
 
   h-&gt;size++;
   h-&gt;collisions += collisions;
@@ -1038,10 +1024,9 @@ You may have been asking about the <code>hashmap_resize()</code> function at thi
 </p>
 </div>
 </div>
-
-<div id="outline-container-org8990308" class="outline-3">
-<h3 id="org8990308"><span class="underline">Memory Management and Resizing</span></h3>
-<div class="outline-text-3" id="text-org8990308">
+<div id="outline-container-org6c27040" class="outline-3">
+<h3 id="org6c27040"><span class="underline">Memory Management and Resizing</span></h3>
+<div class="outline-text-3" id="text-org6c27040">
 <p>
 With our user facing API covered now we have to talk about the management of all this data.
 </p>
@@ -1050,10 +1035,9 @@ With our user facing API covered now we have to talk about the management of all
 Earlier we discussed the concept of load factor, and we would ideally like to keep this as low as possible (and below 50% in the case of quadratic probing). We wouldn&rsquo;t be able to accomplish this without dynamically allocating memory, so that is exactly what we have to do. However, we should probably keep a few things in mind when decided how our hashmap should behave.
 </p>
 </div>
-
-<div id="outline-container-org244b5ad" class="outline-4">
-<h4 id="org244b5ad">Initial Size</h4>
-<div class="outline-text-4" id="text-org244b5ad">
+<div id="outline-container-org6be4315" class="outline-4">
+<h4 id="org6be4315">Initial Size</h4>
+<div class="outline-text-4" id="text-org6be4315">
 <p>
 If a user is going to instantiate a hashmap it is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specified at initialization time. They both sound reasonable, so why not both.
 </p>
@@ -1063,34 +1047,33 @@ As we said earlier, for our quadratic probing strategy it is best to keep the ta
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">bool</span> <span style="color: #c678dd;">is_prime</span>(<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">num</span>) {
-  <span style="color: #51afef;">if</span> (num &lt; <span style="color: #da8548; font-weight: bold;">2</span>) {
-    <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">false</span>;
+<pre class="src src-C"><span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">is_prime</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">num</span>) {
+  <span style="color: #339CDB;">if</span> (num &lt; <span style="color: #B5CEA8; font-weight: bold;">2</span>) {
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">false</span>;
   }
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">2</span>; i*i &lt;= num; i++) {
-    <span style="color: #51afef;">if</span> (num % i == <span style="color: #da8548; font-weight: bold;">0</span>) {
-      <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">false</span>;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">2</span>; i*i &lt;= num; i++) {
+    <span style="color: #339CDB;">if</span> (num % i == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">false</span>;
     }
   }
 
-  <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">true</span>;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">true</span>;
 }
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">next_prime</span>(<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">current_prime</span>) {
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">next</span> = current_prime + <span style="color: #da8548; font-weight: bold;">1</span>;
-  <span style="color: #51afef;">while</span> (<span style="color: #51afef; font-weight: bold;">!</span>is_prime(next)) {
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">next_prime</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">current_prime</span>) {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">next</span> = current_prime + <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  <span style="color: #339CDB;">while</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>is_prime(next)) {
     next++;
   }
-  <span style="color: #51afef;">return</span> next;
+  <span style="color: #339CDB;">return</span> next;
 }
 </pre>
 </div>
 </div>
 </div>
-
-<div id="outline-container-orgd952642" class="outline-4">
-<h4 id="orgd952642">Resizing is Expensive</h4>
-<div class="outline-text-4" id="text-orgd952642">
+<div id="outline-container-org142b8e1" class="outline-4">
+<h4 id="org142b8e1">Resizing is Expensive</h4>
+<div class="outline-text-4" id="text-org142b8e1">
 <p>
 We haven&rsquo;t covered this part of a hashmap yet, but it is more complex than it might first appear. My first thought was to simply expand the backing array and copy all the elements over, thus lowering our load factor. However, this won&rsquo;t help the speed of our hashmap at all, because elements that had collisions before will still have the same collision, and we may end up losing track of elements due to the new table size. Instead, we need to rebuild our hashmap each time we resize.
 </p>
@@ -1100,40 +1083,40 @@ The process is similar for both methods of collision management. We first create
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Set `new_cap` to NULL automatically find the best table size</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">`new_cap` should be set to a prime number for best performace</span>
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_resize</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">new_cap</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Set `new_cap` to NULL automatically find the best table size</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">`new_cap` should be set to a prime number for best performace</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_resize</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">new_cap</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>new_cap) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>new_cap) {
     new_cap = next_prime(h-&gt;capacity);
   }
 
-  <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">old_cap</span> = h-&gt;capacity;
-  <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">old_array</span> = h-&gt;array;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">old_cap</span> = h-&gt;capacity;
+  <span style="color: #35CDAF;">pair</span> *<span style="color: #85DDFF;">old_array</span> = h-&gt;array;
 
 
   h-&gt;capacity = new_cap;
-  h-&gt;collisions = <span style="color: #da8548; font-weight: bold;">0</span>;
-  h-&gt;array = calloc(new_cap, <span style="color: #51afef;">sizeof</span>(pair));
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h-&gt;array) {
-    perror(<span style="color: #98be65;">"calloc failed"</span>);
+  h-&gt;collisions = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  h-&gt;array = calloc(new_cap, <span style="color: #339CDB;">sizeof</span>(pair));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h-&gt;array) {
+    perror(<span style="color: #DB8E73;">"calloc failed"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; old_cap; i++) {
-    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Loop through all elements</span>
-    <span style="color: #51afef;">if</span> ((<span style="color: #ECBE7B;">uint64_t</span>)old_array[i].key != <span style="color: #da8548; font-weight: bold;">0</span> &amp;&amp; (<span style="color: #ECBE7B;">uint64_t</span>)old_array[i].key != TOMBSTONE) {
-      <span style="color: #5B6268;">// </span><span style="color: #5B6268;">If we have an element, place it into the new array, without worrying about tombstones</span>
-      <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func(old_array[i].key) % h-&gt;capacity;
-      <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">j</span> = <span style="color: #da8548; font-weight: bold;">0</span>;;j++) {
-        <span style="color: #5B6268;">// </span><span style="color: #5B6268;">No termination condition, we must find a spot</span>
-        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = (index + (j * j)) % h-&gt;capacity;
-        <span style="color: #51afef;">if</span> (h-&gt;array[new_index].key == <span style="color: #da8548; font-weight: bold;">0</span>) {
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; old_cap; i++) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Loop through all elements</span>
+    <span style="color: #339CDB;">if</span> ((<span style="color: #35CDAF;">uint64_t</span>)old_array[i].key != <span style="color: #B5CEA8; font-weight: bold;">0</span> &amp;&amp; (<span style="color: #35CDAF;">uint64_t</span>)old_array[i].key != TOMBSTONE) {
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">If we have an element, place it into the new array, without worrying about tombstones</span>
+      <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">index</span> = h-&gt;hash_func(old_array[i].key) % h-&gt;capacity;
+      <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">j</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;;j++) {
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">No termination condition, we must find a spot</span>
+        <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">new_index</span> = (index + (j * j)) % h-&gt;capacity;
+        <span style="color: #339CDB;">if</span> (h-&gt;array[new_index].key == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
           h-&gt;array[new_index] = old_array[i];
           h-&gt;collisions += j;
-          <span style="color: #51afef;">break</span>;
+          <span style="color: #339CDB;">break</span>;
         }
       }
     }
@@ -1144,11 +1127,11 @@ The process is similar for both methods of collision management. We first create
 </div>
 
 <p>
-Our first step is to create our new array, which involves calculating a new capacity if the user doesn&rsquo;t specify one. After that, we create a copy of the old data so we maintain a reference to the old array once we start moving elements over. Our memory allocation can fail so we check that, and finally update our hashmap to the new data.
+Our first step is to create our new array, which involves calculating a new capacity if the user doesn&rsquo;t specify one. After that, we create a copy of the old data so that we maintain a reference to the old array once we start moving elements over. If our memory allocation fails we handle it, and finally update our hashmap to the new data.
 </p>
 
 <p>
-Then comes the rehashing and migration. Hashmaps like ours don&rsquo;t maintain a specific order of iteration, if it did we would be writing an entirely different data structure. Instead we have to manually walk the array checking for an element, everytime we find one we move it over to the new array. Due to this, elements will likely end up in an entirely different order when we resize, which wont matter for our hashmap. In fact, resizing will likely improve lookup times depending on how many collisions we can resolve.
+Then comes the rehashing and migration. Hashmaps like ours don&rsquo;t maintain a specific order of iteration, if it did, we would be writing an entirely different data structure. Instead, we have to manually walk the array checking for an element, everytime we find one we move it over to the new array. Due to this, elements will likely end up in an entirely different order when we resize, which won&rsquo;t matter for our hashmap. In fact, resizing will likely improve lookup times depending on how many collisions we can resolve.
 </p>
 
 <p>
@@ -1156,18 +1139,18 @@ With that done our hashmap is functionally complete. Let&rsquo;s look at some ex
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">h</span> = hashmap_init(&amp;fnv_hash, &amp;value_equals, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">hashmap</span> <span style="color: #85DDFF;">h</span> = hashmap_init(&amp;fnv_hash, &amp;value_equals, <span style="color: #B5CEA8; font-weight: bold;">0</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
 
-  hashmap_insert(&amp;h, (<span style="color: #ECBE7B;">void</span>*)<span style="color: #da8548; font-weight: bold;">16</span>, <span style="color: #da8548; font-weight: bold;">25</span>);
-  printf(<span style="color: #98be65;">"Key %d has the value %d\n"</span>, <span style="color: #da8548; font-weight: bold;">16</span>, hashmap_get(&amp;h, (<span style="color: #ECBE7B;">void</span>*)<span style="color: #da8548; font-weight: bold;">16</span>));
+  hashmap_insert(&amp;h, (<span style="color: #35CDAF;">void</span>*)<span style="color: #B5CEA8; font-weight: bold;">16</span>, <span style="color: #B5CEA8; font-weight: bold;">25</span>);
+  printf(<span style="color: #DB8E73;">"Key %d has the value %d\n"</span>, <span style="color: #B5CEA8; font-weight: bold;">16</span>, hashmap_get(&amp;h, (<span style="color: #35CDAF;">void</span>*)<span style="color: #B5CEA8; font-weight: bold;">16</span>));
 
   hashmap_free(&amp;h);
 }
 </pre>
 </div>
 
-<pre class="example" id="orge5094f5">
+<pre class="example" id="orgfec8921">
 Key 16 has the value 25
 </pre>
 
@@ -1177,10 +1160,9 @@ That&rsquo;s great! Our hashmap sucessfully stored a key-value pair and allowed 
 </div>
 </div>
 </div>
-
-<div id="outline-container-org9a5901f" class="outline-3">
-<h3 id="org9a5901f"><span class="underline">Making our Container Generic</span></h3>
-<div class="outline-text-3" id="text-org9a5901f">
+<div id="outline-container-org1fd806b" class="outline-3">
+<h3 id="org1fd806b"><span class="underline">Making our Container Generic</span></h3>
+<div class="outline-text-3" id="text-org1fd806b">
 <p>
 The C programming language doesn&rsquo;t support generics, some people like this, others don&rsquo;t. I don&rsquo;t really have a side in the argument, but from a library author perspective, especially when writing a data structure, we would like our users to be able to use any datatype. So, how can we achieve this? Function pointers.
 </p>
@@ -1190,17 +1172,17 @@ We already saw these earlier when we allowed for our hashing function to be chan
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">fnv_string_hash</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>pointer) {
-    <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+<pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">fnv_string_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>pointer) {
+    <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
   }
-  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">14695981039346656037ull</span>;
-  <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">str</span> = (<span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>*)pointer;
-  <span style="color: #51afef;">while</span> (*str) {
-    hash *= <span style="color: #da8548; font-weight: bold;">1099511628211</span>;
+  <span style="color: #35CDAF;">uint64_t</span> <span style="color: #85DDFF;">hash</span> = <span style="color: #B5CEA8; font-weight: bold;">14695981039346656037ull</span>;
+  <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">str</span> = (<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>*)pointer;
+  <span style="color: #339CDB;">while</span> (*str) {
+    hash *= <span style="color: #B5CEA8; font-weight: bold;">1099511628211</span>;
     hash ^= *str++;
   }
-  <span style="color: #51afef;">return</span> hash;
+  <span style="color: #339CDB;">return</span> hash;
 }
 </pre>
 </div>
@@ -1210,20 +1192,20 @@ With a few small changes to our original <code>fnv_hash</code> it now supports C
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">h</span> = hashmap_init(&amp;fnv_string_hash, &amp;value_equals, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">hashmap</span> <span style="color: #85DDFF;">h</span> = hashmap_init(&amp;fnv_string_hash, &amp;value_equals, <span style="color: #B5CEA8; font-weight: bold;">0</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
 
-  <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">b</span> = (<span style="color: #ECBE7B;">char</span>*)malloc(<span style="color: #da8548; font-weight: bold;">64</span>);
-  strcpy(b, <span style="color: #98be65;">"Billy"</span>);
-  hashmap_insert(&amp;h, <span style="color: #98be65;">"Billy"</span>, <span style="color: #da8548; font-weight: bold;">25</span>);
-  printf(<span style="color: #98be65;">"Key %s has the value %d\n"</span>, b, hashmap_get(&amp;h, b));
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">b</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">64</span>);
+  strcpy(b, <span style="color: #DB8E73;">"Billy"</span>);
+  hashmap_insert(&amp;h, <span style="color: #DB8E73;">"Billy"</span>, <span style="color: #B5CEA8; font-weight: bold;">25</span>);
+  printf(<span style="color: #DB8E73;">"Key %s has the value %d\n"</span>, b, hashmap_get(&amp;h, b));
 
   hashmap_free(&amp;h);
 }
 </pre>
 </div>
 
-<pre class="example" id="orgbc777c0">
+<pre class="example" id="org21267b7">
 Key Billy has the value -1
 </pre>
 
@@ -1236,18 +1218,18 @@ It has to do with how we are comparing the keys. If we instead directly compared
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">a</span> = <span style="color: #98be65;">"Billy"</span>;
-  <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">b</span> = <span style="color: #98be65;">"Billy"</span>;
-  <span style="color: #51afef;">if</span> (a == b) {
-    puts(<span style="color: #98be65;">"Equal"</span>);
-  } <span style="color: #51afef;">else</span> {
-    puts(<span style="color: #98be65;">"Not Equal"</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">a</span> = <span style="color: #DB8E73;">"Billy"</span>;
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">b</span> = <span style="color: #DB8E73;">"Billy"</span>;
+  <span style="color: #339CDB;">if</span> (a == b) {
+    puts(<span style="color: #DB8E73;">"Equal"</span>);
+  } <span style="color: #339CDB;">else</span> {
+    puts(<span style="color: #DB8E73;">"Not Equal"</span>);
   }
-  printf(<span style="color: #98be65;">"a: %p\n"</span>, a);
-  printf(<span style="color: #98be65;">"b: %p\n"</span>, b);
+  printf(<span style="color: #DB8E73;">"a: %p\n"</span>, a);
+  printf(<span style="color: #DB8E73;">"b: %p\n"</span>, b);
 }
 </pre>
 </div>
@@ -1268,18 +1250,18 @@ It has to do with how we are comparing the keys. If we instead directly compared
 
 <tr>
 <td class="org-left">a:</td>
-<td class="org-right">0x55b5d6ebd004</td>
+<td class="org-right">0x555f3ab41004</td>
 </tr>
 
 <tr>
 <td class="org-left">b:</td>
-<td class="org-right">0x55b5d6ebd004</td>
+<td class="org-right">0x555f3ab41004</td>
 </tr>
 </tbody>
 </table>
 
 
-<div id="org729e3a5" class="figure">
+<div id="org5d48129" class="figure">
 <p><img src="str_ptr.png" alt="str_ptr.png" />
 </p>
 </div>
@@ -1297,15 +1279,15 @@ If we want our hashmap to be able to handle string keys we should write our own 
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Compares 2 null terminated C-style strings</span>
-<span style="color: #ECBE7B;">bool</span> <span style="color: #c678dd;">str_equals</span>(<span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">b</span>) {
-  <span style="color: #51afef;">return</span> strcmp((<span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>*)a, (<span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>*)b) == <span style="color: #da8548; font-weight: bold;">0</span>;
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Compares 2 null terminated C-style strings</span>
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">str_equals</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">b</span>) {
+  <span style="color: #339CDB;">return</span> strcmp((<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>*)a, (<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>*)b) == <span style="color: #B5CEA8; font-weight: bold;">0</span>;
 }
 </pre>
 </div>
 
 <p>
-The code itself is is just running <code>strcmp</code>, but a user could override this functionality to handle any type, as simple as an integer, or as complicated as a struct.
+The code itself is just running <code>strcmp</code>, but a user could override this functionality to handle any type, as simple as an integer, or as complicated as a struct.
 </p>
 
 <p>
@@ -1313,20 +1295,20 @@ With this in place our previous example should now work.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">h</span> = hashmap_init(&amp;fnv_string_hash, &amp;value_equals, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">hashmap</span> <span style="color: #85DDFF;">h</span> = hashmap_init(&amp;fnv_string_hash, &amp;value_equals, <span style="color: #B5CEA8; font-weight: bold;">0</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>);
 
-  <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">b</span> = (<span style="color: #ECBE7B;">char</span>*)malloc(<span style="color: #da8548; font-weight: bold;">64</span>);
-  strcpy(b, <span style="color: #98be65;">"Billy"</span>);
-  hashmap_insert(&amp;h, <span style="color: #98be65;">"Billy"</span>, <span style="color: #da8548; font-weight: bold;">25</span>);
-  printf(<span style="color: #98be65;">"Key %s has the value %d\n"</span>, b, hashmap_get(&amp;h, b));
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">b</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">64</span>);
+  strcpy(b, <span style="color: #DB8E73;">"Billy"</span>);
+  hashmap_insert(&amp;h, <span style="color: #DB8E73;">"Billy"</span>, <span style="color: #B5CEA8; font-weight: bold;">25</span>);
+  printf(<span style="color: #DB8E73;">"Key %s has the value %d\n"</span>, b, hashmap_get(&amp;h, b));
 
   hashmap_free(&amp;h);
 }
 </pre>
 </div>
 
-<pre class="example" id="org96cbd9e">
+<pre class="example" id="orgc8e8ba0">
 Key Billy has the value 25
 </pre>
 
@@ -1336,10 +1318,9 @@ There we go! Our hashmap is now able to handle keys directly by value, and by th
 </div>
 </div>
 </div>
-
-<div id="outline-container-org0007780" class="outline-2">
-<h2 id="org0007780"><span class="underline">Debugging</span></h2>
-<div class="outline-text-2" id="text-org0007780">
+<div id="outline-container-org36838fa" class="outline-2">
+<h2 id="org36838fa"><span class="underline">Debugging</span></h2>
+<div class="outline-text-2" id="text-org36838fa">
 <p>
 One of the things I miss from other languages is a good pretty printer. Of course firing up <code>gdb</code> and stepping through a program is always a viable option (and saved me a few times while writing this), but having a quick visual representation of the data helps me move quicker. If you write your own data structures when working in C you may find this pattern helpful. Just remember to also include a way to enable/disable this functionality when compiling code for distribution.
 </p>
@@ -1349,41 +1330,41 @@ There are a few ways we could go about this, so don&rsquo;t feel like you need t
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_print</span>(<span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">print_function</span> <span style="color: #dcaeea;">key_print</span>, <span style="color: #ECBE7B;">print_function</span> <span style="color: #dcaeea;">value_print</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>h) {
-    fprintf(stderr, <span style="color: #98be65;">"Not a valid hashmap, did you forget to init it?"</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">hashmap_print</span>(<span style="color: #35CDAF;">hashmap</span> *<span style="color: #85DDFF;">h</span>, <span style="color: #35CDAF;">print_function</span> <span style="color: #85DDFF;">key_print</span>, <span style="color: #35CDAF;">print_function</span> <span style="color: #85DDFF;">value_print</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>h) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Not a valid hashmap, did you forget to init it?"</span>);
     exit(EXIT_FAILURE);
   }
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>key_print || <span style="color: #51afef; font-weight: bold;">!</span>value_print) {
-    fprintf(stderr, <span style="color: #98be65;">"Please provide valid print functions"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>key_print || <span style="color: #85DDFF; font-weight: bold;">!</span>value_print) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Please provide valid print functions"</span>);
     exit(EXIT_FAILURE);
   }
-  printf(<span style="color: #98be65;">"Size: %d\n"</span>, h-&gt;size);
-  printf(<span style="color: #98be65;">"Capacity: %d\n"</span>, h-&gt;capacity);
-  printf(<span style="color: #98be65;">"Collisions: %d\n"</span>, h-&gt;collisions);
-  printf(<span style="color: #98be65;">"Average Steps Per Element: %f\n"</span>, h-&gt;collisions / (<span style="color: #ECBE7B;">float</span>)h-&gt;size);
-  printf(<span style="color: #98be65;">"Desired Load Factor: %f\n"</span>, h-&gt;load_factor);
-  printf(<span style="color: #98be65;">"Current Load Factor: %f\n"</span>, (<span style="color: #ECBE7B;">float</span>)h-&gt;size / (<span style="color: #ECBE7B;">float</span>)h-&gt;capacity);
-  <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity; i++) {
-    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">p</span> = h-&gt;array[i];
-    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">key</span>[STR_BUF_LEN];
-    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">value</span>[STR_BUF_LEN];
-    <span style="color: #51afef;">switch</span> ((<span style="color: #ECBE7B;">uint64_t</span>)p.key) {
-    <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>:
-      snprintf(key, STR_BUF_LEN, <span style="color: #98be65;">"%s"</span>, <span style="color: #98be65;">"EMPTY"</span>);
-      snprintf(value, STR_BUF_LEN, <span style="color: #98be65;">"%s"</span>, <span style="color: #98be65;">"EMPTY"</span>);
-      <span style="color: #51afef;">break</span>;
-    <span style="color: #51afef;">case</span> TOMBSTONE:
-      snprintf(key, STR_BUF_LEN, <span style="color: #98be65;">"%s"</span>, <span style="color: #98be65;">"TOMBSTONE"</span>);
-      snprintf(value, STR_BUF_LEN, <span style="color: #98be65;">"%s"</span>, <span style="color: #98be65;">"TOMBSTONE"</span>);
-      <span style="color: #51afef;">break</span>;
-    <span style="color: #51afef;">default</span>:
+  printf(<span style="color: #DB8E73;">"Size: %d\n"</span>, h-&gt;size);
+  printf(<span style="color: #DB8E73;">"Capacity: %d\n"</span>, h-&gt;capacity);
+  printf(<span style="color: #DB8E73;">"Collisions: %d\n"</span>, h-&gt;collisions);
+  printf(<span style="color: #DB8E73;">"Average Steps Per Element: %f\n"</span>, h-&gt;collisions / (<span style="color: #35CDAF;">float</span>)h-&gt;size);
+  printf(<span style="color: #DB8E73;">"Desired Load Factor: %f\n"</span>, h-&gt;load_factor);
+  printf(<span style="color: #DB8E73;">"Current Load Factor: %f\n"</span>, (<span style="color: #35CDAF;">float</span>)h-&gt;size / (<span style="color: #35CDAF;">float</span>)h-&gt;capacity);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; h-&gt;capacity; i++) {
+    <span style="color: #35CDAF;">pair</span> <span style="color: #85DDFF;">p</span> = h-&gt;array[i];
+    <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">key</span>[STR_BUF_LEN];
+    <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">value</span>[STR_BUF_LEN];
+    <span style="color: #339CDB;">switch</span> ((<span style="color: #35CDAF;">uint64_t</span>)p.key) {
+    <span style="color: #339CDB;">case</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>:
+      snprintf(key, STR_BUF_LEN, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"EMPTY"</span>);
+      snprintf(value, STR_BUF_LEN, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"EMPTY"</span>);
+      <span style="color: #339CDB;">break</span>;
+    <span style="color: #339CDB;">case</span> TOMBSTONE:
+      snprintf(key, STR_BUF_LEN, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"TOMBSTONE"</span>);
+      snprintf(value, STR_BUF_LEN, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"TOMBSTONE"</span>);
+      <span style="color: #339CDB;">break</span>;
+    <span style="color: #339CDB;">default</span>:
       key_print(key, p.key);
-      value_print(value, (<span style="color: #ECBE7B;">void</span> *)p.value);
-      <span style="color: #51afef;">break</span>;
+      value_print(value, (<span style="color: #35CDAF;">void</span> *)p.value);
+      <span style="color: #339CDB;">break</span>;
     }
 
-    printf(<span style="color: #98be65;">"Index: %3d, Key: %16s, Value: %16s\n"</span>, i, key, value);
+    printf(<span style="color: #DB8E73;">"Index: %3d, Key: %16s, Value: %16s\n"</span>, i, key, value);
   }
 }
 </pre>
@@ -1394,7 +1375,7 @@ Let&rsquo;s break down the function bit by bit.
 </p>
 
 <p>
-Our first section prints out the primitive values in the struct, and another value we haven&rsquo;t addressed yet. <code>Collisions</code> is keeping track of the <i>total</i> number of collisions each element encountered as it was placed. This is not a perfect way to measure collisions, but for testing different hash functions this should be more than enough to compare their efficiency. If you would like to expand upon this functionality it would be nice to have way to keep track collisions on a per element basis (potentially using another hashmap?). Then we show the current load factor, and our limit on how high we are allowing it to get.
+Our first section prints out the primitive values in the struct, and another value we haven&rsquo;t addressed yet. <code>Collisions</code> is keeping track of the <i>total</i> number of collisions each element encountered as it was placed. This is not a perfect way to measure collisions, but for testing different hash functions this should be more than enough to compare their efficiency. If you would like to expand upon this functionality it would be nice to have way to keep track collisions on a per-element basis (potentially using another hashmap?). Then we show the current load factor, and our limit on how high we are allowing it to get.
 </p>
 
 <p>
@@ -1402,14 +1383,14 @@ The last section is what will print out the key-value pair in our map. We have t
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Pretty Printing Functions, char[STR_BUF_LEN] max output</span>
-<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Can be used to define a custom print function for more complex datatypes</span>
-<span style="color: #51afef;">typedef</span> <span style="color: #ECBE7B;">void</span> (*<span style="color: #ECBE7B;">print_function</span>)(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">unsigned_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">signed_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">double_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">address_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">string_print</span>(<span style="color: #ECBE7B;">char</span>*, <span style="color: #ECBE7B;">void</span>*);
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Pretty Printing Functions, char[STR_BUF_LEN] max output</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Can be used to define a custom print function for more complex datatypes</span>
+<span style="color: #339CDB;">typedef</span> <span style="color: #35CDAF;">void</span> (*<span style="color: #35CDAF;">print_function</span>)(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">unsigned_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">signed_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">double_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">address_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">string_print</span>(<span style="color: #35CDAF;">char</span>*, <span style="color: #35CDAF;">void</span>*);
 </pre>
 </div>
 
@@ -1418,17 +1399,17 @@ Our version will come with the functions defined above, although we will only ov
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">signed_print</span>(<span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">buf</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">value</span>) {
-  snprintf(buf, STR_BUF_LEN, <span style="color: #98be65;">"%ld"</span>, (<span style="color: #ECBE7B;">int64_t</span>)value);
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">signed_print</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">value</span>) {
+  snprintf(buf, STR_BUF_LEN, <span style="color: #DB8E73;">"%ld"</span>, (<span style="color: #35CDAF;">int64_t</span>)value);
 }
-<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">string_print</span>(<span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">buf</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">str</span>) {
-  snprintf(buf, STR_BUF_LEN, <span style="color: #98be65;">"%s"</span>, (<span style="color: #ECBE7B;">char</span> *)str);
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">string_print</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf</span>, <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">str</span>) {
+  snprintf(buf, STR_BUF_LEN, <span style="color: #DB8E73;">"%s"</span>, (<span style="color: #35CDAF;">char</span> *)str);
 }
 </pre>
 </div>
 
 <p>
-Each print function takes in a buffer to write to, and a value to print out. We define <code>STR_BUF_LEN</code> in our header file to be the maximum length a user is able to write. Any function can then be used the write the values representation into the provided buffer. I find <code>snprintf</code> to be the easiest to work with, as is accepts a paramter <code>n</code>, which limtis the amount of characters it will attempt to write to the buffer. Other than that, it uses the normal format string syntax, and accepts a variable number of arguments to fill the format string.
+Each print function takes in a buffer to write to, and a value to print out. We define <code>STR_BUF_LEN</code> in our header file to be the maximum length a user is able to write. Any function can then be used to write the value&rsquo;s representation into the provided buffer. I find <code>snprintf</code> to be the easiest to work with, as it accepts a paramter <code>n</code>, which limtis the amount of characters it will attempt to write to the buffer. Other than that, it uses the normal format string syntax, and accepts a variable number of arguments to fill the format string.
 </p>
 
 <p>
@@ -1438,7 +1419,7 @@ With that in place our pretty printer should be ready to go.
 <p>
 <i><code>fnv_string_hash</code></i>
 </p>
-<pre class="example" id="org78bbfc0">
+<pre class="example" id="org0ee690e">
 Size: 5
 Capacity: 11
 Collisions: 0
@@ -1465,7 +1446,7 @@ Now is a perfect time to see how our hashmap changes with different hash functio
 <p>
 <i><code>no_hash</code></i>
 </p>
-<pre class="example" id="orge9872f5">
+<pre class="example" id="org324699b">
 Size: 5
 Capacity: 11
 Collisions: 10
@@ -1490,13 +1471,13 @@ With our hash function set to always return 0 each element will encounter n+1 co
 </p>
 
 <p>
-Even just switching to a our <code>basic_hash</code> will greatly improve our collision rate.
+Even just switching to our <code>basic_hash</code> will greatly improve our collision rate.
 </p>
 
 <p>
 <i><code>basic_hash</code></i>
 </p>
-<pre class="example" id="orgba18b49">
+<pre class="example" id="org8097c27">
 Size: 5
 Capacity: 11
 Collisions: 1
@@ -1529,18 +1510,17 @@ It all comes down to the trade-off between memory and speed. Which is exactly wh
 </p>
 </div>
 </div>
-
-<div id="outline-container-orgb547ffb" class="outline-2">
-<h2 id="orgb547ffb"><span class="underline">Conclusion</span></h2>
-<div class="outline-text-2" id="text-orgb547ffb">
+<div id="outline-container-org65b3c86" class="outline-2">
+<h2 id="org65b3c86"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-org65b3c86">
 <p>
 There we go! Everything we need to implement our own hashmap from scratch in C, with some added comforts to aid in debugging. I hope you can see that the code we had to write wasn&rsquo;t bad at all. Of course writing in C will always be a bit more verbose as opposed to a higher level language, but it helps to see what is going on.
 </p>
 
-<pre class="example" id="org37ddbf5">
+<pre class="example" id="orgdbcfd93">
 Another data structure to explore in the same realm is a bloom filter. They can be used alongside a hashmap to tell you with 100% certaintity that an item is not in the map. So why would we use a second hashmap to tell us what is in the main hashmap?
 
-Well, bloom filters don't store the elements themselves, instead they use a bitmap to to indicate true/false for an index. This way a bloom filter occupies 1 64-bit integer per 64 elements in the hash map.
+Well, bloom filters don't store the elements themselves, instead they use a bitmap to indicate true/false for an index. This way a bloom filter occupies 1 64-bit integer per 64 elements in the hash map.
 
 Hopefully have a better understanding of how open addressing works. Now, can you think of why a bloom filter is only able to tell you with 100% certainity that an element is *not* in the map?
 </pre>

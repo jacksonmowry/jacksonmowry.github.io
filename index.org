@@ -4,6 +4,6 @@
 #+SETUPFILE: retro_dark.theme
 * Articles
 ** Build a Shell in C
-[[file:shell.org]]
+[[file:shell.org][Shell]]
 ** Build a Hashmap in C
-[[file:hashmap.org]]
+[[file:hashmap.org][Hashmap]]
