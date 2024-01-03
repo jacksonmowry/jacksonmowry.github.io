@@ -243,12 +243,88 @@ Any of the programs that you choose run on your computer are running in [[https:
 
 A program like Firefox or OBS does not need to be concerned with the other programs running on the computer. Under the hood each program may be spread out all over physical memory, or intertwined together with other programs. For our /user-space/ programs to work the operating system "lies" to them, providing a single contiguous section of memory. Our program then runs as if it is the only program on the computer.
 
-When are program is run it is loaded into memory with a layout as depicted below.
+When are program is run, it is loaded into memory with a layout as depicted below.
 
 [[file:memory_layout.png]]
 
-I have been referring to our memory allocator as a "heap allocator", where the heap refers to the "heap" in memory. Just like our buffer of ~1024~ bytes in our original implementation the heap is a large contiguous section of memory. Yet unlike our ~1024~ byte buffer the heap can grow and shrink as needed. This is accomplished with the system call ~sbrk()~.
+The stack holds local variables and any other data in which it's size is known at run time. On certain architectures the stack may also be used to hold function arguments. Program Data/Code holds things like constants, uninitialized variables, and the code itself. Lastly, the heap is our program's dynamic memory space, which can hold variables who's size or quantity is unknown at compile time.
 
+The amount of stack space a program has is set on a operating system level on linux. Running ~ulimit -a~ will show all of the current limits for your user. On my machine stack size is set to ~8192 kb~ or ~~8 mb~. A program uses more of the stack by subtracting a certain number of bytes from the [[https://en.wikipedia.org/wiki/Stack_register][/stack pointer/]], making sure to keep this aligned to the architecture specific value.
+
+On the other hand, the heap is not something the user has direct control over from their assembly. In order to get more memory for our heap we have to ask the operating system.
+
+I have been referring to our memory allocator as a "heap allocator", where the heap refers to the "heap" in memory. Just like our buffer of ~1024~ bytes in our original implementation, the heap is a large contiguous section of memory. Yet unlike our ~1024~ byte buffer the heap can grow and shrink as needed. This is accomplished with the system call ~sbrk()~.
+
+#+begin_example
+It is worth noting that modern implementations of malloc() use mmap instead of calls to sbrk. There are many reasons why this change was made, but it essentially boils down to the fact that mmap fits our use cases better, and is safer to use.
+
+Using sbrk directly in our code is part of the Posix system API. The Posix API allows our programs to be run on any Posix compliant system, meaning it is essentially an operating system abstraction layer. sbrk (and brk) have both been depricated in the Posix API.
+
+Our implementation will still explore sbrk as it's way to gain more memory.
+#+end_example
+
+So how does ~sbrk~ work?
+
+~sbrk~ allows a user to specify the number of bytes by which the heap should grow. This is controlling the /program break/, which is the address directly beyond the data segment of our program. ~sbrk~ has 2 use cases, incrementing the /program break/, or when called with ~0~, returning the address of the /program break/. Let's take a look at how these work.
+
+#+begin_src C :exports both
+#include <unistd.h>
+#include <stdio.h>
+int main() {
+  void *brk = sbrk(0);
+  sbrk(4);
+  void* new_brk = sbrk(0);
+
+  printf("Program-Break:  %p\n", brk);
+  printf("Program-Break:  %p\n", new_brk);
+
+  printf("Distance-Between: %d\n", new_brk - brk);
+}
+#+end_src
+
+#+RESULTS:
+| Program-Break:    | 0x55618b67b000 |
+| Program-Break:    | 0x55618b67b004 |
+| Distance-Between: |              4 |
+| Stack-Variable:   | 0x7fffd0f72b04 |
+
+The first call to ~sbrk~ returns the /heap base/, equivalent to the starting address of our 1024 byte buffer. We then increase the program break by 4 bytes, which returns the address of the *previous* program break. Therefore, we have to call ~sbrk(0)~ again to get the new program break. We see that the distance between the 2 pointers is exactly 4 bytes, exactly what we requested.
+
+#+begin_example
+The reason why we have to call printf after acquiring the memory address is that it allocates memory internally.
+#+end_example
+
+This is great! We can now increase the programs heap segment whenever we want. Let's take a look at how we can implement this in our ~malloc~ function.
+
+** _Adding sbrk()_
+Now that we will be using ~sbrk~ directly in our program we are going to start running into a problem. The ~malloc~ implementation on our machine will be calling ~sbrk~ or ~mmap~ to increase it's heap, and we will be trying to do the same. The issue is that our heaps are one in the same. If my ~malloc~ and the system's ~malloc~ are both being run they will step on each others toes.
+
+We can get around this by "overriding" ~malloc~ for our program.
+
+#+begin_src C
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+void *malloc(size_t size) {
+  exit(72);
+}
+
+int main() {
+  void *memory = malloc(400);
+}
+#+end_src
+
+#+begin_src sh
+jackson@jtop:/tmp$ gcc test.c && ./a.out
+jackson@jtop:/tmp$ echo $?
+72
+#+end_src
+
+Our custom malloc implementation simply exits the program with a code of ~72~. Of course, this insn't very useful, but it demonstrates that we can override the ~malloc~ functionality.
+
+#+begin_src C
+void *heap_base
+#+end_src
 
 
 
