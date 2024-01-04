@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define HEAP_INC 128
+#define HEAP_INC 1024
 
 void *heap_base = NULL;
 void *heap_end = NULL;
@@ -123,6 +123,11 @@ int main() {
   uint64_t *big_num = malloc(64);
   *big_num = 64;
 
+  char *buf;
+  asprintf(&buf, "big num has the value: %ld\n", *big_num);
+  puts(buf);
+
   heap_walk();
+  heap_size();
   return 0;
 }
