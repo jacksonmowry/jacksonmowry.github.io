@@ -20,6 +20,7 @@ void *malloc(size_t bytes) {
     sbrk(HEAP_INC);
     *(heap_seg*)heap_base = (heap_seg){HEAP_INC};
     heap_end = sbrk(0);
+    /* printf("Diff: %ld\n", heap_end - heap_base); */
   }
   if (bytes == 0) {
     return NULL;
@@ -80,6 +81,8 @@ void free(void* block) {
   // Get prev/next pointers
   heap_seg *prev = header - header->size / sizeof(heap_seg);
   heap_seg *next = header + header->size / sizeof(heap_seg);
+  printf("Prev: %p\n", prev);
+  printf("Next: %p\n", next);
   if (prev > (heap_seg*)heap_base && !(prev->size & 1)) {
     prev->size += header->size;
     header = prev;
@@ -87,12 +90,12 @@ void free(void* block) {
   if (next < (heap_seg*)heap_end && !(next->size & 1)) {
     header->size += next->size;
   }
-
+  printf("Header Address: %p\n", header);
   header->size ^= 1;
 }
 
 void heap_size() {
-  /* printf("Heap is %ld bytes\n", heap_end - heap_base); */
+  printf("Heap is %ld bytes\n", heap_end - heap_base);
 }
 
 int main() {
@@ -104,20 +107,28 @@ int main() {
   *num = 7;
   heap_size();
 
+
   int *test = malloc(1);
   *test = 66;
   heap_size();
 
-  /* printf("Address of block: %p\n", block); */
-  /* printf("Address of num: %p\n", num); */
-  /* printf("Address of test: %p\n", test); */
+  printf("Address of block: %p\n", block);
+  printf("Address of num: %p\n", num);
+  printf("Address of test: %p\n", test);
 
-  /* printf("Size of block: %ld\n", ((heap_seg*)block-1)->size ^ 0x1); */
-  /* printf("Size of num: %ld\n", ((heap_seg*)num-1)->size ^ 0x1); */
-  /* printf("Size of test: %ld\n", ((heap_seg*)test-1)->size ^ 0x1); */
+  printf("Size of block: %ld\n", ((heap_seg*)block-1)->size ^ 0x1);
+  printf("Size of num: %ld\n", ((heap_seg*)num-1)->size ^ 0x1);
+  printf("Size of test: %ld\n", ((heap_seg*)test-1)->size ^ 0x1);
 
   free(num);
   free(test);
+
+  heap_seg* ptr = heap_base;
+  while (ptr < (heap_seg*)heap_end) {
+    printf("Segment size: %ld, Value: %ld, Address: %p\n", ptr->size, (ptr->size & 1) ? *(uint64_t*)(ptr+1) : -1, ptr);
+    ptr += ptr->size / sizeof(heap_seg);
+  }
+  exit(1);
 
   num = malloc(32);
   *num = 1;
@@ -125,20 +136,18 @@ int main() {
 
   uint64_t *big_num = malloc(64);
   *big_num = 64;
+  printf("address of big_num: %p\n", big_num);
+  printf("big_num: %ld\n", *big_num);
   heap_size();
-  /* printf("address of big_num: %p\n", big_num); */
-  /* printf("big_num: %ld\n", *big_num); */
 
-  /* printf("Address of block: %p\n", block); */
-  /* printf("Address of num: %p\n", num); */
-  /* printf("Size of block: %ld\n", ((heap_seg*)block-1)->size ^ 0x1); */
-  /* printf("Size of num: %ld\n", ((heap_seg*)num-1)->size ^ 0x1); */
+  printf("Address of block: %p\n", block);
+  printf("Address of num: %p\n", num);
+  printf("Size of block: %ld\n", ((heap_seg*)block-1)->size ^ 0x1);
+  printf("Size of num: %ld\n", ((heap_seg*)num-1)->size ^ 0x1);
 
-  heap_seg* ptr = heap_base;
-  while (ptr < (heap_seg*)heap_end) {
-    printf("Segment size: %ld, Value: %ld\n", ptr->size, (ptr->size & 1) ? *(uint64_t*)(ptr+1) : -1);
-    ptr += ptr->size / sizeof(heap_seg);
-  }
+
+
+
 
 
   return 0;
