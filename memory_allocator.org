@@ -27,12 +27,13 @@ Let's start off by laying our groundwork for this exploration.
 
 void* heap_base;
 
-typedef struct {
+typedef struct heap_seg {
   size_t size;
+  struct heap_seg *prev;
 } heap_seg;
 #+end_src
 
-For now, we will set our heap to a fixed size of ~1024~ bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of our heap. Then we define a struct for each segment of our heap, which for now just holds a ~size_t~ to hold the size in bytes. We will later see how we can perform some cleaver transformations on this single number to store more information.
+For now, we will set our heap to a fixed size of ~1024~ bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of our heap. Then we define a struct for each segment of our heap, which for now holds a ~size_t~ to hold the size in bytes, and a pointer for the previous segment. We will later see how we can perform some cleaver transformations on our size to store more information.
 
 ** _Initialization_
 
@@ -40,8 +41,7 @@ For now, we will set our heap to a fixed size of ~1024~ bytes, and we will use a
 int heap_init(void* base) {
   if (!base) { return -1; }
   heap_base = base;
-
-  *(heap_seg*)heap_base = (heap_seg){HEAP_SIZE - sizeof(heap_seg)};
+  *(heap_seg*)heap_base = (heap_seg){HEAP_INC, NULL};
   return 0;
 }
 
@@ -57,6 +57,7 @@ We will leave error handling out for right now to focus in on the core logic.
 
 #+begin_src C
 void *heap_malloc(size_t bytes) {
+  heap_seg *prev = NULL;
   heap_seg *ptr = heap_base;
   while (ptr < (heap_seg*)(heap_base + HEAP_SIZE)) {
     if ((ptr->size & 0x1) == 0 && ptr->size >= bytes + sizeof(heap_seg)) {
@@ -74,7 +75,8 @@ void *heap_malloc(size_t bytes) {
       }
       return user_block;
     }
-    ptr += ptr->size / sizeof(heap_seg);
+    prev = ptr;
+    ptr = (void*)ptr / (ptr->size & (~1));
   }
 
   return NULL;
@@ -83,13 +85,13 @@ void *heap_malloc(size_t bytes) {
 
 Yeah, it's a bit more going on that I would have assumed at first, but it won't be too hard to step through. Also note that we are currently covering what is called /first fit/ right now, where we find the first chunk able to fulfil the allocation request, we will cover a different allocation strategy later.
 
-We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it's size to hold the requested amount of bytes. You may notice that we don't set the size to be equal to ~bytes~ as the user requested, instead we have to factor in a few more things.
+We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it's size to hold the requested amount of bytes. This is also where we set it's previous element. You may notice that we don't set the size to be equal to ~bytes~ as the user requested, instead we have to factor in a few more things.
 
-The first portion of the size is the ~heap_seg~ struct itself, which in the current implementation is 8 bytes. The next section is the data, which needs to be aligned on 8 byte boundaries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
+The first portion of the size is the ~heap_seg~ struct itself, which in the current implementation is 16 bytes. The next section is the data, which needs to be aligned on 8 byte boundaries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
 
 Once we put this all together we set the least significant bit to 1. This final bit allows us to keep track of if the heap segment is in use. We are able to do this because each size will be a multiple of 8, meaning that its lower 3 bits will always be 0. We are currently using 1 of the 3 bits, so we can potentially even store more flags if needed.
 
-There we go, we have now produced a heap segment that can be returned to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity e get a pointer to the start of the next heap segment, and then set its size to the remaining space in the heap.
+There we go, we have now produced a heap segment that can be returned to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity we get a pointer to the start of the next heap segment, and then set its size to the remaining space in the heap.
 
 [[file:heap_segmenting.png]]
 
@@ -149,8 +151,8 @@ void heap_free(void* block) {
   if (!block) { return; }
   heap_seg *header = (heap_seg*)block - 1;
   // Get prev/next pointers
-  heap_seg *prev = header - header->size / sizeof(heap_seg);
-  heap_seg *next = header + header->size / sizeof(heap_seg);
+  heap_seg *prev = header->prev;
+  heap_seg *next = (void*)header + (header->size & (~1));
   if (prev > (heap_seg*)heap_base && !(prev->size & 1)) {
     prev->size += header->size;
     header = prev;
@@ -320,11 +322,22 @@ jackson@jtop:/tmp$ echo $?
 72
 #+end_src
 
-Our custom malloc implementation simply exits the program with a code of ~72~. Of course, this insn't very useful, but it demonstrates that we can override the ~malloc~ functionality.
+Our custom malloc implementation simply exits the program with a code of ~72~. Of course, this insn't very useful, but it demonstrates that we can override the ~malloc~ functionality. The first portion of our malloc function will remain the same, initializing our heap, and handing out the first segment. For our static memory allocator we had to call an initialization function in main, but we will have to encode that behavior directly in ~malloc~ now.
 
 #+begin_src C
-void *heap_base
+int heap_init(size_t bytes) {
+    heap_base = sbrk(0);
+    size_t increment =
+        (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
+    sbrk(HEAP_INC);
+    ,*(heap_seg *)heap_base = (heap_seg){HEAP_INC, NULL};
+    if ((int64_t)(heap_end = sbrk(0)) == -1) {
+      return -1;
+    }
+    return 0;
+}
 #+end_src
+
 
 
 
