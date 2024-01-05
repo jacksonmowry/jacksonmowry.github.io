@@ -557,6 +557,8 @@ At this point we have a fully featured memory allocator, it is not the fastest, 
 ** _Takeaways_
 We can stop here if we really wanted to. An entire general purpose memory allocator in ~130 lines of code, but we discussed a few details of our implementation earlier that we should address now.
 
+*** First Fit vs Best Fit
+
 /first-fit/
 [[file:first_fit.png]]
 
@@ -568,6 +570,97 @@ We should instead try to preserve as many large blocks as we can. This algorithm
 [[file:best_fit.png]]
 
 For this algorithm to work we will have to change the way we find a segment. The linear walking of our heap can stay the same, but we will have to maintain a pointer to the smallest block large enough to hold the allocation. If we get the the end and have a block, we use it to hold our allocation, otherwise we continue on like we had done before.
+
+Our /first-fit/ algorithm has a higher likelyhood of segmenting the heap, and we would like to avoid this as much as possible.
+
+#+begin_src v
+Segment size:   33, Prev:          (nil), Value:                   9, Address: 0x5600eb883000
+Segment size:  232, Prev: 0x5600eb883000, Value:                  -1, Address: 0x5600eb883020
+Segment size:  265, Prev: 0x5600eb883000, Value:                   7, Address: 0x5600eb883108
+Segment size:  241, Prev: 0x5600eb883108, Value:                   2, Address: 0x5600eb883210
+Segment size:   24, Prev: 0x5600eb883210, Value:                  -1, Address: 0x5600eb883300
+Segment size:  265, Prev: 0x5600eb883300, Value:                  64, Address: 0x5600eb883318
+#+end_src
+
+If we now request a 8 byte allocation, can you see where it will be placed?
+
+#+begin_src v
+Segment size:   33, Prev:          (nil), Value:                   9, Address: 0x55a298d57000
+Segment size:   25, Prev: 0x55a298d57000, Value:                  24, Address: 0x55a298d57020
+Segment size:  208, Prev: 0x55a298d57020, Value:                  -1, Address: 0x55a298d57038
+Segment size:  265, Prev: 0x55a298d57000, Value:                   7, Address: 0x55a298d57108
+Segment size:  241, Prev: 0x55a298d57108, Value:                   2, Address: 0x55a298d57210
+Segment size:   24, Prev: 0x55a298d57210, Value:                  -1, Address: 0x55a298d57300
+Segment size:  265, Prev: 0x55a298d57300, Value:                  64, Address: 0x55a298d57318
+#+end_src
+
+Just like we said before, instead of finding the free 24 byte block (8 byte allocation, 16 byte header), we end up splitting the larger 232 byte block. How can we fix this in our ~malloc()~ function?
+
+#+begin_src C
+  // Start from heap base, find first open segment that can hold 'bytes'
+  heap_seg *prev = NULL;
+  heap_seg *ptr = heap_base;
+
+  heap_seg *best_prev = NULL;
+  heap_seg *best = NULL;
+  while (ptr < (heap_seg *)heap_end) {
+    if (segment_free(ptr) && ptr->size >= bytes + sizeof(heap_seg) &&
+        (!best || segment_size(ptr) < segment_size(best))) {
+      best = ptr;
+      best_prev = prev;
+    }
+    prev = ptr;
+    ptr = (void *)ptr + segment_size(ptr);
+  }
+
+  // Found a suitable block for Best-Fit
+  if (best) {
+    ptr = best;
+    // Store old capacity
+    size_t old_cap = ptr->size;
+    // Heap segment is free, and big enough
+    ptr->size = sizeof(heap_seg) + round_bytes(bytes) | 0x1;
+    ptr->prev = prev;
+    void *user_block = ptr + 1;
+    size_t next_size = old_cap - segment_size(ptr);
+    if (next_size <= sizeof(heap_seg)) {
+      ptr->size += next_size;
+    } else if (old_cap > ptr->size) {
+      heap_seg *next_block = (void *)ptr + segment_size(ptr);
+      next_block->size = old_cap - segment_size(ptr);
+      next_block->prev = ptr;
+    }
+    return user_block;
+  }
+#+end_src
+
+This boils down to a slight refactor, with 2 new pointers, and an added condition to our searching algorithm. Instead of stopping at the first free block we check to see if it is big enough, and more importantly, the /best-fit/ we have seen. After scanning through the heap we use the best block if we have one, otherwise we continue on like before.
+
+Comparing to the series of allocations demonstrated above, this new algorithm produces a less segmented heap.
+
+#+begin_src v
+Segment size:   33, Prev:          (nil), Value:                   9, Address: 0x5647b2660000
+Segment size:  232, Prev: 0x5647b2660000, Value:                  -1, Address: 0x5647b2660020
+Segment size:  265, Prev: 0x5647b2660020, Value:                   7, Address: 0x5647b2660108
+Segment size:  241, Prev: 0x5647b2660108, Value:                   2, Address: 0x5647b2660210
+Segment size:   25, Prev: 0x5647b2660210, Value:                  24, Address: 0x5647b2660300
+Segment size:  265, Prev: 0x5647b2660300, Value:                  64, Address: 0x5647b2660318
+#+end_src
+
+Now we can see that our allocation occupies the 24 byte block near the end of the heap, leaving the entire 232 byte block for future allocation that may need more space.
+
+That was a pretty easy change to handle, but you may notice another inefficiency. Every time an allocation is requested we have to start at the beginning of the heap. In these small examples that isn't an issue, but imagine a heap the is full for the first 1-2 mb, with the first free block sitting at the end. We would spend precious time scanning over blocks that we cannot use. How can we fix this?
+
+*** Implicit vs Explicit Free Lists
+The way our heap is linked together is what is known as an /implicit free list/, meaning that each node is directly linked together, and we use a check at each step in our list to determine if the segment is free. This works well for a simple implementation, but we are slowed down by traversing a linked list, and calling a function at each step. What if instead we only looked at the free segments.
+
+This is known as an /explicit free list/, where the free nodes are in their own linked list. This can be implemented with either a regular linked list, or even a circularly linked list. For our best-fit strategy, a regular singly linked list makes the most sense.
+
+#+begin_example
+We have covered first-fit and best-fit, but there is an additional allocation algorithm called next-fit. Where the searching begins from the last block that was allocated. For this algorithm we might end up starting in the middle of the list, so a circularly linked list would be required.
+#+end_example
+
+
 
 
 #  LocalWords:  sbrk size_t malloc

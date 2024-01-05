@@ -26,15 +26,15 @@ bool segment_free(heap_seg *seg) { return !(seg->size & 0x1); }
 size_t segment_size(heap_seg *seg) { return seg->size & (~1); }
 
 int heap_init(size_t bytes) {
-    heap_base = sbrk(0);
-    size_t increment =
-        (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
-    sbrk(HEAP_INC);
-    *(heap_seg *)heap_base = (heap_seg){HEAP_INC, NULL};
-    if ((int64_t)(heap_end = sbrk(0)) == -1) {
-      return -1;
-    }
-    return 0;
+  heap_base = sbrk(0);
+  size_t increment =
+      (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
+  sbrk(HEAP_INC);
+  *(heap_seg *)heap_base = (heap_seg){HEAP_INC, NULL};
+  if ((int64_t)(heap_end = sbrk(0)) == -1) {
+    return -1;
+  }
+  return 0;
 }
 
 void *malloc(size_t bytes) {
@@ -48,26 +48,40 @@ void *malloc(size_t bytes) {
   // Start from heap base, find first open segment that can hold 'bytes'
   heap_seg *prev = NULL;
   heap_seg *ptr = heap_base;
+
+  heap_seg *best_prev = NULL;
+  heap_seg *best = NULL;
   while (ptr < (heap_seg *)heap_end) {
-    if (segment_free(ptr) && ptr->size >= bytes + sizeof(heap_seg)) {
-      // Store old capacity
-      size_t old_cap = ptr->size;
-      // Heap segment is free, and big enough
-      ptr->size = sizeof(heap_seg) + round_bytes(bytes) | 0x1;
-      ptr->prev = prev;
-      void *user_block = ptr + 1;
-      size_t next_size = old_cap - segment_size(ptr);
-      if (next_size <= sizeof(heap_seg)) {
-        ptr->size += next_size;
-      } else if (old_cap > ptr->size) {
-        heap_seg *next_block = (void *)ptr + segment_size(ptr);
-        next_block->size = old_cap - segment_size(ptr);
-        next_block->prev = ptr;
-      }
-      return user_block;
+    if (segment_free(ptr) && ptr->size >= bytes + sizeof(heap_seg) &&
+        (!best || segment_size(ptr) < segment_size(best))) {
+      best = ptr;
+      best_prev = prev;
     }
     prev = ptr;
     ptr = (void *)ptr + segment_size(ptr);
+  }
+
+  // Found a suitable block for Best-Fit
+  if (best) {
+    prev = best_prev;
+    ptr = best;
+    // Store old capacity
+    size_t old_cap = ptr->size;
+    // Heap segment is free, and big enough
+    ptr->size = sizeof(heap_seg) + round_bytes(bytes) | 0x1;
+    ptr->prev = prev;
+    void *user_block = ptr + 1;
+    size_t next_size = old_cap - segment_size(ptr);
+    if (next_size <= sizeof(heap_seg)) {
+      ptr->size += next_size;
+    } else if (old_cap > ptr->size) {
+      heap_seg *next_block = (void *)ptr + segment_size(ptr);
+      next_block->size = old_cap - segment_size(ptr);
+      next_block->prev = ptr;
+      heap_seg *next_next_block = (void*)next_block + segment_size(next_block);
+      next_next_block->prev = next_block;
+    }
+    return user_block;
   }
 
   // Ran out of space
@@ -134,21 +148,28 @@ void heap_walk() {
 }
 
 int main() {
-  int *block = malloc(4);
+  int *block = malloc(244);
   *block = 4;
 
-  uint64_t *num = malloc(8);
+  uint64_t *num = malloc(244);
   *num = 7;
 
-  uint64_t *test = malloc(69);
+  uint64_t *test = malloc(244);
   *test = 66;
 
-  uint64_t *big_num = malloc(64);
+  uint64_t *big_num = malloc(244);
   *big_num = 64;
 
-  char *buf;
-  asprintf(&buf, "big num has the value: %ld\n", *big_num);
-  puts(buf);
+  free(block);
+  free(test);
+
+  block = malloc(16);
+  *block = 9;
+  test = malloc(224);
+  *test = 2;
+
+  int *where = malloc(8);
+  *where = 24;
 
   heap_walk();
   return 0;
