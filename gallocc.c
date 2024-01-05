@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define HEAP_INC 2048
+#define HEAP_INC 1024
 
 void *heap_base = NULL;
 void *heap_end = NULL;
@@ -62,7 +62,7 @@ void *malloc(size_t bytes) {
       } else if (old_cap > ptr->size) {
         heap_seg *next_block = (void *)ptr + segment_size(ptr);
         next_block->size = old_cap - segment_size(ptr);
-        next_block->prev = prev;
+        next_block->prev = ptr;
       }
       return user_block;
     }
@@ -96,7 +96,7 @@ void *malloc(size_t bytes) {
   } else if (next_size > 0) {
     heap_seg *next_block = (void *)ptr + segment_size(ptr);
     next_block->size = next_size;
-    next_block->prev = prev;
+    next_block->prev = ptr;
   }
   // Return user writable address
   return ptr + 1;
@@ -126,7 +126,7 @@ void heap_size() { printf("Heap is %ld bytes\n", heap_end - heap_base); }
 void heap_walk() {
   heap_seg *ptr = heap_base;
   while (ptr < (heap_seg *)heap_end) {
-    printf("Segment size: %4ld, Prev: %14p, Value: %ld, Address: %p\n",
+    printf("Segment size: %4ld, Prev: %14p, Value: %19ld, Address: %p\n",
            ptr->size, ptr->prev, (ptr->size & 1) ? *(uint64_t *)(ptr + 1) : -1,
            ptr);
     ptr = (void *)ptr + (ptr->size & (~1));
@@ -150,8 +150,6 @@ int main() {
   asprintf(&buf, "big num has the value: %ld\n", *big_num);
   puts(buf);
 
-  free(big_num);
   heap_walk();
-  heap_size();
   return 0;
 }

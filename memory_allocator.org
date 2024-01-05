@@ -236,6 +236,20 @@ Instead of finding the first available spot we can find the /best fit/ segment w
 
 The biggest problem with splitting large heap segments is that we fragment our heap. Our next large allocation may not be able to find a contiguous segment to hold it, thus requiring our allocator to go out to the operating system and request more memory. For this reason, our next iteration will explore this algorithm.
 
+We will see these functions used in the next section, but I will introduce them now so that you can become familiar with their behavior.
+
+#+begin_src C
+size_t round_bytes(size_t bytes) {
+  return (bytes + (sizeof(void *) - 1)) / sizeof(void *) * sizeof(void *);
+}
+
+bool segment_free(heap_seg *seg) { return !(seg->size & 0x1); }
+
+size_t segment_size(heap_seg *seg) { return seg->size & (~1); }
+#+end_src
+
+Our first new function will perform the byte rounding aligning us to the nearest block of 8 bytes. The next function checks if a block is free, and finally we have a function to get the true size of a block.
+
 Our current implementation also relies on a statically allocated buffer, meaning once we fill this up we won't be able to hand out more memory. Let's see how we can make this behavior more dynamic by requested more memory from the operating system.
 
 * _sbrk()_
@@ -330,7 +344,7 @@ int heap_init(size_t bytes) {
     size_t increment =
         (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
     sbrk(HEAP_INC);
-    ,*(heap_seg *)heap_base = (heap_seg){HEAP_INC, NULL};
+    *(heap_seg *)heap_base = (heap_seg){HEAP_INC, NULL};
     if ((int64_t)(heap_end = sbrk(0)) == -1) {
       return -1;
     }
@@ -338,6 +352,147 @@ int heap_init(size_t bytes) {
 }
 #+end_src
 
+Our first step is to setup our base pointer, then we check to see how many bytes need to be allocated. We have discussed this before, but it boils down to rounding our size to the closest multiple of 8 that can hold the allocation. Lastly we check if the allocation was successful, and return based on that.
+
+From there we scan through our heap one node at a time until we find a suitable spot. Same as before, updating links in our list as we move along.
+
+#+begin_src C
+void *malloc(size_t bytes) {
+  if (!heap_base) {
+    heap_init(bytes);
+  }
+  if (bytes == 0) {
+    return NULL;
+  }
+
+  // Start from heap base, find first open segment that can hold 'bytes'
+  heap_seg *prev = NULL;
+  heap_seg *ptr = heap_base;
+  while (ptr < (heap_seg *)heap_end) {
+    if (segment_free(ptr) && ptr->size >= bytes + sizeof(heap_seg)) {
+      // Store old capacity
+      size_t old_cap = ptr->size;
+      // Heap segment is free, and big enough
+      ptr->size = sizeof(heap_seg) + round_bytes(bytes) | 0x1;
+      ptr->prev = prev;
+      void *user_block = ptr + 1;
+      size_t next_size = old_cap - segment_size(ptr);
+      if (next_size <= sizeof(heap_seg)) {
+        ptr->size += next_size;
+      } else if (old_cap > ptr->size) {
+        heap_seg *next_block = (void *)ptr + segment_size(ptr);
+        next_block->size = old_cap - segment_size(ptr);
+        next_block->prev = ptr;
+      }
+      return user_block;
+    }
+    prev = ptr;
+    ptr = (void *)ptr + segment_size(ptr);
+  }
+  // .... continued below
+#+end_src
+
+This shouldn't be any different than what we saw before, except for extracting some behavior out into separate functions. Our next step is where we introduce new behavior. If we reach the end of our heap and have not found a suitable spot our heap needs to expand. The first step will be determining how many bytes we need to increase our heap by, the same decision we made when initializing our heap. From there it will go much the same.
+
+#+begin_src C
+  // .... continued from above
+  size_t next_size;
+  size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
+  size_t new_size = round_bytes(bytes) | 0x1;
+
+  sbrk(increment + sizeof(heap_seg));
+  ptr->size = new_size + sizeof(heap_seg);
+  ptr->prev = prev;
+  next_size = increment - segment_size(ptr);
+  heap_end = sbrk(0);
+  // Check if the next segment should be initialized
+  if (next_size <= sizeof(heap_seg)) {
+    ptr->size += next_size;
+  } else if (next_size > 0) {
+    heap_seg *next_block = (void *)ptr + segment_size(ptr);
+    next_block->size = next_size;
+    next_block->prev = ptr;
+  }
+  // Return user writable address
+  return ptr + 1;
+}
+#+end_src
+
+We will go over how we can visualize our heap in just a moment, for now let's go through the code. After we have determined how many bytes are needed, the pointers are updated, and the ~heap_end~ pointer is moved. Our last step is to check if the segment following our allocation should be initialized. This is to avoid allocating a space that would be too small to hold any data. If we have a space that is too small we can just include it in the previous segment, otherwise it becomes its own segment.
+
+Before we see this code in action let's look at how we can visualize our heap.
+
+#+begin_src C
+void heap_walk() {
+  heap_seg *ptr = heap_base;
+  while (ptr < (heap_seg *)heap_end) {
+    printf("Segment size: %4ld, Prev: %14p, Value: %ld, Address: %p\n",
+           ptr->size, ptr->prev, (ptr->size & 1) ? *(uint64_t *)(ptr + 1) : -1,
+           ptr);
+    ptr = (void *)ptr + (ptr->size & (~1));
+  }
+}
+#+end_src
+
+We see the same logic that we use to find the next block as we saw in malloc. Each segment is printed out as a ~uint64_t~ for now, although this isn't the most flexible as we will see. Even if this is basic it will help us solve many bug and to iron out implementation details.
+
+Now we can how our newly upgraded ~malloc~ works!
+
+#+begin_src C
+int main() {
+  int *block = malloc(4);
+  *block = 4;
+
+  uint64_t *num = malloc(8);
+  *num = 7;
+
+  uint64_t *test = malloc(69);
+  *test = 66;
+
+  uint64_t *big_num = malloc(64);
+  *big_num = 64;
+
+  char *buf;
+  asprintf(&buf, "big num has the value: %ld\n", *big_num);
+  puts(buf);
+
+  heap_walk();
+  return 0;
+}
+#+end_src
+
+#+begin_src v
+big num has the value: 64
+
+Segment size:   57, Prev:          (nil), Value:                   0, Address: 0x55d231e99000
+Segment size:   57, Prev: 0x55d231e99000, Value:                   0, Address: 0x55d231e99038
+Segment size:   57, Prev: 0x55d231e99038, Value:                   0, Address: 0x55d231e99070
+Segment size:   25, Prev: 0x55d231e99070, Value:                   4, Address: 0x55d231e990a8
+Segment size:   25, Prev: 0x55d231e990a8, Value:                   7, Address: 0x55d231e990c0
+Segment size:   89, Prev: 0x55d231e990c0, Value:                  66, Address: 0x55d231e990d8
+Segment size:   81, Prev: 0x55d231e990d8, Value:                  64, Address: 0x55d231e99130
+Segment size:   49, Prev: 0x55d231e99130, Value: 2336652897525655906, Address: 0x55d231e99180
+Segment size:  592, Prev: 0x55d231e99180, Value:                  -1, Address: 0x55d231e991b0
+Segment size: 1041, Prev: 0x55d231e991b0, Value: 2338615488418374995, Address: 0x55d231e99400
+#+end_src
+
+Woah! This is a lot going on, and way more allocations that we performed ourselves. What happened?
+
+Well, now that we have overwritten the glibc ~malloc~ implementation, all of the library functions that call malloc are calling our version! This is a great sign, and will be a much better test of our functionality than we will probably end up writing. Let's break down each of the allocations and see how we may want to tweak some of the behavior.
+
+1. The first 3 allocations are coming from a system library that makes 3 40 byte allocations on program startup, don't worry about those.
+2. The next block of 4 allocations comes from ~main~, where we call ~malloc~ 4 times.
+3. The next 48 byte allocation is coming from [[https://linux.die.net/man/3/asprintf][~asprintf()~]]. If you're not familiar with this function I think of it as a bit of a cheatcode for strings in C. The function will allocate a buffer to hold the entire string it generates, and gives you the pointer to that string, which you are responsible to free.
+4. The chunk of 592 bytes is a result of the final allocation being larger than the available space. If you total up all the sizes of everything but the last element you will get 1024, and that final allocation is larger than 1024, therefore it forces us to add more space.
+5. Finally the 1040 byte allocation comes from ~printf~ allocating an internal buffer for scratch work.
+
+You may notice something suboptimal. When ~printf~ requests a 1024 byte allocation we place it after the 592 byte free block. This means that if our next call to ~malloc~ is requesting more than 592 bytes it will be placed after the 1024 block, leaving a hole in the middle of our heap.
+
+What if instead we move our new segment to fill that hole, leaving the empty space at the very end of our heap. That way we can avoid a large empty segment in the middle of our heap. This is beneficial for our implementation because future large allocations will now be able to make use of this space, instead of it being trapped in the middle of the heap. The changes we have too make aren't too bad either.
+
+#+begin_src C
+
+#+end_src
 
 
 

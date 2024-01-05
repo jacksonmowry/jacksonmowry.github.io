@@ -19,34 +19,32 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Memory Allocator</i></h1>
-<div id="outline-container-orga9c0e69" class="outline-2">
-<h2 id="orga9c0e69"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-orga9c0e69">
+<div id="outline-container-org54ce24b" class="outline-2">
+<h2 id="org54ce24b"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org54ce24b">
 <p>
 We use memory allocators nearly every time we write software. They allow our programs to be dynamic and handle a wide variety of input, or user interactions. In languages like C the programmer interacts directly with the memory allocator through calling <code>malloc()</code> and <code>free()</code>. Higher level languages extract away the need for the programmer to worry about memory management, usually through a garbage collector. But what does a memory allocator do? Hopefully we can figure that out through exploring one possible implementation.
 </p>
 </div>
 </div>
-
-<div id="outline-container-orgcd40ca5" class="outline-2">
-<h2 id="orgcd40ca5"><span class="underline">Headers</span></h2>
-<div class="outline-text-2" id="text-orgcd40ca5">
+<div id="outline-container-orgc6eb109" class="outline-2">
+<h2 id="orgc6eb109"><span class="underline">Headers</span></h2>
+<div class="outline-text-2" id="text-orgc6eb109">
 <p>
 Here are all the headers I believe we will need to complete this project. Apologies if we don&rsquo;t end up using some of them, just try to cover my bases.
 </p>
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;assert.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;linux/limits.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdint.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;assert.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;linux/limits.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
 </pre>
 </div>
 </div>
 </div>
-
-<div id="outline-container-orgaf6ab87" class="outline-2">
-<h2 id="orgaf6ab87"><span class="underline">Exploration</span></h2>
-<div class="outline-text-2" id="text-orgaf6ab87">
+<div id="outline-container-org53ea0e2" class="outline-2">
+<h2 id="org53ea0e2"><span class="underline">Exploration</span></h2>
+<div class="outline-text-2" id="text-org53ea0e2">
 <p>
 You have hopefully heard a concept in programming called the &ldquo;heap&rdquo;. Each time we dynamically allocate memory in our program it ends up on the heap. We know that the computer has all the memory available, so it must have given some of this memory to our heap. For now let&rsquo;s just imagine that asking for this memory in our program is super complicated, so we will use a statically allocated buffer that we manage ourselves.
 </p>
@@ -56,31 +54,30 @@ Let&rsquo;s start off by laying our groundwork for this exploration.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">HEAP_SIZE</span> <span style="color: #da8548; font-weight: bold;">1024</span>
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">HEAP_SIZE</span> <span style="color: #B5CEA8; font-weight: bold;">1024</span>
 
-<span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">heap_base</span>;
+<span style="color: #35CDAF;">void</span>* <span style="color: #85DDFF;">heap_base</span>;
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> {
-  <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">size</span>;
-} <span style="color: #ECBE7B;">heap_seg</span>;
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">heap_seg</span> {
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">size</span>;
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">prev</span>;
+} <span style="color: #35CDAF;">heap_seg</span>;
 </pre>
 </div>
 
 <p>
-For now, we will set our heap to a fixed size of <code>1024</code> bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of our heap. Then we define a struct for each segment of our heap, which for now just holds a <code>size_t</code> to hold the size in bytes. We will later see how we can perform some cleaver transformations on this single number to store more information.
+For now, we will set our heap to a fixed size of <code>1024</code> bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of our heap. Then we define a struct for each segment of our heap, which for now holds a <code>size_t</code> to hold the size in bytes, and a pointer for the previous segment. We will later see how we can perform some cleaver transformations on our size to store more information.
 </p>
 </div>
-
-<div id="outline-container-orgefcc70b" class="outline-3">
-<h3 id="orgefcc70b"><span class="underline">Initialization</span></h3>
-<div class="outline-text-3" id="text-orgefcc70b">
+<div id="outline-container-org0419b9c" class="outline-3">
+<h3 id="org0419b9c"><span class="underline">Initialization</span></h3>
+<div class="outline-text-3" id="text-org0419b9c">
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">heap_init</span>(<span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">base</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>base) { <span style="color: #51afef;">return</span> -<span style="color: #da8548; font-weight: bold;">1</span>; }
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">heap_init</span>(<span style="color: #35CDAF;">void</span>* <span style="color: #85DDFF;">base</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>base) { <span style="color: #339CDB;">return</span> -<span style="color: #B5CEA8; font-weight: bold;">1</span>; }
   heap_base = base;
-
-  *(<span style="color: #ECBE7B;">heap_seg</span>*)heap_base = (heap_seg){HEAP_SIZE - <span style="color: #51afef;">sizeof</span>(heap_seg)};
-  <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+  *(<span style="color: #35CDAF;">heap_seg</span>*)heap_base = (heap_seg){HEAP_INC, <span style="color: #339CDB;">NULL</span>};
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
 }
 
 </pre>
@@ -95,37 +92,38 @@ Once our heap is ready to go we can begin handing out pointers to different segm
 </p>
 </div>
 </div>
-
-<div id="outline-container-org8e5c30f" class="outline-3">
-<h3 id="org8e5c30f"><span class="underline">Allocation</span></h3>
-<div class="outline-text-3" id="text-org8e5c30f">
+<div id="outline-container-org0260557" class="outline-3">
+<h3 id="org0260557"><span class="underline">Allocation</span></h3>
+<div class="outline-text-3" id="text-org0260557">
 <p>
 We will leave error handling out for right now to focus in on the core logic.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> *<span style="color: #c678dd;">heap_malloc</span>(<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">bytes</span>) {
-  <span style="color: #ECBE7B;">heap_seg</span> *<span style="color: #dcaeea;">ptr</span> = heap_base;
-  <span style="color: #51afef;">while</span> (ptr &lt; (<span style="color: #ECBE7B;">heap_seg</span>*)(heap_base + HEAP_SIZE)) {
-    <span style="color: #51afef;">if</span> ((ptr-&gt;size &amp; <span style="color: #da8548; font-weight: bold;">0x1</span>) == <span style="color: #da8548; font-weight: bold;">0</span> &amp;&amp; ptr-&gt;size &gt;= bytes + <span style="color: #51afef;">sizeof</span>(heap_seg)) {
-      <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Store old capacity</span>
-      <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">old_cap</span> = ptr-&gt;size;
-      <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Heap segment is free, and big enough</span>
-      ptr-&gt;size = <span style="color: #51afef;">sizeof</span>(heap_seg) +
-                      ((bytes + (<span style="color: #51afef;">sizeof</span>(heap_seg) - <span style="color: #da8548; font-weight: bold;">1</span>)) / <span style="color: #51afef;">sizeof</span>(heap_seg)) *
-                          <span style="color: #51afef;">sizeof</span>(heap_seg) |
-                  <span style="color: #da8548; font-weight: bold;">0x1</span>;
-      <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">user_block</span> = (<span style="color: #ECBE7B;">void</span> *)(ptr + <span style="color: #da8548; font-weight: bold;">1</span>);
-      <span style="color: #51afef;">if</span> (old_cap &gt; ptr-&gt;size) {
-        <span style="color: #ECBE7B;">heap_seg</span> *<span style="color: #dcaeea;">next_block</span> = ptr + ptr-&gt;size / <span style="color: #51afef;">sizeof</span>(heap_seg);
-        next_block-&gt;size = old_cap - (ptr-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> *<span style="color: #D9DAA2;">heap_malloc</span>(<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">bytes</span>) {
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">prev</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">ptr</span> = heap_base;
+  <span style="color: #339CDB;">while</span> (ptr &lt; (<span style="color: #35CDAF;">heap_seg</span>*)(heap_base + HEAP_SIZE)) {
+    <span style="color: #339CDB;">if</span> ((ptr-&gt;size &amp; <span style="color: #B5CEA8; font-weight: bold;">0x1</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span> &amp;&amp; ptr-&gt;size &gt;= bytes + <span style="color: #339CDB;">sizeof</span>(heap_seg)) {
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Store old capacity</span>
+      <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">old_cap</span> = ptr-&gt;size;
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Heap segment is free, and big enough</span>
+      ptr-&gt;size = <span style="color: #339CDB;">sizeof</span>(heap_seg) +
+                      ((bytes + (<span style="color: #339CDB;">sizeof</span>(heap_seg) - <span style="color: #B5CEA8; font-weight: bold;">1</span>)) / <span style="color: #339CDB;">sizeof</span>(heap_seg)) *
+                          <span style="color: #339CDB;">sizeof</span>(heap_seg) |
+                  <span style="color: #B5CEA8; font-weight: bold;">0x1</span>;
+      <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">user_block</span> = (<span style="color: #35CDAF;">void</span> *)(ptr + <span style="color: #B5CEA8; font-weight: bold;">1</span>);
+      <span style="color: #339CDB;">if</span> (old_cap &gt; ptr-&gt;size) {
+        <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">next_block</span> = ptr + ptr-&gt;size / <span style="color: #339CDB;">sizeof</span>(heap_seg);
+        next_block-&gt;size = old_cap - (ptr-&gt;size ^ <span style="color: #B5CEA8; font-weight: bold;">0x1</span>);
       }
-      <span style="color: #51afef;">return</span> user_block;
+      <span style="color: #339CDB;">return</span> user_block;
     }
-    ptr += ptr-&gt;size / <span style="color: #51afef;">sizeof</span>(heap_seg);
+    prev = ptr;
+    ptr = (<span style="color: #35CDAF;">void</span>*)ptr / (ptr-&gt;size &amp; (~<span style="color: #B5CEA8; font-weight: bold;">1</span>));
   }
 
-  <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
 }
 </pre>
 </div>
@@ -135,11 +133,11 @@ Yeah, it&rsquo;s a bit more going on that I would have assumed at first, but it 
 </p>
 
 <p>
-We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it&rsquo;s size to hold the requested amount of bytes. You may notice that we don&rsquo;t set the size to be equal to <code>bytes</code> as the user requested, instead we have to factor in a few more things.
+We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it&rsquo;s size to hold the requested amount of bytes. This is also where we set it&rsquo;s previous element. You may notice that we don&rsquo;t set the size to be equal to <code>bytes</code> as the user requested, instead we have to factor in a few more things.
 </p>
 
 <p>
-The first portion of the size is the <code>heap_seg</code> struct itself, which in the current implementation is 8 bytes. The next section is the data, which needs to be aligned on 8 byte boundaries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
+The first portion of the size is the <code>heap_seg</code> struct itself, which in the current implementation is 16 bytes. The next section is the data, which needs to be aligned on 8 byte boundaries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
 </p>
 
 <p>
@@ -147,11 +145,11 @@ Once we put this all together we set the least significant bit to 1. This final 
 </p>
 
 <p>
-There we go, we have now produced a heap segment that can be returned to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity e get a pointer to the start of the next heap segment, and then set its size to the remaining space in the heap.
+There we go, we have now produced a heap segment that can be returned to the user. We note the position where they are allowed to begin writing, which we will return at the end of our function. The last step is to see if we need to segment the heap. If the section we allocated is less than the old capacity we get a pointer to the start of the next heap segment, and then set its size to the remaining space in the heap.
 </p>
 
 
-<div id="org8cb709d" class="figure">
+<div id="orgb24f2c1" class="figure">
 <p><img src="heap_segmenting.png" alt="heap_segmenting.png" />
 </p>
 </div>
@@ -161,25 +159,25 @@ That&rsquo;s how we hand out segments of our heap to users! If we don&rsquo;t fi
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">uint8_t</span> <span style="color: #dcaeea;">heap</span>[HEAP_SIZE];
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">uint8_t</span> <span style="color: #85DDFF;">heap</span>[HEAP_SIZE];
   heap_init(heap);
 
-  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">block</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
-  assert(block != <span style="color: #a9a1e1;">NULL</span>);
-  *block = <span style="color: #da8548; font-weight: bold;">4</span>;
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">block</span> = heap_malloc(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  assert(block != <span style="color: #339CDB;">NULL</span>);
+  *block = <span style="color: #B5CEA8; font-weight: bold;">4</span>;
 
-  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">num</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
-  assert(num != <span style="color: #a9a1e1;">NULL</span>);
-  *num = <span style="color: #da8548; font-weight: bold;">7</span>;
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">num</span> = heap_malloc(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  assert(num != <span style="color: #339CDB;">NULL</span>);
+  *num = <span style="color: #B5CEA8; font-weight: bold;">7</span>;
 
-  printf(<span style="color: #98be65;">"Num holds: %d\n"</span>, *num);
-  printf(<span style="color: #98be65;">"Block holds: %d\n"</span>, *block);
+  printf(<span style="color: #DB8E73;">"Num holds: %d\n"</span>, *num);
+  printf(<span style="color: #DB8E73;">"Block holds: %d\n"</span>, *block);
 }
 </pre>
 </div>
 
-<pre class="example" id="org651647e">
+<pre class="example" id="org8b9deca">
 Num holds: 7
 Block holds: 4
 </pre>
@@ -189,19 +187,18 @@ It was fairly easy to hand out memory, so how does the user give that memory bac
 </p>
 </div>
 </div>
-
-<div id="outline-container-orgaa07a1f" class="outline-3">
-<h3 id="orgaa07a1f"><span class="underline">Freeing</span></h3>
-<div class="outline-text-3" id="text-orgaa07a1f">
+<div id="outline-container-org6a64ba7" class="outline-3">
+<h3 id="org6a64ba7"><span class="underline">Freeing</span></h3>
+<div class="outline-text-3" id="text-org6a64ba7">
 <p>
 In our most basic implementation &ldquo;freeing&rdquo; memory will be nothing more than setting its least significant bit back to 0.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">heap_free</span>(<span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">block</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>block) { <span style="color: #51afef;">return</span>; }
-  <span style="color: #ECBE7B;">heap_seg</span> *<span style="color: #dcaeea;">header</span> = (<span style="color: #ECBE7B;">heap_seg</span>*)block - <span style="color: #da8548; font-weight: bold;">1</span>;
-  header-&gt;size ^= <span style="color: #da8548; font-weight: bold;">1</span>;
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">heap_free</span>(<span style="color: #35CDAF;">void</span>* <span style="color: #85DDFF;">block</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>block) { <span style="color: #339CDB;">return</span>; }
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">header</span> = (<span style="color: #35CDAF;">heap_seg</span>*)block - <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  header-&gt;size ^= <span style="color: #B5CEA8; font-weight: bold;">1</span>;
 }
 </pre>
 </div>
@@ -219,7 +216,7 @@ When a user requests to free a block there are only 3 possible states that it ma
 </p>
 
 
-<div id="org180acd7" class="figure">
+<div id="org691b1a0" class="figure">
 <p><img src="freeing_patterns.png" alt="freeing_patterns.png" />
 </p>
 </div>
@@ -234,21 +231,21 @@ If we follow this behavior on every free call we ensure that every block in our 
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">heap_free</span>(<span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">block</span>) {
-  <span style="color: #51afef;">if</span> (<span style="color: #51afef; font-weight: bold;">!</span>block) { <span style="color: #51afef;">return</span>; }
-  <span style="color: #ECBE7B;">heap_seg</span> *<span style="color: #dcaeea;">header</span> = (<span style="color: #ECBE7B;">heap_seg</span>*)block - <span style="color: #da8548; font-weight: bold;">1</span>;
-  <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Get prev/next pointers</span>
-  <span style="color: #ECBE7B;">heap_seg</span> *<span style="color: #dcaeea;">prev</span> = header - header-&gt;size / <span style="color: #51afef;">sizeof</span>(heap_seg);
-  <span style="color: #ECBE7B;">heap_seg</span> *<span style="color: #dcaeea;">next</span> = header + header-&gt;size / <span style="color: #51afef;">sizeof</span>(heap_seg);
-  <span style="color: #51afef;">if</span> (prev &gt; (<span style="color: #ECBE7B;">heap_seg</span>*)heap_base &amp;&amp; <span style="color: #51afef; font-weight: bold;">!</span>(prev-&gt;size &amp; <span style="color: #da8548; font-weight: bold;">1</span>)) {
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">heap_free</span>(<span style="color: #35CDAF;">void</span>* <span style="color: #85DDFF;">block</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>block) { <span style="color: #339CDB;">return</span>; }
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">header</span> = (<span style="color: #35CDAF;">heap_seg</span>*)block - <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Get prev/next pointers</span>
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">prev</span> = header-&gt;prev;
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">next</span> = (<span style="color: #35CDAF;">void</span>*)header + (header-&gt;size &amp; (~<span style="color: #B5CEA8; font-weight: bold;">1</span>));
+  <span style="color: #339CDB;">if</span> (prev &gt; (<span style="color: #35CDAF;">heap_seg</span>*)heap_base &amp;&amp; <span style="color: #85DDFF; font-weight: bold;">!</span>(prev-&gt;size &amp; <span style="color: #B5CEA8; font-weight: bold;">1</span>)) {
     prev-&gt;size += header-&gt;size;
     header = prev;
   }
-  <span style="color: #51afef;">if</span> (next &lt; heap_base + HEAP_SIZE &amp;&amp; <span style="color: #51afef; font-weight: bold;">!</span>(next-&gt;size &amp; <span style="color: #da8548; font-weight: bold;">1</span>)) {
+  <span style="color: #339CDB;">if</span> (next &lt; heap_base + HEAP_SIZE &amp;&amp; <span style="color: #85DDFF; font-weight: bold;">!</span>(next-&gt;size &amp; <span style="color: #B5CEA8; font-weight: bold;">1</span>)) {
     header-&gt;size += next-&gt;size;
   }
 
-  header-&gt;size ^= <span style="color: #da8548; font-weight: bold;">1</span>;
+  header-&gt;size ^= <span style="color: #B5CEA8; font-weight: bold;">1</span>;
 }
 </pre>
 </div>
@@ -266,47 +263,46 @@ With our allocation and freeing functions complete, that is pretty much it for t
 </p>
 </div>
 </div>
-
-<div id="outline-container-orgf184b0c" class="outline-3">
-<h3 id="orgf184b0c"><span class="underline">Example Usage</span></h3>
-<div class="outline-text-3" id="text-orgf184b0c">
+<div id="outline-container-orgc61f650" class="outline-3">
+<h3 id="orgc61f650"><span class="underline">Example Usage</span></h3>
+<div class="outline-text-3" id="text-orgc61f650">
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">uint8_t</span> <span style="color: #dcaeea;">heap</span>[HEAP_SIZE];
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">uint8_t</span> <span style="color: #85DDFF;">heap</span>[HEAP_SIZE];
   heap_init(heap);
 
-  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">block</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
-  *block = <span style="color: #da8548; font-weight: bold;">4</span>;
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">block</span> = heap_malloc(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  *block = <span style="color: #B5CEA8; font-weight: bold;">4</span>;
 
-  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">num</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
-  *num = <span style="color: #da8548; font-weight: bold;">7</span>;
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">num</span> = heap_malloc(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  *num = <span style="color: #B5CEA8; font-weight: bold;">7</span>;
 
-  <span style="color: #ECBE7B;">int</span> *<span style="color: #dcaeea;">test</span> = heap_malloc(<span style="color: #da8548; font-weight: bold;">4</span>);
-  *test = <span style="color: #da8548; font-weight: bold;">66</span>;
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">test</span> = heap_malloc(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  *test = <span style="color: #B5CEA8; font-weight: bold;">66</span>;
 
-  printf(<span style="color: #98be65;">"Address of block: %p\n"</span>, block);
-  printf(<span style="color: #98be65;">"Address of num: %p\n"</span>, num);
-  printf(<span style="color: #98be65;">"Address of test: %p\n"</span>, test);
+  printf(<span style="color: #DB8E73;">"Address of block: %p\n"</span>, block);
+  printf(<span style="color: #DB8E73;">"Address of num: %p\n"</span>, num);
+  printf(<span style="color: #DB8E73;">"Address of test: %p\n"</span>, test);
 
-  printf(<span style="color: #98be65;">"Size of block: %d\n"</span>, ((<span style="color: #ECBE7B;">heap_seg</span>*)block-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
-  printf(<span style="color: #98be65;">"Size of num: %d\n"</span>, ((<span style="color: #ECBE7B;">heap_seg</span>*)num-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
-  printf(<span style="color: #98be65;">"Size of test: %d\n"</span>, ((<span style="color: #ECBE7B;">heap_seg</span>*)test-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #DB8E73;">"Size of block: %d\n"</span>, ((<span style="color: #35CDAF;">heap_seg</span>*)block-<span style="color: #B5CEA8; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #B5CEA8; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #DB8E73;">"Size of num: %d\n"</span>, ((<span style="color: #35CDAF;">heap_seg</span>*)num-<span style="color: #B5CEA8; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #B5CEA8; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #DB8E73;">"Size of test: %d\n"</span>, ((<span style="color: #35CDAF;">heap_seg</span>*)test-<span style="color: #B5CEA8; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #B5CEA8; font-weight: bold;">0x1</span>);
 
   heap_free(num);
   heap_free(test);
 
-  num = heap_malloc(<span style="color: #da8548; font-weight: bold;">32</span>);
-  *num = <span style="color: #da8548; font-weight: bold;">1</span>;
+  num = heap_malloc(<span style="color: #B5CEA8; font-weight: bold;">32</span>);
+  *num = <span style="color: #B5CEA8; font-weight: bold;">1</span>;
 
-  printf(<span style="color: #98be65;">"Address of block: %p\n"</span>, block);
-  printf(<span style="color: #98be65;">"Address of num: %p\n"</span>, num);
-  printf(<span style="color: #98be65;">"Size of block: %d\n"</span>, ((<span style="color: #ECBE7B;">heap_seg</span>*)block-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
-  printf(<span style="color: #98be65;">"Size of num: %d\n"</span>, ((<span style="color: #ECBE7B;">heap_seg</span>*)num-<span style="color: #da8548; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #da8548; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #DB8E73;">"Address of block: %p\n"</span>, block);
+  printf(<span style="color: #DB8E73;">"Address of num: %p\n"</span>, num);
+  printf(<span style="color: #DB8E73;">"Size of block: %d\n"</span>, ((<span style="color: #35CDAF;">heap_seg</span>*)block-<span style="color: #B5CEA8; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #B5CEA8; font-weight: bold;">0x1</span>);
+  printf(<span style="color: #DB8E73;">"Size of num: %d\n"</span>, ((<span style="color: #35CDAF;">heap_seg</span>*)num-<span style="color: #B5CEA8; font-weight: bold;">1</span>)-&gt;size ^ <span style="color: #B5CEA8; font-weight: bold;">0x1</span>);
 }
 </pre>
 </div>
 
-<pre class="example" id="org01fe8ec">
+<pre class="example" id="org9e584a5">
 Address of block: 0x7ffcef5b94a8  &lt;-- Heap Base
 Address of num: 0x7ffcef5b94b8    &lt;-- Heap Base + 16
 Address of test: 0x7ffcef5b94c8   &lt;-- Heap Base + 32
@@ -323,10 +319,9 @@ Size of num: 40   &lt;-- 32 byte allocation + 8 byte header
 </pre>
 </div>
 </div>
-
-<div id="outline-container-org6a07780" class="outline-3">
-<h3 id="org6a07780"><span class="underline">Takeaways</span></h3>
-<div class="outline-text-3" id="text-org6a07780">
+<div id="outline-container-orgb08b130" class="outline-3">
+<h3 id="orgb08b130"><span class="underline">Takeaways</span></h3>
+<div class="outline-text-3" id="text-orgb08b130">
 <p>
 Implementing a naive memory allocator is fairly easy. It won&rsquo;t be the fastest one in the world, nor the most secure. Either way, this small exploration shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
 </p>
@@ -336,7 +331,7 @@ The <i>first fit</i> algorithm that we chose to implement above is one of the qu
 </p>
 
 
-<div id="orgd7b4ffa" class="figure">
+<div id="org88eca31" class="figure">
 <p><img src="first_fit.png" alt="first_fit.png" />
 </p>
 </div>
@@ -346,7 +341,7 @@ Instead of finding the first available spot we can find the <i>best fit</i> segm
 </p>
 
 
-<div id="orgef694d0" class="figure">
+<div id="orgdc60080" class="figure">
 <p><img src="best_fit.png" alt="best_fit.png" />
 </p>
 </div>
@@ -356,15 +351,33 @@ The biggest problem with splitting large heap segments is that we fragment our h
 </p>
 
 <p>
+We will see these functions used in the next section, but I will introduce them now so that you can become familiar with their behavior.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">size_t</span> <span style="color: #D9DAA2;">round_bytes</span>(<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">bytes</span>) {
+  <span style="color: #339CDB;">return</span> (bytes + (<span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">void</span> *) - <span style="color: #B5CEA8; font-weight: bold;">1</span>)) / <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">void</span> *) * <span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">void</span> *);
+}
+
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">segment_free</span>(<span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">seg</span>) { <span style="color: #339CDB;">return</span> <span style="color: #85DDFF; font-weight: bold;">!</span>(seg-&gt;size &amp; <span style="color: #B5CEA8; font-weight: bold;">0x1</span>); }
+
+<span style="color: #35CDAF;">size_t</span> <span style="color: #D9DAA2;">segment_size</span>(<span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">seg</span>) { <span style="color: #339CDB;">return</span> seg-&gt;size &amp; (~<span style="color: #B5CEA8; font-weight: bold;">1</span>); }
+</pre>
+</div>
+
+<p>
+Our first new function will perform the byte rounding aligning us to the nearest block of 8 bytes. The next function checks if a block is free, and finally we have a function to get the true size of a block.
+</p>
+
+<p>
 Our current implementation also relies on a statically allocated buffer, meaning once we fill this up we won&rsquo;t be able to hand out more memory. Let&rsquo;s see how we can make this behavior more dynamic by requested more memory from the operating system.
 </p>
 </div>
 </div>
 </div>
-
-<div id="outline-container-org3d18578" class="outline-2">
-<h2 id="org3d18578"><span class="underline">sbrk()</span></h2>
-<div class="outline-text-2" id="text-org3d18578">
+<div id="outline-container-org386eb24" class="outline-2">
+<h2 id="org386eb24"><span class="underline">sbrk()</span></h2>
+<div class="outline-text-2" id="text-org386eb24">
 <p>
 While the exact details of how a program is laid out in memory is not required to understand this portion, it will be very helpful.
 </p>
@@ -382,7 +395,7 @@ When are program is run, it is loaded into memory with a layout as depicted belo
 </p>
 
 
-<div id="org86925bb" class="figure">
+<div id="org238f00d" class="figure">
 <p><img src="memory_layout.png" alt="memory_layout.png" />
 </p>
 </div>
@@ -403,7 +416,7 @@ On the other hand, the heap is not something the user has direct control over fr
 I have been referring to our memory allocator as a &ldquo;heap allocator&rdquo;, where the heap refers to the &ldquo;heap&rdquo; in memory. Just like our buffer of <code>1024</code> bytes in our original implementation, the heap is a large contiguous section of memory. Yet unlike our <code>1024</code> byte buffer the heap can grow and shrink as needed. This is accomplished with the system call <code>sbrk()</code>.
 </p>
 
-<pre class="example" id="orgb11f156">
+<pre class="example" id="orge22e0e6">
 It is worth noting that modern implementations of malloc() use mmap instead of calls to sbrk. There are many reasons why this change was made, but it essentially boils down to the fact that mmap fits our use cases better, and is safer to use.
 
 Using sbrk directly in our code is part of the Posix system API. The Posix API allows our programs to be run on any Posix compliant system, meaning it is essentially an operating system abstraction layer. sbrk (and brk) have both been depricated in the Posix API.
@@ -420,17 +433,17 @@ So how does <code>sbrk</code> work?
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;unistd.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">brk</span> = sbrk(<span style="color: #da8548; font-weight: bold;">0</span>);
-  sbrk(<span style="color: #da8548; font-weight: bold;">4</span>);
-  <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">new_brk</span> = sbrk(<span style="color: #da8548; font-weight: bold;">0</span>);
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;unistd.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">brk</span> = sbrk(<span style="color: #B5CEA8; font-weight: bold;">0</span>);
+  sbrk(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  <span style="color: #35CDAF;">void</span>* <span style="color: #85DDFF;">new_brk</span> = sbrk(<span style="color: #B5CEA8; font-weight: bold;">0</span>);
 
-  printf(<span style="color: #98be65;">"Program-Break:  %p\n"</span>, brk);
-  printf(<span style="color: #98be65;">"Program-Break:  %p\n"</span>, new_brk);
+  printf(<span style="color: #DB8E73;">"Program-Break:  %p\n"</span>, brk);
+  printf(<span style="color: #DB8E73;">"Program-Break:  %p\n"</span>, new_brk);
 
-  printf(<span style="color: #98be65;">"Distance-Between: %d\n"</span>, new_brk - brk);
+  printf(<span style="color: #DB8E73;">"Distance-Between: %d\n"</span>, new_brk - brk);
 }
 </pre>
 </div>
@@ -446,12 +459,12 @@ So how does <code>sbrk</code> work?
 <tbody>
 <tr>
 <td class="org-left">Program-Break:</td>
-<td class="org-right">0x556e30f98000</td>
+<td class="org-right">0x5623f58a7000</td>
 </tr>
 
 <tr>
 <td class="org-left">Program-Break:</td>
-<td class="org-right">0x556e30f98004</td>
+<td class="org-right">0x5623f58a7004</td>
 </tr>
 
 <tr>
@@ -465,7 +478,7 @@ So how does <code>sbrk</code> work?
 The first call to <code>sbrk</code> returns the <i>heap base</i>, equivalent to the starting address of our 1024 byte buffer. We then increase the program break by 4 bytes, which returns the address of the <b>previous</b> program break. Therefore, we have to call <code>sbrk(0)</code> again to get the new program break. We see that the distance between the 2 pointers is exactly 4 bytes, exactly what we requested.
 </p>
 
-<pre class="example" id="orgb9c0fbe">
+<pre class="example" id="orgcaaf977">
 The reason why we have to call printf after acquiring the memory address is that it allocates memory internally.
 </pre>
 
@@ -473,10 +486,9 @@ The reason why we have to call printf after acquiring the memory address is that
 This is great! We can now increase the programs heap segment whenever we want. Let&rsquo;s take a look at how we can implement this in our <code>malloc</code> function.
 </p>
 </div>
-
-<div id="outline-container-orgf00b3ac" class="outline-3">
-<h3 id="orgf00b3ac"><span class="underline">Adding sbrk()</span></h3>
-<div class="outline-text-3" id="text-orgf00b3ac">
+<div id="outline-container-orgc9b2711" class="outline-3">
+<h3 id="orgc9b2711"><span class="underline">Adding sbrk()</span></h3>
+<div class="outline-text-3" id="text-orgc9b2711">
 <p>
 Now that we will be using <code>sbrk</code> directly in our program we are going to start running into a problem. The <code>malloc</code> implementation on our machine will be calling <code>sbrk</code> or <code>mmap</code> to increase it&rsquo;s heap, and we will be trying to do the same. The issue is that our heaps are one in the same. If my <code>malloc</code> and the system&rsquo;s <code>malloc</code> are both being run they will step on each others toes.
 </p>
@@ -486,28 +498,190 @@ We can get around this by &ldquo;overriding&rdquo; <code>malloc</code> for our p
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdint.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdlib.h&gt;</span>
-<span style="color: #ECBE7B;">void</span> *<span style="color: #c678dd;">malloc</span>(<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">size</span>) {
-  exit(<span style="color: #da8548; font-weight: bold;">72</span>);
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+<span style="color: #35CDAF;">void</span> *<span style="color: #D9DAA2;">malloc</span>(<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">size</span>) {
+  exit(<span style="color: #B5CEA8; font-weight: bold;">72</span>);
 }
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-  <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">memory</span> = malloc(<span style="color: #da8548; font-weight: bold;">400</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">memory</span> = malloc(<span style="color: #B5CEA8; font-weight: bold;">400</span>);
 }
 </pre>
 </div>
 
 <div class="org-src-container">
 <pre class="src src-sh">jackson@jtop:/tmp$ gcc test.c &amp;&amp; ./a.out
-jackson@jtop:/tmp$ <span style="color: #ECBE7B;">echo</span> $<span style="color: #dcaeea;">?</span>
-<span style="color: #da8548; font-weight: bold;">72</span>
+jackson@jtop:/tmp$ <span style="color: #35CDAF;">echo</span> $<span style="color: #85DDFF;">?</span>
+<span style="color: #B5CEA8; font-weight: bold;">72</span>
 </pre>
 </div>
 
 <p>
-Our custom malloc implementation simply exits the program with a code of <code>72</code>. Of course, this insn&rsquo;t very useful, but it demonstrates that we can override the <code>malloc</code> functionality.
+Our custom malloc implementation simply exits the program with a code of <code>72</code>. Of course, this insn&rsquo;t very useful, but it demonstrates that we can override the <code>malloc</code> functionality. The first portion of our malloc function will remain the same, initializing our heap, and handing out the first segment. For our static memory allocator we had to call an initialization function in main, but we will have to encode that behavior directly in <code>malloc</code> now.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">heap_init</span>(<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">bytes</span>) {
+    heap_base = sbrk(<span style="color: #B5CEA8; font-weight: bold;">0</span>);
+    <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">increment</span> =
+        (bytes &gt; HEAP_INC) ? <span style="color: #339CDB;">sizeof</span>(heap_seg) + round_bytes(bytes) : HEAP_INC;
+    sbrk(HEAP_INC);
+    *(<span style="color: #35CDAF;">heap_seg</span> *)heap_base = (heap_seg){HEAP_INC, <span style="color: #339CDB;">NULL</span>};
+    <span style="color: #339CDB;">if</span> ((<span style="color: #35CDAF;">int64_t</span>)(heap_end = sbrk(<span style="color: #B5CEA8; font-weight: bold;">0</span>)) == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+      <span style="color: #339CDB;">return</span> -<span style="color: #B5CEA8; font-weight: bold;">1</span>;
+    }
+    <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+}
+</pre>
+</div>
+
+<p>
+Our first step is to setup our base pointer, then we check to see how many bytes need to be allocated. We have discussed this before, but it boils down to rounding our size to the closest multiple of 8 that can hold the allocation. Lastly we check if the allocation was successful, and return based on that.
+</p>
+
+<p>
+From there we scan through our heap one node at a time until we find a suitable spot. Same as before, updating links in our list as we move along.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> *<span style="color: #D9DAA2;">malloc</span>(<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">bytes</span>) {
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>heap_base) {
+    heap_init(bytes);
+  }
+  <span style="color: #339CDB;">if</span> (bytes == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Start from heap base, find first open segment that can hold 'bytes'</span>
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">prev</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">ptr</span> = heap_base;
+  <span style="color: #339CDB;">while</span> (ptr &lt; (<span style="color: #35CDAF;">heap_seg</span> *)heap_end) {
+    <span style="color: #339CDB;">if</span> (segment_free(ptr) &amp;&amp; ptr-&gt;size &gt;= bytes + <span style="color: #339CDB;">sizeof</span>(heap_seg)) {
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Store old capacity</span>
+      <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">old_cap</span> = ptr-&gt;size;
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Heap segment is free, and big enough</span>
+      ptr-&gt;size = <span style="color: #339CDB;">sizeof</span>(heap_seg) + round_bytes(bytes) | <span style="color: #B5CEA8; font-weight: bold;">0x1</span>;
+      ptr-&gt;prev = prev;
+      <span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">user_block</span> = ptr + <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+      <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">next_size</span> = old_cap - segment_size(ptr);
+      <span style="color: #339CDB;">if</span> (next_size &lt;= <span style="color: #339CDB;">sizeof</span>(heap_seg)) {
+        ptr-&gt;size += next_size;
+      } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (old_cap &gt; ptr-&gt;size) {
+        <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">next_block</span> = (<span style="color: #35CDAF;">void</span> *)ptr + segment_size(ptr);
+        next_block-&gt;size = old_cap - segment_size(ptr);
+        next_block-&gt;prev = ptr;
+      }
+      <span style="color: #339CDB;">return</span> user_block;
+    }
+    prev = ptr;
+    ptr = (<span style="color: #35CDAF;">void</span> *)ptr + segment_size(ptr);
+  }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">.... continued below</span>
+</pre>
+</div>
+
+<p>
+This shouldn&rsquo;t be any different than what we saw before, except for extracting some behavior out into separate functions. Our next step is where we introduce new behavior. If we reach the end of our heap and have not found a suitable spot our heap needs to expand. The first step will be determining how many bytes we need to increase our heap by, the same decision we made when initializing our heap. From there it will go much the same.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C">  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">.... continued from above</span>
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">next_size</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">increment</span> = (bytes &gt; HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">new_size</span> = round_bytes(bytes) | <span style="color: #B5CEA8; font-weight: bold;">0x1</span>;
+
+  <span style="color: #D9DAA2;">sbrk</span>(increment + <span style="color: #339CDB;">sizeof</span>(heap_seg));
+  ptr-&gt;size = new_size + <span style="color: #339CDB;">sizeof</span>(heap_seg);
+  ptr-&gt;prev = prev;
+  next_size = increment - segment_size(ptr);
+  heap_end = sbrk(<span style="color: #B5CEA8; font-weight: bold;">0</span>);
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Check if the next segment should be initialized</span>
+  <span style="color: #339CDB;">if</span> (next_size &lt;= <span style="color: #339CDB;">sizeof</span>(heap_seg)) {
+    ptr-&gt;size += next_size;
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (next_size &gt; <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">next_block</span> = (<span style="color: #35CDAF;">void</span> *)ptr + segment_size(ptr);
+    next_block-&gt;size = next_size;
+    next_block-&gt;prev = ptr;
+  }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Return user writable address</span>
+  <span style="color: #339CDB;">return</span> ptr + <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+}
+</pre>
+</div>
+
+<p>
+We will go over how we can visualize our heap in just a moment, for now let&rsquo;s go through the code. After we have determined how many bytes are needed, the pointers are updated, and the <code>heap_end</code> pointer is moved. Our last step is to check if the segment following our allocation should be initialized. This is to avoid allocating a space that would be too small to hold any data. If we have a space that is too small we can just include it in the previous segment, otherwise it becomes its own segment.
+</p>
+
+<p>
+Before we see this code in action let&rsquo;s look at how we can visualize our heap.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">heap_walk</span>() {
+  <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">ptr</span> = heap_base;
+  <span style="color: #339CDB;">while</span> (ptr &lt; (<span style="color: #35CDAF;">heap_seg</span> *)heap_end) {
+    printf(<span style="color: #DB8E73;">"Segment size: %4ld, Prev: %14p, Value: %ld, Address: %p\n"</span>,
+           ptr-&gt;size, ptr-&gt;prev, (ptr-&gt;size &amp; <span style="color: #B5CEA8; font-weight: bold;">1</span>) ? *(<span style="color: #35CDAF;">uint64_t</span> *)(ptr + <span style="color: #B5CEA8; font-weight: bold;">1</span>) : -<span style="color: #B5CEA8; font-weight: bold;">1</span>,
+           ptr);
+    ptr = (<span style="color: #35CDAF;">void</span> *)ptr + (ptr-&gt;size &amp; (~<span style="color: #B5CEA8; font-weight: bold;">1</span>));
+  }
+}
+</pre>
+</div>
+
+<p>
+We see the same logic that we use to find the next block as we saw in malloc. Each segment is printed out as a <code>uint64_t</code> for now, although this isn&rsquo;t the most flexible as we will see. Even if this is basic it will help us solve many bug and to iron out implementation details.
+</p>
+
+<p>
+Now we can how our newly upgraded <code>malloc</code> works!
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">block</span> = malloc(<span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  *block = <span style="color: #B5CEA8; font-weight: bold;">4</span>;
+
+  <span style="color: #35CDAF;">uint64_t</span> *<span style="color: #85DDFF;">num</span> = malloc(<span style="color: #B5CEA8; font-weight: bold;">8</span>);
+  *num = <span style="color: #B5CEA8; font-weight: bold;">7</span>;
+
+  <span style="color: #35CDAF;">uint64_t</span> *<span style="color: #85DDFF;">test</span> = malloc(<span style="color: #B5CEA8; font-weight: bold;">69</span>);
+  *test = <span style="color: #B5CEA8; font-weight: bold;">66</span>;
+
+  <span style="color: #35CDAF;">uint64_t</span> *<span style="color: #85DDFF;">big_num</span> = malloc(<span style="color: #B5CEA8; font-weight: bold;">64</span>);
+  *big_num = <span style="color: #B5CEA8; font-weight: bold;">64</span>;
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf</span>;
+  asprintf(&amp;buf, <span style="color: #DB8E73;">"big num has the value: %ld\n"</span>, *big_num);
+  puts(buf);
+
+  heap_walk();
+  <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #85DDFF;">big</span> <span style="color: #85DDFF;">num</span> <span style="color: #85DDFF;">has</span> <span style="color: #85DDFF;">the</span> <span style="color: #85DDFF;">value</span><span style="color: #579C4C;">:</span> <span style="color: #B5CEA8; font-weight: bold;">64</span>
+
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">57</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span>          <span style="color: #579C4C;">(</span><span style="color: #85DDFF;">nil</span><span style="color: #579C4C;">),</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                   <span style="color: #B5CEA8; font-weight: bold;">0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99000</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">57</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99000</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                   <span style="color: #B5CEA8; font-weight: bold;">0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99038</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">57</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99038</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                   <span style="color: #B5CEA8; font-weight: bold;">0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99070</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">25</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99070</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                   <span style="color: #B5CEA8; font-weight: bold;">4</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e990a8</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">25</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e990a8</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                   <span style="color: #B5CEA8; font-weight: bold;">7</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e990c0</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">89</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e990c0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                  <span style="color: #B5CEA8; font-weight: bold;">66</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e990d8</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">81</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e990d8</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                  <span style="color: #B5CEA8; font-weight: bold;">64</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99130</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">49</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99130</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span> <span style="color: #B5CEA8; font-weight: bold;">2336652897525655906</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99180</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span>  <span style="color: #B5CEA8; font-weight: bold;">592</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99180</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>                  <span style="color: #85DDFF; font-weight: bold;">-</span><span style="color: #B5CEA8; font-weight: bold;">1</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e991b0</span>
+<span style="color: #35CDAF;">Segment</span> <span style="color: #85DDFF;">size</span><span style="color: #579C4C;">:</span> <span style="color: #B5CEA8; font-weight: bold;">1041</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Prev</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e991b0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span> <span style="color: #B5CEA8; font-weight: bold;">2338615488418374995</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Address</span><span style="color: #579C4C;">:</span> <span style="color: #339CDB;">0x55d231e99400</span>
+</pre>
+</div>
+
+<p>
+Woah! This is a lot going on, and way more allocations that we performed ourselves. What happened?
 </p>
 </div>
 </div>
