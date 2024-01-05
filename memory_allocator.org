@@ -660,7 +660,23 @@ This is known as an /explicit free list/, where the free nodes are in their own 
 We have covered first-fit and best-fit, but there is an additional allocation algorithm called next-fit. Where the searching begins from the last block that was allocated. For this algorithm we might end up starting in the middle of the list, so a circularly linked list would be required.
 #+end_example
 
+Each node will now have to hold an additional pointer, adding 8 bytes of overhead. Managing these pointers will be very complicated, and can be very error prone if we are not careful.
 
+The first step is adding some bookkeeping, keeping track of the first block, and adding the ~next_free~ pointer to our struct.
+
+#+begin_src C
+void *heap_base = NULL;
+void *heap_end = NULL;
+void *first_free = NULL;  // New
+#+end_src
+
+#+begin_src C
+typedef struct heap_seg {
+  size_t size;
+  struct heap_seg *prev;
+  struct heap_seg *next_free; // New
+} heap_seg;
+#+end_src
 
 
 #  LocalWords:  sbrk size_t malloc

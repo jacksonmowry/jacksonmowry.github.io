@@ -9,13 +9,15 @@
 
 #define HEAP_INC 1024
 
-void *heap_base = NULL;
-void *heap_end = NULL;
-
 typedef struct heap_seg {
   size_t size;
   struct heap_seg *prev;
+  struct heap_seg *next_free;
 } heap_seg;
+
+void *heap_base = NULL;
+void *heap_end = NULL;
+heap_seg *first_free = NULL;
 
 size_t round_bytes(size_t bytes) {
   return (bytes + (sizeof(void *) - 1)) / sizeof(void *) * sizeof(void *);
@@ -25,8 +27,42 @@ bool segment_free(heap_seg *seg) { return !(seg->size & 0x1); }
 
 size_t segment_size(heap_seg *seg) { return seg->size & (~1); }
 
+/* void update_explicit(heap_seg *current, heap_seg *prev, heap_seg *next) { */
+/*   bool forward_search = false; */
+/*   // Find previous free segment */
+/*   if (prev) { */
+/*     prev = prev->prev; */
+/*   } */
+/*   while (prev && !segment_free(prev) && prev > (heap_seg *)heap_base) { */
+/*     prev = prev->prev; */
+/*   } */
+/*   if (prev && segment_free(prev)) { */
+/*     prev->next_free = current; */
+/*   } else { */
+/*     // We might now be first_free */
+/*     if (segment_free(current)) { */
+/*       first_free = current; */
+/*     } else { */
+/*       // Scan forward for free bock */
+/*       forward_search = true; */
+/*     } */
+/*   } */
+/*   // Find next free segment */
+/*   next = (void *)next + segment_size(next); */
+/*   while (!segment_free(next) && next < (heap_seg *)heap_end) { */
+/*     next = (void *)next + segment_size(next); */
+/*   } */
+/*   if (segment_free(next)) { */
+/*     current->next_free = next; */
+/*     if (forward_search) { first_free = next; } */
+/*   } else { */
+/*     current->next_free = NULL; */
+/*   } */
+/* } */
+
 int heap_init(size_t bytes) {
   heap_base = sbrk(0);
+  /* first_free = heap_base; */
   size_t increment =
       (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
   sbrk(HEAP_INC);
@@ -78,7 +114,7 @@ void *malloc(size_t bytes) {
       heap_seg *next_block = (void *)ptr + segment_size(ptr);
       next_block->size = old_cap - segment_size(ptr);
       next_block->prev = ptr;
-      heap_seg *next_next_block = (void*)next_block + segment_size(next_block);
+      heap_seg *next_next_block = (void *)next_block + segment_size(next_block);
       next_next_block->prev = next_block;
     }
     return user_block;
@@ -133,6 +169,21 @@ void free(void *block) {
     header->size += next->size;
   }
   header->size ^= 1;
+
+  // Scan backwards for free segment
+  if (prev) {
+    prev = prev->prev;
+  }
+  while (prev && !segment_free(prev) && prev >= (heap_seg *)heap_base) {
+    prev = prev->prev;
+  }
+  if (prev) {
+    header->next_free = prev->next_free;
+    prev->next_free = header;
+  } else {
+    header->next_free = first_free;
+    first_free = header;
+  }
 }
 
 void heap_size() { printf("Heap is %ld bytes\n", heap_end - heap_base); }
@@ -160,7 +211,7 @@ int main() {
   uint64_t *big_num = malloc(244);
   *big_num = 64;
 
-  free(block);
+  /* free(block); */
   free(test);
 
   block = malloc(16);
@@ -172,5 +223,7 @@ int main() {
   *where = 24;
 
   heap_walk();
+  printf("First free: %p\n", first_free);
+
   return 0;
 }
