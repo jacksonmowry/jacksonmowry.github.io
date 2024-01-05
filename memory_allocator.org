@@ -338,6 +338,8 @@ jackson@jtop:/tmp$ echo $?
 
 Our custom malloc implementation simply exits the program with a code of ~72~. Of course, this insn't very useful, but it demonstrates that we can override the ~malloc~ functionality. The first portion of our malloc function will remain the same, initializing our heap, and handing out the first segment. For our static memory allocator we had to call an initialization function in main, but we will have to encode that behavior directly in ~malloc~ now.
 
+*** Heap Intialization
+
 #+begin_src C
 int heap_init(size_t bytes) {
     heap_base = sbrk(0);
@@ -353,6 +355,8 @@ int heap_init(size_t bytes) {
 #+end_src
 
 Our first step is to setup our base pointer, then we check to see how many bytes need to be allocated. We have discussed this before, but it boils down to rounding our size to the closest multiple of 8 that can hold the allocation. Lastly we check if the allocation was successful, and return based on that.
+
+*** ~malloc()~ with ~sbrk()~
 
 From there we scan through our heap one node at a time until we find a suitable spot. Same as before, updating links in our list as we move along.
 
@@ -422,6 +426,8 @@ We will go over how we can visualize our heap in just a moment, for now let's go
 
 Before we see this code in action let's look at how we can visualize our heap.
 
+*** Observing Behavior
+
 #+begin_src C
 void heap_walk() {
   heap_seg *ptr = heap_base;
@@ -490,10 +496,78 @@ You may notice something suboptimal. When ~printf~ requests a 1024 byte allocati
 
 What if instead we move our new segment to fill that hole, leaving the empty space at the very end of our heap. That way we can avoid a large empty segment in the middle of our heap. This is beneficial for our implementation because future large allocations will now be able to make use of this space, instead of it being trapped in the middle of the heap. The changes we have too make aren't too bad either.
 
-#+begin_src C
+*** Filling our Holes
 
+#+begin_src C
+  // Replacing the block above
+  size_t next_size;
+  size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
+  size_t new_size = round_bytes(bytes) | 0x1;
+
+  if (segment_free(prev)) {
+    ptr = prev;
+    prev = prev->prev;
+    sbrk(increment);
+    size_t old_size = ptr->size;
+    ptr->size = new_size + sizeof(heap_seg);
+    next_size = (old_size + increment) - segment_size(ptr);
+  } else {
+    // Previous chunk is not free
+    sbrk(increment + sizeof(heap_seg));
+    ptr->size = new_size + sizeof(heap_seg);
+    ptr->prev = prev;
+    next_size = increment - segment_size(ptr);
+  }
+  heap_end = sbrk(0);
+  // Check if the next segment should be initialized
+  if (next_size <= sizeof(heap_seg)) {
+    ptr->size += next_size;
+  } else if (next_size > 0) {
+    heap_seg *next_block = (void *)ptr + segment_size(ptr);
+    next_block->size = next_size;
+    next_block->prev = ptr;
+  }
+  // Return user writable address
+  return ptr + 1;
+  // return NULL;
+}
 #+end_src
 
+Now you can see the we first check if the previous segment is free. This is easy because we have already scanned through our heap, so we know our ~prev~ pointer is on the last segment on our heap. If it is free we will slide up to fill it in, and then allocate the remaining needed space at the end. From there both paths follow the same steps to determine if we need to initialize the following block. Finally we return a pointer to the user's block just like before.
+
+Now we can see how our heap deals with the situation we saw before.
+
+#+begin_src v
+big num has the value: 64
+
+Segment size:   25, Prev:          (nil), Value:                   4, Address: 0x5620c36cb000
+Segment size:   25, Prev: 0x5620c36cb000, Value:                   7, Address: 0x5620c36cb018
+Segment size:   89, Prev: 0x5620c36cb018, Value:                  66, Address: 0x5620c36cb030
+Segment size:   81, Prev: 0x5620c36cb030, Value:                  64, Address: 0x5620c36cb088
+Segment size:  120, Prev: 0x5620c36cb088, Value:                  -1, Address: 0x5620c36cb0d8
+Segment size:   49, Prev: 0x5620c36cb0d8, Value: 2336652897525655906, Address: 0x5620c36cb150
+Segment size: 1041, Prev: 0x5620c36cb150, Value: 2338615488418374995, Address: 0x5620c36cb180
+Segment size:  624, Prev: 0x5620c36cb180, Value:                  -1, Address: 0x5620c36cb590
+#+end_src
+
+There we go! The blank space is at the end of our heap, which will help us ensure the heap is being used efficiently.
+
+At this point we have a fully featured memory allocator, it is not the fastest, or the most efficient, but it is correct. The most important part of a memory allocator is that it is correct, and will never hand out a memory address that is invalid.
+
+** _Takeaways_
+We can stop here if we really wanted to. An entire general purpose memory allocator in ~130 lines of code, but we discussed a few details of our implementation earlier that we should address now.
+
+/first-fit/
+[[file:first_fit.png]]
+
+Just like our algorithm works, we find the first available block, and place our memory allocation there. The issue with this strategy is that we end up chunking our large blocks into smaller blocks. This leaves less large blocks, which will cause us to expand the heap next time we need to handle a large allocation request.
+
+We should instead try to preserve as many large blocks as we can. This algorithm will run slower, because it causes us to scan the entire heap for every allocation. Of course there is always a tradeoff when it comes to programming, here we will see how trading a small amount of time for a more efficient use of space will be worth it.
+
+/best-fit/
+[[file:best_fit.png]]
+
+For this algorithm to work we will have to change the way we find a segment. The linear walking of our heap can stay the same, but we will have to maintain a pointer to the smallest block large enough to hold the allocation. If we get the the end and have a block, we use it to hold our allocation, otherwise we continue on like we had done before.
 
 
 #  LocalWords:  sbrk size_t malloc
