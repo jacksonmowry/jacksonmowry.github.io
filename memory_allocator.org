@@ -223,7 +223,7 @@ Size of block: 16
 Size of num: 40   <-- 32 byte allocation + 8 byte header
 #+end_example
 
-** _Takeaways_
+** _Takeways_
 Implementing a naive memory allocator is fairly easy. It won't be the fastest one in the world, nor the most secure. Either way, this small exploration shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
 
 The /first fit/ algorithm that we chose to implement above is one of the quicker ways to allocate memory (we can also add a global variable that points to the first free block, to further increase speed). While speed is an important factor when it comes to allocating memory, sometimes the user might wish to be more space efficient as opposed to time efficient.
@@ -345,8 +345,8 @@ int heap_init(size_t bytes) {
     heap_base = sbrk(0);
     size_t increment =
         (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
-    sbrk(HEAP_INC);
-    *(heap_seg *)heap_base = (heap_seg){HEAP_INC, NULL};
+    sbrk(increment);
+    *heap_base = (heap_seg){increment, NULL};
     if ((int64_t)(heap_end = sbrk(0)) == -1) {
       return -1;
     }
@@ -554,10 +554,10 @@ There we go! The blank space is at the end of our heap, which will help us ensur
 
 At this point we have a fully featured memory allocator, it is not the fastest, or the most efficient, but it is correct. The most important part of a memory allocator is that it is correct, and will never hand out a memory address that is invalid.
 
-** _Takeaways_
+* _Upgrades_
 We can stop here if we really wanted to. An entire general purpose memory allocator in ~130 lines of code, but we discussed a few details of our implementation earlier that we should address now.
 
-*** First Fit vs Best Fit
+** _First Fit vs Best Fit_
 
 /first-fit/
 [[file:first_fit.png]]
@@ -651,7 +651,7 @@ Now we can see that our allocation occupies the 24 byte block near the end of th
 
 That was a pretty easy change to handle, but you may notice another inefficiency. Every time an allocation is requested we have to start at the beginning of the heap. In these small examples that isn't an issue, but imagine a heap the is full for the first 1-2 mb, with the first free block sitting at the end. We would spend precious time scanning over blocks that we cannot use. How can we fix this?
 
-*** Implicit vs Explicit Free Lists
+** _Implicit vs Explicit Free Lists_
 The way our heap is linked together is what is known as an /implicit free list/, meaning that each node is directly linked together, and we use a check at each step in our list to determine if the segment is free. This works well for a simple implementation, but we are slowed down by traversing a linked list, and calling a function at each step. What if instead we only looked at the free segments.
 
 This is known as an /explicit free list/, where the free nodes are in their own linked list. This can be implemented with either a regular linked list, or even a circularly linked list. For our best-fit strategy, a regular singly linked list makes the most sense.
@@ -662,12 +662,14 @@ We have covered first-fit and best-fit, but there is an additional allocation al
 
 Each node will now have to hold an additional pointer, adding 8 bytes of overhead. Managing these pointers will be very complicated, and can be very error prone if we are not careful.
 
+*** _Groundwork_
+
 The first step is adding some bookkeeping, keeping track of the first block, and adding the ~next_free~ pointer to our struct.
 
 #+begin_src C
-void *heap_base = NULL;
-void *heap_end = NULL;
-void *first_free = NULL;  // New
+heap_seg *heap_base = NULL;
+heap_seg *heap_end = NULL;
+heap_seg *first_free = NULL;  // New
 #+end_src
 
 #+begin_src C
@@ -678,5 +680,223 @@ typedef struct heap_seg {
 } heap_seg;
 #+end_src
 
+Then we will update our ~free()~ function, as this is the easiest to understand. The function remains most same, we just need to introduce one function to update our new ~next_free~ pointers.
+
+#+begin_src C
+void update_back(heap_seg *cur, heap_seg *target, bool free_mode) {
+  heap_seg *prev_free = NULL;
+  if (cur) {
+    prev_free = cur->prev;
+  }
+  while (prev_free && !segment_free(prev_free) && prev_free >= heap_base) {
+    prev_free = prev_free->prev;
+  }
+
+  if (prev_free) {
+    if (free_mode) {
+      target->next_free = prev_free->next_free;
+    }
+    prev_free->next_free = target;
+  } else {
+    if (free_mode) {
+      target->next_free = first_free;
+    }
+    first_free = target;
+  }
+}
+#+end_src
+
+This function takes in a current pointer, which is the location from which we will begin searching backwards. Next we take in a target pointer, and finally a boolean that tells the function which mode to use. We can use this to update our linked last so that the links between free elements remains correct.
+
+The basic premise of how this algorithm works is fairly simple, but coming to this conclusion is difficult. It works on the principle that once a segment is in use we can simply skip over it, with the same idea working in reverse when a segment is allocated.
+
+If we have a current node we walk it backwards until we find the previous free node. From there we do one of two things:
+1. If we have a previous free node we know we are somewhere in the middle of the list. Therefore we make this previous node point to our target. Additionally, if we are in free mode we will want to point ourselves at the next free node in the list (which is the previous nodes ~next_free~).
+2. Otherwise we know that we are at the front of the list. If we're in free mode then we set our next to the current ~first_free~, and we always make ourselves the ~first_free~.
+
+You may wonder what the ~target~ parameter is, and why it is necessary. This is an abstraction that allows us to use the same ~update_back~ function in both allocation and free calls.
+
+When called in an allocation context our ~target~ is the segment immedietly following our newly allocated segment. If this segment is ~NULL~ it will be set as the end of our linked list, otherwise it sits inside the list and pointers will be updated accordingly.
+
+Alternatively, when called in a freeing context, ~target~ represents the newly freed segment. In a list of ~[1, 2, 3]~ our free call uses ~1~ as its current, and ~2~ as its target. An allocation call uses ~2~ as its current, and ~3~ as its target. With ~2~ being the element being acted upon in both cases.
+
+*** ~free~
+After merging adjacent segments together we need to move backwards in our last and ensure that the list now includes the current element. This is exactly the same as inserting a node in a linked list.
+
+#+begin_src C
+void free(void *block) {
+  if (!block) {
+    return;
+  }
+  heap_seg *header = (heap_seg *)block - 1;
+  // Get prev/next pointers
+  heap_seg *prev = header->prev;
+  heap_seg *next = (void *)header + segment_size(header);
+  if (prev > (heap_seg *)heap_base && segment_free(prev)) {
+    prev->size += header->size;
+    header = prev;
+  }
+  if (next < (heap_seg *)heap_end && segment_free(next)) {
+    header->size += next->size;
+  }
+  header->size ^= 1;
+
+  update_back(prev, header, true);
+}
+#+end_src
+
+We are essentially finding the previous free element and telling it to point at the new target, and if it doesn't exist then we know it is the first free segment.
+
+[[file:updating_back_free.png]]
+
+When we free the 32 byte block on the heap it merges with the segment before it. Which is exactly what we want out ~free~ function to do, but now we have to deal with our /explicit free list/. The only change is needing to go back and point to the larger block we just made, and pointing ourselves at the next free block.
+
+*** ~malloc~
+This is where things start to a lot more complicated in terms of /explicit free list/. One thing to keep in mind is that a linked list allows us to skip over segments currently in use. So there is no need for us to clean up ~next_free~ pointers each time a segment is modified. We will see how this all works in our diagrams and code.
+
+From a basic standpoint, this is how we want ~malloc~ to work.
+
+[[file:updating_back.png]]
+
+Instead of pointing at our original 256 byte block, we need to traverse backwards and tell the previous free element to point at the new smaller free block. Allocating a new node and updating links is similar to how ~free~ works, but we will need to spend a bit more time to get our pointers in the right places so we can use the same ~update_back~ function.
+
+~heap_init~ will also have to change just slightly to ensure our ~first_free~ pointer is set.
+
+#+begin_src C
+int heap_init(size_t bytes) {
+  heap_base = sbrk(0);
+  first_free = heap_base;
+  size_t increment =
+      (bytes > HEAP_INC) ? sizeof(heap_seg) + round_bytes(bytes) : HEAP_INC;
+  if ((sbrk(increment)) == (void *)-1) {
+    return -1;
+  }
+  *heap_base = (heap_seg){increment, NULL, NULL};
+  heap_end = sbrk(0);
+  return 0;
+}
+#+end_src
+
+Let's start by seeing how we can now walk the linked list more efficiently.
+
+#+begin_src C
+void *malloc(size_t bytes) {
+  if (!heap_base) {
+    heap_init(bytes);
+  }
+  if (bytes == 0) {
+    return NULL;
+  }
+  // Start from first_free, find first open segment that can hold 'bytes'
+  heap_seg *ptr = first_free;
+  heap_seg *best = NULL;
+
+  while (ptr && ptr < heap_end) {
+    if (segment_free(ptr) && ptr->size >= bytes + sizeof(heap_seg) &&
+        (!best || segment_size(ptr) < segment_size(best))) {
+      best = ptr;
+    }
+    if (!ptr->next_free) {
+      break;
+    }
+    ptr = ptr->next_free;
+  }
+  // Continued below ....
+#+end_src
+
+Now our searching loop begins at the first free element, and will skip over segments that are in use. This will reduce our searching time on a heap that has high fragmentation, or a large number of in-use segments.
+
+One condiseration we have to take into mind is that we cannot walk our pointer off the end of the list. If we were to do so we would lose our pointer to the end of the list, so when we encounter this situation we break early.
+
+We know that if we reach the end of the list without finding a /best-fit/ segment we will have to expand our heap in order to accomodate the requested allocation. So it will be ok to leave ~ptr~ as the last element, as we will not attempt to put something in it's place.
+
+From there we follow the same 1 of 2 paths as before.
+
+#+begin_src C
+  // .... continued from above
+  // Found a suitable block for Best-Fit
+  if (best) {
+    ptr = best;
+    // Store old capacity
+    size_t old_cap = ptr->size;
+    // Heap segment is free, and big enough
+    ptr->size = sizeof(heap_seg) + round_bytes(bytes) | 0x1;
+    size_t next_size = old_cap - segment_size(ptr);
+    if (next_size <= sizeof(heap_seg)) {
+      ptr->size += next_size;
+    } else if (old_cap > ptr->size) {
+      heap_seg *next_block = (void *)ptr + segment_size(ptr);
+      ,*next_block =
+          (heap_seg){old_cap - segment_size(ptr), ptr, ptr->next_free};
+      heap_seg *next_next_block = (void *)next_block + segment_size(next_block);
+      next_next_block->prev = next_block;
+
+      // Scan for previous free block, update links
+      update_back(best, next_block, false);
+    }
+    return ptr + 1;
+  }
+  // continued below ....
+#+end_src
+
+Just as we mentioned above, if we find a suitable block we will need to point our linked list to jump around this newly allocated segment. The function accepts the allocated segment, the following block, and false denoting that we are in allocation mode.
+
+#+begin_src C
+  // .... continued from above
+  // Ran out of space
+  size_t next_size;
+  size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
+  size_t new_size = round_bytes(bytes) | 0x1;
+
+  heap_seg *new_seg = (void *)ptr + segment_size(ptr);
+  ,*new_seg = (heap_seg){0, ptr, NULL};
+
+  if (new_seg->prev && segment_free(new_seg->prev)) {
+    // Previous chunk is free
+    new_seg = new_seg->prev;
+    if ((sbrk(increment)) == (void *)-1) {
+      return NULL;
+    }
+    size_t old_size = new_seg->size;
+    new_seg->size = new_size + sizeof(heap_seg);
+    next_size = (old_size + increment) - segment_size(new_seg);
+  } else {
+    // Previous chunk is not free
+    if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
+      return NULL;
+    }
+    new_seg->size = new_size + sizeof(heap_seg);
+    next_size = increment - segment_size(new_seg);
+  }
+  heap_end = sbrk(0);
+
+  // Check if the next segment should be initialized
+  assert(next_size > 0);
+  if (next_size <= sizeof(heap_seg)) {
+    ptr->size += next_size;
+  } else if (next_size > 0) {
+    heap_seg *next_block = (void *)ptr + segment_size(ptr);
+    ,*next_block = (heap_seg){next_size, ptr, NULL};
+
+    // Scan for previous free block, update links
+    update_back(new_seg, next_block, false);
+  }
+
+  // Return user writable address
+  return ptr + 1;
+}
+
+// End
+#+end_src
+
+If more memory is needed, we increase our heap size, segment it, and update pointers if needed. The last step is the same as above, we find the previous free element and update our /explicit free list/.
+
+
 
 #  LocalWords:  sbrk size_t malloc
+
+** _~calloc()~_
+If you remember from my previous article on [[file:hashmap.org][hashmaps]], I like using ~calloc~ during both the exploration and optimization phase of coding. Of course in performance critical applications every CPU cycle counts, but for most purposes a few extra cycles to clear out memory is more than worth it.
+
+Surprisngly to me, implementing ~calloc~ is as simple as a call to malloc, ~memset~ to ~0~, and then returning a pointer. The more interesting thing to me about ~calloc~ are the parameters it takes. The glibc ~calloc~ takes in the number of elements, and he size of each element, both being a ~size_t~. This makes ~calloc~ easier to read in source code, and makes your intentions for the size of the allocation clearer.
+
