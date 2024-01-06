@@ -60,6 +60,7 @@ int heap_init(size_t bytes) {
   }
   *heap_base = (heap_seg){increment, NULL, NULL};
   heap_end = sbrk(0);
+  assert((void *)heap_end - (void *)heap_base == HEAP_INC);
   return 0;
 }
 
@@ -95,6 +96,7 @@ void *malloc(size_t bytes) {
     size_t next_size = old_cap - segment_size(ptr);
     if (next_size <= sizeof(heap_seg)) {
       ptr->size += next_size;
+      update_back(best, best->next_free, false);
     } else if (old_cap > ptr->size) {
       heap_seg *next_block = (void *)ptr + segment_size(ptr);
       *next_block =
@@ -109,40 +111,59 @@ void *malloc(size_t bytes) {
   }
 
   // Ran out of space
+  if (!ptr) {
+    ptr = heap_base;
+    heap_seg *prev = NULL;
+    while (ptr < heap_end) {
+      prev = ptr;
+      ptr = (void *)ptr + segment_size(ptr);
+    }
+    ptr->prev = prev;
+  }
   size_t next_size;
   size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
   size_t new_size = round_bytes(bytes) | 0x1;
 
-  heap_seg *new_seg = (void *)ptr + segment_size(ptr);
-  *new_seg = (heap_seg){0, ptr, NULL};
+  heap_seg *new_seg = ptr;
+  new_seg->prev = ptr->prev;
+  // new_seg = ptr;
 
+  size_t old_size = new_seg->size;
   if (new_seg->prev && segment_free(new_seg->prev)) {
     // Previous chunk is free
     new_seg = new_seg->prev;
     if ((sbrk(increment)) == (void *)-1) {
       return NULL;
     }
-    size_t old_size = new_seg->size;
     new_seg->size = new_size + sizeof(heap_seg);
     next_size = (old_size + increment) - segment_size(new_seg);
   } else {
     // Previous chunk is not free
-    if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
-      return NULL;
-    }
     new_seg->size = new_size + sizeof(heap_seg);
-    next_size = increment - segment_size(new_seg);
+    if (round_bytes(bytes) < increment) {
+      if ((sbrk(increment)) == (void *)-1) {
+        return NULL;
+      }
+      next_size = old_size + increment - segment_size(new_seg);
+    } else {
+      if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
+        return NULL;
+      }
+      next_size =
+          old_size + increment - segment_size(new_seg) + sizeof(heap_seg);
+    }
   }
   heap_end = sbrk(0);
 
   // Check if the next segment should be initialized
-  assert(next_size > 0);
+  assert(next_size >= 0);
   if (next_size <= sizeof(heap_seg)) {
     ptr->size += next_size;
   } else if (next_size > 0) {
     heap_seg *next_block = (void *)ptr + segment_size(ptr);
-    *next_block = (heap_seg){next_size, ptr, NULL};
+    *next_block = (heap_seg){next_size, new_seg, NULL};
 
+    // assert((void*)next_block + segment_size(next_block) == heap_end);
     // Scan for previous free block, update links
     update_back(new_seg, next_block, false);
   }
@@ -165,10 +186,13 @@ void free(void *block) {
   }
   if (next < (heap_seg *)heap_end && segment_free(next)) {
     header->size += next->size;
+    update_back(prev, header, true);
+    header->next_free = next->next_free;
+    header->size ^= 1;
+    return;
   }
-  header->size ^= 1;
-
   update_back(prev, header, true);
+  header->size ^= 1;
 }
 
 void *calloc(size_t count, size_t size) {
@@ -180,27 +204,32 @@ void *calloc(size_t count, size_t size) {
   return ptr;
 }
 
+void heap_walk();
+
 void *realloc(void *ptr, size_t size) {
-	size_t min = (size < segment_size((heap_seg*)(ptr-1))) ? size : segment_size((heap_seg*)(ptr-1));
-	free(ptr);
-	if (size == 0) {
-		return NULL;
-	}
-	heap_seg *new_ptr = malloc(size);
-	if (!new_ptr) {
-		return NULL;
-	}
-	memmove(new_ptr+1, ptr, min);
-	return new_ptr+1;
+  size_t min = (size < segment_size((heap_seg *)(ptr - 1)))
+                   ? size
+                   : segment_size((heap_seg *)(ptr - 1)) - sizeof(heap_seg);
+  free(ptr);
+  if (size == 0) {
+    return NULL;
+  }
+  heap_seg *new_ptr = malloc(size);
+  if (!new_ptr) {
+    return NULL;
+  }
+  memmove(new_ptr, ptr, min);
+  return new_ptr;
 }
 
 void heap_size() {
-  printf("Heap is %ld bytes\n", (heap_end - heap_base) * sizeof(heap_seg));
+  printf("Heap is %ld bytes\n", ((void *)heap_end - (void *)heap_base));
 }
 
 void heap_walk() {
+  size_t total_size = 0;
   heap_seg *ptr = heap_base;
-  while (ptr < (heap_seg *)heap_end) {
+  while (ptr < heap_end && ptr->size) {
     printf("Segment size: %4ld, Prev: %14p, Value: %3d, Address: %p", ptr->size,
            ptr->prev, (ptr->size & 1) ? *(int8_t *)(ptr + 1) : (int8_t)-1, ptr);
     if (segment_free(ptr)) {
@@ -208,24 +237,41 @@ void heap_walk() {
     } else {
       printf("\n");
     }
-    ptr = (void *)ptr + (ptr->size & (~1));
+    total_size += segment_size(ptr);
+    ptr = (void *)ptr + segment_size(ptr);
   }
+  printf("\nEnding Size: %ld\n", total_size);
 }
 
 int main() {
-  int8_t *block = malloc(244);
+  int8_t *block = malloc(242);
   *block = 4;
 
-  int8_t *num = malloc(244);
+  int8_t *num = malloc(243);
   *num = 7;
 
   int8_t *test = malloc(244);
   *test = 66;
 
-  int8_t *big_num = malloc(244);
+  int8_t *big_num = malloc(245);
   *big_num = 64;
 
+  int8_t *buf = malloc(1024);
+  *buf = 7;
+
+  int8_t *small_num = calloc(64, 8);
+  *small_num = 99;
+
   free(block);
+
+  void *reallocated = realloc(small_num, 8);
+  assert(reallocated);
+
+  int8_t *testing_clear = malloc(9000);
+
   heap_walk();
+  heap_size();
+  printf("end: %p\n\n", heap_end);
+
   return 0;
 }

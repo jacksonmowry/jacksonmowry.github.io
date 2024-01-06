@@ -893,7 +893,6 @@ If more memory is needed, we increase our heap size, segment it, and update poin
 
 
 
-#  LocalWords:  sbrk size_t malloc
 
 ** _~calloc()~_
 If you remember from my previous article on [[file:hashmap.org][hashmaps]], I like using ~calloc~ during both the exploration and optimization phase of coding. Of course in performance critical applications every CPU cycle counts, but for most purposes a few extra cycles to clear out memory is more than worth it.
@@ -915,3 +914,5 @@ Just remember to include ~<string.h>~ for the memset function and you should be 
 
 ** _~realloc()~_
 I don't get to use ~realloc~ all that often, but when you find a good usecase if always comes out super clean. It shouldn't be too hard to implement, just have a look at the behavior described in ~man realloc~ and you will be good to go.
+
+#  LocalWords:  sbrk size_t malloc
