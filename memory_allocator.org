@@ -900,3 +900,18 @@ If you remember from my previous article on [[file:hashmap.org][hashmaps]], I li
 
 Surprisngly to me, implementing ~calloc~ is as simple as a call to malloc, ~memset~ to ~0~, and then returning a pointer. The more interesting thing to me about ~calloc~ are the parameters it takes. The glibc ~calloc~ takes in the number of elements, and he size of each element, both being a ~size_t~. This makes ~calloc~ easier to read in source code, and makes your intentions for the size of the allocation clearer.
 
+#+begin_src C
+void *calloc(size_t count, size_t size) {
+  void *ptr = malloc(count * size);
+  if (!ptr) {
+    return NULL;
+  }
+  memset(ptr, 0, count * size);
+  return ptr;
+}
+#+end_src
+
+Just remember to include ~<string.h>~ for the memset function and you should be good to go.
+
+** _~realloc()~_
+I don't get to use ~realloc~ all that often, but when you find a good usecase if always comes out super clean. It shouldn't be too hard to implement, just have a look at the behavior described in ~man realloc~ and you will be good to go.
