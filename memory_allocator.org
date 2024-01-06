@@ -893,10 +893,11 @@ If more memory is needed, we increase our heap size, segment it, and update poin
 
 
 
-#  LocalWords:  sbrk size_t malloc
 
 ** _~calloc()~_
 If you remember from my previous article on [[file:hashmap.org][hashmaps]], I like using ~calloc~ during both the exploration and optimization phase of coding. Of course in performance critical applications every CPU cycle counts, but for most purposes a few extra cycles to clear out memory is more than worth it.
 
 Surprisngly to me, implementing ~calloc~ is as simple as a call to malloc, ~memset~ to ~0~, and then returning a pointer. The more interesting thing to me about ~calloc~ are the parameters it takes. The glibc ~calloc~ takes in the number of elements, and he size of each element, both being a ~size_t~. This makes ~calloc~ easier to read in source code, and makes your intentions for the size of the allocation clearer.
 
+
+#  LocalWords:  sbrk size_t malloc
