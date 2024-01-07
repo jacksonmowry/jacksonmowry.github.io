@@ -19,17 +19,17 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Memory Allocator</i></h1>
-<div id="outline-container-orgadc7c8d" class="outline-2">
-<h2 id="orgadc7c8d"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-orgadc7c8d">
+<div id="outline-container-orgdd64c0a" class="outline-2">
+<h2 id="orgdd64c0a"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-orgdd64c0a">
 <p>
 We use memory allocators nearly every time we write software. They allow our programs to be dynamic and handle a wide variety of input, or user interactions. In languages like C the programmer interacts directly with the memory allocator through calling <code>malloc()</code> and <code>free()</code>. Higher level languages extract away the need for the programmer to worry about memory management, usually through a garbage collector. But what does a memory allocator do? Hopefully we can figure that out through exploring one possible implementation.
 </p>
 </div>
 </div>
-<div id="outline-container-org023f648" class="outline-2">
-<h2 id="org023f648"><span class="underline">Headers</span></h2>
-<div class="outline-text-2" id="text-org023f648">
+<div id="outline-container-org8ce0583" class="outline-2">
+<h2 id="org8ce0583"><span class="underline">Headers</span></h2>
+<div class="outline-text-2" id="text-org8ce0583">
 <p>
 Here are all the headers I believe we will need to complete this project. Apologies if we don&rsquo;t end up using some of them, just try to cover my bases.
 </p>
@@ -77,9 +77,9 @@ Here are all the headers I believe we will need to complete this project. Apolog
 </div>
 </div>
 </div>
-<div id="outline-container-org8df1f99" class="outline-2">
-<h2 id="org8df1f99"><span class="underline">Exploration</span></h2>
-<div class="outline-text-2" id="text-org8df1f99">
+<div id="outline-container-org230042e" class="outline-2">
+<h2 id="org230042e"><span class="underline">Exploration</span></h2>
+<div class="outline-text-2" id="text-org230042e">
 <p>
 You have hopefully heard a concept in programming called the &ldquo;heap&rdquo;. Each time we dynamically allocate memory in our program it ends up on the heap. We know that the computer has all the memory available, so it must have given some of this memory to our heap. For now let&rsquo;s just imagine that asking for this memory in our program is super complicated, so we will use a statically allocated buffer that we manage ourselves.
 </p>
@@ -104,9 +104,9 @@ Let&rsquo;s start off by laying our groundwork for this exploration.
 For now, we will set our heap to a fixed size of <code>1024</code> bytes, and we will use a global variable (☢ I know, I know ☢) to keep track of the base of our heap. Then we define a struct for each segment of our heap, which for now holds a <code>size_t</code> to hold the size in bytes, and a pointer for the previous segment. We will later see how we can perform some cleaver transformations on our size to store more information.
 </p>
 </div>
-<div id="outline-container-org7aed1d5" class="outline-3">
-<h3 id="org7aed1d5"><span class="underline">Initialization</span></h3>
-<div class="outline-text-3" id="text-org7aed1d5">
+<div id="outline-container-org3b6097d" class="outline-3">
+<h3 id="org3b6097d"><span class="underline">Initialization</span></h3>
+<div class="outline-text-3" id="text-org3b6097d">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">heap_init</span>(<span style="color: #35CDAF;">void</span>* <span style="color: #85DDFF;">base</span>) {
   <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>base) { <span style="color: #339CDB;">return</span> -<span style="color: #B5CEA8; font-weight: bold;">1</span>; }
@@ -127,9 +127,9 @@ Once our heap is ready to go we can begin handing out pointers to different segm
 </p>
 </div>
 </div>
-<div id="outline-container-org8a9ab10" class="outline-3">
-<h3 id="org8a9ab10"><span class="underline">Allocation</span></h3>
-<div class="outline-text-3" id="text-org8a9ab10">
+<div id="outline-container-org48241f6" class="outline-3">
+<h3 id="org48241f6"><span class="underline">Allocation</span></h3>
+<div class="outline-text-3" id="text-org48241f6">
 <p>
 We will leave error handling out for right now to focus in on the core logic.
 </p>
@@ -184,7 +184,7 @@ There we go, we have now produced a heap segment that can be returned to the use
 </p>
 
 
-<div id="org0ace421" class="figure">
+<div id="orgea7e222" class="figure">
 <p><img src="heap_segmenting.png" alt="heap_segmenting.png" />
 </p>
 </div>
@@ -212,7 +212,7 @@ That&rsquo;s how we hand out segments of our heap to users! If we don&rsquo;t fi
 </pre>
 </div>
 
-<pre class="example" id="org36ed229">
+<pre class="example" id="org6753b6f">
 Num holds: 7
 Block holds: 4
 </pre>
@@ -222,9 +222,9 @@ It was fairly easy to hand out memory, so how does the user give that memory bac
 </p>
 </div>
 </div>
-<div id="outline-container-org99e73b3" class="outline-3">
-<h3 id="org99e73b3"><span class="underline">Freeing</span></h3>
-<div class="outline-text-3" id="text-org99e73b3">
+<div id="outline-container-org0dd939f" class="outline-3">
+<h3 id="org0dd939f"><span class="underline">Freeing</span></h3>
+<div class="outline-text-3" id="text-org0dd939f">
 <p>
 In our most basic implementation &ldquo;freeing&rdquo; memory will be nothing more than setting its least significant bit back to 0.
 </p>
@@ -251,7 +251,7 @@ When a user requests to free a block there are only 3 possible states that it ma
 </p>
 
 
-<div id="org93cb4e7" class="figure">
+<div id="orgfedf1d8" class="figure">
 <p><img src="freeing_patterns.png" alt="freeing_patterns.png" />
 </p>
 </div>
@@ -298,9 +298,9 @@ With our allocation and freeing functions complete, that is pretty much it for t
 </p>
 </div>
 </div>
-<div id="outline-container-orgcd1fc69" class="outline-3">
-<h3 id="orgcd1fc69"><span class="underline">Example Usage</span></h3>
-<div class="outline-text-3" id="text-orgcd1fc69">
+<div id="outline-container-orgf0a93f9" class="outline-3">
+<h3 id="orgf0a93f9"><span class="underline">Example Usage</span></h3>
+<div class="outline-text-3" id="text-orgf0a93f9">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
   <span style="color: #35CDAF;">uint8_t</span> <span style="color: #85DDFF;">heap</span>[HEAP_SIZE];
@@ -337,7 +337,7 @@ With our allocation and freeing functions complete, that is pretty much it for t
 </pre>
 </div>
 
-<pre class="example" id="org82fb5db">
+<pre class="example" id="org60cc00b">
 Address of block: 0x7ffcef5b94a8  &lt;-- Heap Base
 Address of num: 0x7ffcef5b94b8    &lt;-- Heap Base + 16
 Address of test: 0x7ffcef5b94c8   &lt;-- Heap Base + 32
@@ -354,9 +354,9 @@ Size of num: 40   &lt;-- 32 byte allocation + 8 byte header
 </pre>
 </div>
 </div>
-<div id="outline-container-org68d65a8" class="outline-3">
-<h3 id="org68d65a8"><span class="underline">Takeaways</span></h3>
-<div class="outline-text-3" id="text-org68d65a8">
+<div id="outline-container-org18c7e57" class="outline-3">
+<h3 id="org18c7e57"><span class="underline">Takeaways</span></h3>
+<div class="outline-text-3" id="text-org18c7e57">
 <p>
 Implementing a naive memory allocator is fairly easy. It won&rsquo;t be the fastest one in the world, nor the most secure. Either way, this small exploration shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
 </p>
@@ -366,7 +366,7 @@ The <i>first fit</i> algorithm that we chose to implement above is one of the qu
 </p>
 
 
-<div id="orgac8033f" class="figure">
+<div id="org0551a56" class="figure">
 <p><img src="first_fit.png" alt="first_fit.png" />
 </p>
 </div>
@@ -376,7 +376,7 @@ Instead of finding the first available spot we can find the <i>best fit</i> segm
 </p>
 
 
-<div id="org68bcc47" class="figure">
+<div id="org671009f" class="figure">
 <p><img src="best_fit.png" alt="best_fit.png" />
 </p>
 </div>
@@ -410,9 +410,9 @@ Our current implementation also relies on a statically allocated buffer, meaning
 </div>
 </div>
 </div>
-<div id="outline-container-orgeeed2c5" class="outline-2">
-<h2 id="orgeeed2c5"><span class="underline">sbrk()</span></h2>
-<div class="outline-text-2" id="text-orgeeed2c5">
+<div id="outline-container-org3e1ab38" class="outline-2">
+<h2 id="org3e1ab38"><span class="underline">sbrk()</span></h2>
+<div class="outline-text-2" id="text-org3e1ab38">
 <p>
 While the exact details of how a program is laid out in memory is not required to understand this portion, it will be very helpful.
 </p>
@@ -430,7 +430,7 @@ When are program is run, it is loaded into memory with a layout as depicted belo
 </p>
 
 
-<div id="org5e63367" class="figure">
+<div id="org98c4eea" class="figure">
 <p><img src="memory_layout.png" alt="memory_layout.png" />
 </p>
 </div>
@@ -451,7 +451,7 @@ On the other hand, the heap is not something the user has direct control over fr
 I have been referring to our memory allocator as a &ldquo;heap allocator&rdquo;, where the heap refers to the &ldquo;heap&rdquo; in memory. Just like our buffer of <code>1024</code> bytes in our original implementation, the heap is a large contiguous section of memory. Yet unlike our <code>1024</code> byte buffer the heap can grow and shrink as needed. This is accomplished with the system call <code>sbrk()</code>.
 </p>
 
-<pre class="example" id="org9bc1e45">
+<pre class="example" id="org5cc5587">
 It is worth noting that modern implementations of malloc() use mmap instead of calls to sbrk. There are many reasons why this change was made, but it essentially boils down to the fact that mmap fits our use cases better, and is safer to use.
 
 Using sbrk directly in our code is part of the Posix system API. The Posix API allows our programs to be run on any Posix compliant system, meaning it is essentially an operating system abstraction layer. sbrk (and brk) have both been deprecated in the Posix API.
@@ -494,12 +494,12 @@ So how does <code>sbrk</code> work?
 <tbody>
 <tr>
 <td class="org-left">Program-Break:</td>
-<td class="org-right">0x55c6fef9c000</td>
+<td class="org-right">0x563e57045000</td>
 </tr>
 
 <tr>
 <td class="org-left">Program-Break:</td>
-<td class="org-right">0x55c6fef9c004</td>
+<td class="org-right">0x563e57045004</td>
 </tr>
 
 <tr>
@@ -513,7 +513,7 @@ So how does <code>sbrk</code> work?
 The first call to <code>sbrk</code> returns the <i>heap base</i>, equivalent to the starting address of our 1024 byte buffer. We then increase the program break by 4 bytes, which returns the address of the <b>previous</b> program break. Therefore, we have to call <code>sbrk(0)</code> again to get the new program break. We see that the distance between the 2 pointers is exactly 4 bytes, exactly what we requested.
 </p>
 
-<pre class="example" id="org9643d84">
+<pre class="example" id="org5d61fcc">
 The reason why we have to call printf after acquiring the memory address is that it allocates memory internally.
 </pre>
 
@@ -521,9 +521,9 @@ The reason why we have to call printf after acquiring the memory address is that
 This is great! We can now increase the programs heap segment whenever we want. Let&rsquo;s take a look at how we can implement this in our <code>malloc</code> function.
 </p>
 </div>
-<div id="outline-container-org1d19f80" class="outline-3">
-<h3 id="org1d19f80"><span class="underline">Adding sbrk()</span></h3>
-<div class="outline-text-3" id="text-org1d19f80">
+<div id="outline-container-org5d28890" class="outline-3">
+<h3 id="org5d28890"><span class="underline">Adding sbrk()</span></h3>
+<div class="outline-text-3" id="text-org5d28890">
 <p>
 Now that we will be using <code>sbrk</code> directly in our program we are going to start running into a problem. The <code>malloc</code> implementation on our machine will be calling <code>sbrk</code> or <code>mmap</code> to increase its heap, and we will be trying to do the same. The issue is that our heaps are intertwined. If my <code>malloc</code> and the system&rsquo;s <code>malloc</code> are both being run they will step on each other&rsquo;s toes.
 </p>
@@ -557,9 +557,9 @@ jackson@jtop:/tmp$ <span style="color: #35CDAF;">echo</span> $<span style="color
 Our custom malloc implementation simply exits the program with a code of <code>72</code>. Of course, this isn&rsquo;t very useful, but it demonstrates that we can override the <code>malloc</code> functionality. The first portion of our malloc function will remain the same, initializing our heap, and handing out the first segment. For our static memory allocator we had to call an initialization function in main, but we will have to encode that behavior directly in <code>malloc</code> now.
 </p>
 </div>
-<div id="outline-container-org225d3dc" class="outline-4">
-<h4 id="org225d3dc">Heap Initialization</h4>
-<div class="outline-text-4" id="text-org225d3dc">
+<div id="outline-container-org7abda72" class="outline-4">
+<h4 id="org7abda72">Heap Initialization</h4>
+<div class="outline-text-4" id="text-org7abda72">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">heap_init</span>(<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">bytes</span>) {
     heap_base = sbrk(<span style="color: #B5CEA8; font-weight: bold;">0</span>);
@@ -580,9 +580,9 @@ Our first step is to set up our base pointer, then we check to see how many byte
 </p>
 </div>
 </div>
-<div id="outline-container-org9cfbf50" class="outline-4">
-<h4 id="org9cfbf50"><code>malloc()</code> with <code>sbrk()</code></h4>
-<div class="outline-text-4" id="text-org9cfbf50">
+<div id="outline-container-orgf339580" class="outline-4">
+<h4 id="orgf339580"><code>malloc()</code> with <code>sbrk()</code></h4>
+<div class="outline-text-4" id="text-orgf339580">
 <p>
 From there we scan through our heap one node at a time until we find a suitable spot. Same as before, updating links in our list as we move along.
 </p>
@@ -662,9 +662,9 @@ Before we see this code in action let&rsquo;s look at how we can visualize our h
 </p>
 </div>
 </div>
-<div id="outline-container-orgb54f01b" class="outline-4">
-<h4 id="orgb54f01b">Observing Behavior</h4>
-<div class="outline-text-4" id="text-orgb54f01b">
+<div id="outline-container-org6b60235" class="outline-4">
+<h4 id="org6b60235">Observing Behavior</h4>
+<div class="outline-text-4" id="text-org6b60235">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">heap_walk</span>() {
   <span style="color: #35CDAF;">heap_seg</span> *<span style="color: #85DDFF;">ptr</span> = heap_base;
@@ -751,9 +751,9 @@ What if instead we move our new segment to fill that hole, leaving the empty spa
 </p>
 </div>
 </div>
-<div id="outline-container-orga765a48" class="outline-4">
-<h4 id="orga765a48">Filling our Holes</h4>
-<div class="outline-text-4" id="text-orga765a48">
+<div id="outline-container-org2fb73aa" class="outline-4">
+<h4 id="org2fb73aa">Filling our Holes</h4>
+<div class="outline-text-4" id="text-org2fb73aa">
 <div class="org-src-container">
 <pre class="src src-C">  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Replacing the block above</span>
   <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">next_size</span>;
@@ -823,16 +823,16 @@ At this point we have a fully featured memory allocator, it is not the fastest, 
 </div>
 </div>
 </div>
-<div id="outline-container-orga0e1742" class="outline-2">
-<h2 id="orga0e1742"><span class="underline">Upgrades</span></h2>
-<div class="outline-text-2" id="text-orga0e1742">
+<div id="outline-container-orge7e01bc" class="outline-2">
+<h2 id="orge7e01bc"><span class="underline">Upgrades</span></h2>
+<div class="outline-text-2" id="text-orge7e01bc">
 <p>
 We can stop here if we really wanted to. An entire general purpose memory allocator in ~130 lines of code, but we discussed a few details of our implementation earlier that we should address now.
 </p>
 </div>
-<div id="outline-container-org03fe733" class="outline-3">
-<h3 id="org03fe733"><span class="underline">First Fit vs Best Fit</span></h3>
-<div class="outline-text-3" id="text-org03fe733">
+<div id="outline-container-orgb2c579c" class="outline-3">
+<h3 id="orgb2c579c"><span class="underline">First Fit vs Best Fit</span></h3>
+<div class="outline-text-3" id="text-orgb2c579c">
 <p>
 <i>first-fit</i>
 <img src="first_fit.png" alt="first_fit.png" />
@@ -954,9 +954,9 @@ That was a pretty easy change to handle, but you may notice another inefficiency
 </p>
 </div>
 </div>
-<div id="outline-container-orgbc655d4" class="outline-3">
-<h3 id="orgbc655d4"><span class="underline">Implicit vs Explicit Free Lists</span></h3>
-<div class="outline-text-3" id="text-orgbc655d4">
+<div id="outline-container-org25c1aae" class="outline-3">
+<h3 id="org25c1aae"><span class="underline">Implicit vs Explicit Free Lists</span></h3>
+<div class="outline-text-3" id="text-org25c1aae">
 <p>
 The way our heap is linked together is what is known as an <i>implicit free list</i>, meaning that each node is directly linked together, and we use a check at each step in our list to determine if the segment is free. This works well for a simple implementation, but we are slowed down by traversing a linked list, and calling a function at each step. What if instead we only looked at the free segments.
 </p>
@@ -965,7 +965,7 @@ The way our heap is linked together is what is known as an <i>implicit free list
 This is known as an <i>explicit free list</i>, where the free nodes are in their own linked list. This can be implemented with either a regular linked list, or even a circularly linked list. For our best-fit strategy, a regular singly linked list makes the most sense.
 </p>
 
-<pre class="example" id="org3b16933">
+<pre class="example" id="org1446701">
 We have covered first-fit and best-fit, but there is an additional allocation algorithm called next-fit. Where the searching begins from the last block that was allocated. For this algorithm we might end up starting in the middle of the list, so a circularly linked list would be required.
 </pre>
 
@@ -973,9 +973,9 @@ We have covered first-fit and best-fit, but there is an additional allocation al
 Each node will now have to hold an additional pointer, adding 8 bytes of overhead. Managing these pointers will be very complicated, and can be very error-prone if we are not careful.
 </p>
 </div>
-<div id="outline-container-orgf3fa6af" class="outline-4">
-<h4 id="orgf3fa6af"><span class="underline">Groundwork</span></h4>
-<div class="outline-text-4" id="text-orgf3fa6af">
+<div id="outline-container-org4413548" class="outline-4">
+<h4 id="org4413548"><span class="underline">Groundwork</span></h4>
+<div class="outline-text-4" id="text-org4413548">
 <p>
 The first step is adding some bookkeeping, keeping track of the first block, and adding the <code>next_free</code> pointer to our struct.
 </p>
@@ -1055,9 +1055,9 @@ Alternatively, when called in a freeing context, <code>target</code> represents 
 </p>
 </div>
 </div>
-<div id="outline-container-org536b740" class="outline-4">
-<h4 id="org536b740"><code>free</code></h4>
-<div class="outline-text-4" id="text-org536b740">
+<div id="outline-container-org26ef96b" class="outline-4">
+<h4 id="org26ef96b"><code>free</code></h4>
+<div class="outline-text-4" id="text-org26ef96b">
 <p>
 After merging adjacent segments together we need to move backwards in our last and ensure that the list now includes the current element. This is exactly the same as inserting a node in a linked list.
 </p>
@@ -1097,7 +1097,7 @@ Another thing to keep in mind is that if we free a block that is surrounded on b
 </p>
 
 
-<div id="orgc29e753" class="figure">
+<div id="org2f24624" class="figure">
 <p><img src="updating_back_free.png" alt="updating_back_free.png" />
 </p>
 </div>
@@ -1107,9 +1107,9 @@ When we free the 32 byte block on the heap it merges with the segment before it.
 </p>
 </div>
 </div>
-<div id="outline-container-orga28687b" class="outline-4">
-<h4 id="orga28687b"><code>malloc</code></h4>
-<div class="outline-text-4" id="text-orga28687b">
+<div id="outline-container-orgfdce89d" class="outline-4">
+<h4 id="orgfdce89d"><code>malloc</code></h4>
+<div class="outline-text-4" id="text-orgfdce89d">
 <p>
 This is where things start to a lot more complicated in terms of <i>explicit free list</i>. One thing to keep in mind is that a linked list allows us to skip over segments currently in use. So there is no need for us to clean up <code>next_free</code> pointers each time a segment is modified. We will see how this all works in our diagrams and code.
 </p>
@@ -1119,7 +1119,7 @@ From a basic standpoint, this is how we want <code>malloc</code> to work.
 </p>
 
 
-<div id="orgdc054c1" class="figure">
+<div id="orgc1d6617" class="figure">
 <p><img src="updating_back.png" alt="updating_back.png" />
 </p>
 </div>
@@ -1310,9 +1310,9 @@ If more memory is needed, we increase our heap size, segment it, and update poin
 </div>
 </div>
 </div>
-<div id="outline-container-org9d15462" class="outline-3">
-<h3 id="org9d15462"><span class="underline"><code>calloc()</code></span></h3>
-<div class="outline-text-3" id="text-org9d15462">
+<div id="outline-container-org6e9e1de" class="outline-3">
+<h3 id="org6e9e1de"><span class="underline"><code>calloc()</code></span></h3>
+<div class="outline-text-3" id="text-org6e9e1de">
 <p>
 If you remember from my previous article on <a href="hashmap.html">hashmaps</a>, I like using <code>calloc</code> during both the exploration and optimization phase of coding. Of course in performance critical applications every CPU cycle counts, but for most purposes a few extra cycles to clear out memory is more than worth it.
 </p>
@@ -1338,9 +1338,9 @@ Just remember to include <code>&lt;string.h&gt;</code> for the memset function, 
 </p>
 </div>
 </div>
-<div id="outline-container-orgdb2ea73" class="outline-3">
-<h3 id="orgdb2ea73"><span class="underline"><code>realloc()</code></span></h3>
-<div class="outline-text-3" id="text-orgdb2ea73">
+<div id="outline-container-org5ae98fe" class="outline-3">
+<h3 id="org5ae98fe"><span class="underline"><code>realloc()</code></span></h3>
+<div class="outline-text-3" id="text-org5ae98fe">
 <p>
 I don&rsquo;t get to use <code>realloc</code> all that often, but when you find a good use case it always comes out super clean. It shouldn&rsquo;t be too hard to implement, just take a look at the behavior described in <code>man realloc</code> and you will be good to go.
 </p>
@@ -1371,16 +1371,16 @@ The first step is to calculate how many bytes will need to be moved. We take the
 </div>
 </div>
 </div>
-<div id="outline-container-org8670325" class="outline-2">
-<h2 id="org8670325"><span class="underline">Testing</span></h2>
-<div class="outline-text-2" id="text-org8670325">
+<div id="outline-container-org61975be" class="outline-2">
+<h2 id="org61975be"><span class="underline">Testing</span></h2>
+<div class="outline-text-2" id="text-org61975be">
 <p>
 We are nearly there! Time to see if we can spot any bugs while testing our code. I would recommend using standard library functions that perform allocations, using custom data structures, and performing manual allocations. Of course, it is nearly impossible to catch every possible bug, and test every edge case.
 </p>
 </div>
-<div id="outline-container-org04894ce" class="outline-3">
-<h3 id="org04894ce"><span class="underline">Hashmap Testing</span></h3>
-<div class="outline-text-3" id="text-org04894ce">
+<div id="outline-container-org620fe64" class="outline-3">
+<h3 id="org620fe64"><span class="underline">Hashmap Testing</span></h3>
+<div class="outline-text-3" id="text-org620fe64">
 <p>
 For this case I am going to use the previously implemented <a href="hashmap.html">hashmap</a> for testing.
 </p>
@@ -1389,9 +1389,9 @@ For this case I am going to use the previously implemented <a href="hashmap.html
 The hashmap starts out with a default size of 11, and target load factor of 0.5. I made sure to insert enough elements to ensure that it would resize at least once.
 </p>
 </div>
-<div id="outline-container-orgb148d3f" class="outline-4">
-<h4 id="orgb148d3f"><span class="underline">glibc <code>malloc</code></span></h4>
-<div class="outline-text-4" id="text-orgb148d3f">
+<div id="outline-container-org540bd87" class="outline-4">
+<h4 id="org540bd87"><span class="underline">glibc <code>malloc</code></span></h4>
+<div class="outline-text-4" id="text-org540bd87">
 <div class="org-src-container">
 <pre class="src src-v"><span style="color: #35CDAF;">Index</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Key</span><span style="color: #579C4C;">:</span>            <span style="color: #35CDAF;">EMPTY</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>            <span style="color: #35CDAF;">EMPTY</span>
 <span style="color: #35CDAF;">Index</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">1</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Key</span><span style="color: #579C4C;">:</span>           <span style="color: #35CDAF;">Bailey</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>               <span style="color: #B5CEA8; font-weight: bold;">92</span>
@@ -1410,9 +1410,9 @@ The hashmap starts out with a default size of 11, and target load factor of 0.5.
 </div>
 </div>
 </div>
-<div id="outline-container-org170e7b0" class="outline-4">
-<h4 id="org170e7b0"><span class="underline">Our <code>malloc</code></span></h4>
-<div class="outline-text-4" id="text-org170e7b0">
+<div id="outline-container-org727270e" class="outline-4">
+<h4 id="org727270e"><span class="underline">Our <code>malloc</code></span></h4>
+<div class="outline-text-4" id="text-org727270e">
 <div class="org-src-container">
 <pre class="src src-v"><span style="color: #35CDAF;">Index</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">0</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Key</span><span style="color: #579C4C;">:</span>            <span style="color: #35CDAF;">EMPTY</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>            <span style="color: #35CDAF;">EMPTY</span>
 <span style="color: #35CDAF;">Index</span><span style="color: #579C4C;">:</span>   <span style="color: #B5CEA8; font-weight: bold;">1</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Key</span><span style="color: #579C4C;">:</span>           <span style="color: #35CDAF;">Bailey</span><span style="color: #579C4C;">,</span> <span style="color: #35CDAF;">Value</span><span style="color: #579C4C;">:</span>               <span style="color: #B5CEA8; font-weight: bold;">92</span>
@@ -1432,9 +1432,9 @@ The hashmap starts out with a default size of 11, and target load factor of 0.5.
 </div>
 </div>
 </div>
-<div id="outline-container-orgd6a3fd7" class="outline-3">
-<h3 id="orgd6a3fd7"><span class="underline">Performance Testing</span></h3>
-<div class="outline-text-3" id="text-orgd6a3fd7">
+<div id="outline-container-orge0842d8" class="outline-3">
+<h3 id="orge0842d8"><span class="underline">Performance Testing</span></h3>
+<div class="outline-text-3" id="text-orge0842d8">
 <p>
 To test the performance of our hashmap we will perform a linear set of increase size allocations. Without freeing any of the memory allocated is essentially the worst case for our implementation. The biggest weak point of our <code>malloc</code> function is that when it runs out of memory it has to walk the entire heap before it can expand it. This set of allocations will test to see how slow this is.
 </p>
@@ -1461,28 +1461,28 @@ To test the performance of our hashmap we will perform a linear set of increase 
 </pre>
 </div>
 </div>
-<div id="outline-container-org297256c" class="outline-4">
-<h4 id="org297256c">glibc <code>malloc</code></h4>
-<div class="outline-text-4" id="text-org297256c">
-<pre class="example" id="org927bde3">
+<div id="outline-container-org56a15ef" class="outline-4">
+<h4 id="org56a15ef">glibc <code>malloc</code></h4>
+<div class="outline-text-4" id="text-org56a15ef">
+<pre class="example" id="orgda2630a">
 13192 System calls
 67ms
 </pre>
 </div>
 </div>
-<div id="outline-container-org000a454" class="outline-4">
-<h4 id="org000a454">Our <code>malloc</code></h4>
-<div class="outline-text-4" id="text-org000a454">
-<pre class="example" id="org1ecfbe5">
+<div id="outline-container-org9d8081e" class="outline-4">
+<h4 id="org9d8081e">Our <code>malloc</code></h4>
+<div class="outline-text-4" id="text-org9d8081e">
+<pre class="example" id="org069c5f2">
 15247 System calls
 1435ms
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org3bc7419" class="outline-3">
-<h3 id="org3bc7419"><span class="underline">Analysis</span></h3>
-<div class="outline-text-3" id="text-org3bc7419">
+<div id="outline-container-org523f594" class="outline-3">
+<h3 id="org523f594"><span class="underline">Analysis</span></h3>
+<div class="outline-text-3" id="text-org523f594">
 <p>
 Our implementation is much slower, partially explained by performing more system calls, and the walking of the list each time we run out of space. If we were to fix any bottleneck, that would be the first place to look. Another way that could be mitigated would be increased the size by which the heap increases each time.
 </p>
@@ -1497,16 +1497,16 @@ My goal was not to create the fastest memory allocator possible, but to use this
 </div>
 </div>
 </div>
-<div id="outline-container-orgcc80fdf" class="outline-2">
-<h2 id="orgcc80fdf"><span class="underline">Learning Moments</span></h2>
-<div class="outline-text-2" id="text-orgcc80fdf">
+<div id="outline-container-orga22c22a" class="outline-2">
+<h2 id="orga22c22a"><span class="underline">Learning Moments</span></h2>
+<div class="outline-text-2" id="text-orga22c22a">
 <p>
 Now that we&rsquo;ve come to the end I&rsquo;d like to talk about what I learned during the writing of this article.
 </p>
 </div>
-<div id="outline-container-org52fe969" class="outline-3">
-<h3 id="org52fe969"><span class="underline">Using gdb</span></h3>
-<div class="outline-text-3" id="text-org52fe969">
+<div id="outline-container-orgd0d0a9c" class="outline-3">
+<h3 id="orgd0d0a9c"><span class="underline">Using gdb</span></h3>
+<div class="outline-text-3" id="text-orgd0d0a9c">
 <p>
 I have used <code>gdb</code> from a surface level before, but never to work on complex programs like this. Most of my usage would follow the same pattern, segmentation fault, compile with <code>-g</code>, run in gdb and get a back trace. From there it was usually easy to understand what happened. That was entirely different while writing my memory allocator.
 </p>
@@ -1524,9 +1524,9 @@ Overall, I think this is a great style of project for learning <code>gdb</code>,
 </p>
 </div>
 </div>
-<div id="outline-container-org1615baa" class="outline-3">
-<h3 id="org1615baa"><span class="underline">C Global State</span></h3>
-<div class="outline-text-3" id="text-org1615baa">
+<div id="outline-container-org07caede" class="outline-3">
+<h3 id="org07caede"><span class="underline">C Global State</span></h3>
+<div class="outline-text-3" id="text-org07caede">
 <p>
 We are often told to avoid global state when writing our programs, and I would generally agree when talking about application style programs. However, when it comes to low level or systems programming it is unavoidable in most situations.
 </p>
@@ -1543,9 +1543,9 @@ Once memory has been allocated there is no easy way to get the start of the prog
 The last global variable is not entirely necessary, but it helps us avoid making a system call each time we need to reference the end of our heap. Of course, we can always call <code>sbrk(0)</code> to get the end of the heap, but system calls are not free, so we try to avoid making them.
 </p>
 </div>
-<div id="outline-container-org86ad51b" class="outline-4">
-<h4 id="org86ad51b">Tradeoffs</h4>
-<div class="outline-text-4" id="text-org86ad51b">
+<div id="outline-container-orgdbd2e8d" class="outline-4">
+<h4 id="orgdbd2e8d">Tradeoffs</h4>
+<div class="outline-text-4" id="text-orgdbd2e8d">
 <p>
 We could have avoided tracking the end of our heap by introducing another pointer to our <code>heap_seg</code> struct. Instead of just using the size of each segment to traverse the list, we could have an explicit <code>next</code> pointer. This was our last node could just point to <code>NULL</code>
 </p>
@@ -1560,9 +1560,9 @@ There is also the possibility of having a header and a footer, which further inc
 </div>
 </div>
 </div>
-<div id="outline-container-orgf1a6068" class="outline-3">
-<h3 id="orgf1a6068"><span class="underline">Linked Lists</span></h3>
-<div class="outline-text-3" id="text-orgf1a6068">
+<div id="outline-container-org0d87093" class="outline-3">
+<h3 id="org0d87093"><span class="underline">Linked Lists</span></h3>
+<div class="outline-text-3" id="text-org0d87093">
 <p>
 I am personally not the biggest fan of linked lists, but they have their place in a library like this. Arrays are great, but they&rsquo;re entirely inflexible, both in total size, and size per element. In this case we need our implementation to be adaptable for changes in both, so a linked list is required.
 </p>
@@ -1576,9 +1576,9 @@ We can even solve the biggest bottleneck in our implementation by using a concep
 </p>
 </div>
 </div>
-<div id="outline-container-org7caa14d" class="outline-3">
-<h3 id="org7caa14d"><span class="underline">Man Pages</span></h3>
-<div class="outline-text-3" id="text-org7caa14d">
+<div id="outline-container-org762040f" class="outline-3">
+<h3 id="org762040f"><span class="underline">Man Pages</span></h3>
+<div class="outline-text-3" id="text-org762040f">
 <p>
 In addition to using a LSP like <code>clangd</code> to get function definitions and doc comments, man pages are great for learning how to use the functions available in C. <code>sbrk</code> is not the easiest function to understand, but once you read up on how it works you can start by using it in a test program. Most of the printing functions have similar names, so looking up their differences can help you choose the right one.
 </p>
@@ -1588,9 +1588,9 @@ If you&rsquo;re unfamiliar with any system call you can look up its man page, wh
 </p>
 </div>
 </div>
-<div id="outline-container-org017306a" class="outline-3">
-<h3 id="org017306a"><span class="underline">Assert</span></h3>
-<div class="outline-text-3" id="text-org017306a">
+<div id="outline-container-org5bc678e" class="outline-3">
+<h3 id="org5bc678e"><span class="underline">Assert</span></h3>
+<div class="outline-text-3" id="text-org5bc678e">
 <p>
 This is my first time using asserts throughout a program as mini test cases that need to pass to ensure the implementation is correct. Every time you discover a bug in your code add an assert to ensure that it doesn&rsquo;t happen again.
 </p>
@@ -1615,9 +1615,9 @@ The <code>NDEBUG</code> line makes all assert lines a <code>nop</code>.
 </div>
 </div>
 </div>
-<div id="outline-container-orgce27865" class="outline-2">
-<h2 id="orgce27865"><span class="underline">Conclusion</span></h2>
-<div class="outline-text-2" id="text-orgce27865">
+<div id="outline-container-org1dfc15d" class="outline-2">
+<h2 id="org1dfc15d"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-org1dfc15d">
 <p>
 That&rsquo;s it! A memory allocator in ~250 lines of code. This is definitely a project I will continue to improve upon when I get the time to do so. I find this level of programming fascinating, and it gives me a greater understanding of low level concepts.
 </p>

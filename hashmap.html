@@ -19,9 +19,9 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Hashmap</i></h1>
-<div id="outline-container-orgf5ae84d" class="outline-2">
-<h2 id="orgf5ae84d"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-orgf5ae84d">
+<div id="outline-container-org0d82345" class="outline-2">
+<h2 id="org0d82345"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org0d82345">
 <p>
 A hashmap is a data structure that gets a ton of use, but its implementation can be a bit of a black box. This is further complicated by the face that even language to language a hashmap does not have the same implementation. Some hashmaps choose to preserve the ordering of insertion (Python, V), others have different maps for unordered and ordered (sorted) storage (C++), and yet others differ on their choice of backing storage (arrays vs trees). Even among those that use an array for storage, there are 2 different ways to manage collisions.
 </p>
@@ -31,9 +31,9 @@ The actual implementation shouldn&rsquo;t matter for the majority of users, as t
 </p>
 </div>
 </div>
-<div id="outline-container-org5981e8e" class="outline-2">
-<h2 id="org5981e8e"><span class="underline">Includes</span></h2>
-<div class="outline-text-2" id="text-org5981e8e">
+<div id="outline-container-org52aa2b0" class="outline-2">
+<h2 id="org52aa2b0"><span class="underline">Includes</span></h2>
+<div class="outline-text-2" id="text-org52aa2b0">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdint.h&gt;</span>     <span style="color: #579C4C;">// </span><span style="color: #579C4C;">uint64_t int64_t size_t</span>
 <span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Printing (not necessary as a library, just for testing)</span>
@@ -45,9 +45,9 @@ The actual implementation shouldn&rsquo;t matter for the majority of users, as t
 </div>
 </div>
 </div>
-<div id="outline-container-org4913f5a" class="outline-2">
-<h2 id="org4913f5a"><span class="underline">Header</span></h2>
-<div class="outline-text-2" id="text-org4913f5a">
+<div id="outline-container-org468c246" class="outline-2">
+<h2 id="org468c246"><span class="underline">Header</span></h2>
+<div class="outline-text-2" id="text-org468c246">
 <p>
 I will be mixing the entire code for our hashmap throughout the article, to break up the reading, and to make I show you the code that goes along with the thought. Having this header file will ensure that even if our code is out of order, the compiler will be able to make sense of it.
 </p>
@@ -113,9 +113,9 @@ I will be mixing the entire code for our hashmap throughout the article, to brea
 </div>
 </div>
 </div>
-<div id="outline-container-orgf227592" class="outline-2">
-<h2 id="orgf227592"><span class="underline">Architecture</span></h2>
-<div class="outline-text-2" id="text-orgf227592">
+<div id="outline-container-orgb583c9e" class="outline-2">
+<h2 id="orgb583c9e"><span class="underline">Architecture</span></h2>
+<div class="outline-text-2" id="text-orgb583c9e">
 <p>
 When we store our hashmap in an array each key should ideally map to a unique index in that array. Of course this will likely never happen even with the best hashing function in the world. So we have to find a balance of the best hashing function we can afford within our time constraints. There are many examples of hashing functions that can be used, but in our case we are trying to find a hash function that can take in a pointer (void*) and hash that 8 byte value which we can use as our index.
 </p>
@@ -124,9 +124,9 @@ When we store our hashmap in an array each key should ideally map to a unique in
 For the purposes of experimentation and extensibility we are going to allow our implementation to take a function pointer to a hash function. This way we can check the speed and collision rate with various different hashing methods.
 </p>
 </div>
-<div id="outline-container-org624bccd" class="outline-3">
-<h3 id="org624bccd"><span class="underline">Hashing</span></h3>
-<div class="outline-text-3" id="text-org624bccd">
+<div id="outline-container-org70cc2e4" class="outline-3">
+<h3 id="org70cc2e4"><span class="underline">Hashing</span></h3>
+<div class="outline-text-3" id="text-org70cc2e4">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #35CDAF;">uint64_t</span> <span style="color: #D9DAA2;">no_hash</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">pointer</span>) {
   <span style="color: #339CDB;">return</span> <span style="color: #B5CEA8; font-weight: bold;">0</span>;
@@ -197,9 +197,9 @@ Our last hash is called an FNV hash, which produces vastly different has values 
 We also have a string hashing function that is based on the original FNV hash, just adapted to using the bytes of a string as opposed to the bytes of a number.
 </p>
 </div>
-<div id="outline-container-org2af75d8" class="outline-4">
-<h4 id="org2af75d8">Hashing Speed</h4>
-<div class="outline-text-4" id="text-org2af75d8">
+<div id="outline-container-orgd4d71b1" class="outline-4">
+<h4 id="orgd4d71b1">Hashing Speed</h4>
+<div class="outline-text-4" id="text-orgd4d71b1">
 <p>
 As we have just seen, hashing is its own complex topic, but for our case we are concerned with fast, non-cryptographic hashes. We have 4 potential hash functions, so we can take a look at their speed differences in code.
 </p>
@@ -266,9 +266,9 @@ Let&rsquo;s now take a look at how data is stored in a hashmap, so we can see wh
 </div>
 </div>
 </div>
-<div id="outline-container-orgd91b612" class="outline-3">
-<h3 id="orgd91b612"><span class="underline">Storage and Retrieval</span></h3>
-<div class="outline-text-3" id="text-orgd91b612">
+<div id="outline-container-orgea2a937" class="outline-3">
+<h3 id="orgea2a937"><span class="underline">Storage and Retrieval</span></h3>
+<div class="outline-text-3" id="text-orgea2a937">
 <p>
 How does a hashmap actually store the data we want to retrieve?
 </p>
@@ -328,9 +328,9 @@ This is our introduction to the main strategy we will use throughout the hashmap
 </p>
 </div>
 </div>
-<div id="outline-container-orgde914e4" class="outline-3">
-<h3 id="orgde914e4"><span class="underline">Backing Storage</span></h3>
-<div class="outline-text-3" id="text-orgde914e4">
+<div id="outline-container-orge75c3f3" class="outline-3">
+<h3 id="orge75c3f3"><span class="underline">Backing Storage</span></h3>
+<div class="outline-text-3" id="text-orge75c3f3">
 <p>
 Lets now look at how we can initialize our hashmap, and eventually clean up the memory is uses.
 </p>
@@ -392,7 +392,7 @@ This is great because adding an item to an array is as simple as adding an offse
 </p>
 
 
-<div id="org9bb1d96" class="figure">
+<div id="org09d5ade" class="figure">
 <p><img src="array.png" alt="array.png" />
 </p>
 </div>
@@ -418,9 +418,9 @@ In order to get the index for each element, we have to somehow reduce its value 
 Huh. Even our more advanced hash function, with vastly different values, ends up producing the same index twice. Well that&rsquo;s not good for our users, if they try to store 2 different values we would end up overwriting the first value. We can continue to increase our array size to limit the amount of collisions, but we reach a point where we end up with numerous empty spaces.
 </p>
 </div>
-<div id="outline-container-orge575ce7" class="outline-4">
-<h4 id="orge575ce7">Load Factor</h4>
-<div class="outline-text-4" id="text-orge575ce7">
+<div id="outline-container-orge17dc77" class="outline-4">
+<h4 id="orge17dc77">Load Factor</h4>
+<div class="outline-text-4" id="text-orge17dc77">
 <p>
 So we know we need an array to store our elements, but how big should our array be? Well, it will need to have a concept of how full it can get before resizing. Of course if we made an array that is as long as a <code>uint64_t</code> could address we would have the fewest number of collisions. Or we could have a tiny  array, with an element occupying every single index. The former wastes a lot of memory, and the latter would require reallocation on every insert.
 </p>
@@ -439,22 +439,22 @@ You may notice that even with a low load factor we can still have collisions, so
 </div>
 </div>
 </div>
-<div id="outline-container-orgee02a8d" class="outline-3">
-<h3 id="orgee02a8d"><span class="underline">Insertion and Collision Resolution</span></h3>
-<div class="outline-text-3" id="text-orgee02a8d">
+<div id="outline-container-org0050682" class="outline-3">
+<h3 id="org0050682"><span class="underline">Insertion and Collision Resolution</span></h3>
+<div class="outline-text-3" id="text-org0050682">
 <p>
 We will cover 2 different groups of strategies when it comes to resolving collisions in a hashmap.
 </p>
 </div>
-<div id="outline-container-orgf19f9e0" class="outline-4">
-<h4 id="orgf19f9e0">Open Addressing</h4>
-<div class="outline-text-4" id="text-orgf19f9e0">
+<div id="outline-container-org955badc" class="outline-4">
+<h4 id="org955badc">Open Addressing</h4>
+<div class="outline-text-4" id="text-org955badc">
 <p>
 <i>Linear Probing</i>
 </p>
 
 
-<div id="orgfa35364" class="figure">
+<div id="org0b1696b" class="figure">
 <p><img src="linear_probe.png" alt="linear_probe.png" />
 </p>
 </div>
@@ -468,12 +468,12 @@ In open addressing when 2 elements map to the same index we simply move to a dif
 </p>
 
 
-<div id="orgc3aaf9e" class="figure">
+<div id="orge8dd503" class="figure">
 <p><img src="quad_probe.png" alt="quad_probe.png" />
 </p>
 </div>
 
-<pre class="example" id="org54c113d">
+<pre class="example" id="org69bfb99">
 An interesting thing to note with quadratic probing is its ideal conditions. Quadradic probing performs best when using a prime number table size, and a load factor &lt; 0.5. In these conditions quadratic probing will not only always find a valid position, it will also do it in size/2 jumps.
 
 When we go to implement our hashmap with open addressing later we will see if we can ensure that both of these conditions are always met.
@@ -554,15 +554,15 @@ The core of our insert logic is finding where this pair belongs. From there we j
 </p>
 </div>
 </div>
-<div id="outline-container-orgb5017cd" class="outline-4">
-<h4 id="orgb5017cd">Separate Chaining</h4>
-<div class="outline-text-4" id="text-orgb5017cd">
+<div id="outline-container-orgc4d3f5e" class="outline-4">
+<h4 id="orgc4d3f5e">Separate Chaining</h4>
+<div class="outline-text-4" id="text-orgc4d3f5e">
 <p>
 The other main strategy to resolve collisions in a hashmap is separate chaining.
 </p>
 
 
-<div id="orgb59740e" class="figure">
+<div id="org8dc7d22" class="figure">
 <p><img src="separate_chaining.png" alt="separate_chaining.png" />
 </p>
 </div>
@@ -576,9 +576,9 @@ When we go to insert an element all we have to do is make our new node point to 
 </p>
 </div>
 </div>
-<div id="outline-container-org93e90b1" class="outline-4">
-<h4 id="org93e90b1">Speed Considerations</h4>
-<div class="outline-text-4" id="text-org93e90b1">
+<div id="outline-container-org9a0412c" class="outline-4">
+<h4 id="org9a0412c">Speed Considerations</h4>
+<div class="outline-text-4" id="text-org9a0412c">
 <p>
 As you may have noticed with open addressing, collisions increases the time it takes to find an element if we have a high number of collisions. Separate chaining runs into the same problem, so let&rsquo;s take a look at how the 2 differ in terms of speed.
 </p>
@@ -653,18 +653,18 @@ As you may have noticed with open addressing, collisions increases the time it t
 <tbody>
 <tr>
 <td class="org-left">Time<sub>Arr</sub>:</td>
-<td class="org-right">0.097</td>
+<td class="org-right">0.121</td>
 <td class="org-left">milliseconds</td>
 </tr>
 
 <tr>
 <td class="org-left">Time<sub>LL</sub>:</td>
-<td class="org-right">43.017</td>
+<td class="org-right">42.206</td>
 <td class="org-left">mlliseconds</td>
 </tr>
 
 <tr>
-<td class="org-left">445x</td>
+<td class="org-left">350x</td>
 <td class="org-right">Slower</td>
 <td class="org-left">&#xa0;</td>
 </tr>
@@ -692,9 +692,9 @@ Having said all of that, theory does not always map 1:1 to the real world. So it
 </p>
 </div>
 </div>
-<div id="outline-container-orgce90c94" class="outline-4">
-<h4 id="orgce90c94">C Data Structures</h4>
-<div class="outline-text-4" id="text-orgce90c94">
+<div id="outline-container-org0d8d274" class="outline-4">
+<h4 id="org0d8d274">C Data Structures</h4>
+<div class="outline-text-4" id="text-org0d8d274">
 <p>
 As an aside, one of the biggest reasons I enjoy C is that it encourages users to implement their own data structures. These can have specific behavior that suits their use case. For example, we will be implementing as general of a hashmap as we can here, with <code>void*</code> keys, and <code>uint64_t</code> values. The keys can be a pointer to any value, or be used to store a 64-bit integer, and same with the values. We are doing this to show the flexability of this implementation, but using pointers will slow down our hashmap.
 </p>
@@ -705,9 +705,9 @@ If you know that your hash map will always use strings as keys, and integers as 
 </div>
 </div>
 </div>
-<div id="outline-container-orgc31a607" class="outline-3">
-<h3 id="orgc31a607"><span class="underline">Deletion</span></h3>
-<div class="outline-text-3" id="text-orgc31a607">
+<div id="outline-container-orgcf1f13f" class="outline-3">
+<h3 id="orgcf1f13f"><span class="underline">Deletion</span></h3>
+<div class="outline-text-3" id="text-orgcf1f13f">
 <p>
 At this point we would have a nearly complete hashmap, with the ability set and get any arbitrary pair. The last thing we need to implement for our user facing API is the removal of an element.
 </p>
@@ -733,7 +733,7 @@ Instead, we can use a concept called a &ldquo;tombstone&rdquo;.
 </p>
 
 
-<div id="org4df13e9" class="figure">
+<div id="orgcbebfce" class="figure">
 <p><img src="tombstone.png" alt="tombstone.png" />
 </p>
 </div>
@@ -1024,9 +1024,9 @@ You may have been asking about the <code>hashmap_resize()</code> function at thi
 </p>
 </div>
 </div>
-<div id="outline-container-org6c27040" class="outline-3">
-<h3 id="org6c27040"><span class="underline">Memory Management and Resizing</span></h3>
-<div class="outline-text-3" id="text-org6c27040">
+<div id="outline-container-org3aaaf8b" class="outline-3">
+<h3 id="org3aaaf8b"><span class="underline">Memory Management and Resizing</span></h3>
+<div class="outline-text-3" id="text-org3aaaf8b">
 <p>
 With our user facing API covered now we have to talk about the management of all this data.
 </p>
@@ -1035,9 +1035,9 @@ With our user facing API covered now we have to talk about the management of all
 Earlier we discussed the concept of load factor, and we would ideally like to keep this as low as possible (and below 50% in the case of quadratic probing). We wouldn&rsquo;t be able to accomplish this without dynamically allocating memory, so that is exactly what we have to do. However, we should probably keep a few things in mind when decided how our hashmap should behave.
 </p>
 </div>
-<div id="outline-container-org6be4315" class="outline-4">
-<h4 id="org6be4315">Initial Size</h4>
-<div class="outline-text-4" id="text-org6be4315">
+<div id="outline-container-org39066d4" class="outline-4">
+<h4 id="org39066d4">Initial Size</h4>
+<div class="outline-text-4" id="text-org39066d4">
 <p>
 If a user is going to instantiate a hashmap it is likely they are going to want to insert elements straight away. So we should either set a sensible default size, or allow this value to be specified at initialization time. They both sound reasonable, so why not both.
 </p>
@@ -1071,9 +1071,9 @@ As we said earlier, for our quadratic probing strategy it is best to keep the ta
 </div>
 </div>
 </div>
-<div id="outline-container-org142b8e1" class="outline-4">
-<h4 id="org142b8e1">Resizing is Expensive</h4>
-<div class="outline-text-4" id="text-org142b8e1">
+<div id="outline-container-org24a31ef" class="outline-4">
+<h4 id="org24a31ef">Resizing is Expensive</h4>
+<div class="outline-text-4" id="text-org24a31ef">
 <p>
 We haven&rsquo;t covered this part of a hashmap yet, but it is more complex than it might first appear. My first thought was to simply expand the backing array and copy all the elements over, thus lowering our load factor. However, this won&rsquo;t help the speed of our hashmap at all, because elements that had collisions before will still have the same collision, and we may end up losing track of elements due to the new table size. Instead, we need to rebuild our hashmap each time we resize.
 </p>
@@ -1150,7 +1150,7 @@ With that done our hashmap is functionally complete. Let&rsquo;s look at some ex
 </pre>
 </div>
 
-<pre class="example" id="orgfec8921">
+<pre class="example" id="org04789d3">
 Key 16 has the value 25
 </pre>
 
@@ -1160,9 +1160,9 @@ That&rsquo;s great! Our hashmap sucessfully stored a key-value pair and allowed 
 </div>
 </div>
 </div>
-<div id="outline-container-org1fd806b" class="outline-3">
-<h3 id="org1fd806b"><span class="underline">Making our Container Generic</span></h3>
-<div class="outline-text-3" id="text-org1fd806b">
+<div id="outline-container-org42f6ebf" class="outline-3">
+<h3 id="org42f6ebf"><span class="underline">Making our Container Generic</span></h3>
+<div class="outline-text-3" id="text-org42f6ebf">
 <p>
 The C programming language doesn&rsquo;t support generics, some people like this, others don&rsquo;t. I don&rsquo;t really have a side in the argument, but from a library author perspective, especially when writing a data structure, we would like our users to be able to use any datatype. So, how can we achieve this? Function pointers.
 </p>
@@ -1205,7 +1205,7 @@ With a few small changes to our original <code>fnv_hash</code> it now supports C
 </pre>
 </div>
 
-<pre class="example" id="org21267b7">
+<pre class="example" id="org4ea3991">
 Key Billy has the value -1
 </pre>
 
@@ -1250,18 +1250,18 @@ It has to do with how we are comparing the keys. If we instead directly compared
 
 <tr>
 <td class="org-left">a:</td>
-<td class="org-right">0x555f3ab41004</td>
+<td class="org-right">0x561584a57004</td>
 </tr>
 
 <tr>
 <td class="org-left">b:</td>
-<td class="org-right">0x555f3ab41004</td>
+<td class="org-right">0x561584a57004</td>
 </tr>
 </tbody>
 </table>
 
 
-<div id="org5d48129" class="figure">
+<div id="org143aef9" class="figure">
 <p><img src="str_ptr.png" alt="str_ptr.png" />
 </p>
 </div>
@@ -1308,7 +1308,7 @@ With this in place our previous example should now work.
 </pre>
 </div>
 
-<pre class="example" id="orgc8e8ba0">
+<pre class="example" id="orgaa9b010">
 Key Billy has the value 25
 </pre>
 
@@ -1318,9 +1318,9 @@ There we go! Our hashmap is now able to handle keys directly by value, and by th
 </div>
 </div>
 </div>
-<div id="outline-container-org36838fa" class="outline-2">
-<h2 id="org36838fa"><span class="underline">Debugging</span></h2>
-<div class="outline-text-2" id="text-org36838fa">
+<div id="outline-container-org524b458" class="outline-2">
+<h2 id="org524b458"><span class="underline">Debugging</span></h2>
+<div class="outline-text-2" id="text-org524b458">
 <p>
 One of the things I miss from other languages is a good pretty printer. Of course firing up <code>gdb</code> and stepping through a program is always a viable option (and saved me a few times while writing this), but having a quick visual representation of the data helps me move quicker. If you write your own data structures when working in C you may find this pattern helpful. Just remember to also include a way to enable/disable this functionality when compiling code for distribution.
 </p>
@@ -1419,7 +1419,7 @@ With that in place our pretty printer should be ready to go.
 <p>
 <i><code>fnv_string_hash</code></i>
 </p>
-<pre class="example" id="org0ee690e">
+<pre class="example" id="orge835a48">
 Size: 5
 Capacity: 11
 Collisions: 0
@@ -1446,7 +1446,7 @@ Now is a perfect time to see how our hashmap changes with different hash functio
 <p>
 <i><code>no_hash</code></i>
 </p>
-<pre class="example" id="org324699b">
+<pre class="example" id="org5f694e7">
 Size: 5
 Capacity: 11
 Collisions: 10
@@ -1477,7 +1477,7 @@ Even just switching to our <code>basic_hash</code> will greatly improve our coll
 <p>
 <i><code>basic_hash</code></i>
 </p>
-<pre class="example" id="org8097c27">
+<pre class="example" id="orgb0ec4d5">
 Size: 5
 Capacity: 11
 Collisions: 1
@@ -1510,14 +1510,14 @@ It all comes down to the trade-off between memory and speed. Which is exactly wh
 </p>
 </div>
 </div>
-<div id="outline-container-org65b3c86" class="outline-2">
-<h2 id="org65b3c86"><span class="underline">Conclusion</span></h2>
-<div class="outline-text-2" id="text-org65b3c86">
+<div id="outline-container-orgdd65db5" class="outline-2">
+<h2 id="orgdd65db5"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-orgdd65db5">
 <p>
 There we go! Everything we need to implement our own hashmap from scratch in C, with some added comforts to aid in debugging. I hope you can see that the code we had to write wasn&rsquo;t bad at all. Of course writing in C will always be a bit more verbose as opposed to a higher level language, but it helps to see what is going on.
 </p>
 
-<pre class="example" id="orgdbcfd93">
+<pre class="example" id="orgebc2de3">
 Another data structure to explore in the same realm is a bloom filter. They can be used alongside a hashmap to tell you with 100% certaintity that an item is not in the map. So why would we use a second hashmap to tell us what is in the main hashmap?
 
 Well, bloom filters don't store the elements themselves, instead they use a bitmap to indicate true/false for an index. This way a bloom filter occupies 1 64-bit integer per 64 elements in the hash map.
