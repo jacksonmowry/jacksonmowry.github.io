@@ -3,18 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #define _GNU_SOURCE
+#include "gallocc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#define HEAP_INC 1024
-
-typedef struct heap_seg {
-  size_t size;
-  struct heap_seg *prev;
-  struct heap_seg *next_free;
-} heap_seg;
 
 heap_seg *heap_base = NULL;
 heap_seg *heap_end = NULL;
@@ -60,7 +53,7 @@ int heap_init(size_t bytes) {
   }
   *heap_base = (heap_seg){increment, NULL, NULL};
   heap_end = sbrk(0);
-  assert((void *)heap_end - (void *)heap_base == HEAP_INC);
+  /* assert((void *)heap_end - (void *)heap_base == HEAP_INC); */
   return 0;
 }
 
@@ -102,7 +95,9 @@ void *malloc(size_t bytes) {
       *next_block =
           (heap_seg){old_cap - segment_size(ptr), ptr, ptr->next_free};
       heap_seg *next_next_block = (void *)next_block + segment_size(next_block);
-      next_next_block->prev = next_block;
+      if (next_next_block < heap_end) {
+        next_next_block->prev = next_block;
+      }
 
       // Scan for previous free block, update links
       update_back(best, next_block, false);
@@ -111,25 +106,29 @@ void *malloc(size_t bytes) {
   }
 
   // Ran out of space
+  heap_seg *prev = NULL;
   if (!ptr) {
     ptr = heap_base;
-    heap_seg *prev = NULL;
     while (ptr < heap_end) {
       prev = ptr;
       ptr = (void *)ptr + segment_size(ptr);
     }
-    ptr->prev = prev;
+    // We are writing outside of memory here,
+    // need to find a way to break this, and track prev
+    // without writing it outside of the heap
+    if (ptr < heap_end) {
+      ptr->prev = prev;
+    }
   }
   size_t next_size;
   size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
   size_t new_size = round_bytes(bytes) | 0x1;
 
   heap_seg *new_seg = ptr;
-  new_seg->prev = ptr->prev;
   // new_seg = ptr;
 
-  size_t old_size = new_seg->size;
-  if (new_seg->prev && segment_free(new_seg->prev)) {
+  size_t old_size = (new_seg < heap_end) ? new_seg->size : 0;
+  if (new_seg < heap_end && new_seg->prev && segment_free(new_seg->prev)) {
     // Previous chunk is free
     new_seg = new_seg->prev;
     if ((sbrk(increment)) == (void *)-1) {
@@ -139,31 +138,32 @@ void *malloc(size_t bytes) {
     next_size = (old_size + increment) - segment_size(new_seg);
   } else {
     // Previous chunk is not free
-    new_seg->size = new_size + sizeof(heap_seg);
+    size_t cur_size = new_size + sizeof(heap_seg);
     if (round_bytes(bytes) < increment) {
       if ((sbrk(increment)) == (void *)-1) {
         return NULL;
       }
-      next_size = old_size + increment - segment_size(new_seg);
+      next_size = old_size + increment - (cur_size ^ 0x1);
     } else {
       if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
         return NULL;
       }
       next_size =
-          old_size + increment - segment_size(new_seg) + sizeof(heap_seg);
+          old_size + increment - (cur_size ^ 0x1) + sizeof(heap_seg);
     }
+    new_seg->size = cur_size;
   }
+  new_seg->prev = ptr->prev;
   heap_end = sbrk(0);
 
   // Check if the next segment should be initialized
-  assert(next_size >= 0);
   if (next_size <= sizeof(heap_seg)) {
     ptr->size += next_size;
   } else if (next_size > 0) {
     heap_seg *next_block = (void *)ptr + segment_size(ptr);
     *next_block = (heap_seg){next_size, new_seg, NULL};
 
-    // assert((void*)next_block + segment_size(next_block) == heap_end);
+    assert((void *)next_block + segment_size(next_block) == heap_end);
     // Scan for previous free block, update links
     update_back(new_seg, next_block, false);
   }
@@ -222,56 +222,58 @@ void *realloc(void *ptr, size_t size) {
   return new_ptr;
 }
 
-void heap_size() {
-  printf("Heap is %ld bytes\n", ((void *)heap_end - (void *)heap_base));
-}
+/* void heap_size() { */
+/*   printf("Heap is %ld bytes\n", ((void *)heap_end - (void *)heap_base)); */
+/* } */
 
-void heap_walk() {
-  size_t total_size = 0;
-  heap_seg *ptr = heap_base;
-  while (ptr < heap_end && ptr->size) {
-    printf("Segment size: %4ld, Prev: %14p, Value: %3d, Address: %p", ptr->size,
-           ptr->prev, (ptr->size & 1) ? *(int8_t *)(ptr + 1) : (int8_t)-1, ptr);
-    if (segment_free(ptr)) {
-      printf(" --> Next Free: %p\n", ptr->next_free);
-    } else {
-      printf("\n");
-    }
-    total_size += segment_size(ptr);
-    ptr = (void *)ptr + segment_size(ptr);
-  }
-  printf("\nEnding Size: %ld\n", total_size);
-}
+/* void heap_walk() { */
+/*   size_t total_size = 0; */
+/*   heap_seg *ptr = heap_base; */
+/*   while (ptr < heap_end && ptr->size) { */
+/*     printf("Segment size: %4ld, Prev: %14p, Value: %3d, Address: %p",
+ * ptr->size, */
+/*            ptr->prev, (ptr->size & 1) ? *(int8_t *)(ptr + 1) : (int8_t)-1,
+ * ptr); */
+/*     if (segment_free(ptr)) { */
+/*       printf(" --> Next Free: %p\n", ptr->next_free); */
+/*     } else { */
+/*       printf("\n"); */
+/*     } */
+/*     total_size += segment_size(ptr); */
+/*     ptr = (void *)ptr + segment_size(ptr); */
+/*   } */
+/*   printf("\nEnding Size: %ld\n", total_size); */
+/* } */
 
-int main() {
-  int8_t *block = malloc(242);
-  *block = 4;
+/* int main() { */
+/*   int8_t *block = malloc(242); */
+/*   *block = 4; */
 
-  int8_t *num = malloc(243);
-  *num = 7;
+/*   int8_t *num = malloc(243); */
+/*   *num = 7; */
 
-  int8_t *test = malloc(244);
-  *test = 66;
+/*   int8_t *test = malloc(244); */
+/*   *test = 66; */
 
-  int8_t *big_num = malloc(245);
-  *big_num = 64;
+/*   int8_t *big_num = malloc(245); */
+/*   *big_num = 64; */
 
-  int8_t *buf = malloc(1024);
-  *buf = 7;
+/*   int8_t *buf = malloc(1024); */
+/*   *buf = 7; */
 
-  int8_t *small_num = calloc(64, 8);
-  *small_num = 99;
+/*   int8_t *small_num = calloc(64, 8); */
+/*   *small_num = 99; */
 
-  free(block);
+/*   free(block); */
 
-  void *reallocated = realloc(small_num, 8);
-  assert(reallocated);
+/*   void *reallocated = realloc(small_num, 8); */
+/*   assert(reallocated); */
 
-  int8_t *testing_clear = malloc(9000);
+/*   int8_t *testing_clear = malloc(9000); */
 
-  heap_walk();
-  heap_size();
-  printf("end: %p\n\n", heap_end);
+/*   heap_walk(); */
+/*   heap_size(); */
+/*   printf("end: %p\n\n", heap_end); */
 
-  return 0;
-}
+/*   return 0; */
+/* } */

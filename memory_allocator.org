@@ -738,14 +738,19 @@ void free(void *block) {
   }
   if (next < (heap_seg *)heap_end && segment_free(next)) {
     header->size += next->size;
+    update_back(prev, header, true);
+    header->next_free = next->next_free;
+    header->size ^= 1;
+    return;
   }
-  header->size ^= 1;
-
   update_back(prev, header, true);
+  header->size ^= 1;
 }
 #+end_src
 
 We are essentially finding the previous free element and telling it to point at the new target, and if it doesn't exist then we know it is the first free segment.
+
+Another thing to keep in mind is that if we free a block that is surround on both sides by in-use segments we need to jump over this block. We handle this in the ~if next~ block. After updating links we need to set the current blocks ~next_free~ pointer to jump over the in-use block.
 
 [[file:updating_back_free.png]]
 
@@ -787,7 +792,7 @@ void *malloc(size_t bytes) {
   if (bytes == 0) {
     return NULL;
   }
-  // Start from first_free, find first open segment that can hold 'bytes'
+  // Start from first free, find first open segment that can hold 'bytes'
   heap_seg *ptr = first_free;
   heap_seg *best = NULL;
 
@@ -824,9 +829,10 @@ From there we follow the same 1 of 2 paths as before.
     size_t next_size = old_cap - segment_size(ptr);
     if (next_size <= sizeof(heap_seg)) {
       ptr->size += next_size;
+      update_back(best, best->next_free, false);
     } else if (old_cap > ptr->size) {
       heap_seg *next_block = (void *)ptr + segment_size(ptr);
-      ,*next_block =
+      *next_block =
           (heap_seg){old_cap - segment_size(ptr), ptr, ptr->next_free};
       heap_seg *next_next_block = (void *)next_block + segment_size(next_block);
       next_next_block->prev = next_block;
@@ -844,40 +850,58 @@ Just as we mentioned above, if we find a suitable block we will need to point ou
 #+begin_src C
   // .... continued from above
   // Ran out of space
+  if (!ptr) {
+    ptr = heap_base;
+    heap_seg *prev = NULL;
+    while (ptr < heap_end) {
+      prev = ptr;
+      ptr = (void *)ptr + segment_size(ptr);
+    }
+    ptr->prev = prev;
+  }
   size_t next_size;
   size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
   size_t new_size = round_bytes(bytes) | 0x1;
 
-  heap_seg *new_seg = (void *)ptr + segment_size(ptr);
-  ,*new_seg = (heap_seg){0, ptr, NULL};
+  heap_seg *new_seg = ptr;
+  new_seg->prev = ptr->prev;
+  // new_seg = ptr;
 
+  size_t old_size = new_seg->size;
   if (new_seg->prev && segment_free(new_seg->prev)) {
     // Previous chunk is free
     new_seg = new_seg->prev;
     if ((sbrk(increment)) == (void *)-1) {
       return NULL;
     }
-    size_t old_size = new_seg->size;
     new_seg->size = new_size + sizeof(heap_seg);
     next_size = (old_size + increment) - segment_size(new_seg);
   } else {
     // Previous chunk is not free
-    if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
-      return NULL;
-    }
     new_seg->size = new_size + sizeof(heap_seg);
-    next_size = increment - segment_size(new_seg);
+    if (round_bytes(bytes) < increment) {
+      if ((sbrk(increment)) == (void *)-1) {
+        return NULL;
+      }
+      next_size = old_size + increment - segment_size(new_seg);
+    } else {
+      if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
+        return NULL;
+      }
+      next_size =
+          old_size + increment - segment_size(new_seg) + sizeof(heap_seg);
+    }
   }
   heap_end = sbrk(0);
 
   // Check if the next segment should be initialized
-  assert(next_size > 0);
   if (next_size <= sizeof(heap_seg)) {
     ptr->size += next_size;
   } else if (next_size > 0) {
     heap_seg *next_block = (void *)ptr + segment_size(ptr);
-    ,*next_block = (heap_seg){next_size, ptr, NULL};
+    ,*next_block = (heap_seg){next_size, new_seg, NULL};
 
+    assert((void*)next_block + segment_size(next_block) == heap_end);
     // Scan for previous free block, update links
     update_back(new_seg, next_block, false);
   }
@@ -889,10 +913,11 @@ Just as we mentioned above, if we find a suitable block we will need to point ou
 // End
 #+end_src
 
+One checking is being added here, if we get to this point and our ~first_free~ pointer is ~NULL~, we must be out of memory. This also means we don't have a pointer to the last element in the list, so by walking from the beginning of the list we land on the last element. This allows us to have a valid ~prev~ pointer, which sets us up perfectly for the remainder of the function.
+
+The old size is also stored in a variable here, so that it can be added onto the remaining free segment after moving the heap end.
+
 If more memory is needed, we increase our heap size, segment it, and update pointers if needed. The last step is the same as above, we find the previous free element and update our /explicit free list/.
-
-
-
 
 ** _~calloc()~_
 If you remember from my previous article on [[file:hashmap.org][hashmaps]], I like using ~calloc~ during both the exploration and optimization phase of coding. Of course in performance critical applications every CPU cycle counts, but for most purposes a few extra cycles to clear out memory is more than worth it.
@@ -914,5 +939,70 @@ Just remember to include ~<string.h>~ for the memset function and you should be 
 
 ** _~realloc()~_
 I don't get to use ~realloc~ all that often, but when you find a good usecase if always comes out super clean. It shouldn't be too hard to implement, just have a look at the behavior described in ~man realloc~ and you will be good to go.
+
+#+begin_src C
+void *realloc(void *ptr, size_t size) {
+  size_t min = (size < segment_size((heap_seg *)(ptr - 1)))
+                   ? size
+                   : segment_size((heap_seg *)(ptr - 1)) - sizeof(heap_seg);
+  free(ptr);
+  if (size == 0) {
+    return NULL;
+  }
+  heap_seg *new_ptr = malloc(size);
+  if (!new_ptr) {
+    return NULL;
+  }
+  memmove(new_ptr, ptr, min);
+  return new_ptr;
+}
+#+end_src
+
+The first step is to calculate how many bytes will need to be moved. We take the smaller of the 2 values, and store that for later. We can then free the original pointer, and stop here if the user requested a reallocation size of 0 (the same as a free call). A new block is allocated to hold the requested size, and we copy over the original data, finally returning the pointer to the user.
+
+* _Testing_
+We are nearly there! Time to see if we can spot any bugs while testing our code. I would recommend using standard library functions that perform allocations, using custom data structures, and performing manual allocations. Of course, it is nearly impossible to catch every possible bug, and test every edge case.
+
+** _Hashmap Testing_
+For this case I am going to use the previously implemented [[file:hashmap.org][hashmap]] for testing.
+
+The hashmap starts out with a default size of 11, and target load factor of 0.5. I made sure to insert enough elements to ensure that it would resize at least once.
+
+*** _glibc ~malloc~_
+#+begin_src v
+Index:   0, Key:            EMPTY, Value:            EMPTY
+Index:   1, Key:           Bailey, Value:               92
+Index:   2, Key:            Dylan, Value:               17
+Index:   3, Key:            Billy, Value:               25
+Index:   4, Key:            EMPTY, Value:            EMPTY
+Index:   5, Key:          Jackson, Value:               23
+Index:   6, Key:            EMPTY, Value:            EMPTY
+Index:   7, Key:            EMPTY, Value:            EMPTY
+Index:   8, Key:            EMPTY, Value:            EMPTY
+Index:   9, Key:            EMPTY, Value:            EMPTY
+Index:  10, Key:             Josh, Value:               11
+Index:  11, Key:            EMPTY, Value:            EMPTY
+Index:  12, Key:            Steve, Value:               36
+#+end_src
+
+*** _Our ~malloc~_
+#+begin_src v
+Index:   0, Key:            EMPTY, Value:            EMPTY
+Index:   1, Key:           Bailey, Value:               92
+Index:   2, Key:            Dylan, Value:               17
+Index:   3, Key:            Billy, Value:               25
+Index:   4, Key:            EMPTY, Value:            EMPTY
+Index:   5, Key:          Jackson, Value:               23
+Index:   6, Key:            EMPTY, Value:            EMPTY
+Index:   7, Key:            EMPTY, Value:            EMPTY
+Index:   8, Key:            EMPTY, Value:            EMPTY
+Index:   9, Key:            EMPTY, Value:            EMPTY
+Index:  10, Key:             Josh, Value:               11
+Index:  11, Key:            EMPTY, Value:            EMPTY
+Index:  12, Key:            Steve, Value:               36
+#+end_src
+
+** _Performance Testing_
+
 
 #  LocalWords:  sbrk size_t malloc

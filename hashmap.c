@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* #include "gallocc.h" */
 
 bool is_prime(int num) {
   if (num < 2) {
@@ -281,25 +282,21 @@ void hashmap_print(hashmap *h, print_function key_print,
 }
 
 int main() {
-  hashmap h = hashmap_init(&basic_hash, &str_equals, 0, 0);
+  hashmap h = hashmap_init(&fnv_string_hash, &str_equals, 0, 0);
 
   char *billy = "Billy";
   char *Bailey = "Bailey";
   char *josh = "Josh";
   char *dylan = "Dylan";
   char *steve = "Steve";
+  char *jackson = "Jackson";
 
   hashmap_insert(&h, billy, 25);
   hashmap_insert(&h, Bailey, 92);
   hashmap_insert(&h, josh, 11);
   hashmap_insert(&h, dylan, 17);
   hashmap_insert(&h, steve, 36);
-
-  printf("%d\n", basic_hash(billy) % 11);
-  printf("%d\n", basic_hash(Bailey) % 11);
-  printf("%d\n", basic_hash(josh) % 11);
-  printf("%d\n", basic_hash(dylan) % 11);
-  printf("%d\n", basic_hash(steve) % 11);
+  hashmap_insert(&h, jackson, 23);
 
   hashmap_print(&h, string_print, signed_print);
 
