@@ -1,13 +1,10 @@
 #include <assert.h>
-#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdint.h>
-#define _GNU_SOURCE
-#include "gallocc.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "gallocc.h"
 
 heap_seg *heap_base = NULL;
 heap_seg *heap_end = NULL;
@@ -125,7 +122,6 @@ void *malloc(size_t bytes) {
   size_t new_size = round_bytes(bytes) | 0x1;
 
   heap_seg *new_seg = ptr;
-  // new_seg = ptr;
 
   size_t old_size = (new_seg < heap_end) ? new_seg->size : 0;
   if (new_seg < heap_end && new_seg->prev && segment_free(new_seg->prev)) {
@@ -153,14 +149,13 @@ void *malloc(size_t bytes) {
     }
     new_seg->size = cur_size;
   }
-  new_seg->prev = ptr->prev;
   heap_end = sbrk(0);
 
   // Check if the next segment should be initialized
   if (next_size <= sizeof(heap_seg)) {
     ptr->size += next_size;
   } else if (next_size > 0) {
-    heap_seg *next_block = (void *)ptr + segment_size(ptr);
+    heap_seg *next_block = (void *)new_seg + segment_size(new_seg);
     *next_block = (heap_seg){next_size, new_seg, NULL};
 
     assert((void *)next_block + segment_size(next_block) == heap_end);
@@ -169,7 +164,7 @@ void *malloc(size_t bytes) {
   }
 
   // Return user writable address
-  return ptr + 1;
+  return new_seg + 1;
 }
 
 void free(void *block) {
@@ -230,10 +225,10 @@ void *realloc(void *ptr, size_t size) {
 /*   size_t total_size = 0; */
 /*   heap_seg *ptr = heap_base; */
 /*   while (ptr < heap_end && ptr->size) { */
-/*     printf("Segment size: %4ld, Prev: %14p, Value: %3d, Address: %p",
- * ptr->size, */
-/*            ptr->prev, (ptr->size & 1) ? *(int8_t *)(ptr + 1) : (int8_t)-1,
- * ptr); */
+/*     printf("Segment size: %4ld, Prev: %14p, Value: %3d, Address: %p", */
+/* ptr->size, */
+/*            ptr->prev, (ptr->size & 1) ? *(int8_t *)(ptr + 1) : (int8_t)-1, */
+/* ptr); */
 /*     if (segment_free(ptr)) { */
 /*       printf(" --> Next Free: %p\n", ptr->next_free); */
 /*     } else { */

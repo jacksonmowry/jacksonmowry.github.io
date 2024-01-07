@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/* #include "gallocc.h" */
+#include "gallocc.h"
 
 bool is_prime(int num) {
   if (num < 2) {

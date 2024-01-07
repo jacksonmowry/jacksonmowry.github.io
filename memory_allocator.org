@@ -2,7 +2,7 @@
 #+HTML_LINK_UP: index.html
 #+title: /Memory Allocator/
 #+author: Jackson
-#+date: 12/30/23
+#+date: 1/7/24
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
 * _Introduction_
@@ -12,9 +12,43 @@ We use memory allocators nearly every time we write software. They allow our pro
 Here are all the headers I believe we will need to complete this project. Apologies if we don't end up using some of them, just try to cover my bases.
 #+begin_src C
 #include <assert.h>
-#include <linux/limits.h>
+#include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include "gallocc.h"
+#+end_src
+
+#+begin_src C
+#ifndef GALLOCC_H_
+#define GALLOCC_H_
+
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define HEAP_INC 1024
+
+typedef struct heap_seg {
+  size_t size;
+  struct heap_seg *prev;
+  struct heap_seg *next_free;
+} heap_seg;
+
+size_t round_bytes(size_t);
+
+bool segment_free(heap_seg*);
+size_t segment_size(heap_seg*);
+
+void update_back(heap_seg*, heap_seg*, bool);
+
+int heap_init(size_t);
+void *malloc(size_t);
+void free(void*);
+void *calloc(size_t, size_t);
+void *realloc(void*, size_t);
+
+#endif // GALLOCC_H_
 #+end_src
 
 * _Exploration_
@@ -85,7 +119,7 @@ void *heap_malloc(size_t bytes) {
 
 Yeah, it's a bit more going on that I would have assumed at first, but it won't be too hard to step through. Also note that we are currently covering what is called /first fit/ right now, where we find the first chunk able to fulfil the allocation request, we will cover a different allocation strategy later.
 
-We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it's size to hold the requested amount of bytes. This is also where we set it's previous element. You may notice that we don't set the size to be equal to ~bytes~ as the user requested, instead we have to factor in a few more things.
+We first start at the base of our heap, and begin checking at each spot if it is both free, and large enough to handle the requested allocation. Once a chunk if found we note its original capacity, and change it's size to hold the requested amount of bytes. This is also where we set its previous element. You may notice that we don't set the size to be equal to ~bytes~ as the user requested, instead we have to factor in a few more things.
 
 The first portion of the size is the ~heap_seg~ struct itself, which in the current implementation is 16 bytes. The next section is the data, which needs to be aligned on 8 byte boundaries. We do this for efficient memory access, as a word on modern 64-bit systems is 8 bytes. To accomplish this we round up the requested size to the nearest multiple of 8, so 16 bytes stays at 16, and 17 bytes rounds up to 24.
 
@@ -167,7 +201,7 @@ void heap_free(void* block) {
 
 Expanding on the previous function we obtain pointers to the blocks directly before and after the current block. Then we can check each block, and see if it needs to be merged. If the previous block is free we update it's size to include the current block, and update our ~header~ pointer to this previous block. Then the next block is checked, and we update our size accordingly. The last step is to zero out the "in use" bit of our header.
 
-Note that we do not need to explicitly do anything with the freed memory. By updating the size of the nodes around it, we ensure that it will be skipped over when searching for the closest free block. Also, by updating our ~header~ pointer we ensure that the following logic will work for any of the 3 possible states of our segment.
+Note that we do not need to explicitly do anything with the freed memory. By updating the size of the surrounding nodes, we ensure that it will be skipped over when searching for the closest free block. Also, by updating our ~header~ pointer we ensure that the following logic will work for any of the 3 possible states of our segment.
 
 With our allocation and freeing functions complete, that is pretty much it for the most basic of heap allocators.
 
@@ -223,7 +257,7 @@ Size of block: 16
 Size of num: 40   <-- 32 byte allocation + 8 byte header
 #+end_example
 
-** _Takeways_
+** _Takeaways_
 Implementing a naive memory allocator is fairly easy. It won't be the fastest one in the world, nor the most secure. Either way, this small exploration shows us the basics of how we can hand out chunks of memory to a user, and allow them to be freed back to us.
 
 The /first fit/ algorithm that we chose to implement above is one of the quicker ways to allocate memory (we can also add a global variable that points to the first free block, to further increase speed). While speed is an important factor when it comes to allocating memory, sometimes the user might wish to be more space efficient as opposed to time efficient.
@@ -263,9 +297,9 @@ When are program is run, it is loaded into memory with a layout as depicted belo
 
 [[file:memory_layout.png]]
 
-The stack holds local variables and any other data in which it's size is known at run time. On certain architectures the stack may also be used to hold function arguments. Program Data/Code holds things like constants, uninitialized variables, and the code itself. Lastly, the heap is our program's dynamic memory space, which can hold variables who's size or quantity is unknown at compile time.
+The stack holds local variables and any other data in which it's size is known at run time. On certain architectures the stack may also be used to hold function arguments. Program Data/Code holds things like constants, uninitialized variables, and the code itself. Lastly, the heap is our program's dynamic memory space, which can hold variables whos size or quantity is unknown at compile time.
 
-The amount of stack space a program has is set on a operating system level on linux. Running ~ulimit -a~ will show all of the current limits for your user. On my machine stack size is set to ~8192 kb~ or ~~8 mb~. A program uses more of the stack by subtracting a certain number of bytes from the [[https://en.wikipedia.org/wiki/Stack_register][/stack pointer/]], making sure to keep this aligned to the architecture specific value.
+The amount of stack space a program has is set on a operating system level on linux. Running ~ulimit -a~ will show all the current limits for your user. On my machine stack size is set to ~8192 kb~ or ~~8 mb~. A program uses more of the stack by subtracting a certain number of bytes from the [[https://en.wikipedia.org/wiki/Stack_register][/stack pointer/]], making sure to keep this aligned to the architecture specific value.
 
 On the other hand, the heap is not something the user has direct control over from their assembly. In order to get more memory for our heap we have to ask the operating system.
 
@@ -274,7 +308,7 @@ I have been referring to our memory allocator as a "heap allocator", where the h
 #+begin_example
 It is worth noting that modern implementations of malloc() use mmap instead of calls to sbrk. There are many reasons why this change was made, but it essentially boils down to the fact that mmap fits our use cases better, and is safer to use.
 
-Using sbrk directly in our code is part of the Posix system API. The Posix API allows our programs to be run on any Posix compliant system, meaning it is essentially an operating system abstraction layer. sbrk (and brk) have both been depricated in the Posix API.
+Using sbrk directly in our code is part of the Posix system API. The Posix API allows our programs to be run on any Posix compliant system, meaning it is essentially an operating system abstraction layer. sbrk (and brk) have both been deprecated in the Posix API.
 
 Our implementation will still explore sbrk as it's way to gain more memory.
 #+end_example
@@ -313,7 +347,7 @@ The reason why we have to call printf after acquiring the memory address is that
 This is great! We can now increase the programs heap segment whenever we want. Let's take a look at how we can implement this in our ~malloc~ function.
 
 ** _Adding sbrk()_
-Now that we will be using ~sbrk~ directly in our program we are going to start running into a problem. The ~malloc~ implementation on our machine will be calling ~sbrk~ or ~mmap~ to increase it's heap, and we will be trying to do the same. The issue is that our heaps are one in the same. If my ~malloc~ and the system's ~malloc~ are both being run they will step on each others toes.
+Now that we will be using ~sbrk~ directly in our program we are going to start running into a problem. The ~malloc~ implementation on our machine will be calling ~sbrk~ or ~mmap~ to increase its heap, and we will be trying to do the same. The issue is that our heaps are intertwined. If my ~malloc~ and the system's ~malloc~ are both being run they will step on each other's toes.
 
 We can get around this by "overriding" ~malloc~ for our program.
 
@@ -336,9 +370,9 @@ jackson@jtop:/tmp$ echo $?
 72
 #+end_src
 
-Our custom malloc implementation simply exits the program with a code of ~72~. Of course, this insn't very useful, but it demonstrates that we can override the ~malloc~ functionality. The first portion of our malloc function will remain the same, initializing our heap, and handing out the first segment. For our static memory allocator we had to call an initialization function in main, but we will have to encode that behavior directly in ~malloc~ now.
+Our custom malloc implementation simply exits the program with a code of ~72~. Of course, this isn't very useful, but it demonstrates that we can override the ~malloc~ functionality. The first portion of our malloc function will remain the same, initializing our heap, and handing out the first segment. For our static memory allocator we had to call an initialization function in main, but we will have to encode that behavior directly in ~malloc~ now.
 
-*** Heap Intialization
+*** Heap Initialization
 
 #+begin_src C
 int heap_init(size_t bytes) {
@@ -354,7 +388,7 @@ int heap_init(size_t bytes) {
 }
 #+end_src
 
-Our first step is to setup our base pointer, then we check to see how many bytes need to be allocated. We have discussed this before, but it boils down to rounding our size to the closest multiple of 8 that can hold the allocation. Lastly we check if the allocation was successful, and return based on that.
+Our first step is to set up our base pointer, then we check to see how many bytes need to be allocated. We have discussed this before, but it boils down to rounding our size to the closest multiple of 8 that can hold the allocation. Lastly we check if the allocation was successful, and return based on that.
 
 *** ~malloc()~ with ~sbrk()~
 
@@ -396,7 +430,7 @@ void *malloc(size_t bytes) {
   // .... continued below
 #+end_src
 
-This shouldn't be any different than what we saw before, except for extracting some behavior out into separate functions. Our next step is where we introduce new behavior. If we reach the end of our heap and have not found a suitable spot our heap needs to expand. The first step will be determining how many bytes we need to increase our heap by, the same decision we made when initializing our heap. From there it will go much the same.
+This shouldn't be any different from what we saw before, except for extracting some behavior out into separate functions. Our next step is where we introduce new behavior. If we reach the end of our heap and have not found a suitable spot our heap needs to expand. The first step will be determining how many bytes we need to increase our heap by, the same decision we made when initializing our heap. From there it will go much the same.
 
 #+begin_src C
   // .... continued from above
@@ -440,9 +474,9 @@ void heap_walk() {
 }
 #+end_src
 
-We see the same logic that we use to find the next block as we saw in malloc. Each segment is printed out as a ~uint64_t~ for now, although this isn't the most flexible as we will see. Even if this is basic it will help us solve many bug and to iron out implementation details.
+We see the same logic that we use to find the next block as we saw in malloc. Each segment is printed out as a ~uint64_t~ for now, although this isn't the most flexible as we will see. Even if this is basic it will help us solve many bugs, and to iron out implementation details.
 
-Now we can how our newly upgraded ~malloc~ works!
+Now we can see how our newly upgraded ~malloc~ works!
 
 #+begin_src C
 int main() {
@@ -484,17 +518,17 @@ Segment size: 1041, Prev: 0x55d231e991b0, Value: 2338615488418374995, Address: 0
 
 Woah! This is a lot going on, and way more allocations that we performed ourselves. What happened?
 
-Well, now that we have overwritten the glibc ~malloc~ implementation, all of the library functions that call malloc are calling our version! This is a great sign, and will be a much better test of our functionality than we will probably end up writing. Let's break down each of the allocations and see how we may want to tweak some of the behavior.
+Well, now that we have overwritten the glibc ~malloc~ implementation, all the library functions that call malloc are calling our version! This is a great sign, and will be a much better test of our functionality than we will probably end up writing. Let's break down each of the allocations and see how we may want to tweak some of the behavior.
 
 1. The first 3 allocations are coming from a system library that makes 3 40 byte allocations on program startup, don't worry about those.
 2. The next block of 4 allocations comes from ~main~, where we call ~malloc~ 4 times.
-3. The next 48 byte allocation is coming from [[https://linux.die.net/man/3/asprintf][~asprintf()~]]. If you're not familiar with this function I think of it as a bit of a cheatcode for strings in C. The function will allocate a buffer to hold the entire string it generates, and gives you the pointer to that string, which you are responsible to free.
+3. The next 48 byte allocation is coming from [[https://linux.die.net/man/3/asprintf][~asprintf()~]]. If you're not familiar with this function I think of it as a bit of a cheat code for strings in C. The function will allocate a buffer to hold the entire string it generates, and gives you the pointer to that string, which you are responsible to free.
 4. The chunk of 592 bytes is a result of the final allocation being larger than the available space. If you total up all the sizes of everything but the last element you will get 1024, and that final allocation is larger than 1024, therefore it forces us to add more space.
-5. Finally the 1040 byte allocation comes from ~printf~ allocating an internal buffer for scratch work.
+5. Finally, the 1040 byte allocation comes from ~printf~ allocating an internal buffer for scratch work.
 
 You may notice something suboptimal. When ~printf~ requests a 1024 byte allocation we place it after the 592 byte free block. This means that if our next call to ~malloc~ is requesting more than 592 bytes it will be placed after the 1024 block, leaving a hole in the middle of our heap.
 
-What if instead we move our new segment to fill that hole, leaving the empty space at the very end of our heap. That way we can avoid a large empty segment in the middle of our heap. This is beneficial for our implementation because future large allocations will now be able to make use of this space, instead of it being trapped in the middle of the heap. The changes we have too make aren't too bad either.
+What if instead we move our new segment to fill that hole, leaving the empty space at the very end of our heap. That way we can avoid a large empty segment in the middle of our heap. This is beneficial for our implementation because future large allocations will now be able to make use of this space, instead of it being trapped in the middle of the heap. The changes we have to make aren't too bad either.
 
 *** Filling our Holes
 
@@ -533,7 +567,7 @@ What if instead we move our new segment to fill that hole, leaving the empty spa
 }
 #+end_src
 
-Now you can see the we first check if the previous segment is free. This is easy because we have already scanned through our heap, so we know our ~prev~ pointer is on the last segment on our heap. If it is free we will slide up to fill it in, and then allocate the remaining needed space at the end. From there both paths follow the same steps to determine if we need to initialize the following block. Finally we return a pointer to the user's block just like before.
+Now you can see we first check if the previous segment is free. This is easy because we have already scanned through our heap, so we know our ~prev~ pointer is on the last segment on our heap. If it is free we will slide up to fill it in, and then allocate the remaining needed space at the end. From there both paths follow the same steps to determine if we need to initialize the following block. Finally, we return a pointer to the user's block just like before.
 
 Now we can see how our heap deals with the situation we saw before.
 
@@ -569,9 +603,9 @@ We should instead try to preserve as many large blocks as we can. This algorithm
 /best-fit/
 [[file:best_fit.png]]
 
-For this algorithm to work we will have to change the way we find a segment. The linear walking of our heap can stay the same, but we will have to maintain a pointer to the smallest block large enough to hold the allocation. If we get the the end and have a block, we use it to hold our allocation, otherwise we continue on like we had done before.
+For this algorithm to work we will have to change the way we find a segment. The linear walking of our heap can stay the same, but we will have to maintain a pointer to the smallest block large enough to hold the allocation. If we get the end and have a block, we use it to hold our allocation, otherwise we continue on like we had done before.
 
-Our /first-fit/ algorithm has a higher likelyhood of segmenting the heap, and we would like to avoid this as much as possible.
+Our /first-fit/ algorithm has a higher likelihood of segmenting the heap, and we would like to avoid this as much as possible.
 
 #+begin_src v
 Segment size:   33, Prev:          (nil), Value:                   9, Address: 0x5600eb883000
@@ -649,7 +683,7 @@ Segment size:  265, Prev: 0x5647b2660300, Value:                  64, Address: 0
 
 Now we can see that our allocation occupies the 24 byte block near the end of the heap, leaving the entire 232 byte block for future allocation that may need more space.
 
-That was a pretty easy change to handle, but you may notice another inefficiency. Every time an allocation is requested we have to start at the beginning of the heap. In these small examples that isn't an issue, but imagine a heap the is full for the first 1-2 mb, with the first free block sitting at the end. We would spend precious time scanning over blocks that we cannot use. How can we fix this?
+That was a pretty easy change to handle, but you may notice another inefficiency. Every time an allocation is requested we have to start at the beginning of the heap. In these small examples that isn't an issue, but imagine a heap the is full for the first 1-2 MB, with the first free block sitting at the end. We would spend precious time scanning over blocks that we cannot use. How can we fix this?
 
 ** _Implicit vs Explicit Free Lists_
 The way our heap is linked together is what is known as an /implicit free list/, meaning that each node is directly linked together, and we use a check at each step in our list to determine if the segment is free. This works well for a simple implementation, but we are slowed down by traversing a linked list, and calling a function at each step. What if instead we only looked at the free segments.
@@ -660,7 +694,7 @@ This is known as an /explicit free list/, where the free nodes are in their own 
 We have covered first-fit and best-fit, but there is an additional allocation algorithm called next-fit. Where the searching begins from the last block that was allocated. For this algorithm we might end up starting in the middle of the list, so a circularly linked list would be required.
 #+end_example
 
-Each node will now have to hold an additional pointer, adding 8 bytes of overhead. Managing these pointers will be very complicated, and can be very error prone if we are not careful.
+Each node will now have to hold an additional pointer, adding 8 bytes of overhead. Managing these pointers will be very complicated, and can be very error-prone if we are not careful.
 
 *** _Groundwork_
 
@@ -704,6 +738,7 @@ void update_back(heap_seg *cur, heap_seg *target, bool free_mode) {
     first_free = target;
   }
 }
+
 #+end_src
 
 This function takes in a current pointer, which is the location from which we will begin searching backwards. Next we take in a target pointer, and finally a boolean that tells the function which mode to use. We can use this to update our linked last so that the links between free elements remains correct.
@@ -711,12 +746,12 @@ This function takes in a current pointer, which is the location from which we wi
 The basic premise of how this algorithm works is fairly simple, but coming to this conclusion is difficult. It works on the principle that once a segment is in use we can simply skip over it, with the same idea working in reverse when a segment is allocated.
 
 If we have a current node we walk it backwards until we find the previous free node. From there we do one of two things:
-1. If we have a previous free node we know we are somewhere in the middle of the list. Therefore we make this previous node point to our target. Additionally, if we are in free mode we will want to point ourselves at the next free node in the list (which is the previous nodes ~next_free~).
-2. Otherwise we know that we are at the front of the list. If we're in free mode then we set our next to the current ~first_free~, and we always make ourselves the ~first_free~.
+1. If we have a previous free node we know we are somewhere in the middle of the list. Therefore, we make this previous node point to our target. Additionally, if we are in free mode we will want to point ourselves at the next free node in the list (which is the previous nodes ~next_free~).
+2. Otherwise, we know that we are at the front of the list. If we're in free mode then we set our next to the current ~first_free~, and we always make ourselves the ~first_free~.
 
 You may wonder what the ~target~ parameter is, and why it is necessary. This is an abstraction that allows us to use the same ~update_back~ function in both allocation and free calls.
 
-When called in an allocation context our ~target~ is the segment immedietly following our newly allocated segment. If this segment is ~NULL~ it will be set as the end of our linked list, otherwise it sits inside the list and pointers will be updated accordingly.
+When called in an allocation context our ~target~ is the segment immediately following our newly allocated segment. If this segment is ~NULL~ it will be set as the end of our linked list, otherwise it sits inside the list and pointers will be updated accordingly.
 
 Alternatively, when called in a freeing context, ~target~ represents the newly freed segment. In a list of ~[1, 2, 3]~ our free call uses ~1~ as its current, and ~2~ as its target. An allocation call uses ~2~ as its current, and ~3~ as its target. With ~2~ being the element being acted upon in both cases.
 
@@ -750,11 +785,11 @@ void free(void *block) {
 
 We are essentially finding the previous free element and telling it to point at the new target, and if it doesn't exist then we know it is the first free segment.
 
-Another thing to keep in mind is that if we free a block that is surround on both sides by in-use segments we need to jump over this block. We handle this in the ~if next~ block. After updating links we need to set the current blocks ~next_free~ pointer to jump over the in-use block.
+Another thing to keep in mind is that if we free a block that is surrounded on both sides by in-use segments we need to jump over this block. We handle this in the ~if next~ block. After updating links we need to set the current blocks ~next_free~ pointer to jump over the in-use block.
 
 [[file:updating_back_free.png]]
 
-When we free the 32 byte block on the heap it merges with the segment before it. Which is exactly what we want out ~free~ function to do, but now we have to deal with our /explicit free list/. The only change is needing to go back and point to the larger block we just made, and pointing ourselves at the next free block.
+When we free the 32 byte block on the heap it merges with the segment before it. Which is exactly what we want our ~free~ function to do, but now we have to deal with our /explicit free list/. The only change is needing to go back and point to the larger block we just made, and pointing ourselves at the next free block.
 
 *** ~malloc~
 This is where things start to a lot more complicated in terms of /explicit free list/. One thing to keep in mind is that a linked list allows us to skip over segments currently in use. So there is no need for us to clean up ~next_free~ pointers each time a segment is modified. We will see how this all works in our diagrams and code.
@@ -763,7 +798,7 @@ From a basic standpoint, this is how we want ~malloc~ to work.
 
 [[file:updating_back.png]]
 
-Instead of pointing at our original 256 byte block, we need to traverse backwards and tell the previous free element to point at the new smaller free block. Allocating a new node and updating links is similar to how ~free~ works, but we will need to spend a bit more time to get our pointers in the right places so we can use the same ~update_back~ function.
+Instead of pointing at our original 256 byte block, we need to traverse backwards and tell the previous free element to point at the new smaller free block. Allocating a new node and updating links is similar to how ~free~ works, but we will need to spend a bit more time to get our pointers in the right places, so we can use the same ~update_back~ function.
 
 ~heap_init~ will also have to change just slightly to ensure our ~first_free~ pointer is set.
 
@@ -809,11 +844,11 @@ void *malloc(size_t bytes) {
   // Continued below ....
 #+end_src
 
-Now our searching loop begins at the first free element, and will skip over segments that are in use. This will reduce our searching time on a heap that has high fragmentation, or a large number of in-use segments.
+Now our searching loop begins at the first free element, and will skip over segments that are in use. This will reduce our searching time on a heap that has high fragmentation, or numerous in-use segments.
 
-One condiseration we have to take into mind is that we cannot walk our pointer off the end of the list. If we were to do so we would lose our pointer to the end of the list, so when we encounter this situation we break early.
+One consideration we have to take into mind is that we cannot walk our pointer off the end of the list. If we were to do so we would lose our pointer to the end of the list, so when we encounter this situation we break early.
 
-We know that if we reach the end of the list without finding a /best-fit/ segment we will have to expand our heap in order to accomodate the requested allocation. So it will be ok to leave ~ptr~ as the last element, as we will not attempt to put something in it's place.
+We know that if we reach the end of the list without finding a /best-fit/ segment we will have to expand our heap in order to accommodate the requested allocation. So it will be ok to leave ~ptr~ as the last element, as we will not attempt to put something in its place.
 
 From there we follow the same 1 of 2 paths as before.
 
@@ -835,7 +870,9 @@ From there we follow the same 1 of 2 paths as before.
       *next_block =
           (heap_seg){old_cap - segment_size(ptr), ptr, ptr->next_free};
       heap_seg *next_next_block = (void *)next_block + segment_size(next_block);
-      next_next_block->prev = next_block;
+      if (next_next_block < heap_end) {
+        next_next_block->prev = next_block;
+      }
 
       // Scan for previous free block, update links
       update_back(best, next_block, false);
@@ -850,25 +887,25 @@ Just as we mentioned above, if we find a suitable block we will need to point ou
 #+begin_src C
   // .... continued from above
   // Ran out of space
+  heap_seg *prev = NULL;
   if (!ptr) {
     ptr = heap_base;
-    heap_seg *prev = NULL;
     while (ptr < heap_end) {
       prev = ptr;
       ptr = (void *)ptr + segment_size(ptr);
     }
-    ptr->prev = prev;
+    if (ptr < heap_end) {
+      ptr->prev = prev;
+    }
   }
   size_t next_size;
   size_t increment = (bytes > HEAP_INC) ? round_bytes(bytes) : HEAP_INC;
   size_t new_size = round_bytes(bytes) | 0x1;
 
   heap_seg *new_seg = ptr;
-  new_seg->prev = ptr->prev;
-  // new_seg = ptr;
 
-  size_t old_size = new_seg->size;
-  if (new_seg->prev && segment_free(new_seg->prev)) {
+  size_t old_size = (new_seg < heap_end) ? new_seg->size : 0;
+  if (new_seg < heap_end && new_seg->prev && segment_free(new_seg->prev)) {
     // Previous chunk is free
     new_seg = new_seg->prev;
     if ((sbrk(increment)) == (void *)-1) {
@@ -878,19 +915,20 @@ Just as we mentioned above, if we find a suitable block we will need to point ou
     next_size = (old_size + increment) - segment_size(new_seg);
   } else {
     // Previous chunk is not free
-    new_seg->size = new_size + sizeof(heap_seg);
+    size_t cur_size = new_size + sizeof(heap_seg);
     if (round_bytes(bytes) < increment) {
       if ((sbrk(increment)) == (void *)-1) {
         return NULL;
       }
-      next_size = old_size + increment - segment_size(new_seg);
+      next_size = old_size + increment - (cur_size ^ 0x1);
     } else {
       if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
         return NULL;
       }
       next_size =
-          old_size + increment - segment_size(new_seg) + sizeof(heap_seg);
+          old_size + increment - (cur_size ^ 0x1) + sizeof(heap_seg);
     }
+    new_seg->size = cur_size;
   }
   heap_end = sbrk(0);
 
@@ -898,18 +936,17 @@ Just as we mentioned above, if we find a suitable block we will need to point ou
   if (next_size <= sizeof(heap_seg)) {
     ptr->size += next_size;
   } else if (next_size > 0) {
-    heap_seg *next_block = (void *)ptr + segment_size(ptr);
-    ,*next_block = (heap_seg){next_size, new_seg, NULL};
+    heap_seg *next_block = (void *)new_seg + segment_size(new_seg);
+    *next_block = (heap_seg){next_size, new_seg, NULL};
 
-    assert((void*)next_block + segment_size(next_block) == heap_end);
+    assert((void *)next_block + segment_size(next_block) == heap_end);
     // Scan for previous free block, update links
     update_back(new_seg, next_block, false);
   }
 
   // Return user writable address
-  return ptr + 1;
+  return new_seg + 1;
 }
-
 // End
 #+end_src
 
@@ -922,7 +959,7 @@ If more memory is needed, we increase our heap size, segment it, and update poin
 ** _~calloc()~_
 If you remember from my previous article on [[file:hashmap.org][hashmaps]], I like using ~calloc~ during both the exploration and optimization phase of coding. Of course in performance critical applications every CPU cycle counts, but for most purposes a few extra cycles to clear out memory is more than worth it.
 
-Surprisngly to me, implementing ~calloc~ is as simple as a call to malloc, ~memset~ to ~0~, and then returning a pointer. The more interesting thing to me about ~calloc~ are the parameters it takes. The glibc ~calloc~ takes in the number of elements, and he size of each element, both being a ~size_t~. This makes ~calloc~ easier to read in source code, and makes your intentions for the size of the allocation clearer.
+Surprisingly to me, implementing ~calloc~ is as simple as a call to malloc, ~memset~ to ~0~, and then returning a pointer. The more interesting thing to me about ~calloc~ are the parameters it takes. The glibc ~calloc~ takes in the number of elements, and he size of each element, both being a ~size_t~. This makes ~calloc~ easier to read in source code, and makes your intentions for the size of the allocation clearer.
 
 #+begin_src C
 void *calloc(size_t count, size_t size) {
@@ -935,10 +972,10 @@ void *calloc(size_t count, size_t size) {
 }
 #+end_src
 
-Just remember to include ~<string.h>~ for the memset function and you should be good to go.
+Just remember to include ~<string.h>~ for the memset function, and you should be good to go.
 
 ** _~realloc()~_
-I don't get to use ~realloc~ all that often, but when you find a good usecase if always comes out super clean. It shouldn't be too hard to implement, just have a look at the behavior described in ~man realloc~ and you will be good to go.
+I don't get to use ~realloc~ all that often, but when you find a good use case it always comes out super clean. It shouldn't be too hard to implement, just take a look at the behavior described in ~man realloc~ and you will be good to go.
 
 #+begin_src C
 void *realloc(void *ptr, size_t size) {
@@ -956,9 +993,10 @@ void *realloc(void *ptr, size_t size) {
   memmove(new_ptr, ptr, min);
   return new_ptr;
 }
+
 #+end_src
 
-The first step is to calculate how many bytes will need to be moved. We take the smaller of the 2 values, and store that for later. We can then free the original pointer, and stop here if the user requested a reallocation size of 0 (the same as a free call). A new block is allocated to hold the requested size, and we copy over the original data, finally returning the pointer to the user.
+The first step is to calculate how many bytes will need to be moved. We take the smallest of the 2 values, and store that for later. We can then free the original pointer, and stop here if the user requested a reallocation size of 0 (the same as a free call). A new block is allocated to hold the requested size, and we copy over the original data, finally returning the pointer to the user.
 
 * _Testing_
 We are nearly there! Time to see if we can spot any bugs while testing our code. I would recommend using standard library functions that perform allocations, using custom data structures, and performing manual allocations. Of course, it is nearly impossible to catch every possible bug, and test every edge case.
@@ -1003,6 +1041,120 @@ Index:  12, Key:            Steve, Value:               36
 #+end_src
 
 ** _Performance Testing_
+To test the performance of our hashmap we will perform a linear set of increase size allocations. Without freeing any of the memory allocated is essentially the worst case for our implementation. The biggest weak point of our ~malloc~ function is that when it runs out of memory it has to walk the entire heap before it can expand it. This set of allocations will test to see how slow this is.
+
+#+begin_src C
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>         // Swap these 2
+/* #include "gallocc.h" */  // Swap these 2
+
+int main() {
+  struct timespec start, end;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  void *ptr;
+  for (int i = 0; i < 64000; i++) {
+    ptr = malloc(i);
+  }
+  clock_gettime(CLOCK_MONOTONIC, &end);
+
+  double elapsed_time = (end.tv_sec - start.tv_sec) * 1000.0 +
+    (end.tv_nsec - start.tv_nsec) / 1e6;
+  printf("Time: %.3f milliseconds\n", elapsed_time);
+}
+#+end_src
+
+*** glibc ~malloc~
+#+begin_example
+13192 System calls
+67ms
+#+end_example
 
 
-#  LocalWords:  sbrk size_t malloc
+*** Our ~malloc~
+#+begin_example
+15247 System calls
+1435ms
+#+end_example
+
+** _Analysis_
+Our implementation is much slower, partially explained by performing more system calls, and the walking of the list each time we run out of space. If we were to fix any bottleneck, that would be the first place to look. Another way that could be mitigated would be increased the size by which the heap increases each time.
+
+For this speed test I used ~strace~ to see how much the glibc ~malloc~ was increasing the program break by, which turned out to be 135168 bytes. If we run our version with the original 1024 byte increment it will be much slower, so I decided to match the glibc version. Of course, this is just a trade-off of how much memory you are willing to have in-use at one time.
+
+My goal was not to create the fastest memory allocator possible, but to use this is an opportunity to learn how they work.
+
+* _Learning Moments_
+Now that we've come to the end I'd like to talk about what I learned during the writing of this article.
+
+** _Using gdb_
+I have used ~gdb~ from a surface level before, but never to work on complex programs like this. Most of my usage would follow the same pattern, segmentation fault, compile with ~-g~, run in gdb and get a back trace. From there it was usually easy to understand what happened. That was entirely different while writing my memory allocator.
+
+Before overwriting the glibc ~malloc~ it was easy to debug using print statements like I was used to. However, this came at the downside of not finding as many bugs with my code. You can only think of so many edge cases before you start running out of ideas. Once we overrode the ~malloc~ the bugs were instantly exposed, but this came at the downside of no longer being able to use print debugging or asserts.
+
+Internally the printing functions and assert allocate buffers to do their scratch work, which of course wouldn't work if our ~malloc~ was failing. Time to break out ~gdb~ then. A small portion of the bugs could be solved by simply printing a back trace, while most others required stepping through the program. The TUI included with ~gdb~ made viewing source code and printing the value of different variable a lot easier.
+
+Overall, I think this is a great style of project for learning ~gdb~, with many complex operations, and the inability to use print debugging.
+
+** _C Global State_
+We are often told to avoid global state when writing our programs, and I would generally agree when talking about application style programs. However, when it comes to low level or systems programming it is unavoidable in most situations.
+
+In order for ~malloc~ to have as easy of a user interface as it currently does, it has to store some global state. Users expect to be able to call ~malloc~ and ~free~ anywhere in their code without having to first instantiate some sort of memory allocator object. You already know this, but ~malloc~ is the exact opposite of a pure function, it is entirely dependent on the state of the operating system below it, and the other processes running on the system.
+
+Once memory has been allocated there is no easy way to get the start of the program's heap, so we have to store that in a variable that will be accessible to ~malloc~ and its related function. Similarly, there is no system call to get the first free segment in our heap, because that is a concept we created ourselves, not an operating system primitive. So we also store this in a global variable, which allowed us to implement our /explicit free list/, greatly speeding up calls to ~malloc~.
+
+The last global variable is not entirely necessary, but it helps us avoid making a system call each time we need to reference the end of our heap. Of course, we can always call ~sbrk(0)~ to get the end of the heap, but system calls are not free, so we try to avoid making them.
+
+*** Tradeoffs
+We could have avoided tracking the end of our heap by introducing another pointer to our ~heap_seg~ struct. Instead of just using the size of each segment to traverse the list, we could have an explicit ~next~ pointer. This was our last node could just point to ~NULL~
+
+This would be an optimization we could look at in the future. I avoided doing it here because our ~heap_seg~ struct was already 24 bytes, which I feel is a large overhead on each allocation. The glibc version of ~malloc~ uses headers of 16 bytes (I am probably wrong here), so for a future rewrite we might consider using one of the other 2 bits we have free at the bottom of the size to store information about being at the end of the list.
+
+There is also the possibility of having a header and a footer, which further increases overhead, but can make the implementation much easier.
+
+** _Linked Lists_
+I am personally not the biggest fan of linked lists, but they have their place in a library like this. Arrays are great, but they're entirely inflexible, both in total size, and size per element. In this case we need our implementation to be adaptable for changes in both, so a linked list is required.
+
+In fact our writing our memory allocator is really just writing a linked list on top of a giant slab of memory. Most of the challenges we solved are the same challenges you encounter working on a linked list, complicated by the fact we want to try to increase the heap by a fixed size, as opposed to calling ~sbrk~ for each allocation request.
+
+We can even solve the biggest bottleneck in our implementation by using a concept from most doubly linked lists. In addition to tracking the end of the heap we could also track the last allocated segment. Then when ~first_free~ is set to ~NULL~ the algorithm would not need to traverse the heap just to get a pointer to this last element. Each time we performed an operation on a segment we would just need to check if its address plus its size gets us past the end of the list.
+
+** _Man Pages_
+In addition to using a LSP like ~clangd~ to get function definitions and doc comments, man pages are great for learning how to use the functions available in C. ~sbrk~ is not the easiest function to understand, but once you read up on how it works you can start by using it in a test program. Most of the printing functions have similar names, so looking up their differences can help you choose the right one.
+
+If you're unfamiliar with any system call you can look up its man page, which often includes example usage to help get you started.
+
+** _Assert_
+This is my first time using asserts throughout a program as mini test cases that need to pass to ensure the implementation is correct. Every time you discover a bug in your code add an assert to ensure that it doesn't happen again.
+
+The most obvious one I can think of in our memory allocator is ensuring that the address of the last segment plus its size should equal the ~heap_end~ pointer. Throughout the coding of this memory allocator I ran into a nasty bug where the last segment was being left off of the heap. It turned out that when calling ~sbrk~ I forgot to note the size of the previous element if it was free. This size needed to be added onto the end of our list. The assert now ensures that if this happens the program will exit.
+
+Another helpful thing with asserts is that they can easily be disabled with one like of code.
+
+#+begin_src C
+#define NDEBUG
+#include <assert.h>
+#+end_src
+
+The ~NDEBUG~ line makes all assert lines a ~nop~.
+
+* _Conclusion_
+That's it! A memory allocator in ~250 lines of code. This is definitely a project I will continue to improve upon when I get the time to do so. I find this level of programming fascinating, and it gives me a greater understanding of low level concepts.
+
+Don't be afraid to reinvent the wheel, even if your wheel ends up being far from perfect. Before writing this memory allocator I had zero knowledge of how they worked, and that made me discover the pitfalls that would be skipped over if I had just looked at completed source code. [[https://www.youtube.com/embed/UTii4dyhR5c][/This video/]] was my introduction to the concept, and even then I strayed very far from the basics laid out in the video.
+
+Just like with the hashmap we worked on last time, I knew how it needed to work in the end, and this guided my implementation. There were many times in writing this where I found myself avoiding a certain implementation because it felt "wrong". Guess what? In the end those are the exact implementations I ended up landing on. You won't know if something is the "right way" to do it until you try.
+
+Don't stop yourself from solving a problem because "there has to be an easier/better way to do it". Solve the problem first, then optimize and clean up your code. The ~update_back~ function is a perfect example of this. I had that exact behavior in 3 different spots of the code. As soon as I saw this I tried to extract it into a function, which failed, because the behavior was not nailed down. This stalled my progress because I hated seeing the same behavior in 3 places. Duplication is bad, but extracting behavior into a function without understanding the desired behavior is worse.
+
+So just start writing the code. You will discover the pitfalls, and then work around it. Write it once, throw it away, and write it better with what you've learned.
+
+#  LocalWords:  sbrk size_t malloc hashmap nop NDEBUG NDEBUG LocalWords clangd
+#  LocalWords:  glibc seg seg gdb gdb gdb glibc gdb gdb gdb strace hashmap prev
+#  LocalWords:  realloc realloc realloc memset calloc calloc glibc calloc glibc
+#  LocalWords:  memset calloc calloc hashmaps calloc asprintf
+
+# Local Variables:
+# languagetool-local-disabled-rules: ("EXTREME_ADJECTIVES" "A_INFINITIVE")
+# languagetool-suggestion_level: picky
+# End:
