@@ -3,7 +3,7 @@
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
 * Articles
-** Exploring the RISC-V  ABI on Linux
+** Exploring the RISC-V ABI on Linux
 [[file:riscv.org][RISC-V Linux ABI]]
 ** Write a Memory Allocator in C
 [[file:memory_allocator.org][Memory Allocator]]
