@@ -50,7 +50,6 @@ int heap_init(size_t bytes) {
   }
   *heap_base = (heap_seg){increment, NULL, NULL};
   heap_end = sbrk(0);
-  /* assert((void *)heap_end - (void *)heap_base == HEAP_INC); */
   return 0;
 }
 

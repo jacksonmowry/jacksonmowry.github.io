@@ -1,0 +1,8 @@
+#+title: Upcoming
+* TODO Multithreaded grep
+- Find substring in file, print out line:col and +/- 10 chars with the substr highlighted
+- Should work with stdin and a path
+- Should work for an entire dir at once
+  - In this case the program should multithread
+
+* TODO C Infinite precision Integers?

@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Exploring the RISC-V ABI on Linux/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Exploring the RISC-V ABI on Linux</i></h1>
+<div id="outline-container-org4dcbc6d" class="outline-2">
+<h2 id="org4dcbc6d"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org4dcbc6d">
+<p>
+We are going to take a break from systems programming in C to explore how processors run our programs, specifically a <a href="https://en.wikipedia.org/wiki/RISC-V">RISC-V</a> processor running Linux. Without diving too far into the philosophy of RISC-V, it is an entirely open architecture which has been gaining popularity since its introduction in 2014. This is the architecture we study at University of Tennessee for our <i>Computer Organization</i> class, which focuses on how computers work at a hardware level, and the lowest levels of software that sit on top of that hardware.
+</p>
+
+<p>
+The concepts discussed here may not transfer directly to other operating systems or architectures, but most of the fundamentals will stay the same. The most important thing to understand here, is that compilers generate assembly and/or machine code, which interacts directly with the CPU. Gaining a better understanding of what instructions are generated from the high-level code that you write will help you write better software.
+</p>
+
+<p>
+We will be using <a href="https://godbolt.org">compiler explorer</a>, which allows us to view the assembly generated from C code in a much more organized manner.
+</p>
+</div>
+</div>
+<div id="outline-container-orga2e1221" class="outline-2">
+<h2 id="orga2e1221"><span class="underline">Register Conventions</span></h2>
+<div class="outline-text-2" id="text-orga2e1221">
+<p>
+There are 5 types of registers that we need to be concerned with when writing and read assembly. Each has its own purpose, and you need to be careful how they&rsquo;re used/saved throughout your code.
+</p>
+</div>
+<div id="outline-container-orgcd61869" class="outline-3">
+<h3 id="orgcd61869"><span class="underline">Temporary Registers</span></h3>
+<div class="outline-text-3" id="text-orgcd61869">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Register Number</td>
+<td class="org-left">x5-x7, x28-x31</td>
+</tr>
+
+<tr>
+<td class="org-left">ABI Names</td>
+<td class="org-left">t0-t6</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+The name says it all for these registers. They are entirely volatile and are not guaranteed to hold that same value across function calls. They can be used to hold intermediate values in arithmetic, or any other value you need to store temporarily.
+</p>
+
+<p>
+This means that you are free to use them anywhere in your code without worrying about first preserving their value.
+</p>
+</div>
+</div>
+<div id="outline-container-org2a484d2" class="outline-3">
+<h3 id="org2a484d2"><span class="underline">Function Argument Registers</span></h3>
+<div class="outline-text-3" id="text-org2a484d2">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Register Number</td>
+<td class="org-left">x10-x17</td>
+</tr>
+
+<tr>
+<td class="org-left">ABI Names</td>
+<td class="org-left">a0-a7</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Function argument, or argument registers are used to both pass arguments to functions, and to receive return values. The first 8 values can be passed in these registers, with remaining values needing to be passed on the stack. These registers are not saved across function calls, so if a value is needed both before and after a function call it should be placed either on the stack or in a saved register.
+</p>
+
+<p>
+These registers also be used as temporary registers for intermediate values in your program.
+</p>
+</div>
+</div>
+<div id="outline-container-org88260d8" class="outline-3">
+<h3 id="org88260d8"><span class="underline">Saved Registers</span></h3>
+<div class="outline-text-3" id="text-org88260d8">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Register Number</td>
+<td class="org-left">x9, x18-x27</td>
+</tr>
+
+<tr>
+<td class="org-left">ABI Names</td>
+<td class="org-left">s0-s11</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Saved registers allow a value to be preserved across function calls, but there is one catch. If you plan to use a saved register you also have to save its value. This is why the return address is simply stored on the stack and not in a saved register. If we were to put the return address in <code>s0</code>, we would first have to put the original value of <code>s0</code> on the stack.
+</p>
+
+<p>
+For small functions it may not be worth the cost to allocate stack space to preserve the values of saved registers, but for larger functions they can save plenty of time. Instead of accessing a value on the stack numerous times, we can place it in a saved register so that it can be accessed instantly. Always remember to store any saved registers on the stack, and restore their values before returning from your function.
+</p>
+</div>
+</div>
+<div id="outline-container-orgdfecbc0" class="outline-3">
+<h3 id="orgdfecbc0"><span class="underline">Stack Pointer</span></h3>
+<div class="outline-text-3" id="text-orgdfecbc0">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Register Number</td>
+<td class="org-left">x2</td>
+</tr>
+
+<tr>
+<td class="org-left">ABI Name</td>
+<td class="org-left">sp</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+This register holds the memory address of the <b>bottom</b> of the stack. When we want to allocate more space on the stack we <b>subtract</b> a multiple of 16 from <code>sp</code>. It is vital that this value is restored to its original state before returning or exiting from a function.
+</p>
+
+<p>
+Values can be &ldquo;pushed/popped&rdquo; off of the stack using load and store instructions. Even though we think about operations on a stack only being able to interact with the topmost item, we can access values anywhere on this stack. Load instructions take a destination register, a register holding the source memory address, and an immediate value which is used as an offset from the source address. Store operations work in reverse using the first register as the source. With these operations we can read/store values anywhere on the stack.
+</p>
+</div>
+</div>
+<div id="outline-container-org47bd53f" class="outline-3">
+<h3 id="org47bd53f"><span class="underline">Return Address</span></h3>
+<div class="outline-text-3" id="text-org47bd53f">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Register Number</td>
+<td class="org-left">x1</td>
+</tr>
+
+<tr>
+<td class="org-left">ABI Name</td>
+<td class="org-left">ra</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+The final register we are going to cover is the return address. This register holds the address of instruction that we should &ldquo;jump&rdquo; to once our function is done executing. This holds the address of the call instruction, so that once execution returns here, we increment the <code>pc</code> and continue on.
+</p>
+
+<p>
+If you plan to call any functions within your function it is important to store this value on the stack so that it can be safely restored before you return.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org4380f0d" class="outline-2">
+<h2 id="org4380f0d"><span class="underline">Calling Functions</span></h2>
+<div class="outline-text-2" id="text-org4380f0d">
+<p>
+When you call a function in any higher level language it looks very simple. The arguments are passed within the parentheses, and if it returns a value you place that on the left-hand side of the equals sign. What is the computer doing to make this all work? This is the core of what is called <a href="https://en.wikipedia.org/wiki/Calling_convention"><i>calling conventions</i></a>, which is an agreement between the hardware and the software that runs on it. A calling convention defines what registers (or stack space) should be used for function arguments, and where the return value(s) should be placed.
+</p>
+
+<p>
+Calling conventions are different for each hardware architecture, but many of the concepts stay the same. We prefer to pass arguments in registers if available, because they are much faster than reading from main memory, or even cache. They also define how specific registers are used, <code>s</code> registers are callee saved, the return address is volatile, and how the stack should be set up and torn down.
+</p>
+
+<p>
+When a function is called on a RISC-V CPU there are a few things that need to be set up.
+</p>
+
+
+<div id="org4ee9a09" class="figure">
+<p><img src="calling_functions.png" alt="calling_functions.png" />
+</p>
+</div>
+
+<ol class="org-ol">
+<li>Move the stack pointer, making sure to keep it aligned to 16 byte increments</li>
+<li>Store the current return address on the stack</li>
+<li>Prepare function arguments in registers
+<ol class="org-ol">
+<li>If the function returns a struct its address should be allocated on the stack, then passed in <code>a0</code></li>
+<li>Remaining function arguments (up to 8) are passed left-to-right in the next available <code>a</code> registers</li>
+<li>Floating point arguments can also be passed left-to-right in <code>fa</code> registers</li>
+</ol></li>
+<li>Use the <code>call</code> pseudoinstruction to call a function be either its label or memory address
+<ol class="org-ol">
+<li>The address of the current instruction, <code>call</code>, will be placed in the return address register</li>
+<li>Once the callee returns control flow will return to the next instruction</li>
+</ol></li>
+<li>If the function returns a scalar value it will be placed in <code>a0</code>, with a floating point scalar being placed in <code>fa0</code>
+<ol class="org-ol">
+<li>Struct return values will be in the position previously allocated for them</li>
+</ol></li>
+<li>Perform any other work needed</li>
+<li>Once the current function is ready to exit it loads its original return address back off the stack</li>
+<li>The stack is then moved back to its original position
+<ol class="org-ol">
+<li>If your function does anything with the stack it must be returned to the <b>exact same</b> position before you may return</li>
+</ol></li>
+<li>The functions return value is loaded into the appropriate register</li>
+<li>Finally, we jump to the return address</li>
+</ol>
+
+<p>
+This example follows these exact steps in order to call any another function. As long as every function follows these exact conventions it will be able to call any other function without issue. Think about it like the rules of driving, as long as everyone stays on their side of the road, and follows traffic lights we shouldn&rsquo;t have any issues.
+</p>
+
+<p>
+But there are some cases where you may want to break these rules for speed or simplicity. If you&rsquo;re writing assembly by hand nothing says you have to follow these calling conventions. In fact, if you&rsquo;re only going to call other functions that you wrote yourself you can ignore any or all of these rules.
+</p>
+
+<p>
+Having said that, the calling conventions do ensure software works together, so unless you really know what you&rsquo;re doing, it&rsquo;s best to stick to it.
+</p>
+</div>
+</div>
+<div id="outline-container-orgf1bf111" class="outline-2">
+<h2 id="orgf1bf111"><span class="underline">Returning a Struct</span></h2>
+<div class="outline-text-2" id="text-orgf1bf111">
+<p>
+When a function returns a struct, it writes the fields of the struct directly onto the stack from of that function it was called from (note: simple structs may discard the concept of a struct entirely, returning values directly in registers). So, constructors and initialization functions do not perform extra work by first creating a struct, and then copying it back to the caller.
+</p>
+
+
+<div id="org850a9f8" class="figure">
+<p><img src="returning_structs_main.svg" alt="returning_structs_main.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+Let&rsquo;s start by looking at main for this example. The first section in red sets up our stack, <a href="https://en.wikipedia.org/wiki/Function_prologue_and_epilogue">storing our return address for later</a>. The value 5 is then loaded in register <code>a1</code>, which is the first and only argument to the function <code>ms_init</code>. The compiler then moves the value <code>sp + 8</code> into <code>a0</code>. Why would we care about a value 8 bytes after the stack pointer?
+</p>
+
+
+<div id="org97079db" class="figure">
+<p><img src="rs_dia.svg" alt="rs_dia.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+Like we said before, functions that return structs write their fields directly onto the stack. So by moving the value <code>sp + 8</code> into a0 we give the address of the struct to the function. It is important to note that when returning structs, their address takes priority over function arguments, and thus will be placed before them. Now we can see what <code>ms_init</code> does with these values.
+</p>
+
+
+<div id="org00d8ea3" class="figure">
+<p><img src="rs_ms_init.svg" alt="rs_ms_init.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+The first step is to find the square of <code>side_length</code>, which is easily accomplished by calling the &ldquo;w&rdquo; version of <code>mul</code>. This value is stored back into <code>a1</code> which we then write to <code>a0 + 0</code>, the address of the return struct. The first field in a struct is at the same address as the struct itself. Both the remaining fields are filled with constant values that are first loaded into <code>a4</code>, then written 8 and 16 bytes after the address in <code>a0</code> respectively. Finally, the function returns.
+</p>
+
+<p>
+Back in main the values are on the stack exactly like we expected. We then load <code>area</code> into <code>a5</code> by loading a word from <code>sp + 8</code>, which is where we asked the struct to be stored. The 64-bit value is then loaded into <code>a4</code> and the 2 are added together. The last field is then fetched with <code>lbu</code>, which stands for load byte unsigned, 0 extending the 8-bit value to 32-bits. Finally, it is added to accumulator, which we conveniently store in <code>a0</code>, the return register in the calling convention.
+</p>
+
+<p>
+The last step is to restore the return address from the stack, move the stack back to its original position, and jump to the address held in <code>ra</code>.
+</p>
+
+<p>
+There we go! If you are ever confused as to how structs are returned hopefully this helps explain.
+</p>
+</div>
+</div>
+<div id="outline-container-org2aa0704" class="outline-2">
+<h2 id="org2aa0704"><span class="underline">Calling a Function Pointer</span></h2>
+<div class="outline-text-2" id="text-org2aa0704">
+<p>
+If you&rsquo;ve ever worked with function pointers you probably know they can be confusing to write in C/C++. This is one of the concepts I think is actually easier in assembly than in C, which is probably an odd thing to say.
+</p>
+
+<p>
+When we call a function using <code>call</code> all we are really doing is jumping to its address in memory. If you know about any of the jump instructions, that probably sounds familiar. Let&rsquo;s see how function pointers translate to assembly.
+</p>
+
+
+<div id="org9c8131b" class="figure">
+<p><img src="function_ptr.png" alt="function_ptr.png" />
+</p>
+</div>
+
+<p>
+Our first step is to load the memory address of the function in a register, in this case <code>a5</code>. Then we prepare our argument and finally call <code>jalr</code>, which jumps to program counter to the address held in its argument register.
+</p>
+
+<p>
+Contrast this with calling the function by name, which produces a <code>call</code> instruction in the assembly.
+</p>
+
+
+<div id="org3089cd2" class="figure">
+<p><img src="function_call.png" alt="function_call.png" />
+</p>
+</div>
+
+<p>
+These may look like they&rsquo;re doing very different things, but <code>call</code> and <code>jalr</code> are more closely related than you might think. Both <code>call</code> and <code>jalr</code> are commonly referred to as pseudoinstructions, meaning that assembler will generate a different set of instructions when it sees either of these 2. But what does it generate?
+</p>
+
+<p>
+Well, a <code>jalr</code> instruction with a single register will turn into <code>jalr ra, rs, 0</code>, which means, add 0 to the <code>ra</code> register, then jump to the address in rs. The reason this code is generated is so that when the called function returns, we return to this exact location, then increment the <code>pc</code> and continue on. Pretty simple right? Just like we would call another other function on our RISC-V machine.
+</p>
+
+<p>
+On the other hand, a <code>call</code> instruction can do nearly the exact same thing with one distinct advantage, it can jump to labels directly, without having to first store the value in a register. This is because once the program is compiled down, a <code>call</code> instruction generates <code>aiupc t1, 20-bit value</code> and <code>jalr ra, t1, 12-bit value</code>. A lot more code that has to get generated, luckily you won&rsquo;t have to write it yourself.
+</p>
+
+<p>
+All this to say that calling a function by name/label, and jumping to an address held in a register (function pointer) are no different at the end of the day. You may even find function pointers easier to understand in assembly than you do in C/C++.
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 12/27/23</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>
