@@ -25,9 +25,9 @@ del{position:relative;text-decoration:line-through}del::after{content:"worse";po
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>C Generics</i></h1>
-<div id="outline-container-org2c70c17" class="outline-2">
-<h2 id="org2c70c17"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-org2c70c17">
+<div id="outline-container-orga0cd433" class="outline-2">
+<h2 id="orga0cd433"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-orga0cd433">
 <p>
 If you&rsquo;ve coded in C for any amount of time you probably think that C doesn&rsquo;t have generics. After all, C++ clearly has generics, so if C did surely they would look the same, right?
 </p>
@@ -71,7 +71,7 @@ Ohh&#x2026; that didn&rsquo;t work.
 </p>
 
 <p>
-As you may know, we don&rsquo;t have the ability to define overloaded functions in C. This example is small, but imagine having to call an entirely different <code>min</code> or <code>max</code> function for each different type of comparison, it would make your unecessarily large. We can fix this <code>add</code> example fairly easily.
+As you may know, we don&rsquo;t have the ability to define overloaded functions in C. This example is small, but imagine having to call an entirely different <code>min</code> or <code>max</code> function for each different type of comparison, it would make your unnecessarily large. We can fix this <code>add</code> example fairly easily.
 </p>
 
 <div class="org-src-container">
@@ -109,13 +109,13 @@ We will quickly break this down before we get in to more complicated implementat
 </ol>
 
 <p>
-In this article we are going to take a look at a few example use cases where generics may help us write more concise code, that vastly simplifies our API.
+In this article we are going to take a look at a couple of example use cases where generics may help us write more concise code, that vastly simplifies our API.
 </p>
 </div>
 </div>
-<div id="outline-container-org8bedf6e" class="outline-2">
-<h2 id="org8bedf6e"><span class="underline">Making a <del>better</del> Print Function</span></h2>
-<div class="outline-text-2" id="text-org8bedf6e">
+<div id="outline-container-org22f4348" class="outline-2">
+<h2 id="org22f4348"><span class="underline">Making a <del>better</del> Print Function</span></h2>
+<div class="outline-text-2" id="text-org22f4348">
 <p>
 Any C programmer has learned to either love or hate <code>printf</code>, I personally prefer it over a C++ <code>ostream</code>, but as I&rsquo;ve learned from other languages, there can an even easier way to print. In both <code>javascript</code> and <code>vlang</code> you can use the concept of <i>template literals</i> (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">mdn</a>, <a href="https://github.com/vlang/v/blob/master/doc/docs.md#println">vlang</a>). Template literals allow the entire string to be defined at once, with each variable or expression residing within a <code>${}</code> block.
 </p>
@@ -145,7 +145,7 @@ Hi there my name is John and I am 32 years old.
 </pre>
 </div>
 
-<pre class="example" id="org612c19d">
+<pre class="example" id="org25c961b">
 Hi there my name is John and I am 32 years old.
 </pre>
 
@@ -157,9 +157,9 @@ The ability to place variables inline with the rest of the string increases the 
 Let&rsquo;s see how we can use <code>_Generic</code> to achieve a similar behavior to what we saw above.
 </p>
 </div>
-<div id="outline-container-org2862047" class="outline-3">
-<h3 id="org2862047"><span class="underline">Implementation</span></h3>
-<div class="outline-text-3" id="text-org2862047">
+<div id="outline-container-orgb95b04b" class="outline-3">
+<h3 id="orgb95b04b"><span class="underline">Implementation</span></h3>
+<div class="outline-text-3" id="text-orgb95b04b">
 <p>
 Our first step is to figure out how we can convert different data types into their string representation. This is where <code>_Generic</code> will be used in our implementation.
 </p>
@@ -226,7 +226,7 @@ I guess now would be a good time to look at how we intend to use our new print f
 </div>
 
 <p>
-Not the prettiest print function ever, but maybe it&rsquo;s better than printf (It&rsquo;s not, I&rsquo;m just optimistic the DX will be better). So <code>println</code> will be a variadic function taking any number of arguments, then printing them out. You have certainly used a variadic function before, but it is unlikely you have had to write one.
+Not the prettiest print function ever, but maybe it&rsquo;s better than <code>printf</code> (It&rsquo;s not, I&rsquo;m just optimistic the DX will be better). So <code>println</code> will be a variadic function taking any number of arguments, then printing them out. You have certainly used a variadic function before, but it is unlikely you have had to write one.
 </p>
 
 <div class="org-src-container">
@@ -242,7 +242,8 @@ Not the prettiest print function ever, but maybe it&rsquo;s better than printf (
     free(str_val);
   }
   va_end(args);
-  buf[<span style="color: #B5CEA8; font-weight: bold;">4095</span>] = <span style="color: #DB8E73;">'\0'</span>;
+  *pos++ = <span style="color: #DB8E73;">'\n'</span>;
+  *pos = <span style="color: #DB8E73;">'\0'</span>;
   <span style="color: #35CDAF;">ssize_t</span> <span style="color: #85DDFF;">bytes_written</span> = write(STDOUT_FILENO, buf, pos - buf);
   <span style="color: #339CDB;">if</span> (bytes_written == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
     perror(<span style="color: #DB8E73;">"write"</span>);
@@ -256,7 +257,7 @@ Not the prettiest print function ever, but maybe it&rsquo;s better than printf (
 <li>A variadic function is characterized by its last argument being <code>...</code>, which represents its list of any number of arguments (although it is limited to 127)</li>
 <li>To reference any of the elements in this last we first need a <code>va_list</code>, which we then initialize with <code>va_start</code></li>
 <li>The arguments are then looped through, with the ability to extract one argument at a time with <code>va_arg(args, typename)</code></li>
-<li>To cleanup resources <code>va_end</code> is called one you are done with the list</li>
+<li>To clean up resources <code>va_end</code> is called one you are done with the list</li>
 </ol>
 
 <p>
@@ -264,7 +265,7 @@ You may notice something I omitted in the explanation, the number of arguments. 
 </p>
 
 <p>
-So now our users will have to make their first argument the number of arguments. That seems a bit redundant, and now we&rsquo;re not looking much beter than <code>printf</code>.
+So now our users will have to make their first argument the number of arguments. That seems a bit redundant, and now we&rsquo;re not looking much better than <code>printf</code>.
 </p>
 
 <div class="org-src-container">
@@ -276,7 +277,7 @@ So now our users will have to make their first argument the number of arguments.
 </pre>
 </div>
 
-<pre class="example" id="org1ae785c">
+<pre class="example" id="org2df6bf9">
 5 3.140000
 </pre>
 
@@ -285,15 +286,15 @@ There we go! A slight improvement over <code>printf</code>? Maybe? Either way it
 </p>
 </div>
 </div>
-<div id="outline-container-org08255cf" class="outline-3">
-<h3 id="org08255cf"><span class="underline">Improvements</span></h3>
-<div class="outline-text-3" id="text-org08255cf">
+<div id="outline-container-orgc295875" class="outline-3">
+<h3 id="orgc295875"><span class="underline">Improvements</span></h3>
+<div class="outline-text-3" id="text-orgc295875">
 <p>
 Earlier I mentioned how having to specify the number of arguments seems a bit redundant. Can we solve this? We can!
 </p>
 
 <p>
-We said that variadic functions can take up to a maximum of 127 arguments, so maybe there is a way we can hardcode 127 unique values. This is going to be a very hacky macro, and is totally optional, but it will make the user experience better.
+We said that variadic functions can take up to a maximum of 127 arguments, so maybe there is a way we can hard code 127 unique values. This is going to be a very hacky macro, and is totally optional, but it will make the user experience better.
 </p>
 
 <div class="org-src-container">
@@ -329,7 +330,7 @@ The way this works is a bit complicated, but I will try my best to explain it wi
 </p>
 
 
-<div id="org424d0dc" class="figure">
+<div id="org1b511fd" class="figure">
 <p><img src="num_args_macro.png" alt="num_args_macro.png" />
 </p>
 </div>
@@ -339,9 +340,261 @@ The way this works is a bit complicated, but I will try my best to explain it wi
 <li>We then call <code>NUM_ARGS_IMPL(a, b, c, 127, 126, ..., 3, 2, 1)</code></li>
 <li>It may be hard to tell, but <code>NUM_ARGS_IMPL</code> is a giant function that takes 129 different arguments, named <code>_127-_1</code>, <code>N</code>, and finally its variadic list at the end <code>...</code></li>
 <li><code>a, b, c</code> causes the original list of numbers to shift to the right by <code>3</code> positions, so that the number in argument <code>N</code> ends up 3! With 2 and 1 spilling off the end into the variadic list</li>
-<li>Finally we are returned the value <code>3</code></li>
+<li>Finally, we are returned the value <code>3</code></li>
 </ol>
+
+<p>
+Now we are able to calculate the number of parameters being passed at compile time, saving our uses from having to explicitly pass the value. If you&rsquo;ve every heard people complain about macros in C, this is exactly that. Weird and hacky macros to enable meta-programming that was never intended in the C standard.
+</p>
+
+<p>
+We should create a wrapper around the 2 new macros to keep our simple to read.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">println</span>(...) println_impl(NUM_ARGS(__VA_ARGS__), __VA_ARGS__)
+
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">println_impl</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">num_args</span>, ...) {
+  <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">buf</span>[<span style="color: #B5CEA8; font-weight: bold;">4096</span>] = {<span style="color: #B5CEA8; font-weight: bold;">0</span>};
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">pos</span> = buf;
+  <span style="color: #35CDAF;">va_list</span> <span style="color: #85DDFF;">args</span>;
+  va_start(args, num_args);
+
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_args; i++) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">str_val</span> = va_arg(args, <span style="color: #35CDAF;">char</span> *);
+    pos = stpcpy(pos, str_val);
+    free(str_val);
+  }
+  va_end(args);
+  *pos++ = <span style="color: #DB8E73;">'\n'</span>;
+  *pos = <span style="color: #DB8E73;">'\0'</span>;
+  <span style="color: #35CDAF;">ssize_t</span> <span style="color: #85DDFF;">bytes_written</span> = write(STDOUT_FILENO, buf, pos - buf);
+  <span style="color: #339CDB;">if</span> (bytes_written == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    perror(<span style="color: #DB8E73;">"write"</span>);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+}
+</pre>
 </div>
+
+<p>
+Our new macro <code>println</code> takes in a variadic number of arguments, passing them first to <code>NUM_ARGS</code> which returns the count, and then calling <code>println_impl</code> with the count, and arguments. That should be all we need to get our print function working, let&rsquo;s see it in action.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">a</span> = <span style="color: #B5CEA8; font-weight: bold;">5</span>;
+  println($(UINT64_MAX), $(<span style="color: #DB8E73;">" "</span>), $(INT64_MAX), $(<span style="color: #DB8E73;">" hi "</span>), $(<span style="color: #B5CEA8; font-weight: bold;">3.14f</span>), $(<span style="color: #DB8E73;">" "</span>),
+          $(a));
+}
+</pre>
+</div>
+
+<pre class="example" id="org965ed24">
+18446744073709551615 9223372036854775807 hi 3.140000 5
+</pre>
+
+<p>
+Our print function is able to handle all the scalar types, along with basic C-style strings. It has its limitations, namely the ability to specify different formatting than the default, but for development and debugging I find it handy. The code <a href="https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/c_generics.c">here</a>.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgfe5092c" class="outline-2">
+<h2 id="orgfe5092c"><span class="underline">A Generic Vector</span></h2>
+<div class="outline-text-2" id="text-orgfe5092c">
+<p>
+We haven&rsquo;t looked at vectors yet, mostly because they are easy to implement. But what if we were able to create a &ldquo;generic&rdquo; vector, that didn&rsquo;t have to store the elements in an array of <code>void*</code>. We will look at implementing a vector that can hold either <code>int</code> or <code>float</code> values, which of course can easily be expanded by writing more code. Again, C generics are not able to do code generation for us, so the implementation must be written by hand.
+</p>
+
+<p>
+I won&rsquo;t show the entire file here, because it is quite long and repetitive. This really comes down to doing the code generation yourself, which is very time intensive, but will leave you with a clean user interface, and much of the code is copy-pasteable anyway. I tried to write each function in as generic of a style as possible, so that the only things that need to change are the return type, and name.
+</p>
+</div>
+<div id="outline-container-org5f9f1db" class="outline-3">
+<h3 id="org5f9f1db"><span class="underline">Implementation</span></h3>
+<div class="outline-text-3" id="text-org5f9f1db">
+<p>
+Let&rsquo;s look at the initialization of a vector, in detail.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector</span>(<span style="color: #85DDFF;">type</span>) vector_##type
+
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">vector_int</span> {
+  <span style="color: #35CDAF;">int</span> *<span style="color: #85DDFF;">data</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">size</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">capacity</span>;
+} <span style="color: #35CDAF;">vector_int</span>;
+
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">vector_float</span> {
+  <span style="color: #35CDAF;">float</span> *<span style="color: #85DDFF;">data</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">size</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">capacity</span>;
+} <span style="color: #35CDAF;">vector_float</span>;
+</pre>
+</div>
+
+<p>
+We have 2 structs here, one for <code>int</code> and the other for <code>float</code>. To get the correct type we use the first macro, which does a simple token concatenation to transform <code>int</code> -&gt; <code>vector_int</code>. The <code>##</code> specifies that the argument should be place here.
+</p>
+
+<p>
+From there we have to initialize the vector, for which we define a function to handle each data type. This is where things start to get repetitive, but I have tried to reduce any changes between functions where possible.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">vector_int_init</span>(<span style="color: #35CDAF;">vector_int</span> *<span style="color: #85DDFF;">v</span>, <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">amount</span>, <span style="color: #339CDB;">typeof</span>(*(v-&gt;data)) <span style="color: #85DDFF;">val</span>) {
+  v-&gt;data = malloc(amount * <span style="color: #339CDB;">sizeof</span>(<span style="color: #339CDB;">typeof</span>(*(v-&gt;data))));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>v-&gt;data) {
+    perror(<span style="color: #DB8E73;">"malloc"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">false</span>;
+  }
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; amount; i++) {
+    v-&gt;data[i] = val;
+  }
+  v-&gt;size = amount;
+  v-&gt;capacity = amount;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">true</span>;
+}
+
+<span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">vector_float_init</span>(<span style="color: #35CDAF;">vector_float</span> *<span style="color: #85DDFF;">v</span>, <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">amount</span>, <span style="color: #339CDB;">typeof</span>(*(v-&gt;data)) <span style="color: #85DDFF;">val</span>) {
+  v-&gt;data = malloc(amount * <span style="color: #339CDB;">sizeof</span>(<span style="color: #339CDB;">typeof</span>(*(v-&gt;data))));
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>v-&gt;data) {
+    perror(<span style="color: #DB8E73;">"malloc"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">false</span>;
+  }
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; amount; i++) {
+    v-&gt;data[i] = val;
+  }
+  v-&gt;size = amount;
+  v-&gt;capacity = amount;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">true</span>;
+}
+</pre>
+</div>
+
+<p>
+At a high level the only thing we have to change is the functions name, and the specific vector type. Everything else is entirely repeatable because of the compile-time code that we use. <code>typeof()</code> allows us to get the type of any variable, which we use here to specific the type of <code>val</code>. This can be derived from the type of <code>v</code> which is the first argument. The other compile-time feature we use here is <code>sizeof()</code> which returns the size in bytes for any data type.
+</p>
+
+<p>
+Other than those 2 parts, this is just regular code you would see for any other vector. Where generics come into play is when we decide which function to call, based on the type of the arguments.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_init</span>(<span style="color: #85DDFF;">v</span>, <span style="color: #85DDFF;">amount</span>, <span style="color: #85DDFF;">val</span>)                                        \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_init, <span style="color: #35CDAF;">float</span> *: vector_float_init)( \
+      v, amount, val)
+</pre>
+</div>
+
+<p>
+We can &ldquo;switch&rdquo; on the type that our vector is holding. So if it holds integers we choose the integer specific function, and the float function otherwise. This allows our users code to look something like this.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  vector(<span style="color: #35CDAF;">int</span>) v;
+  vector_init(&amp;v, <span style="color: #B5CEA8; font-weight: bold;">10</span>, <span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  vector(<span style="color: #35CDAF;">float</span>) f;
+  vector_init(&amp;w, <span style="color: #B5CEA8; font-weight: bold;">10</span>, <span style="color: #B5CEA8; font-weight: bold;">5.0f</span>);
+
+  vector_push(&amp;v, <span style="color: #B5CEA8; font-weight: bold;">10</span>);
+  vector_push(&amp;f, <span style="color: #B5CEA8; font-weight: bold;">7.2f</span>);
+
+  vector_print(&amp;v);
+  vector_print(&amp;f);
+}
+</pre>
+</div>
+
+<p>
+The rest of our API follows the same pattern, the full code can be seen <a href="https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/vector.c">here</a>, we will just go over the interface.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector</span>(<span style="color: #85DDFF;">type</span>) vector_##type
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_init</span>(<span style="color: #85DDFF;">v</span>, <span style="color: #85DDFF;">amount</span>, <span style="color: #85DDFF;">val</span>)                                            \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_init, <span style="color: #35CDAF;">float</span> *: vector_float_init)(     \
+      v, amount, val)
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">`v` is unsafe to use after calling unless reinitialized</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_destroy</span>(<span style="color: #85DDFF;">v</span>)                                                      \
+  _Generic((v)-&gt;data,                                                          \
+      <span style="color: #35CDAF;">int</span> *: vector_int_destroy,                                               \
+      <span style="color: #35CDAF;">float</span> *: vector_float_destroy)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_push</span>(<span style="color: #85DDFF;">v</span>, <span style="color: #85DDFF;">val</span>)                                                    \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_pb, <span style="color: #35CDAF;">float</span> *: vector_float_pb)(v, val)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_pop</span>(<span style="color: #85DDFF;">v</span>)                                                          \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_pop, <span style="color: #35CDAF;">float</span> *: vector_float_pop)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_insert</span>(<span style="color: #85DDFF;">v</span>, <span style="color: #85DDFF;">pos</span>, <span style="color: #85DDFF;">val</span>)                                             \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_ins, <span style="color: #35CDAF;">float</span> *: vector_float_ins)(       \
+      v, pos, val)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_delete</span>(<span style="color: #85DDFF;">v</span>, <span style="color: #85DDFF;">pos</span>)                                                  \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_del, <span style="color: #35CDAF;">float</span> *: vector_float_del)(v, pos)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_str</span>(<span style="color: #85DDFF;">v</span>)                                                          \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_str, <span style="color: #35CDAF;">float</span> *: vector_float_str)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_print</span>(<span style="color: #85DDFF;">v</span>)                                                        \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_print, <span style="color: #35CDAF;">float</span> *: vector_float_print)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_clear</span>(<span style="color: #85DDFF;">v</span>)                                                        \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_clear, <span style="color: #35CDAF;">float</span> *: vector_float_clear)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_stf</span>(<span style="color: #85DDFF;">v</span>)                                                          \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_stf, <span style="color: #35CDAF;">float</span> *: vector_float_stf)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_sort</span>(<span style="color: #85DDFF;">v</span>)                                                         \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_sort, <span style="color: #35CDAF;">float</span> *: vector_float_sort)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_reverse</span>(<span style="color: #85DDFF;">v</span>)                                                      \
+  _Generic((v)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_rev, <span style="color: #35CDAF;">float</span> *: vector_float_rev)(v)
+
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">vector_concat</span>(<span style="color: #85DDFF;">v</span>, <span style="color: #85DDFF;">w</span>)                                                    \
+  _Generic((v)-&gt;data,                                                          \
+      <span style="color: #35CDAF;">int</span> *: _Generic((w)-&gt;data, <span style="color: #35CDAF;">int</span> *: vector_int_concat, <span style="color: #339CDB;">default</span>: error),    \
+      <span style="color: #35CDAF;">float</span> *: _Generic((w)-&gt;data,                                             \
+      <span style="color: #35CDAF;">float</span> *: vector_float_concat,                                            \
+      <span style="color: #339CDB;">default</span>: error))(v, w)
+</pre>
+</div>
+
+<p>
+Each generic does essentially the exact same thing, choose which function to called upon the type held in <code>v-&gt;data</code>. This means that as long as the user passes in a valid vector we will have type safety on the values we attempt to add to it. All that&rsquo;s left to do is to write all the code that these macro will call. It sounds daunting, but as I said before, most of it can be repeated with minimal changes.
+</p>
+
+<p>
+So should you use this in your next C project? If you&rsquo;re working alone, I don&rsquo;t see anything wrong with using something like this. If you know the range of types you will need to support it would be simple to implement, and expanding the supported types isn&rsquo;t too hard as we&rsquo;ve seen.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org2d776a2" class="outline-2">
+<h2 id="org2d776a2"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-org2d776a2">
+<p>
+<code>_Generic</code> in C is an interesting way to achieve function overloading, which is not normally supported in C. If this is a feature you really need, then <code>_Generic</code> is perfect for you, even allowing you to simplify the API.
+</p>
+
+<p>
+Our <code>println</code> function allows the printing of the scalar data types, with an &ldquo;easier&rdquo; API than <code>printf</code>.
+</p>
+
+<p>
+Our generic vector allows for function overloading, creating a simple API for users.
+</p>
+
+<p>
+<code>_Generic</code> can&rsquo;t do code generation, or generate structs for you, so its use case is very narrow. Experiment with it and see if it can improve your code. If this doesn&rsquo;t work for your use case you can also explore other languages that allow for meta-programming or compile time code execution.
+</p>
 </div>
 </div>
 </div>

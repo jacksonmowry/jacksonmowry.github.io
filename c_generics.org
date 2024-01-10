@@ -2,7 +2,7 @@
 #+HTML_LINK_UP: index.html
 #+title: /C Generics/
 #+author: Jackson
-#+date: 12/27/23
+#+date: 1/10/24
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
 #+HTML_HEAD: <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@ int main() {
 
 Ohh... that didn't work.
 
-As you may know, we don't have the ability to define overloaded functions in C. This example is small, but imagine having to call an entirely different ~min~ or ~max~ function for each different type of comparison, it would make your unecessarily large. We can fix this ~add~ example fairly easily.
+As you may know, we don't have the ability to define overloaded functions in C. This example is small, but imagine having to call an entirely different ~min~ or ~max~ function for each different type of comparison, it would make your unnecessarily large. We can fix this ~add~ example fairly easily.
 
 #+begin_src C :exports both :results output
 #include <stdio.h>
@@ -75,7 +75,7 @@ We will quickly break this down before we get in to more complicated implementat
 2. ~_Generic((a), int: add_int, double: add_double)~, this is our compile time "switch statement", which chooses the correct function based on the type of the first argument `a`
 3. ~(a,b)~, the last block tells the compiler that we are passing the arguments `a` and `b` to the selected function
 
-In this article we are going to take a look at a few example use cases where generics may help us write more concise code, that vastly simplifies our API.
+In this article we are going to take a look at a couple of example use cases where generics may help us write more concise code, that vastly simplifies our API.
 
 * _Making a +better+ Print Function_
 Any C programmer has learned to either love or hate ~printf~, I personally prefer it over a C++ ~ostream~, but as I've learned from other languages, there can an even easier way to print. In both ~javascript~ and ~vlang~ you can use the concept of /template literals/ ([[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals][mdn]], [[https://github.com/vlang/v/blob/master/doc/docs.md#println][vlang]]). Template literals allow the entire string to be defined at once, with each variable or expression residing within a ~${}~ block.
@@ -158,7 +158,7 @@ int main() {
 }
 #+end_src
 
-Not the prettiest print function ever, but maybe it's better than printf (It's not, I'm just optimistic the DX will be better). So ~println~ will be a variadic function taking any number of arguments, then printing them out. You have certainly used a variadic function before, but it is unlikely you have had to write one.
+Not the prettiest print function ever, but maybe it's better than ~printf~ (It's not, I'm just optimistic the DX will be better). So ~println~ will be a variadic function taking any number of arguments, then printing them out. You have certainly used a variadic function before, but it is unlikely you have had to write one.
 
 #+begin_src C
 void println(int num_args, ...) {
@@ -186,11 +186,11 @@ void println(int num_args, ...) {
 1. A variadic function is characterized by its last argument being ~...~, which represents its list of any number of arguments (although it is limited to 127)
 2. To reference any of the elements in this last we first need a ~va_list~, which we then initialize with ~va_start~
 3. The arguments are then looped through, with the ability to extract one argument at a time with ~va_arg(args, typename)~
-4. To cleanup resources ~va_end~ is called one you are done with the list
+4. To clean up resources ~va_end~ is called one you are done with the list
 
 You may notice something I omitted in the explanation, the number of arguments. In C there is no way at compile or run time to get the number of arguments in a ~va_list~. Well that sucks.
 
-So now our users will have to make their first argument the number of arguments. That seems a bit redundant, and now we're not looking much beter than ~printf~.
+So now our users will have to make their first argument the number of arguments. That seems a bit redundant, and now we're not looking much better than ~printf~.
 
 #+begin_src C
 int main() {
@@ -209,7 +209,7 @@ There we go! A slight improvement over ~printf~? Maybe? Either way it was good t
 ** _Improvements_
 Earlier I mentioned how having to specify the number of arguments seems a bit redundant. Can we solve this? We can!
 
-We said that variadic functions can take up to a maximum of 127 arguments, so maybe there is a way we can hardcode 127 unique values. This is going to be a very hacky macro, and is totally optional, but it will make the user experience better.
+We said that variadic functions can take up to a maximum of 127 arguments, so maybe there is a way we can hard code 127 unique values. This is going to be a very hacky macro, and is totally optional, but it will make the user experience better.
 
 #+begin_src C
 // Helper macro for counting the number of arguments
@@ -292,6 +292,187 @@ int main() {
 18446744073709551615 9223372036854775807 hi 3.140000 5
 #+end_example
 
-Our print function is able to handle all the scalar types, along with basic C-style strings. It has it's limitations, namely different formatting than the default, but for development and debugging I find it handy.
+Our print function is able to handle all the scalar types, along with basic C-style strings. It has its limitations, namely the ability to specify different formatting than the default, but for development and debugging I find it handy. The code [[https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/c_generics.c][here]].
 
-#  LocalWords:  hacky
+* _A Generic Vector_
+We haven't looked at vectors yet, mostly because they are easy to implement. But what if we were able to create a "generic" vector, that didn't have to store the elements in an array of ~void*~. We will look at implementing a vector that can hold either ~int~ or ~float~ values, which of course can easily be expanded by writing more code. Again, C generics are not able to do code generation for us, so the implementation must be written by hand.
+
+I won't show the entire file here, because it is quite long and repetitive. This really comes down to doing the code generation yourself, which is very time intensive, but will leave you with a clean user interface, and much of the code is copy-pasteable anyway. I tried to write each function in as generic of a style as possible, so that the only things that need to change are the return type, and name.
+
+** _Implementation_
+Let's look at the initialization of a vector, in detail.
+
+#+begin_src C
+#define vector(type) vector_##type
+
+typedef struct vector_int {
+  int *data;
+  size_t size;
+  size_t capacity;
+} vector_int;
+
+typedef struct vector_float {
+  float *data;
+  size_t size;
+  size_t capacity;
+} vector_float;
+#+end_src
+
+We have 2 structs here, one for ~int~ and the other for ~float~. To get the correct type we use the first macro, which does a simple token concatenation to transform ~int~ -> ~vector_int~. The ~##~ specifies that the argument should be place here.
+
+From there we have to initialize the vector, for which we define a function to handle each data type. This is where things start to get repetitive, but I have tried to reduce any changes between functions where possible.
+
+#+begin_src C
+bool vector_int_init(vector_int *v, size_t amount, typeof(*(v->data)) val) {
+  v->data = malloc(amount * sizeof(typeof(*(v->data))));
+  if (!v->data) {
+    perror("malloc");
+    return false;
+  }
+  for (size_t i = 0; i < amount; i++) {
+    v->data[i] = val;
+  }
+  v->size = amount;
+  v->capacity = amount;
+  return true;
+}
+
+bool vector_float_init(vector_float *v, size_t amount, typeof(*(v->data)) val) {
+  v->data = malloc(amount * sizeof(typeof(*(v->data))));
+  if (!v->data) {
+    perror("malloc");
+    return false;
+  }
+  for (size_t i = 0; i < amount; i++) {
+    v->data[i] = val;
+  }
+  v->size = amount;
+  v->capacity = amount;
+  return true;
+}
+#+end_src
+
+At a high level the only thing we have to change is the functions name, and the specific vector type. Everything else is entirely repeatable because of the compile-time code that we use. ~typeof()~ allows us to get the type of any variable, which we use here to specific the type of ~val~. This can be derived from the type of ~v~ which is the first argument. The other compile-time feature we use here is ~sizeof()~ which returns the size in bytes for any data type.
+
+Other than those 2 parts, this is just regular code you would see for any other vector. Where generics come into play is when we decide which function to call, based on the type of the arguments.
+
+#+begin_src C
+#define vector_init(v, amount, val)                                        \
+  _Generic((v)->data, int *: vector_int_init, float *: vector_float_init)( \
+      v, amount, val)
+#+end_src
+
+We can "switch" on the type that our vector is holding. So if it holds integers we choose the integer specific function, and the float function otherwise. This allows our users code to look something like this.
+
+#+begin_src C
+int main() {
+  vector(int) v;
+  vector_init(&v, 10, 4);
+  vector(float) f;
+  vector_init(&w, 10, 5.0f);
+
+  vector_push(&v, 10);
+  vector_push(&f, 7.2f);
+
+  vector_print(&v);
+  vector_print(&f);
+}
+#+end_src
+
+The rest of our API follows the same pattern, the full code can be seen [[https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/vector.c][here]], we will just go over the interface.
+
+#+begin_src C
+#define vector(type) vector_##type
+
+#define vector_init(v, amount, val)                                            \
+  _Generic((v)->data, int *: vector_int_init, float *: vector_float_init)(     \
+      v, amount, val)
+
+// `v` is unsafe to use after calling unless reinitialized
+#define vector_destroy(v)                                                      \
+  _Generic((v)->data,                                                          \
+      int *: vector_int_destroy,                                               \
+      float *: vector_float_destroy)(v)
+
+#define vector_push(v, val)                                                    \
+  _Generic((v)->data, int *: vector_int_pb, float *: vector_float_pb)(v, val)
+
+#define vector_pop(v)                                                          \
+  _Generic((v)->data, int *: vector_int_pop, float *: vector_float_pop)(v)
+
+#define vector_insert(v, pos, val)                                             \
+  _Generic((v)->data, int *: vector_int_ins, float *: vector_float_ins)(       \
+      v, pos, val)
+
+#define vector_delete(v, pos)                                                  \
+  _Generic((v)->data, int *: vector_int_del, float *: vector_float_del)(v, pos)
+
+#define vector_str(v)                                                          \
+  _Generic((v)->data, int *: vector_int_str, float *: vector_float_str)(v)
+
+#define vector_print(v)                                                        \
+  _Generic((v)->data, int *: vector_int_print, float *: vector_float_print)(v)
+
+#define vector_clear(v)                                                        \
+  _Generic((v)->data, int *: vector_int_clear, float *: vector_float_clear)(v)
+
+#define vector_stf(v)                                                          \
+  _Generic((v)->data, int *: vector_int_stf, float *: vector_float_stf)(v)
+
+#define vector_sort(v)                                                         \
+  _Generic((v)->data, int *: vector_int_sort, float *: vector_float_sort)(v)
+
+#define vector_reverse(v)                                                      \
+  _Generic((v)->data, int *: vector_int_rev, float *: vector_float_rev)(v)
+
+#define vector_concat(v, w)                                                    \
+  _Generic((v)->data,                                                          \
+      int *: _Generic((w)->data, int *: vector_int_concat, default: error),    \
+      float *: _Generic((w)->data,                                             \
+      float *: vector_float_concat,                                            \
+      default: error))(v, w)
+#+end_src
+
+Each generic does essentially the exact same thing, choose which function to called upon the type held in ~v->data~. This means that as long as the user passes in a valid vector we will have type safety on the values we attempt to add to it. All that's left to do is to write all the code that these macro will call. It sounds daunting, but as I said before, most of it can be repeated with minimal changes.
+
+So should you use this in your next C project? If you're working alone, I don't see anything wrong with using something like this. If you know the range of types you will need to support it would be simple to implement, and expanding the supported types isn't too hard as we've seen.
+
+* _Conclusion_
+~_Generic~ in C is an interesting way to achieve function overloading, which is not normally supported in C. If this is a feature you really need, then ~_Generic~ is perfect for you, even allowing you to simplify the API.
+
+Our ~println~ function allows the printing of the scalar data types, with an "easier" API than ~printf~.
+
+Our generic vector allows for function overloading, creating a simple API for users.
+
+~_Generic~ can't do code generation, or generate structs for you, so its use case is very narrow. Experiment with it and see if it can improve your code. If this doesn't work for your use case you can also explore other languages that allow for meta-programming or compile time code execution.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#  LocalWords:  hacky variadic

@@ -3,6 +3,8 @@
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
 * Articles
+** Generics in C
+[[file:c_generics.org][C Generics]]
 ** Exploring the RISC-V ABI on Linux
 [[file:riscv.org][RISC-V Linux ABI]]
 ** Write a Memory Allocator in C
