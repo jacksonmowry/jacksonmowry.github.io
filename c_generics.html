@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/C Generics/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Delicious+Handrawn&display=swap" rel="stylesheet">
+<style type="text/css">
+del{position:relative;text-decoration:line-through}del::after{content:"worse";position:absolute;top:50%;left:25px;transform:translate(-5%,-50%) rotate(-7deg);background-color:#f5f5f5;padding:0 7px 4px;font-size:18px;font-weight:700;border-radius:4px;z-index:1;box-shadow:2px 2px 5px rgba(0,0,0,.2);text-shadow:2px 2px 3px rgba(0,0,0,.3);line-height:1;scale:115%;background-image:linear-gradient(45deg,rgba(139,69,19,.4) 10%,rgba(139,69,19,.4) 20%,rgba(160,82,45,.4) 20%,rgba(160,82,45,.4) 30%,rgba(205,133,63,.4) 30%,rgba(205,133,63,.4) 40%,rgba(139,69,19,.4) 40%,rgba(139,69,19,.4) 50%,rgba(205,133,63,.4) 50%,rgba(205,133,63,.4) 70%,rgba(139,69,19,.4) 70%,rgba(139,69,19,.4) 80%,rgba(160,82,45,.4) 80%,rgba(160,82,45,.4) 90%,rgba(139,69,19,.4) 90%);background-size:100% 100%;background-position:0 0;color:#ff0000;font-family:'Delicious Handrawn',cursive;clip-path:polygon(0% 0%,8% 12%,5% 25%,10% 37%,2% 47%,9% 55%,0% 67%,7% 78%,3% 90%,0% 100%,100% 100%,97% 90%,93% 78%,100% 67%,91% 55%,98% 47%,90% 37%,95% 25%,92% 12%,100% 0%)}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>C Generics</i></h1>
+<div id="outline-container-org2c70c17" class="outline-2">
+<h2 id="org2c70c17"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org2c70c17">
+<p>
+If you&rsquo;ve coded in C for any amount of time you probably think that C doesn&rsquo;t have generics. After all, C++ clearly has generics, so if C did surely they would look the same, right?
+</p>
+
+<p>
+Well, you are sort of right, and sort of wrong. See, C does not have generics in the regular sense, where the compiler will figure out which types you are using at compile time and generate the correct code for the generic function or data structure. C has <code>_Generic</code>, which is a compile time macro that chooses between a set list of options based on the type of the argument it was passed.
+</p>
+
+<p>
+You may ask, how is this any different from an overloaded function? From what I can tell they&rsquo;re the exact same thing, with both choosing the correct path at compile time. Sounds simple enough, let&rsquo;s just use function overloading instead.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">add</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">b</span>) {
+  <span style="color: #339CDB;">return</span> a + b;
+}
+
+<span style="color: #35CDAF;">float</span> <span style="color: #D9DAA2;">add</span>(<span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">b</span>) {
+  <span style="color: #339CDB;">return</span> a + b;
+}
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i_result</span> = add(<span style="color: #B5CEA8; font-weight: bold;">2</span>, <span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">f_result</span> = add(<span style="color: #B5CEA8; font-weight: bold;">2.0</span>, <span style="color: #B5CEA8; font-weight: bold;">4.0</span>);
+}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="color: #B5CEA8; font-weight: bold;">12</span>:<span style="color: #B5CEA8; font-weight: bold;">7</span>: error: conflicting types <span style="color: #339CDB;">for</span> &#8216;add&#8217;; have &#8216;<span style="color: #35CDAF;">float</span>(<span style="color: #35CDAF;">float</span>,  <span style="color: #35CDAF;">float</span>)&#8217;
+             <span style="color: #B5CEA8; font-weight: bold;">12</span> | <span style="color: #35CDAF;">float</span> add(<span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">float</span> <span style="color: #85DDFF;">b</span>) {
+                |       ^~~
+<span style="color: #B5CEA8; font-weight: bold;">8</span>:<span style="color: #B5CEA8; font-weight: bold;">5</span>: note: previous definition of &#8216;add&#8217; with type &#8216;<span style="color: #35CDAF;">int</span>(<span style="color: #35CDAF;">int</span>,  <span style="color: #35CDAF;">int</span>)&#8217;
+              <span style="color: #B5CEA8; font-weight: bold;">8</span> | <span style="color: #35CDAF;">int</span> add(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">b</span>) {
+                |     ^~~
+</pre>
+</div>
+
+<p>
+Ohh&#x2026; that didn&rsquo;t work.
+</p>
+
+<p>
+As you may know, we don&rsquo;t have the ability to define overloaded functions in C. This example is small, but imagine having to call an entirely different <code>min</code> or <code>max</code> function for each different type of comparison, it would make your unecessarily large. We can fix this <code>add</code> example fairly easily.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">add</span>(<span style="color: #85DDFF;">a</span>, <span style="color: #85DDFF;">b</span>)                               \
+  _Generic((a),                                 \
+           <span style="color: #35CDAF;">int</span>: add_int,                        \
+           <span style="color: #35CDAF;">double</span>: add_double) (a,b)
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">add_int</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">b</span>) { <span style="color: #339CDB;">return</span> a + b; }
+<span style="color: #35CDAF;">double</span> <span style="color: #D9DAA2;">add_double</span>(<span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">a</span>, <span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">b</span>) { <span style="color: #339CDB;">return</span> a + b; }
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">res_a</span> = add(<span style="color: #B5CEA8; font-weight: bold;">3</span>, <span style="color: #B5CEA8; font-weight: bold;">4</span>);
+  <span style="color: #35CDAF;">double</span> <span style="color: #85DDFF;">res_b</span> = add(<span style="color: #B5CEA8; font-weight: bold;">3.0</span>, <span style="color: #B5CEA8; font-weight: bold;">4.0</span>);
+  printf(<span style="color: #DB8E73;">"int: %d\n"</span>, res_a);
+  printf(<span style="color: #DB8E73;">"double: %f\n"</span>, res_b);
+}
+</pre>
+</div>
+
+<pre class="example">
+int: 7
+double: 7.000000
+</pre>
+
+
+<p>
+We will quickly break this down before we get in to more complicated implementations later.
+</p>
+<ol class="org-ol">
+<li><code>#define add(a, b)</code>, we start by defining our macro named &ldquo;add&rdquo;, which takes 2 parameters `a` and `b`</li>
+<li><code>_Generic((a), int: add_int, double: add_double)</code>, this is our compile time &ldquo;switch statement&rdquo;, which chooses the correct function based on the type of the first argument `a`</li>
+<li><code>(a,b)</code>, the last block tells the compiler that we are passing the arguments `a` and `b` to the selected function</li>
+</ol>
+
+<p>
+In this article we are going to take a look at a few example use cases where generics may help us write more concise code, that vastly simplifies our API.
+</p>
+</div>
+</div>
+<div id="outline-container-org8bedf6e" class="outline-2">
+<h2 id="org8bedf6e"><span class="underline">Making a <del>better</del> Print Function</span></h2>
+<div class="outline-text-2" id="text-org8bedf6e">
+<p>
+Any C programmer has learned to either love or hate <code>printf</code>, I personally prefer it over a C++ <code>ostream</code>, but as I&rsquo;ve learned from other languages, there can an even easier way to print. In both <code>javascript</code> and <code>vlang</code> you can use the concept of <i>template literals</i> (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">mdn</a>, <a href="https://github.com/vlang/v/blob/master/doc/docs.md#println">vlang</a>). Template literals allow the entire string to be defined at once, with each variable or expression residing within a <code>${}</code> block.
+</p>
+
+<p>
+<i>js</i>
+</p>
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">name</span> = <span style="color: #DB8E73;">"John"</span>;
+<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">age</span> = <span style="color: #B5CEA8; font-weight: bold;">32</span>
+console.log(<span style="color: #DB8E73;">`Hi there my name is ${name} and I am ${age} years old.`</span>)
+</pre>
+</div>
+
+<pre class="example">
+Hi there my name is John and I am 32 years old.
+</pre>
+
+
+<p>
+<i>v</i>
+</p>
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #85DDFF;">name</span> := <span style="color: #DB8E73;">"John"</span>
+<span style="color: #85DDFF;">age</span> := <span style="color: #B5CEA8; font-weight: bold;">32</span>
+<span style="color: #C586C0;">println</span>(<span style="color: #DB8E73;">'Hi there my name is ${name} and I am ${age} years old.'</span>)
+</pre>
+</div>
+
+<pre class="example" id="org612c19d">
+Hi there my name is John and I am 32 years old.
+</pre>
+
+<p>
+The ability to place variables inline with the rest of the string increases the speed of iteration, and avoids errors that may occur with a format specifier does not match its argument. It would be really nice if we had this in C, even if it just used for debugging and development.
+</p>
+
+<p>
+Let&rsquo;s see how we can use <code>_Generic</code> to achieve a similar behavior to what we saw above.
+</p>
+</div>
+<div id="outline-container-org2862047" class="outline-3">
+<h3 id="org2862047"><span class="underline">Implementation</span></h3>
+<div class="outline-text-3" id="text-org2862047">
+<p>
+Our first step is to figure out how we can convert different data types into their string representation. This is where <code>_Generic</code> will be used in our implementation.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> $(var)                                      \
+  _Generic((var),                                   \
+           int8_t: auto_asprintf(<span style="color: #DB8E73;">"%d"</span>, var),        \
+           int16_t: auto_asprintf(<span style="color: #DB8E73;">"%d"</span>, var),       \
+           int32_t: auto_asprintf(<span style="color: #DB8E73;">"%d"</span>, var),       \
+           int64_t: auto_asprintf(<span style="color: #DB8E73;">"%ld"</span>, var),      \
+           uint8_t: auto_asprintf(<span style="color: #DB8E73;">"%u"</span>, var),       \
+           uint16_t: auto_asprintf(<span style="color: #DB8E73;">"%u"</span>, var),      \
+           uint32_t: auto_asprintf(<span style="color: #DB8E73;">"%u"</span>, var),      \
+           uint64_t: auto_asprintf(<span style="color: #DB8E73;">"%lu"</span>, var),     \
+           <span style="color: #35CDAF;">float</span>: auto_asprintf(<span style="color: #DB8E73;">"%f"</span>, var),         \
+           <span style="color: #35CDAF;">double</span>: auto_asprintf(<span style="color: #DB8E73;">"%f"</span>, var),        \
+           <span style="color: #35CDAF;">char</span> *: auto_asprintf(<span style="color: #DB8E73;">"%s"</span>, var),        \
+           <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *: auto_asprintf(<span style="color: #DB8E73;">"%s"</span>, var))
+</pre>
+</div>
+
+<p>
+There are a lot of line here, but the logic isn&rsquo;t too complex. We start out with the function macro definition `$`, keeping the same symbol as we saw with js/v above. This function accepts one parameter, which we will then use to dispatch to the various iterations of <code>auto_asprintf</code> below. The only difference here is what is being passed as the function.
+</p>
+
+<p>
+Now we can take a look at this <code>auto_asprintf</code> function, which essentially wraps <code>asprintf</code> to return a <code>char*</code> directly. This will make our life much easier when it comes to printing, and freeing the allocated memory.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">auto_asprintf</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">format</span>, ...) {
+  <span style="color: #35CDAF;">va_list</span> <span style="color: #85DDFF;">args</span>;
+  va_start(args, format);
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">str</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">length</span> = vasprintf(&amp;str, format, args);
+
+  va_end(args);
+
+  <span style="color: #339CDB;">if</span> (length == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Failed to allocate memory\n"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+
+  <span style="color: #339CDB;">return</span> str;
+}
+</pre>
+</div>
+
+<p>
+All we do is wrap <code>asprintf</code>, check for memory allocation errors, and return the string pointer. We use a variadic function here, which I will explain in just a moment.
+</p>
+
+<p>
+I guess now would be a good time to look at how we intend to use our new print function. This should give us a better idea of how to implement the behavior.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  println($(<span style="color: #B5CEA8; font-weight: bold;">5</span>), $(<span style="color: #DB8E73;">" "</span>), $(<span style="color: #B5CEA8; font-weight: bold;">3.14</span>));
+}
+</pre>
+</div>
+
+<p>
+Not the prettiest print function ever, but maybe it&rsquo;s better than printf (It&rsquo;s not, I&rsquo;m just optimistic the DX will be better). So <code>println</code> will be a variadic function taking any number of arguments, then printing them out. You have certainly used a variadic function before, but it is unlikely you have had to write one.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">println</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">num_args</span>, ...) {
+  <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">buf</span>[<span style="color: #B5CEA8; font-weight: bold;">4096</span>] = {<span style="color: #B5CEA8; font-weight: bold;">0</span>};
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">pos</span> = buf;
+  <span style="color: #35CDAF;">va_list</span> <span style="color: #85DDFF;">args</span>;
+  va_start(args, num_args);
+
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_args; i++) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">str_val</span> = va_arg(args, <span style="color: #35CDAF;">char</span> *);
+    pos = stpcpy(pos, str_val);
+    free(str_val);
+  }
+  va_end(args);
+  buf[<span style="color: #B5CEA8; font-weight: bold;">4095</span>] = <span style="color: #DB8E73;">'\0'</span>;
+  <span style="color: #35CDAF;">ssize_t</span> <span style="color: #85DDFF;">bytes_written</span> = write(STDOUT_FILENO, buf, pos - buf);
+  <span style="color: #339CDB;">if</span> (bytes_written == -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    perror(<span style="color: #DB8E73;">"write"</span>);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+}
+</pre>
+</div>
+
+<ol class="org-ol">
+<li>A variadic function is characterized by its last argument being <code>...</code>, which represents its list of any number of arguments (although it is limited to 127)</li>
+<li>To reference any of the elements in this last we first need a <code>va_list</code>, which we then initialize with <code>va_start</code></li>
+<li>The arguments are then looped through, with the ability to extract one argument at a time with <code>va_arg(args, typename)</code></li>
+<li>To cleanup resources <code>va_end</code> is called one you are done with the list</li>
+</ol>
+
+<p>
+You may notice something I omitted in the explanation, the number of arguments. In C there is no way at compile or run time to get the number of arguments in a <code>va_list</code>. Well that sucks.
+</p>
+
+<p>
+So now our users will have to make their first argument the number of arguments. That seems a bit redundant, and now we&rsquo;re not looking much beter than <code>printf</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  println(<span style="color: #B5CEA8; font-weight: bold;">3</span>, $(<span style="color: #B5CEA8; font-weight: bold;">5</span>), $(<span style="color: #DB8E73;">" "</span>), $(<span style="color: #B5CEA8; font-weight: bold;">3.14</span>));
+  <span style="color: #579C4C;">//      </span><span style="color: #579C4C;">^</span>
+  <span style="color: #579C4C;">//      </span><span style="color: #579C4C;">3 arguments being passed</span>
+}
+</pre>
+</div>
+
+<pre class="example" id="org1ae785c">
+5 3.140000
+</pre>
+
+<p>
+There we go! A slight improvement over <code>printf</code>? Maybe? Either way it was good to explore the use of <code>_Generic</code>. It reminds me a bit more of C++ <code>ostream</code> than I would like, but I can get over that. My biggest gripe here are that spaces have to be specified manually by inserting <code>" "</code> in between variables. That is a challenge that is probably best solved in another language, at another time.
+</p>
+</div>
+</div>
+<div id="outline-container-org08255cf" class="outline-3">
+<h3 id="org08255cf"><span class="underline">Improvements</span></h3>
+<div class="outline-text-3" id="text-org08255cf">
+<p>
+Earlier I mentioned how having to specify the number of arguments seems a bit redundant. Can we solve this? We can!
+</p>
+
+<p>
+We said that variadic functions can take up to a maximum of 127 arguments, so maybe there is a way we can hardcode 127 unique values. This is going to be a very hacky macro, and is totally optional, but it will make the user experience better.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Helper macro for counting the number of arguments</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">NUM_ARGS</span>(...)                                                          \
+  NUM_ARGS_IMPL(__VA_ARGS__, <span style="color: #B5CEA8; font-weight: bold;">127</span>, <span style="color: #B5CEA8; font-weight: bold;">126</span>, <span style="color: #B5CEA8; font-weight: bold;">125</span>, <span style="color: #B5CEA8; font-weight: bold;">124</span>, <span style="color: #B5CEA8; font-weight: bold;">123</span>, <span style="color: #B5CEA8; font-weight: bold;">122</span>, <span style="color: #B5CEA8; font-weight: bold;">121</span>, <span style="color: #B5CEA8; font-weight: bold;">120</span>, <span style="color: #B5CEA8; font-weight: bold;">119</span>, <span style="color: #B5CEA8; font-weight: bold;">118</span>, \
+                <span style="color: #B5CEA8; font-weight: bold;">117</span>, <span style="color: #B5CEA8; font-weight: bold;">116</span>, <span style="color: #B5CEA8; font-weight: bold;">115</span>, <span style="color: #B5CEA8; font-weight: bold;">114</span>, <span style="color: #B5CEA8; font-weight: bold;">113</span>, <span style="color: #B5CEA8; font-weight: bold;">112</span>, <span style="color: #B5CEA8; font-weight: bold;">111</span>, <span style="color: #B5CEA8; font-weight: bold;">110</span>, <span style="color: #B5CEA8; font-weight: bold;">109</span>, <span style="color: #B5CEA8; font-weight: bold;">108</span>, <span style="color: #B5CEA8; font-weight: bold;">107</span>, <span style="color: #B5CEA8; font-weight: bold;">106</span>,    \
+                <span style="color: #B5CEA8; font-weight: bold;">105</span>, <span style="color: #B5CEA8; font-weight: bold;">104</span>, <span style="color: #B5CEA8; font-weight: bold;">103</span>, <span style="color: #B5CEA8; font-weight: bold;">102</span>, <span style="color: #B5CEA8; font-weight: bold;">101</span>, <span style="color: #B5CEA8; font-weight: bold;">100</span>, <span style="color: #B5CEA8; font-weight: bold;">99</span>, <span style="color: #B5CEA8; font-weight: bold;">98</span>, <span style="color: #B5CEA8; font-weight: bold;">97</span>, <span style="color: #B5CEA8; font-weight: bold;">96</span>, <span style="color: #B5CEA8; font-weight: bold;">95</span>, <span style="color: #B5CEA8; font-weight: bold;">94</span>, <span style="color: #B5CEA8; font-weight: bold;">93</span>, <span style="color: #B5CEA8; font-weight: bold;">92</span>,  \
+                <span style="color: #B5CEA8; font-weight: bold;">91</span>, <span style="color: #B5CEA8; font-weight: bold;">90</span>, <span style="color: #B5CEA8; font-weight: bold;">89</span>, <span style="color: #B5CEA8; font-weight: bold;">88</span>, <span style="color: #B5CEA8; font-weight: bold;">87</span>, <span style="color: #B5CEA8; font-weight: bold;">86</span>, <span style="color: #B5CEA8; font-weight: bold;">85</span>, <span style="color: #B5CEA8; font-weight: bold;">84</span>, <span style="color: #B5CEA8; font-weight: bold;">83</span>, <span style="color: #B5CEA8; font-weight: bold;">82</span>, <span style="color: #B5CEA8; font-weight: bold;">81</span>, <span style="color: #B5CEA8; font-weight: bold;">80</span>, <span style="color: #B5CEA8; font-weight: bold;">79</span>, <span style="color: #B5CEA8; font-weight: bold;">78</span>, <span style="color: #B5CEA8; font-weight: bold;">77</span>,    \
+                <span style="color: #B5CEA8; font-weight: bold;">76</span>, <span style="color: #B5CEA8; font-weight: bold;">75</span>, <span style="color: #B5CEA8; font-weight: bold;">74</span>, <span style="color: #B5CEA8; font-weight: bold;">73</span>, <span style="color: #B5CEA8; font-weight: bold;">72</span>, <span style="color: #B5CEA8; font-weight: bold;">71</span>, <span style="color: #B5CEA8; font-weight: bold;">70</span>, <span style="color: #B5CEA8; font-weight: bold;">69</span>, <span style="color: #B5CEA8; font-weight: bold;">68</span>, <span style="color: #B5CEA8; font-weight: bold;">67</span>, <span style="color: #B5CEA8; font-weight: bold;">66</span>, <span style="color: #B5CEA8; font-weight: bold;">65</span>, <span style="color: #B5CEA8; font-weight: bold;">64</span>, <span style="color: #B5CEA8; font-weight: bold;">63</span>, <span style="color: #B5CEA8; font-weight: bold;">62</span>,    \
+                <span style="color: #B5CEA8; font-weight: bold;">61</span>, <span style="color: #B5CEA8; font-weight: bold;">60</span>, <span style="color: #B5CEA8; font-weight: bold;">59</span>, <span style="color: #B5CEA8; font-weight: bold;">58</span>, <span style="color: #B5CEA8; font-weight: bold;">57</span>, <span style="color: #B5CEA8; font-weight: bold;">56</span>, <span style="color: #B5CEA8; font-weight: bold;">55</span>, <span style="color: #B5CEA8; font-weight: bold;">54</span>, <span style="color: #B5CEA8; font-weight: bold;">53</span>, <span style="color: #B5CEA8; font-weight: bold;">52</span>, <span style="color: #B5CEA8; font-weight: bold;">51</span>, <span style="color: #B5CEA8; font-weight: bold;">50</span>, <span style="color: #B5CEA8; font-weight: bold;">49</span>, <span style="color: #B5CEA8; font-weight: bold;">48</span>, <span style="color: #B5CEA8; font-weight: bold;">47</span>,    \
+                <span style="color: #B5CEA8; font-weight: bold;">46</span>, <span style="color: #B5CEA8; font-weight: bold;">45</span>, <span style="color: #B5CEA8; font-weight: bold;">44</span>, <span style="color: #B5CEA8; font-weight: bold;">43</span>, <span style="color: #B5CEA8; font-weight: bold;">42</span>, <span style="color: #B5CEA8; font-weight: bold;">41</span>, <span style="color: #B5CEA8; font-weight: bold;">40</span>, <span style="color: #B5CEA8; font-weight: bold;">39</span>, <span style="color: #B5CEA8; font-weight: bold;">38</span>, <span style="color: #B5CEA8; font-weight: bold;">37</span>, <span style="color: #B5CEA8; font-weight: bold;">36</span>, <span style="color: #B5CEA8; font-weight: bold;">35</span>, <span style="color: #B5CEA8; font-weight: bold;">34</span>, <span style="color: #B5CEA8; font-weight: bold;">33</span>, <span style="color: #B5CEA8; font-weight: bold;">32</span>,    \
+                <span style="color: #B5CEA8; font-weight: bold;">31</span>, <span style="color: #B5CEA8; font-weight: bold;">30</span>, <span style="color: #B5CEA8; font-weight: bold;">29</span>, <span style="color: #B5CEA8; font-weight: bold;">28</span>, <span style="color: #B5CEA8; font-weight: bold;">27</span>, <span style="color: #B5CEA8; font-weight: bold;">26</span>, <span style="color: #B5CEA8; font-weight: bold;">25</span>, <span style="color: #B5CEA8; font-weight: bold;">24</span>, <span style="color: #B5CEA8; font-weight: bold;">23</span>, <span style="color: #B5CEA8; font-weight: bold;">22</span>, <span style="color: #B5CEA8; font-weight: bold;">21</span>, <span style="color: #B5CEA8; font-weight: bold;">20</span>, <span style="color: #B5CEA8; font-weight: bold;">19</span>, <span style="color: #B5CEA8; font-weight: bold;">18</span>, <span style="color: #B5CEA8; font-weight: bold;">17</span>,    \
+                <span style="color: #B5CEA8; font-weight: bold;">16</span>, <span style="color: #B5CEA8; font-weight: bold;">15</span>, <span style="color: #B5CEA8; font-weight: bold;">14</span>, <span style="color: #B5CEA8; font-weight: bold;">13</span>, <span style="color: #B5CEA8; font-weight: bold;">12</span>, <span style="color: #B5CEA8; font-weight: bold;">11</span>, <span style="color: #B5CEA8; font-weight: bold;">10</span>, <span style="color: #B5CEA8; font-weight: bold;">9</span>, <span style="color: #B5CEA8; font-weight: bold;">8</span>, <span style="color: #B5CEA8; font-weight: bold;">7</span>, <span style="color: #B5CEA8; font-weight: bold;">6</span>, <span style="color: #B5CEA8; font-weight: bold;">5</span>, <span style="color: #B5CEA8; font-weight: bold;">4</span>, <span style="color: #B5CEA8; font-weight: bold;">3</span>, <span style="color: #B5CEA8; font-weight: bold;">2</span>, <span style="color: #B5CEA8; font-weight: bold;">1</span>)
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Helper macro for expanding the arguments</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">NUM_ARGS_IMPL</span>(                                                         \
+    <span style="color: #85DDFF;">_127</span>, <span style="color: #85DDFF;">_126</span>, <span style="color: #85DDFF;">_125</span>, <span style="color: #85DDFF;">_124</span>, <span style="color: #85DDFF;">_123</span>, <span style="color: #85DDFF;">_122</span>, <span style="color: #85DDFF;">_121</span>, <span style="color: #85DDFF;">_120</span>, <span style="color: #85DDFF;">_119</span>, <span style="color: #85DDFF;">_118</span>, <span style="color: #85DDFF;">_117</span>, <span style="color: #85DDFF;">_116</span>,    \
+    <span style="color: #85DDFF;">_115</span>, <span style="color: #85DDFF;">_114</span>, <span style="color: #85DDFF;">_113</span>, <span style="color: #85DDFF;">_112</span>, <span style="color: #85DDFF;">_111</span>, <span style="color: #85DDFF;">_110</span>, <span style="color: #85DDFF;">_109</span>, <span style="color: #85DDFF;">_108</span>, <span style="color: #85DDFF;">_107</span>, <span style="color: #85DDFF;">_106</span>, <span style="color: #85DDFF;">_105</span>, <span style="color: #85DDFF;">_104</span>,    \
+    <span style="color: #85DDFF;">_103</span>, <span style="color: #85DDFF;">_102</span>, <span style="color: #85DDFF;">_101</span>, <span style="color: #85DDFF;">_100</span>, <span style="color: #85DDFF;">_99</span>, <span style="color: #85DDFF;">_98</span>, <span style="color: #85DDFF;">_97</span>, <span style="color: #85DDFF;">_96</span>, <span style="color: #85DDFF;">_95</span>, <span style="color: #85DDFF;">_94</span>, <span style="color: #85DDFF;">_93</span>, <span style="color: #85DDFF;">_92</span>, <span style="color: #85DDFF;">_91</span>, <span style="color: #85DDFF;">_90</span>,  \
+    <span style="color: #85DDFF;">_89</span>, <span style="color: #85DDFF;">_88</span>, <span style="color: #85DDFF;">_87</span>, <span style="color: #85DDFF;">_86</span>, <span style="color: #85DDFF;">_85</span>, <span style="color: #85DDFF;">_84</span>, <span style="color: #85DDFF;">_83</span>, <span style="color: #85DDFF;">_82</span>, <span style="color: #85DDFF;">_81</span>, <span style="color: #85DDFF;">_80</span>, <span style="color: #85DDFF;">_79</span>, <span style="color: #85DDFF;">_78</span>, <span style="color: #85DDFF;">_77</span>, <span style="color: #85DDFF;">_76</span>, <span style="color: #85DDFF;">_75</span>, \
+    <span style="color: #85DDFF;">_74</span>, <span style="color: #85DDFF;">_73</span>, <span style="color: #85DDFF;">_72</span>, <span style="color: #85DDFF;">_71</span>, <span style="color: #85DDFF;">_70</span>, <span style="color: #85DDFF;">_69</span>, <span style="color: #85DDFF;">_68</span>, <span style="color: #85DDFF;">_67</span>, <span style="color: #85DDFF;">_66</span>, <span style="color: #85DDFF;">_65</span>, <span style="color: #85DDFF;">_64</span>, <span style="color: #85DDFF;">_63</span>, <span style="color: #85DDFF;">_62</span>, <span style="color: #85DDFF;">_61</span>, <span style="color: #85DDFF;">_60</span>, \
+    <span style="color: #85DDFF;">_59</span>, <span style="color: #85DDFF;">_58</span>, <span style="color: #85DDFF;">_57</span>, <span style="color: #85DDFF;">_56</span>, <span style="color: #85DDFF;">_55</span>, <span style="color: #85DDFF;">_54</span>, <span style="color: #85DDFF;">_53</span>, <span style="color: #85DDFF;">_52</span>, <span style="color: #85DDFF;">_51</span>, <span style="color: #85DDFF;">_50</span>, <span style="color: #85DDFF;">_49</span>, <span style="color: #85DDFF;">_48</span>, <span style="color: #85DDFF;">_47</span>, <span style="color: #85DDFF;">_46</span>, <span style="color: #85DDFF;">_45</span>, \
+    <span style="color: #85DDFF;">_44</span>, <span style="color: #85DDFF;">_43</span>, <span style="color: #85DDFF;">_42</span>, <span style="color: #85DDFF;">_41</span>, <span style="color: #85DDFF;">_40</span>, <span style="color: #85DDFF;">_39</span>, <span style="color: #85DDFF;">_38</span>, <span style="color: #85DDFF;">_37</span>, <span style="color: #85DDFF;">_36</span>, <span style="color: #85DDFF;">_35</span>, <span style="color: #85DDFF;">_34</span>, <span style="color: #85DDFF;">_33</span>, <span style="color: #85DDFF;">_32</span>, <span style="color: #85DDFF;">_31</span>, <span style="color: #85DDFF;">_30</span>, \
+    <span style="color: #85DDFF;">_29</span>, <span style="color: #85DDFF;">_28</span>, <span style="color: #85DDFF;">_27</span>, <span style="color: #85DDFF;">_26</span>, <span style="color: #85DDFF;">_25</span>, <span style="color: #85DDFF;">_24</span>, <span style="color: #85DDFF;">_23</span>, <span style="color: #85DDFF;">_22</span>, <span style="color: #85DDFF;">_21</span>, <span style="color: #85DDFF;">_20</span>, <span style="color: #85DDFF;">_19</span>, <span style="color: #85DDFF;">_18</span>, <span style="color: #85DDFF;">_17</span>, <span style="color: #85DDFF;">_16</span>, <span style="color: #85DDFF;">_15</span>, \
+    <span style="color: #85DDFF;">_14</span>, <span style="color: #85DDFF;">_13</span>, <span style="color: #85DDFF;">_12</span>, <span style="color: #85DDFF;">_11</span>, <span style="color: #85DDFF;">_10</span>, <span style="color: #85DDFF;">_9</span>, <span style="color: #85DDFF;">_8</span>, <span style="color: #85DDFF;">_7</span>, <span style="color: #85DDFF;">_6</span>, <span style="color: #85DDFF;">_5</span>, <span style="color: #85DDFF;">_4</span>, <span style="color: #85DDFF;">_3</span>, <span style="color: #85DDFF;">_2</span>, <span style="color: #85DDFF;">_1</span>, <span style="color: #85DDFF;">N</span>, ...)       \
+  N
+</pre>
+</div>
+
+<p>
+The way this works is a bit complicated, but I will try my best to explain it with the variables <code>a</code>, <code>b</code>, and <code>c</code>
+</p>
+
+
+<div id="org424d0dc" class="figure">
+<p><img src="num_args_macro.png" alt="num_args_macro.png" />
+</p>
+</div>
+
+<ol class="org-ol">
+<li>We call <code>NUM_ARGS(a, b, c)</code> with all of our arguments</li>
+<li>We then call <code>NUM_ARGS_IMPL(a, b, c, 127, 126, ..., 3, 2, 1)</code></li>
+<li>It may be hard to tell, but <code>NUM_ARGS_IMPL</code> is a giant function that takes 129 different arguments, named <code>_127-_1</code>, <code>N</code>, and finally its variadic list at the end <code>...</code></li>
+<li><code>a, b, c</code> causes the original list of numbers to shift to the right by <code>3</code> positions, so that the number in argument <code>N</code> ends up 3! With 2 and 1 spilling off the end into the variadic list</li>
+<li>Finally we are returned the value <code>3</code></li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 12/27/23</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>

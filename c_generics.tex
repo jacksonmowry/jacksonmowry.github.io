@@ -1,0 +1,72 @@
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson}
+\date{12/27/23}
+\title{\emph{C Generics}}
+\hypersetup{
+ pdfauthor={Jackson},
+ pdftitle={\emph{C Generics}},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.1 (Org mode 9.7)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section*{\underline{Introduction}}
+\label{sec:org2420c53}
+If you've coded in C for any amount of time you probably think that C doesn't have generics. After all, C++ clearly has generics, so if C did surely they would look the same, right?
+
+Well, you are sort of right, and sort of wrong. See, C does not have generics in the regular sense, where the compiler will figure out which types you are using at compile time and generate the correct code for the generic function or data structure. C has \texttt{\_Generic}, which is a compile time macro that chooses between a set list of options based on the type of the argument it was passed.
+
+You may ask, how is this any different from an overloaded function? From what I can tell they're the exact same thing, with both choosing the correct path at compile time. Sounds simple enough, let's just use function overloading instead.
+
+\begin{lstlisting}[language=C,numbers=none]
+int add(int a, int b) {
+  return a + b;
+}
+
+float add(float a, float b) {
+  return a + b;
+}
+
+int main() {
+  int i_result = add(2, 4);
+  float f_result = add(2.0, 4.0);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C,numbers=none]
+12:7: error: conflicting types for ‘add’; have ‘float(float,  float)’
+   12 | float add(float a, float b) {
+      |       ^~~
+8:5: note: previous definition of ‘add’ with type ‘int(int,  int)’
+    8 | int add(int a, int b) {
+      |     ^~~
+\end{lstlisting}
+
+Ohh\ldots{} that didn't work.
+
+As you may know, we don't have the ability to define overloaded functions in C.
+
+In this article we are going to take a look at a few example use cases where generics may help us write more concise code, that vastly simplifies our API.
+\section*{\underline{Making a \sout{better} Print Function}}
+\label{sec:org0e2ca5b}
+Any C programmer has learned to either love or hate \texttt{printf}, I personally prefer it over a C++ \texttt{ostream}, but as I've learned from other languages, there can an even easier way to print. In both \texttt{javascript} and \texttt{vlang} you can use the concept of \emph{template literals} (\href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template\_literals}{mdn}, \href{https://github.com/vlang/v/blob/master/doc/docs.md\#println}{vlang}). Template literals allow the entire string to be defined at once, with each variable or expression residing within a \texttt{\$\{\}} block.
+\begin{lstlisting}[language=C,numbers=none]
+int main() {
+
+}
+\end{lstlisting}
+\end{document}
