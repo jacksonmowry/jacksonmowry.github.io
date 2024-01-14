@@ -3,6 +3,8 @@
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
 * Articles
+** Template Engine in C Using Generated Functions
+[[file:text_templating.org][Template Engine]]
 ** Generics in C
 [[file:c_generics.org][C Generics]]
 ** Exploring the RISC-V ABI on Linux
