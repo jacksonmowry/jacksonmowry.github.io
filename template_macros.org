@@ -1,0 +1,10 @@
+#+HTML_LINK_HOME: index.html
+#+HTML_LINK_UP: index.html
+#+title: /Building a Text Templating System in C/
+#+author: Jackson
+#+date: 1/10/24
+#+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
+#+SETUPFILE: retro_dark.theme
+#+OPTIONS: html-postamble:nil html-scripts:t
+
+/A continuation of the [[file:text_templating.org][previous article]]/.
