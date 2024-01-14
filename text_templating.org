@@ -141,7 +141,7 @@ char *template_to_function(const char *const file) {
     return NULL;
   }
 
-  char *function_buffer = calloc(sizeof(char), 4096);
+  char *function_buffer = calloc(sizeof(char), 10000);
   char *fb_ptr = function_buffer;
   if(!function_buffer) {
     perror("calloc");
