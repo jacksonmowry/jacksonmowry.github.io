@@ -1,0 +1,10 @@
+<!-- test.input -->
+<h1>This an article about ${title:%s}</h1>
+@for (int i = 0; i < 5; i++) {
+     <div>Iteration: ${$i:%d}, ${variable:%d}</div>
+     <span>Hi mom!</span>
+@}
+<h3>Let me know what you thought about ${title:%s}</h3>
+<pre>
+    @include{"index.md"}
+</pre>

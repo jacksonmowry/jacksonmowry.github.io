@@ -1,0 +1,25 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <link>${testing:%s}</link>
+        <style>
+         body {
+             background-color: #1a1a1a; /* Dark background color */
+             color: #ffffff; /* Light text color */
+         }
+        </style>
+    </head>
+    <body>
+        <div>Hi Mom! My name is ${name:%s} ${last_name:%s}</div>
+        @for(int i = 0; i < 10; i++) {
+            <div>${$i:%d}</div>
+        @}
+
+        <pre>
+          @include{"index.md"}
+        </pre>
+
+        ${$sqrt(32):%f}
+    </body>
+</html>

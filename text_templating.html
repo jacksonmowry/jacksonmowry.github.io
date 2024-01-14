@@ -1,0 +1,1859 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Building a Text Templating System in C/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+<script>
+// @license magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&amp;dn=gpl-3.0.txt GPL-v3-or-Later
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.add("code-highlighted");
+         target.classList.add("code-highlighted");
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.remove("code-highlighted");
+         target.classList.remove("code-highlighted");
+       }
+     }
+// @license-end
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Building a Text Templating System in C</i></h1>
+<p>
+<i>Inspired by <a href="https://bits.theoremone.co/how-to-write-a-template-library/">this</a> for the implementation and <a href="https://github.com/vlang/v/blob/master/vlib/v/TEMPLATES.md">this</a> for the syntax.</i>
+</p>
+<div id="outline-container-org1521a9c" class="outline-2">
+<h2 id="org1521a9c"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org1521a9c">
+<p>
+When working with files it is often advantageous to use a template, that can simply be filled in with the necessary information at runtime. This concept applies to HTML templating for web programming, filling in an invoice for clients, or as simple as filling in the correct date on a Markdown document. The implementation discussed here is viable for any text templating, because we leave the use case up to the user, giving them the primitives to build what they need.
+</p>
+
+<p>
+At a basic level we want to allow the user to fill in variable values, execute code, and include other templates. This allows the user to create as complex or as simple of an output text file as they need.
+</p>
+
+<p>
+We are essentially building a &ldquo;compiler&rdquo; for our templates, which generates code that is run to generate the output template. I wouldn&rsquo;t exactly consider this a compiler, but it does parse the source file and generate code based upon its contents. Our implementation is written in C, and will generate C code, but these concepts can be ported to any source language, generating code for any destination language.
+</p>
+
+<p>
+The biggest reason why we are building this as a code generation tool is so that the expensive parsing is only done once, with the runtime cost to fill in a template being relatively small. If we had to parse a template a runtime we&rsquo;d lose the speed benefit. Parsing at runtime is also no different from a giant call to <code>printf</code>, where each variable has to be passed in the correct order. Lastly, generating code gives us type safety, ensuring that every variable in the template is present when the final program is compiled. We will see how we can implement this type safety in 2 different ways.
+</p>
+</div>
+</div>
+<div id="outline-container-org7d39772" class="outline-2">
+<h2 id="org7d39772"><span class="underline">Ground Work</span></h2>
+<div class="outline-text-2" id="text-org7d39772">
+<p>
+As we discussed before, we have 3 basic ways that a user can augment their template files. Let&rsquo;s take a look at a basic template. By the end our template engine should have no trouble parsing this.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html">&lt;<span style="color: #339CDB;">!doctype</span> html&gt;
+&lt;<span style="color: #D9DAA2;">html</span> <span style="color: #85DDFF;">class</span>=<span style="color: #DB8E73;">"no-js"</span> <span style="color: #85DDFF;">lang</span>=<span style="color: #DB8E73;">""</span>&gt;
+    &lt;<span style="color: #D9DAA2;">head</span>&gt;
+        &lt;<span style="color: #D9DAA2;">meta</span> <span style="color: #85DDFF;">charset</span>=<span style="color: #DB8E73;">"utf-8"</span>&gt;
+        &lt;<span style="color: #D9DAA2;">link</span>&gt;${testing:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">link</span>&gt;
+        &lt;<span style="color: #D9DAA2;">style</span>&gt;
+         body {
+             background-color: #1a1a1a; /* Dark background color */
+             color: #ffffff; /* Light text color */
+         }
+        &lt;/<span style="color: #D9DAA2;">style</span>&gt;
+    &lt;/<span style="color: #D9DAA2;">head</span>&gt;
+    &lt;<span style="color: #D9DAA2;">body</span>&gt;
+        &lt;<span style="color: #D9DAA2;">div</span>&gt;Hi Mom! My name is ${name:<span style="color: #85DDFF;">%s</span>} ${last_name:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+        @for(int i = 0; i &lt; 10; i++) {
+            &lt;<span style="color: #D9DAA2;">div</span>&gt;${$i:<span style="color: #85DDFF;">%d</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+        @}
+
+        &lt;<span style="color: #D9DAA2;">pre</span>&gt;
+           @include{<span style="color: #DB8E73;">"index.md"</span>}
+        &lt;/<span style="color: #D9DAA2;">pre</span>&gt;
+
+        ${$sqrt(32):<span style="color: #85DDFF;">%f</span>}
+    &lt;/<span style="color: #D9DAA2;">body</span>&gt;
+&lt;/<span style="color: #D9DAA2;">html</span>&gt;
+</pre>
+</div>
+</div>
+<div id="outline-container-org78518db" class="outline-3">
+<h3 id="org78518db"><span class="underline">Basic Output</span></h3>
+<div class="outline-text-3" id="text-org78518db">
+<p>
+The majority of lines in a template file will be just that, text. We don&rsquo;t want to mess with these lines, so we can output them directly.
+</p>
+</div>
+</div>
+<div id="outline-container-org0110d49" class="outline-3">
+<h3 id="org0110d49"><span class="underline">Filling in Variables</span></h3>
+<div class="outline-text-3" id="text-org0110d49">
+<p>
+In order to be a template there has to be some concept of &ldquo;variables&rdquo;, which are dynamically filled in based on the values at runtime. We will surround these variables with <code>${}</code>, which serves as a landmark for our parser. We can see this on the line <code>&lt;div&gt;${$i:%d}&lt;/div&gt;</code> Everything inside this marker will be treated as a variable, and the value will make its way into the final output. The user also specifies a format string to tell the template how the variable should be represented as a string.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb1147b6" class="outline-3">
+<h3 id="orgb1147b6"><span class="underline">Executing Code</span></h3>
+<div class="outline-text-3" id="text-orgb1147b6">
+<p>
+If we stop here we would already have a templating system, but it wouldn&rsquo;t be too far from a static file. We can expand upon this by allowing the user to execute any arbitrary code in the output language. For our implementation that means executing any C code. Any line whose first non-whitespace character is a &rsquo;@&rsquo; will be treated as a line of C code.
+</p>
+
+<p>
+A timeline of posts on something like reddit needs to render one &ldquo;card&rdquo; for each post, which we can accomplish by looping over a set of input data and generating a card for each.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html">@for (int i = 0; i &lt; posts.len; i++) {
+                     @post p = posts.get(i);
+                     &lt;<span style="color: #D9DAA2;">div</span>&gt;
+                       &lt;<span style="color: #D9DAA2;">span</span>&gt;${$p.title:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+                       &lt;<span style="color: #D9DAA2;">span</span>&gt;${$p.author:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+                       &lt;<span style="color: #D9DAA2;">div</span>&gt;${$p.body:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+                     &lt;/<span style="color: #D9DAA2;">div</span>&gt;
+                     @}
+</pre>
+</div>
+
+<p>
+Our first implementation will try to be as hands off as possible, so we won&rsquo;t worry about handling the case where the user wants to print <code>${array[i]:%d}</code> We will see how to handle this later.
+</p>
+
+<p>
+Here we used the syntax <code>${$var:%d}</code>, where the second <code>$</code> indicated that this is a local varaible. This tells our template engine to not worry about adding the identifier to our list of parameters.
+</p>
+</div>
+</div>
+<div id="outline-container-org3c6200c" class="outline-3">
+<h3 id="org3c6200c"><span class="underline">Including Templates</span></h3>
+<div class="outline-text-3" id="text-org3c6200c">
+<p>
+The last step to creating a fully featured templating system is to allow the importing of other templates. If a component or block is used across multiple templates, or potentially even multiple times in the same template it makes sense to break that out into its own template. We want to embed these templates into our root template so that all the data that a template and its descendants need is present at compile time.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org40813c0" class="outline-2">
+<h2 id="org40813c0"><span class="underline">Generating Code</span></h2>
+<div class="outline-text-2" id="text-org40813c0">
+<p>
+In order for our templates to work at compile time they will need to generate code in our desired language. We will output this generated code to a header file, which the user can then import in to their application. Let&rsquo;s look at a very basic template and the code we want it to generate.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html">This is a normal line, it should be left unchanged
+@// This is a comment in C, which will not be executed
+@for (int i = 0; i &lt; 5; i++)
+    ${$i:<span style="color: #85DDFF;">%d</span>}
+@}
+${variable:<span style="color: #85DDFF;">%s</span>}
+</pre>
+</div>
+
+<p>
+We want our template engine to generate the following&#x2026;
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_txt</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">variable</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf_ptr</span> = buf;
+
+  buf_ptr += sprintf(buf_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"This is a normal line, it should be left unchanged"</span>);
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">This is a comment in C, which will not be executed</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    buf_ptr += sprintf(buf_ptr, <span style="color: #DB8E73;">"%d"</span>, i);
+  }
+  buf_ptr += sprintf(buf_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"\n"</span>);
+  buf_ptr += sprintf(buf_ptr, <span style="color: #DB8E73;">"%s\n"</span>, variable);
+  <span style="color: #339CDB;">return</span> buf;
+}
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">variable</span> = <span style="color: #DB8E73;">"Hi!"</span>;
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output</span> = test_txt(variable);
+  printf(<span style="color: #DB8E73;">"%s"</span>, output);
+  free(output);
+}
+</pre>
+</div>
+
+<pre class="example">
+This is a normal line, it should be left unchanged
+01234
+Hi!
+</pre>
+
+
+<p>
+The function <code>test_txt</code> gets its name from the file that was used to generate it. In order to ensure a valid function name in C, all non-alphabetic characters are replaced with underscores. As you can see any line beginning with <code>@</code> is translated directly to C code, with the remaining lines having their string representation appended to the output buffer.
+</p>
+
+<p>
+There are a lot of things to keep track of while parsing the template, so to simplify our job as much as possible we will work with the file line-by-line. At each line we will scan character by character, making a decision based upon what we see. Let&rsquo;s look how this will work in our code.
+</p>
+</div>
+</div>
+<div id="outline-container-org623375e" class="outline-2">
+<h2 id="org623375e"><span class="underline">Parsing a Template</span></h2>
+<div class="outline-text-2" id="text-org623375e">
+<p>
+To read a file line-by-line in C we can use a handy function in the standard library called <code>getline</code>. This function reads input from a file descriptor, returning once it reaches a new line. The input is placed in a buffer for us, and we are given the number of characters that were read.
+</p>
+
+<p>
+Our first step is to open a file, and create a buffer for it to read in to. At the same time we will also create a buffer where we will build up our function.
+</p>
+
+<p>
+The function we are going to generate needs to be able to write its output into a buffer that can be returned. We will worry about the opening and closing lines of the function elsewhere, for now we will create the buffer it can write in to. Things do get a bit confusing here, we are going to have a buffer in our generation state, and a buffer at runtime, try to not get the 2 confused.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a new buffer with the function body</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Must be freed</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">template_to_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">file</span>) {
+  <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">fp</span> = fopen(file, <span style="color: #DB8E73;">"r"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>fp) {
+    perror(<span style="color: #DB8E73;">"fopen"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">function_buffer</span> = calloc(<span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">char</span>), <span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">fb_ptr</span> = function_buffer;
+  <span style="color: #339CDB;">if</span>(<span style="color: #85DDFF; font-weight: bold;">!</span>function_buffer) {
+    perror(<span style="color: #DB8E73;">"calloc"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"char *output_buffer = (char*)malloc(4096;\n)"</span>);
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"char *output_ptr = output_buffer;\n"</span>);
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">input_line</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #35CDAF;">ssize_t</span> <span style="color: #85DDFF;">read</span>;
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">pos</span>;
+
+  <span style="color: #339CDB;">while</span> ((read = getline(&amp;input_line, &amp;len, fp)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span> = line_input;
+    line[read - <span style="color: #B5CEA8; font-weight: bold;">1</span>] = <span style="color: #DB8E73;">'\0'</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Removing the trailing newline</span>
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Parse Line</span>
+    <span style="color: #579C4C;">//    </span><span style="color: #579C4C;">Handle @ symbol</span>
+    <span style="color: #579C4C;">//    </span><span style="color: #579C4C;">Handle Line</span>
+  }
+
+  free(input_line);
+
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\treturn output_buffer;\n"</span>);
+  fclose(fp);
+  <span style="color: #339CDB;">return</span> function_buffer;
+}
+</pre>
+</div>
+</div>
+<div id="outline-container-orgee88895" class="outline-3">
+<h3 id="orgee88895"><span class="underline">Parsing @ Lines</span></h3>
+<div class="outline-text-3" id="text-orgee88895">
+<p>
+Now we are set up to begin parsing the template. The easiest thing to parse is a line of code, so we will start there. Note that we are using labels here to make it easier to follow along with the article, they are not needed in the final code.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns the position of the first non `@` character,</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">or -1 if it does not exist</span>
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">code_line_p</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span>) {
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">pos</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #339CDB;">while</span> (line[pos] == <span style="color: #DB8E73;">' '</span> || line[pos] == <span style="color: #DB8E73;">'\t'</span>) {
+    ++pos;
+  }
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>line[pos] || line[pos] != <span style="color: #DB8E73;">'@'</span>) {
+    <span style="color: #339CDB;">return</span> -<span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #339CDB;">return</span> pos + <span style="color: #B5CEA8; font-weight: bold;">1</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">One past the `@`</span>
+  }
+}
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Inside the function above</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Parse Line</span>
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle @ symbol</span>
+  <span style="color: #339CDB;">if</span> ((pos = code_line_p(line)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Line of code, append it!</span>
+    fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"%s\n"</span>, line + pos);
+    <span style="color: #339CDB;">continue</span>;
+  }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle Line</span>
+</pre>
+</div>
+
+
+<div id="org770e85f" class="figure">
+<p><img src="code_line_p.png" alt="code_line_p.png" />
+</p>
+</div>
+
+<p>
+Our program should now be able to recognize lines that begin with <code>@</code>, which it appends to the function. Let&rsquo;s see what it can generate at this point. We will create a main function that calls <code>template_to_function</code> and prints out the result.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  puts(template_to_function(<span style="color: #DB8E73;">"test.input"</span>));
+}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+@for (int i = 0; i &lt; 5; i++) {
+                     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+                     @}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+<span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+ }
+<span style="color: #339CDB;">return</span> output_buffer;
+</pre>
+</div>
+
+<p>
+Exactly what we expected! We can see our buffer initialzation, followed by C code directly in the resulting function. Except for one problem, this isn&rsquo;t a function yet. Let&rsquo;s fix that.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">convert_filename removes non-alphabetic chars replacing them with `_`</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a new string with the converted name must be freed</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">convert_filename</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">converted</span> = strdup(filename);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; converted[i]; i++) {
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>((converted[i] &gt;= <span style="color: #DB8E73;">'a'</span> &amp;&amp; converted[i] &lt;= <span style="color: #DB8E73;">'z'</span>) ||
+          (converted[i] &gt;= <span style="color: #DB8E73;">'A'</span> &amp;&amp; converted[i] &lt;= <span style="color: #DB8E73;">'Z'</span>))) {
+      converted[i] = <span style="color: #DB8E73;">'_'</span>;
+    }
+  }
+
+  <span style="color: #339CDB;">return</span> converted;
+}
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">generate_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>, <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">output_fd</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">function_name</span> = convert_filename(filename);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">template_function</span> = template_to_function(filename);
+
+  fprintf(output_fd, <span style="color: #DB8E73;">"char *%s() {\n"</span>, function_name);
+  fprintf(output_fd, <span style="color: #DB8E73;">"%s"</span>, template_function);
+  fprintf(output_fd, <span style="color: #DB8E73;">"}"</span>);
+
+  free(template_function);
+  free(function_name);
+}
+</pre>
+</div>
+
+<p>
+Instead of simply printing our code out to the terminal it might be more helpful if it can eventually be written to a file, we will use a <a href="https://en.wikipedia.org/wiki/File_descriptor"><i>file descriptor</i></a> to accomplish this. Our first step is to convert the filename to a valid C function name. The function body is then generated through the original process. We then write the entire function out before freeing any allocated memory. Hopefully this gets us a full function.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  generate_function(<span style="color: #DB8E73;">"test.input"</span>, stdout);
+}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+  }
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Almost there, we should probably clean it up ever so slightly by adding indentation to the function body. This involves changing any calls to <code>sprintf</code> in <code>template_to_function</code> to have their format string begin with <code>\t</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+  }
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Much better! Our parser can now handle C code embedded directly in a template, but this is still not super useful. Currently, nothing is being added to this output buffer, we can solve this by expanding out parser.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb584d86" class="outline-3">
+<h3 id="orgb584d86"><span class="underline">Parsing Variables</span></h3>
+<div class="outline-text-3" id="text-orgb584d86">
+<p>
+If a line doesn&rsquo;t contain any variables it is fairly easy to add to our function.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle Line</span>
+fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\toutput_ptr += sprintf(\"%%s\", \"%s\");\n"</span>, line);
+<span style="color: #339CDB;">continue</span>;
+</pre>
+</div>
+
+<p>
+Which produces&#x2026; (I will be formatting output code blocks from now on. We will touch on tracking indentation later on.)
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(<span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(<span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Well that is great, but we need some way to add dynamic content through variables. This is the heart of our parser. We will scan along character-by-character and decided what to do with each section of text. To accomplish this we will create a simple <a href="https://en.wikipedia.org/wiki/Finite-state_machine"><i>state machine</i></a> which tracks if we&rsquo;re in a variable or not.
+</p>
+
+
+<div id="org1eb6c25" class="figure">
+<p><img src="variable_parsing.png" alt="variable_parsing.png" />
+</p>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #339CDB;">while</span> ((read = getline(&amp;input_line, &amp;len, fp)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span> = input_line;
+  line[read - <span style="color: #B5CEA8; font-weight: bold;">1</span>] = <span style="color: #DB8E73;">'\0'</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Removing the trailing newline</span>
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle @ symbol</span>
+  <span style="color: #339CDB;">if</span> ((pos = code_line_p(line)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Line of code, append it!</span>
+    fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\t%s\n"</span>, line + pos);
+    <span style="color: #339CDB;">continue</span>;
+  }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle Line</span>
+  <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">temporary_buffer</span>[<span style="color: #B5CEA8; font-weight: bold;">500</span>];
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">tb_len</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">inside_variable</span> = <span style="color: #339CDB;">false</span>;
+  <span style="color: #339CDB;">while</span> (*line) {
+    <span style="color: #339CDB;">if</span> (*line == <span style="color: #DB8E73;">'$'</span> &amp;&amp; *(line + <span style="color: #B5CEA8; font-weight: bold;">1</span>) &amp;&amp; *(line + <span style="color: #B5CEA8; font-weight: bold;">1</span>) == <span style="color: #DB8E73;">'{'</span>) {
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Found a variable declaration</span>
+      inside_variable = <span style="color: #339CDB;">true</span>;
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Flush the buffer if it has something in it</span>
+      <span style="color: #339CDB;">if</span> (tb_len &gt; <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+        fb_ptr += sprintf(
+                          fb_ptr, <span style="color: #DB8E73;">"\toutput_ptr += sprintf(output_ptr, \"%%s\", \"%s\");\n"</span>,
+                          temporary_buffer);
+        temporary_buffer[<span style="color: #B5CEA8; font-weight: bold;">0</span>] = <span style="color: #DB8E73;">'\0'</span>;
+        tb_len = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+      }
+      line += <span style="color: #B5CEA8; font-weight: bold;">2</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Skip past `${`</span>
+    } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (inside_variable) {
+      <span style="color: #339CDB;">while</span> (*line != <span style="color: #DB8E73;">':'</span>) {
+        temporary_buffer[tb_len++] = *line++;
+      }
+      line++; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">skip past `:`</span>
+      temporary_buffer[tb_len++] = <span style="color: #DB8E73;">'\0'</span>;
+      <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">fmt_string</span> =
+        &amp;temporary_buffer[tb_len]; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Beginning of %s or %d etc.</span>
+      <span style="color: #339CDB;">while</span> (*line != <span style="color: #DB8E73;">'}'</span>) {
+        temporary_buffer[tb_len++] = *line++;
+      }
+      temporary_buffer[tb_len++] = <span style="color: #DB8E73;">'\0'</span>;
+      fb_ptr += sprintf(fb_ptr,
+                        <span style="color: #DB8E73;">"\toutput_ptr += sprintf(output_ptr, \"%s\", %s);\n"</span>,
+                        fmt_string, temporary_buffer);
+      temporary_buffer[<span style="color: #B5CEA8; font-weight: bold;">0</span>] = <span style="color: #DB8E73;">'\0'</span>;
+      tb_len = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+      inside_variable = <span style="color: #339CDB;">false</span>;
+      line++;
+    } <span style="color: #339CDB;">else</span> {
+      temporary_buffer[tb_len++] = *line;
+      temporary_buffer[tb_len] = <span style="color: #DB8E73;">'\0'</span>;
+      line++;
+    }
+  }
+  temporary_buffer[tb_len] = <span style="color: #DB8E73;">'\0'</span>;
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\toutput_ptr += sprintf(output_ptr, \"%%s\\n\", \"%s\");\n"</span>, temporary_buffer);
+ }
+</pre>
+</div>
+
+<p>
+Our state machine has 4 possible states.
+</p>
+</div>
+<div id="outline-container-org31ab2ea" class="outline-4">
+<h4 id="org31ab2ea">Found Variable Block</h4>
+<div class="outline-text-4" id="text-org31ab2ea">
+<p>
+When we find a variable we first set the boolean condition to indicate where we are. The buffer is then flushed to ensure any plain text before the variable is printed correctly. For plain text our output is a simple <code>%s</code>, with the content of the line being passed as its only argument. Our last step is to skip the pointer over the sequence <code>${</code>, so that we start in the correct position on the next step.
+</p>
+
+<pre class="example" id="org3ea4f35">
+Note that we surround the content of the line in ~\"~ on either end. This escapes the quote mark, meaning the output string will have quotes surrounding the content of the line. This is necessary to treat the contents of the line as a string.
+</pre>
+</div>
+</div>
+<div id="outline-container-org0da58c6" class="outline-4">
+<h4 id="org0da58c6">Inside Variable Block</h4>
+<div class="outline-text-4" id="text-org0da58c6">
+<p>
+Once we have found a variable we need to parse out its name and format string. Without error handling this code is a fairly simple linear scan, stopping when we hit <code>:</code>, and again when we hit <code>}</code>. We place a null byte in between the 2 and get a pointer to the beginning of the format string. Then we output a <code>sprintf</code> line with the correct format string, and the variable&rsquo;s name.
+</p>
+
+<pre class="example" id="org5a06e74">
+We use %s so that the user specified format string is directly substituted in. The identifier is placed in the call using `%s` without surrounding it in quotes.
+</pre>
+</div>
+</div>
+<div id="outline-container-orgcd0666c" class="outline-4">
+<h4 id="orgcd0666c">Regular Character</h4>
+<div class="outline-text-4" id="text-orgcd0666c">
+<p>
+If the character is not inside variable block or at the start of one it can be treated as a regular character. In this case we append it to our buffer, place a null character in the following spot, and move on to the next character.
+</p>
+</div>
+</div>
+<div id="outline-container-orged3af13" class="outline-4">
+<h4 id="orged3af13">Out of Input</h4>
+<div class="outline-text-4" id="text-orged3af13">
+<p>
+After going over the entire line we have to once again flush the buffer. To be safe the buffer is null terminated, and then added to our function. The only change here is that a literal <code>\n</code> is placed in the format string using <code>\\n</code> so that the resulting output moves to the next line. Without this, newlines in our template would not be preserved. We only want to add this newline in once we&rsquo;re at the end of the line to preserve the original formatting of the template.
+</p>
+
+
+<div id="org11e7e30" class="figure">
+<p><img src="vp_algo.png" alt="vp_algo.png" />
+</p>
+</div>
+
+<p>
+Let&rsquo;s take a look at the function this produces.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>() {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, variable);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+We&rsquo;re almost there, just a few things to tidy up. If you tried to run this function in its current state it wouldn&rsquo;t compile. We allowed our user to add a variable to their template, but they need a way to pass that variable into the function. So we should start by keeping track of all the variables used in a template, then adding those as parameters once we&rsquo;re done parsing the template.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org1e6a85d" class="outline-3">
+<h3 id="org1e6a85d"><span class="underline">Tracking Variables</span></h3>
+<div class="outline-text-3" id="text-org1e6a85d">
+<p>
+We can start by create a struct for a parameter, which holds its type and name. Then once we&rsquo;re done parsing the template we can add each of these parameters to the function.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">parameter</span> {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">type</span>;
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">name</span>;
+} <span style="color: #35CDAF;">parameter</span>;
+
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">parameter_set</span> {
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">size</span>;
+  <span style="color: #35CDAF;">parameter</span> *<span style="color: #85DDFF;">params</span>;
+} <span style="color: #35CDAF;">parameter_set</span>;
+</pre>
+</div>
+
+<p>
+For now, we can use strings for both fields, which will hold the exact type and name that will eventually be placed in the function. Now we need to figure out how to go from format specifier (%s, %d, etc.) to data type. Our template engine needs to support all the reasonable primative data types in C. We will support all the integer types, all the floating-point types, and strings. With those primatives covered our users should be able to build a template that covers their needs.
+</p>
+
+<p>
+The code to figure this out isn&rsquo;t too complex. We essentially need to take in a format string, ignore any modifiers like alignment, width, or decimal precision, and choose which data type it needs. If you would like to expand this code to support every <a href="https://en.wikipedia.org/wiki/Printf">format specifier</a> it should be an easy change to make.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">param_type</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">format_string</span>) {
+  <span style="color: #339CDB;">while</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>(*format_string &gt;= <span style="color: #DB8E73;">'a'</span> &amp;&amp; *format_string &lt;= <span style="color: #DB8E73;">'z'</span>)) {
+    format_string++;
+  }
+  <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"c"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"char"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"s"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"const char*"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"f"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"double"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"d"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"int"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"u"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"unsigned int"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"ld"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"signed long"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"lu"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"unsigned long"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"lld"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"signed long long"</span>);
+  } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (strcmp(format_string, <span style="color: #DB8E73;">"llu"</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    <span style="color: #339CDB;">return</span> strdup(<span style="color: #DB8E73;">"unsigned long long"</span>);
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+}
+</pre>
+</div>
+
+<p>
+Nothing too complicated, and hopefully I didn&rsquo;t miss a function in the standard library that can already do this. As stated before, we are going to use strings to keep track of the types to keep things simple.
+</p>
+
+<p>
+Now we can keep track of each variable and its associated type.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">generate_function generates a function from the template provided in</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">`filename`, it's contents are written to `output_fd`</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">generate_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>, <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">output_fd</span>) {
+  <span style="color: #35CDAF;">parameter_set</span> <span style="color: #85DDFF;">p_set</span> = {.size = <span style="color: #B5CEA8; font-weight: bold;">0</span>, .params = (parameter[<span style="color: #B5CEA8; font-weight: bold;">32</span>]){<span style="color: #B5CEA8; font-weight: bold;">0</span>}};
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">function_name</span> = convert_filename(filename);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">template_function</span> = template_to_function(filename, &amp;p_set);
+
+  fprintf(output_fd, <span style="color: #DB8E73;">"char *%s("</span>, function_name);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; p_set.size; i++) {
+    fprintf(output_fd, <span style="color: #DB8E73;">"%s %s"</span>, p_set.params[i].type, p_set.params[i].name);
+    <span style="color: #339CDB;">if</span> (i != p_set.size - <span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+      fprintf(output_fd, <span style="color: #DB8E73;">", "</span>);
+    }
+  }
+  fprintf(output_fd, <span style="color: #DB8E73;">") {\n"</span>);
+  fprintf(output_fd, <span style="color: #DB8E73;">"%s"</span>, template_function);
+  fprintf(output_fd, <span style="color: #DB8E73;">"}"</span>);
+
+  free(template_function);
+  free(function_name);
+}
+</pre>
+</div>
+
+<p>
+In order to track our parameters we instantiate a <code>parameter_set</code> which then gets passed into the template parser. Once it returns any variables encountered will be in our set. Then in the function declaration we add the variables and their types. Which now produces a valid function!
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">variable</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, variable);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Let&rsquo;s try it with a bit more complicated of a template to see how it handles that.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+&lt;<span style="color: #D9DAA2;">h1</span>&gt;<span style="font-weight: bold; text-decoration: underline;">This an article about ${title:</span><span style="color: #85DDFF; font-weight: bold; text-decoration: underline;">%s</span><span style="font-weight: bold; text-decoration: underline;">}</span>&lt;/<span style="color: #D9DAA2;">h1</span>&gt;
+@for (int i = 0; i &lt; 5; i++) {
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;${variable:<span style="color: #85DDFF;">%d</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+@}
+&lt;<span style="color: #D9DAA2;">h3</span>&gt;<span style="font-style: italic; text-decoration: underline;">Let me know what you thought about ${title:</span><span style="color: #85DDFF; font-style: italic; text-decoration: underline;">%s</span><span style="font-style: italic; text-decoration: underline;">}</span>&lt;/<span style="color: #D9DAA2;">h3</span>&gt;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">variable</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h1&gt;This an article about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h1&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;div&gt;Iteration: "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, i);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">", "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, variable);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h3&gt;Let me know what you thought about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h3&gt;"</span>);
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Well the body of the function that was generated is perfect! However, the parameters are a little messed up. What&rsquo;s going on?
+</p>
+</div>
+<div id="outline-container-orgbb2d5ae" class="outline-4">
+<h4 id="orgbb2d5ae">Deduplicating Variables</h4>
+<div class="outline-text-4" id="text-orgbb2d5ae">
+<p>
+Every time we encounter a variable we add it to our set and continue on. This means that if a variable is used multiple times throughout a template it will be duplicated in our parameter list. To fix this we will have to implement some sort of deduplication logic when we add a new parameter.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">ps_insert</span>(<span style="color: #35CDAF;">parameter_set</span> *<span style="color: #85DDFF;">ps</span>, <span style="color: #35CDAF;">parameter</span> <span style="color: #85DDFF;">p</span>) {
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; ps-&gt;size; i++) {
+    <span style="color: #339CDB;">if</span> (strcmp(p.name, ps-&gt;params[i].name) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      <span style="color: #339CDB;">return</span>;
+    }
+  }
+
+  ps-&gt;params[ps-&gt;size++] = p;
+}
+</pre>
+</div>
+
+<p>
+Here we walk the list and check for a match in the name. If we don&rsquo;t find a match the provided element is inserted.
+</p>
+
+<p>
+Changing our code to use this new function&#x2026;
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Add to p_set</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">type</span> = param_type(fmt_string);
+<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">name</span> = strdup(temporary_buffer);
+<span style="color: #D9DAA2;">ps_insert</span>(p_set, (parameter){.type = type, .name = name});
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Generate code</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+Which now generates us a function with all unique parameters!
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">variable</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h1&gt;This an article about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h1&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;div&gt;Iteration: "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, i);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">", "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, variable);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h3&gt;Let me know what you thought about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h3&gt;"</span>);
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Which is great, but you may still notice an error. We have a local variable <code>i</code> in our list of parameters. Let&rsquo;s see how we can get rid of that.
+</p>
+</div>
+</div>
+<div id="outline-container-org0497a09" class="outline-4">
+<h4 id="org0497a09">Local Variables</h4>
+<div class="outline-text-4" id="text-org0497a09">
+<p>
+We won&rsquo;t be able to solve this entirely from our end, it will also involve some input from the user. We will say that local variables need to include an extra <code>$</code> inside the <code>${$var_name:fmt}</code> block. While we are scanning for variables we will note if they&rsquo;re local. If they are, we can skip adding them to our parameter list.
+</p>
+
+<p>
+We will update our template to add the extra <code>$</code> indicating that <code>i</code> is a local variable.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+&lt;<span style="color: #D9DAA2;">h1</span>&gt;<span style="font-weight: bold; text-decoration: underline;">This an article about ${title:</span><span style="color: #85DDFF; font-weight: bold; text-decoration: underline;">%s</span><span style="font-weight: bold; text-decoration: underline;">}</span>&lt;/<span style="color: #D9DAA2;">h1</span>&gt;
+@for (int i = 0; i &lt; 5; i++) {
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: ${$i:<span style="color: #85DDFF;">%d</span>}, ${variable:<span style="color: #85DDFF;">%d</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+@}
+&lt;<span style="color: #D9DAA2;">h3</span>&gt;<span style="font-style: italic; text-decoration: underline;">Let me know what you thought about ${title:</span><span style="color: #85DDFF; font-style: italic; text-decoration: underline;">%s</span><span style="font-style: italic; text-decoration: underline;">}</span>&lt;/<span style="color: #D9DAA2;">h3</span>&gt;
+</pre>
+</div>
+
+<p>
+Then we will add a check in our parser for local variables.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+} <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (inside_variable) {
+    <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">local_variable</span> = <span style="color: #339CDB;">false</span>;
+    <span style="color: #339CDB;">if</span> (*line == <span style="color: #DB8E73;">'$'</span>) {
+      local_variable = <span style="color: #339CDB;">true</span>;
+      ++line;
+    }
+    <span style="color: #339CDB;">while</span> (*line != <span style="color: #DB8E73;">':'</span>) {
+      temporary_buffer[tb_len++] = *line++;
+    }
+    line++; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">skip past `:`</span>
+    temporary_buffer[tb_len++] = <span style="color: #DB8E73;">'\0'</span>;
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">fmt_string</span> =
+      &amp;temporary_buffer[tb_len]; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Beginning of %s or %d etc.</span>
+    <span style="color: #339CDB;">while</span> (*line != <span style="color: #DB8E73;">'}'</span>) {
+      temporary_buffer[tb_len++] = *line++;
+    }
+    temporary_buffer[tb_len++] = <span style="color: #DB8E73;">'\0'</span>;
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Add to p_set if non-local</span>
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>local_variable) {
+      <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">type</span> = param_type(fmt_string);
+      <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">name</span> = strdup(temporary_buffer);
+      ps_insert(p_set, (parameter){.type = type, .name = name});
+    }
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Generate code</span>
+    fb_ptr += sprintf(fb_ptr,
+                      <span style="color: #DB8E73;">"\toutput_ptr += sprintf(output_ptr, \"%s\", %s);\n"</span>,
+                      fmt_string, temporary_buffer);
+    temporary_buffer[<span style="color: #B5CEA8; font-weight: bold;">0</span>] = <span style="color: #DB8E73;">'\0'</span>;
+    tb_len = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+    inside_variable = <span style="color: #339CDB;">false</span>;
+    line++;
+} <span style="color: #339CDB;">else</span> {
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+After entering a variable block we check if the first character is <code>$</code>, from there we know if it is a local variable. The rest of the parsing remains the same, and we only add it to our list if it is non-local. We are nearly done with our parsing logic! Let&rsquo;s look at what the template engine was able to generate.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">variable</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h1&gt;This an article about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h1&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;div&gt;Iteration: "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, i);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">", "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, variable);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h3&gt;Let me know what you thought about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h3&gt;"</span>);
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+A valid function that can handle both local and non-local variables! The only thing left to do is add the ability to include other templates, and then we&rsquo;ve got the basic functionality down.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org3e34615" class="outline-3">
+<h3 id="org3e34615"><span class="underline">Including Other Templates</span></h3>
+<div class="outline-text-3" id="text-org3e34615">
+<p>
+If you saw the original template above you will see that we include another template through the <code>@import{"index.md"}</code> syntax. We&rsquo;re bundling imports in with lines of code to keep the syntax minimal, the user only has to choose between <code>@</code> or <code>$</code>. You could just as easily break this out with its own symbol, just note that you further limit the symbols allowed in a user&rsquo;s template.
+</p>
+
+<p>
+Let&rsquo;s create another function to check if a line is including another template.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">bool</span> <span style="color: #D9DAA2;">include_p</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span>) {
+  <span style="color: #339CDB;">return</span> strncmp(line, <span style="color: #DB8E73;">"include"</span>, <span style="color: #B5CEA8; font-weight: bold;">7</span>) == <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+}
+</pre>
+</div>
+
+<p>
+Once we determine we are on a line starting with <code>@</code> our first step will be to call <code>include_p</code> to see if it is an include statement. From there we are going to do something a little interesting. Instead of duplicating our parsing logic inside this block we can simply call ourselves again. This only works because the function <code>template_to_function</code> returns a string containing <b>only</b> the function body. Even then, there are a few things we can exclude if a template is being used as an included template.
+</p>
+
+<p>
+The function body allocates its own buffer called <code>output_buffer</code>, we can skip this for an included template. It also returns a pointer to this buffer, which we are safe to skip on an included template.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">generate_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>, <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">output_fd</span>) {
+  <span style="color: #35CDAF;">parameter_set</span> <span style="color: #85DDFF;">p_set</span> = {.size = <span style="color: #B5CEA8; font-weight: bold;">0</span>, .params = (parameter[<span style="color: #B5CEA8; font-weight: bold;">32</span>]){<span style="color: #B5CEA8; font-weight: bold;">0</span>}};
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">function_name</span> = convert_filename(filename);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">template_function</span> = template_to_function(filename, &amp;p_set, <span style="color: #339CDB;">false</span>); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== added false</span>
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a new buffer with the function body</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Must be freed</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">template_to_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">file</span>, <span style="color: #35CDAF;">parameter_set</span> *<span style="color: #85DDFF;">p_set</span>, <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">include</span>) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== added bool include</span>
+  <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">fp</span> = fopen(file, <span style="color: #DB8E73;">"r"</span>);
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+Now that our function will be called recursively an extra parameter is needed to indicate which mode should be used.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>include) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== added condition</span>
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\tchar *output_buffer = (char*)malloc(4096);\n"</span>);
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\tchar *output_ptr = output_buffer;\n"</span>);
+}
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+We only want to initialize a buffer once, this ensures it will only happen on the first call to <code>template_to_function</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle @ symbol</span>
+<span style="color: #339CDB;">if</span> ((pos = code_line_p(line)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+  <span style="color: #339CDB;">if</span> (include_p(&amp;line[pos])) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">line[pos] is the first char after `@`  &lt;=== added include_p block</span>
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Include another template</span>
+    line += pos + <span style="color: #B5CEA8; font-weight: bold;">9</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Skip past @inc...</span>
+    strtok(line, <span style="color: #DB8E73;">"\""</span>); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">null terminate filename</span>
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">parsed_include</span> = template_to_function(line, p_set, <span style="color: #339CDB;">true</span>);
+    fb_ptr = stpcpy(fb_ptr, parsed_include);
+    free(parsed_include);
+    <span style="color: #339CDB;">continue</span>;
+  }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Line of code, append it!</span>
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\t%s\n"</span>, line + pos);
+  <span style="color: #339CDB;">continue</span>;
+}
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+Once we find an include our next step is to parse out the filename.
+</p>
+
+
+<div id="org20e86b6" class="figure">
+<p><img src="include_filename.png" alt="include_filename.png" />
+</p>
+</div>
+
+<p>
+This can then be passed to <code>template_to_function</code> in a recursive call. We take its returned contents and append them to our current function before continuing on. Don&rsquo;t forget to free the pointer returned as this is memory that was allocated.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>include) {  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== added conditional</span>
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\treturn output_buffer;\n"</span>);
+}
+
+<span style="color: #D9DAA2;">fclose</span>(fp);
+<span style="color: #339CDB;">return</span> function_buffer;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+The final change is to only include one <code>return output_buffer;</code> in our function. With that in place we should be good to try parsing a template with an include block.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+&lt;<span style="color: #D9DAA2;">h1</span>&gt;<span style="font-weight: bold; text-decoration: underline;">This an article about ${title:</span><span style="color: #85DDFF; font-weight: bold; text-decoration: underline;">%s</span><span style="font-weight: bold; text-decoration: underline;">}</span>&lt;/<span style="color: #D9DAA2;">h1</span>&gt;
+@for (int i = 0; i &lt; 5; i++) {
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: ${$i:<span style="color: #85DDFF;">%d</span>}, ${variable:<span style="color: #85DDFF;">%d</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+@}
+&lt;<span style="color: #D9DAA2;">h3</span>&gt;<span style="font-style: italic; text-decoration: underline;">Let me know what you thought about ${title:</span><span style="color: #85DDFF; font-style: italic; text-decoration: underline;">%s</span><span style="font-style: italic; text-decoration: underline;">}</span>&lt;/<span style="color: #D9DAA2;">h3</span>&gt;
+@include{<span style="color: #DB8E73;">"index.md"</span>}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-md"><span style="color: #85DDFF;">---</span>
+<span style="color: #D16969;">title</span><span style="color: #85DDFF;">: </span><span style="color: #DB8E73;">${title:%s}</span>
+<span style="color: #D16969;">author</span><span style="color: #85DDFF;">: </span><span style="color: #DB8E73;">${author:%s}</span>
+<span style="color: #85DDFF;">---</span>
+<span style="color: #237AD3; font-weight: bold;"># </span><span style="color: #85DDFF; font-weight: bold;">$</span><span style="color: #237AD3; font-weight: bold;">{title:%s}</span>
+<span style="color: #85DDFF;">[</span><span style="color: #777778;">Author</span><span style="color: #85DDFF;">]:</span><span style="color: #DB8E73;"> </span><span style="color: #C586C0;"># (</span><span style="color: #85DDFF;">$</span><span style="color: #C586C0;">{author:%s})</span>
+
+Content of article
+
+Written by [${author:%s}].
+</pre>
+</div>
+
+<p>
+Note that we have a variable named <code>title</code> in both files. Let&rsquo;s see how our template engine handles that.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">variable</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">author</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h1&gt;This an article about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h1&gt;"</span>);
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"     &lt;div&gt;Iteration: "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, i);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">", "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%d"</span>, variable);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/div&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"     &lt;span&gt;Hi mom!&lt;/span&gt;"</span>);
+  }
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h3&gt;Let me know what you thought about "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h3&gt;"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;pre&gt;"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"---"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"title: "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">""</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"author: "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, author);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">""</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"---"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"# "</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">""</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"[Author]: # ("</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, author);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">")"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">""</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"Content of article"</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">""</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"Written by ["</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, author);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"]."</span>);
+  output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/pre&gt;"</span>);
+  <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+It all looks correct, but it&rsquo;s a bit hard to read. I&rsquo;m glad to see that our system was able to handle variables of the same name spread across two different templates! Of course this is all generated code, so readibility is not our highest priority, as it&rsquo;s not meant to be edited by users. We may get a better idea of what it is doing by using the function!
+</p>
+
+<p>
+Here is what the function generates for us.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+&lt;<span style="color: #D9DAA2;">h1</span>&gt;<span style="font-weight: bold; text-decoration: underline;">This an article about Title</span>&lt;/<span style="color: #D9DAA2;">h1</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 0, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 1, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 2, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 3, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 4, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+&lt;<span style="color: #D9DAA2;">h3</span>&gt;<span style="font-style: italic; text-decoration: underline;">Let me know what you thought about Title</span>&lt;/<span style="color: #D9DAA2;">h3</span>&gt;
+&lt;<span style="color: #D9DAA2;">pre</span>&gt;
+---
+title: Title
+author: Me
+---
+# Title
+[Author]: # (Me)
+
+Content of article
+
+Written by [Me].
+&lt;/<span style="color: #D9DAA2;">pre</span>&gt;
+
+</pre>
+</div>
+
+<p>
+That looks just like what we asked for! We have made a ton of progress in such a small amount of time. As the code sits it is around 200 lines for a template engine. But don&rsquo;t worry, there is still a lot of work to be done.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgee39059" class="outline-2">
+<h2 id="orgee39059"><span class="underline">Error Handling</span></h2>
+<div class="outline-text-2" id="text-orgee39059">
+<p>
+Of course, code always looks so clean without error handling. Our implementation is missing error handling at almost every step. Let&rsquo;s break down each of the potential errors, and what we can do to mitigate them, or expose them to the user.
+</p>
+</div>
+<div id="outline-container-orgbcc1283" class="outline-3">
+<h3 id="orgbcc1283"><span class="underline">Duplicate Variables, Mismatched Types</span></h3>
+<div class="outline-text-3" id="text-orgbcc1283">
+<p>
+In our perfect case the variable <code>title</code> had the same datatype in both templates, but what if it didn&rsquo;t. Well, the generated function wouldn&rsquo;t be able to run. Not a great debugging experience for our users. Let&rsquo;s fix that.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">attempts to insert a new parameter, returns the collision if one is found, or</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">null if it is unique</span>
+<span style="color: #35CDAF;">parameter</span> *<span style="color: #D9DAA2;">ps_insert</span>(<span style="color: #35CDAF;">parameter_set</span> *<span style="color: #85DDFF;">ps</span>, <span style="color: #35CDAF;">parameter</span> <span style="color: #85DDFF;">p</span>) {
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; ps-&gt;size; i++) {
+    <span style="color: #339CDB;">if</span> (strcmp(p.name, ps-&gt;params[i].name) == <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      <span style="color: #339CDB;">if</span> (strcmp(p.type, ps-&gt;params[i].type) != <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+        <span style="color: #339CDB;">return</span> &amp;ps-&gt;params[i];
+      }
+      free(p.name);
+      free(p.type);
+      <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+    }
+  }
+
+  ps-&gt;params[ps-&gt;size++] = p;
+  <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+}
+</pre>
+</div>
+
+<p>
+Now once we find a name match we check if the types of the 2 parameters match. If they don&rsquo;t, we return the parameter it collided with, which will allow us to print out a nicer error message.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">input_line</span> = <span style="color: #339CDB;">NULL</span>;
+<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+<span style="color: #35CDAF;">ssize_t</span> <span style="color: #85DDFF;">read</span>;
+<span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">line_number</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== new variable</span>
+<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">pos</span>;
+
+<span style="color: #339CDB;">while</span> ((read = getline(&amp;input_line, &amp;len, fp)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+  line_number++; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== increment line number each line</span>
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">line</span> = input_line;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+The first step is to keep track of the current line. This will allow us to print out a <a href="https://en.wikipedia.org/wiki/Stack_trace">stack trace</a> when an error is encountered, which is extremely helpful in debugging.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle @ symbol</span>
+<span style="color: #339CDB;">if</span> ((pos = code_line_p(line)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+  <span style="color: #339CDB;">if</span> (include_p(&amp;line[pos])) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">line[pos] is the first char after `@`</span>
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Include another template</span>
+    line += pos + <span style="color: #B5CEA8; font-weight: bold;">9</span>;    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Skip past @inc...</span>
+    strtok(line, <span style="color: #DB8E73;">"\""</span>); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">null terminate filename</span>
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">parsed_include</span> = template_to_function(line, p_set, <span style="color: #339CDB;">true</span>);
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>parsed_include) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;== Function may now return NULL</span>
+      fprintf(stderr,      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;== we encountered an error, print out current file and line number</span>
+              <span style="color: #DB8E73;">"error: %10s:%-5ld failed while importing \"%s\"\n"</span>,
+              file, line_number, line);
+      free(function_buffer); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;== free our memory</span>
+      <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;         <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;== We also return NULL to continue up the stack and stop parsing</span>
+    }
+    fb_ptr = stpcpy(fb_ptr, parsed_include);
+    free(parsed_include);
+    <span style="color: #339CDB;">continue</span>;
+  }
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Line of code, append it!</span>
+  fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\t%s\n"</span>, line + pos);
+  <span style="color: #339CDB;">continue</span>;
+}
+</pre>
+</div>
+
+<p>
+An error can (and likely will) occur while importing another file, so it will be handy to know where it was included. If we are returned NULL we know something failed, so we print out our current file and line number. Finally, returning NULL so that our parent can also print a helpful error message.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Add to p_set if non-local</span>
+<span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>local_variable) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">type</span> = param_type(fmt_string);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">name</span> = strdup(temporary_buffer);
+  <span style="color: #35CDAF;">parameter</span> *<span style="color: #85DDFF;">possible_collision</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #339CDB;">if</span> ((possible_collision =
+       ps_insert(p_set, (parameter){.type = type, .name = name}))) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">A type collision was found</span>
+    fprintf(stderr,
+            <span style="color: #DB8E73;">"error: %10s:%-5ld duplicate param (%s) w/ mismatched "</span>
+            <span style="color: #DB8E73;">"type \"%s\" and \"%s\"\n"</span>,
+            file, line_number, name ,type, possible_collision-&gt;type);
+    free(function_buffer);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+}
+</pre>
+</div>
+
+<p>
+If our function <code>ps_insert</code> returns a value that means a collision has occured. This returned value points to the parameter that collided, which allows us to print out a helpful error message. We first print what file and line we&rsquo;re on. Then the error message is printed, which shows the variable name and the mismatched types. Finally, we return NULL to bubble up the call stack.
+</p>
+
+<p>
+Now we can see the helpful error messages that are produced.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span>   <span style="color: #85DDFF;">index</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">md</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">2</span>     <span style="color: #85DDFF;">duplicate</span> <span style="color: #D9DAA2;">param</span> <span style="color: #579C4C;">(</span><span style="color: #85DDFF;">title</span><span style="color: #579C4C;">)</span> <span style="color: #85DDFF;">w</span><span style="color: #85DDFF; font-weight: bold;">/</span> <span style="color: #85DDFF;">mismatched</span> <span style="color: #339CDB;">type</span> <span style="color: #DB8E73;">"int"</span> <span style="color: #85DDFF;">and</span> <span style="color: #DB8E73;">"const char*"</span>
+<span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span> <span style="color: #85DDFF;">test</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">input</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">9</span>     <span style="color: #85DDFF;">failed</span> <span style="color: #85DDFF;">while</span> <span style="color: #85DDFF;">importing</span> <span style="color: #DB8E73;">"index.md"</span>
+</pre>
+</div>
+
+<p>
+We could build a mapping of types back to their format specifiers, but I think this will be good enough for now. The user can see the file in which the error occured, the line it happened on, and the type mismatch.
+</p>
+</div>
+</div>
+<div id="outline-container-org9151522" class="outline-3">
+<h3 id="org9151522"><span class="underline">Missing Format String</span></h3>
+<div class="outline-text-3" id="text-org9151522">
+<p>
+What happens if the user forgets to add a format string to their variable? Well, it breaks everything of course! With the rest of the error handling code we put in to place this should be an easy fix.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+      } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (inside_variable) {
+        <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">local_variable</span> = <span style="color: #339CDB;">false</span>;
+        <span style="color: #339CDB;">if</span> (*line == <span style="color: #DB8E73;">'$'</span>) {
+          local_variable = <span style="color: #339CDB;">true</span>;
+          ++line;
+        }
+        <span style="color: #339CDB;">while</span> (*line &amp;&amp; *line != <span style="color: #DB8E73;">':'</span>) {
+          <span style="color: #339CDB;">if</span> (*line == <span style="color: #DB8E73;">'}'</span> || *line == <span style="color: #DB8E73;">'%'</span>) {
+            <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Missing format string or colon</span>
+            temporary_buffer[tb_len] = <span style="color: #DB8E73;">'\0'</span>;
+            fprintf(
+                stderr,
+                <span style="color: #DB8E73;">"error: %10s:%-5ld missing fmt specifer or colon for \"%s\"\n"</span>,
+                file, line_number, temporary_buffer);
+            free(function_buffer);
+            <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+          }
+          temporary_buffer[tb_len++] = *line++;
+        }
+        line++; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">skip past `:`</span>
+        <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>*line || *line == <span style="color: #DB8E73;">'}'</span>) {
+          <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Missing format string or colon</span>
+          temporary_buffer[tb_len] = <span style="color: #DB8E73;">'\0'</span>;
+          fprintf(stderr,
+                  <span style="color: #DB8E73;">"error: %10s:%-5ld malformed variable block around \"%s\" "</span>
+                  <span style="color: #DB8E73;">"hint: ${variable:%%s} \n"</span>,
+                  file, line_number, temporary_buffer);
+          free(function_buffer);
+          <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+        }
+        temporary_buffer[tb_len++] = <span style="color: #DB8E73;">'\0'</span>;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+Unfortunately we have to error check in 2 places here, because there are 2 different syntax errors that can occur. If the user writes <code>variable:</code> we can easily see that the format string is missing, because we stop on the <code>:</code>. On the other hand, if the user enters <code>variable%fmt</code> without a colon our code won&rsquo;t know where to break. Instead, we will have to check if we hit the end of the line before reading in a format string. In this case we can&rsquo;t give quite as helpful of an error message because many things could have gone wrong.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span>   <span style="color: #85DDFF;">index</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">md</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">2</span>     <span style="color: #85DDFF;">missing</span> <span style="color: #85DDFF;">fmt</span> <span style="color: #85DDFF;">specifer</span> <span style="color: #D7BA7D;">or</span> <span style="color: #85DDFF;">colon</span> <span style="color: #339CDB;">for</span> <span style="color: #DB8E73;">"title"</span>
+<span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span> <span style="color: #85DDFF;">test</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">input</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">9</span>     <span style="color: #85DDFF;">failed</span> <span style="color: #85DDFF;">while</span> <span style="color: #85DDFF;">importing</span> <span style="color: #DB8E73;">"index.md"</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span>   <span style="color: #85DDFF;">index</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">md</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">2</span>     <span style="color: #85DDFF;">malformed</span> <span style="color: #85DDFF;">variable</span> <span style="color: #85DDFF;">block</span> <span style="color: #85DDFF;">around</span> <span style="color: #DB8E73;">"title"</span> <span style="color: #85DDFF;">hint</span><span style="color: #579C4C;">:</span> <span style="color: #D7BA7D;">$</span><span style="color: #579C4C;">{</span><span style="color: #85DDFF;">variable</span>:<span style="color: #85DDFF; font-weight: bold;">%</span><span style="color: #85DDFF;">s</span><span style="color: #579C4C;">}</span>
+<span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span> <span style="color: #85DDFF;">test</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">input</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">9</span>     <span style="color: #85DDFF;">failed</span> <span style="color: #85DDFF;">while</span> <span style="color: #85DDFF;">importing</span> <span style="color: #DB8E73;">"index.md"</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org50af5a8" class="outline-3">
+<h3 id="org50af5a8"><span class="underline">Invalid Format Specifier</span></h3>
+<div class="outline-text-3" id="text-org50af5a8">
+<p>
+If the user enters a format specifier we don&rsquo;t recognize it would be helpful to let them know. Luckily, our <code>param_type</code> function already returns <code>NULL</code> if it can&rsquo;t find a matching type.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+          <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">type</span> = param_type(fmt_string);
+          <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">name</span> = strdup(temporary_buffer);
+
+          <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>type) {
+            <span style="color: #579C4C;">// </span><span style="color: #579C4C;">invalid format string</span>
+            fprintf(stderr,
+                    <span style="color: #DB8E73;">"error: %10s:%-5ld invalid format specifier \"%s\" for %s\n"</span>, file,
+                    line_number, fmt_string, name);
+            free(function_buffer);
+            <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+          }
+
+          <span style="color: #35CDAF;">parameter</span> *<span style="color: #85DDFF;">possible_collision</span> = <span style="color: #339CDB;">NULL</span>;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org09f75a7" class="outline-3">
+<h3 id="org09f75a7"><span class="underline">File Errors</span></h3>
+<div class="outline-text-3" id="text-org09f75a7">
+<p>
+We call <code>fopen</code> once per template, which returns us a handle to the hopefully open file. However, if it cannot open the file we need to be able to tell the user why.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a new buffer with the function body</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Must be freed</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">template_to_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">file</span>, <span style="color: #35CDAF;">parameter_set</span> *<span style="color: #85DDFF;">p_set</span>,
+                           <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">include</span>) {
+  <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">fp</span> = fopen(file, <span style="color: #DB8E73;">"r"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>fp) {
+    <span style="color: #339CDB;">if</span> (errno == ENOENT) {
+      fprintf(stderr, <span style="color: #DB8E73;">"error: File \"%s\" does not exist.\n"</span>, file);
+    } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (errno == EMFILE) {
+      fprintf(stderr,
+              <span style="color: #DB8E73;">"error: Too many open files, do you have a circular import?\n"</span>);
+    } <span style="color: #339CDB;">else</span> {
+      perror(<span style="color: #DB8E73;">"fopen"</span>);
+    }
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+Reading the <code>man</code> page for <code>fopen</code> lets us know that it will set <code>errno</code> depending on what error occured. We are only interested in 2 of these errors specifically, letting <code>perror</code> handle the rest. If the file doesn&rsquo;t exist we print out the given filename.
+</p>
+
+<p>
+The other potential error is running into the open file limit. It is unlikely that we would hit this error in normal operation, so we give a hint that there might be a circular import. This happens when 2 templates import each other.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-v"><span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span> <span style="color: #35CDAF;">File</span> <span style="color: #DB8E73;">"test.tx"</span> <span style="color: #85DDFF;">does</span> <span style="color: #85DDFF;">not</span> <span style="color: #85DDFF;">exist</span><span style="color: #579C4C;">.</span>
+<span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span>   <span style="color: #85DDFF;">index</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">md</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">12</span>    <span style="color: #85DDFF;">failed</span> <span style="color: #85DDFF;">while</span> <span style="color: #85DDFF;">importing</span> <span style="color: #DB8E73;">"test.tx"</span>
+<span style="color: #D7BA7D;">error</span><span style="color: #579C4C;">:</span> <span style="color: #85DDFF;">test</span><span style="color: #579C4C;">.</span><span style="color: #85DDFF;">input</span><span style="color: #579C4C;">:</span><span style="color: #B5CEA8; font-weight: bold;">9</span>     <span style="color: #85DDFF;">failed</span> <span style="color: #85DDFF;">while</span> <span style="color: #85DDFF;">importing</span> <span style="color: #DB8E73;">"index.md"</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org85bd37e" class="outline-2">
+<h2 id="org85bd37e"><span class="underline">Output Formatting</span></h2>
+<div class="outline-text-2" id="text-org85bd37e">
+<p>
+With most of the potential errors now covered we should focus on making the output look nicer. I&rsquo;m not too worried about perfectly formatting the generated function, but we can improve the final output that it generates. Let&rsquo;s first look at the indentation currently.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+&lt;<span style="color: #D9DAA2;">h1</span>&gt;<span style="font-weight: bold; text-decoration: underline;">This an article about Title</span>&lt;/<span style="color: #D9DAA2;">h1</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 0, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 1, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 2, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 3, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 4, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+&lt;<span style="color: #D9DAA2;">h3</span>&gt;<span style="font-style: italic; text-decoration: underline;">Let me know what you thought about Title</span>&lt;/<span style="color: #D9DAA2;">h3</span>&gt;
+&lt;<span style="color: #D9DAA2;">pre</span>&gt;
+---
+title: Title
+author: Me
+---
+# Title
+[Author]: # (Me)
+
+Content of article
+
+Written by [Me].
+
+5
+&lt;/<span style="color: #D9DAA2;">pre</span>&gt;
+
+</pre>
+</div>
+
+<p>
+Of course, in an <code>html</code> document indentation levels don&rsquo;t matter too much, because any rendering engine will still parse it correctly. But other file types might not be so lucky, and we need our template engine to support as many output file types as possible. We can solve this by tracking the indentation level, incrementing it where necessary.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">indent_level</span> = <span style="color: #DB8E73;">"\t\t\t\t\t\t\t\t"</span>;
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">MAX_INDENT</span> <span style="color: #B5CEA8; font-weight: bold;">8</span>
+
+<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">get_indent</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">level</span>) { <span style="color: #339CDB;">return</span> &amp;indent_level[MAX_INDENT - level]; }
+</pre>
+</div>
+
+<p>
+We start by defining a string to track the level of indentation, up to a max of 8 levels. The function <code>get_indent</code> walks backwards in the string so that an indentation level of 3 translates to <code>\t\t\t\0</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Returns a new buffer with the function body</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">Must be freed</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">template_to_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">file</span>, <span style="color: #35CDAF;">parameter_set</span> *<span style="color: #85DDFF;">p_set</span>,
+                           <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">indent_level</span>, <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">include</span>) {
+  <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">fp</span> = fopen(file, <span style="color: #DB8E73;">"r"</span>);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+<code>template_to_function</code> now accepts a current indentation level, which we will use as our base when determining the current level of indentation.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">generate_function generates a function from the template provided in</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">`filename`, its contents are written to `output_fd`</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">generate_function</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>, <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">output_fd</span>) {
+  <span style="color: #35CDAF;">parameter_set</span> <span style="color: #85DDFF;">p_set</span> = {.size = <span style="color: #B5CEA8; font-weight: bold;">0</span>, .params = (parameter[<span style="color: #B5CEA8; font-weight: bold;">32</span>]){<span style="color: #B5CEA8; font-weight: bold;">0</span>}};
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">function_name</span> = convert_filename(filename);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">template_function</span> = template_to_function(filename, &amp;p_set, <span style="color: #B5CEA8; font-weight: bold;">0</span>, <span style="color: #339CDB;">false</span>); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;== 0 indent level</span>
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>template_function) {
+    <span style="color: #339CDB;">return</span>;
+  }
+
+  fprintf(output_fd, <span style="color: #DB8E73;">"char *%s("</span>, function_name);
+</pre>
+</div>
+
+<p>
+<code>generate_function</code> also needs to be updated to start the indentation level at 0 for the inital call.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C">  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">function_buffer</span> = calloc(<span style="color: #339CDB;">sizeof</span>(<span style="color: #35CDAF;">char</span>), <span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">fb_ptr</span> = function_buffer;
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>function_buffer) {
+    perror(<span style="color: #DB8E73;">"calloc"</span>);
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  }
+
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Get current indentation</span>
+  <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">indent</span> = get_indent(indent_level);  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== Turns an indent level to a string</span>
+
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>include) {
+    fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\tchar *output_buffer = (char*)malloc(4096);\n"</span>);
+    fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\tchar *output_ptr = output_buffer;\n"</span>);
+  }
+</pre>
+</div>
+
+<p>
+When including another template we want to give it the current level of indentation, making sure to add its level of indentation.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle @ symbol</span>
+    <span style="color: #339CDB;">if</span> ((pos = code_line_p(line)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+      <span style="color: #339CDB;">if</span> (include_p(&amp;line[pos])) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">line[pos] is the first char after `@`</span>
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Include another template</span>
+        <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">include_indent</span> =
+            (&amp;line[pos] - line) / <span style="color: #B5CEA8; font-weight: bold;">4</span>; <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Calculate indentation level</span>
+        line += pos + <span style="color: #B5CEA8; font-weight: bold;">9</span>;             <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Skip past @inc...</span>
+        strtok(line, <span style="color: #DB8E73;">"\""</span>);          <span style="color: #579C4C;">// </span><span style="color: #579C4C;">null terminate filename</span>
+        <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">parsed_include</span> = template_to_function(
+            line, p_set, indent_level + include_indent, <span style="color: #339CDB;">true</span>); <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;==== indent_level + include_indent</span>
+        <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>parsed_include) {
+          fprintf(stderr, <span style="color: #DB8E73;">"error: %10s:%-5ld failed while importing \"%s\"\n"</span>,
+                  file, line_number, line);
+          free(function_buffer);
+          <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+        }
+        fb_ptr = stpcpy(fb_ptr, parsed_include);
+        free(parsed_include);
+        <span style="color: #339CDB;">continue</span>;
+      }
+
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Line of code, append it!</span>
+      fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\t%s\n"</span>, line + pos);
+      <span style="color: #339CDB;">continue</span>;
+    }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+We then want to properly indent any lines of plain text, ignoring lines of control flow or C code.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Line of code, append it!</span>
+      fb_ptr += sprintf(fb_ptr, <span style="color: #DB8E73;">"\t%s\n"</span>, line + pos);
+      <span style="color: #339CDB;">continue</span>;
+    }
+
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Handle Line</span>
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Indent line to correct level</span>
+    fb_ptr += sprintf(fb_ptr,  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== new line</span>
+                      <span style="color: #DB8E73;">"\toutput_ptr += sprintf(output_ptr, \"%%s\", \"%s\");\n"</span>,
+                      indent);
+    <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">temporary_buffer</span>[<span style="color: #B5CEA8; font-weight: bold;">500</span>];
+    <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">tb_len</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+    <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">inside_variable</span> = <span style="color: #339CDB;">false</span>;
+    <span style="color: #339CDB;">while</span> (*line) {
+      <span style="color: #339CDB;">if</span> (*line == <span style="color: #DB8E73;">'$'</span> &amp;&amp; *(line + <span style="color: #B5CEA8; font-weight: bold;">1</span>) &amp;&amp; *(line + <span style="color: #B5CEA8; font-weight: bold;">1</span>) == <span style="color: #DB8E73;">'{'</span>) {
+        <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Found a variable declaration</span>
+        inside_variable = <span style="color: #339CDB;">true</span>;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+We only want to indent a line once, so we place this code just before we begin looping through the line. Let&rsquo;s look at the output this now produces.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html"><span style="color: #579C4C;">&lt;!-- </span><span style="color: #579C4C;">test.input</span><span style="color: #579C4C;"> --&gt;</span>
+&lt;<span style="color: #D9DAA2;">h1</span>&gt;<span style="font-weight: bold; text-decoration: underline;">This an article about Title</span>&lt;/<span style="color: #D9DAA2;">h1</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 0, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 1, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 2, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 3, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+     &lt;<span style="color: #D9DAA2;">div</span>&gt;Iteration: 4, 42&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+     &lt;<span style="color: #D9DAA2;">span</span>&gt;Hi mom!&lt;/<span style="color: #D9DAA2;">span</span>&gt;
+&lt;<span style="color: #D9DAA2;">h3</span>&gt;<span style="font-style: italic; text-decoration: underline;">Let me know what you thought about Title</span>&lt;/<span style="color: #D9DAA2;">h3</span>&gt;
+&lt;<span style="color: #D9DAA2;">pre</span>&gt;
+    ---
+    title: Title
+    author: Me
+    ---
+    # Title
+    [Author]: # (Me)
+
+    Content of article
+
+    Written by [Me].
+
+    5
+&lt;/<span style="color: #D9DAA2;">pre</span>&gt;
+</pre>
+</div>
+
+<p>
+Great! Now the markdown and anything it includes are at the correct indentation level.
+</p>
+</div>
+</div>
+<div id="outline-container-orgd876d6d" class="outline-2">
+<h2 id="orgd876d6d"><span class="underline">User Interface</span></h2>
+<div class="outline-text-2" id="text-orgd876d6d">
+<p>
+Now that the basic functionality is in place we can focus on creating a great user experience. Let&rsquo;s start by looking at <code>main</code> in its current state.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  generate_function(<span style="color: #DB8E73;">"test.input"</span>, stdout);
+}
+</pre>
+</div>
+
+<p>
+It gets the job done, but is not very flexible. I think it&rsquo;s safe to assume that a user would like to be able to specify which files to generate template functions from. We can flush out our user interface by accepting filenames on the command line.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">argc</span>, <span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">argv</span>) {
+  <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">output_header</span> = fopen(<span style="color: #DB8E73;">"gen_templates.h"</span>, <span style="color: #DB8E73;">"w"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>output_header) {
+    perror(<span style="color: #DB8E73;">"fopen"</span>);
+    fprintf(stderr, <span style="color: #DB8E73;">"Unable to open header file for writing\n"</span>);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+
+  fprintf(output_header, <span style="color: #DB8E73;">"%s\n"</span>, WARNING);
+  fprintf(output_header, <span style="color: #DB8E73;">"#pragma once\n"</span>);
+  fprintf(output_header, <span style="color: #DB8E73;">"#include &lt;stdio.h&gt;\n"</span>);
+  fprintf(output_header, <span style="color: #DB8E73;">"#include &lt;stdlib.h&gt;\n\n"</span>);
+
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">1</span>; i &lt; argc; i++) {
+    generate_function(argv[i], output_header);
+  }
+
+  fclose(output_header);
+}
+</pre>
+</div>
+
+<p>
+Our program now takes filenames on the command line, and will generate a function for each one. Since we want this to be included in the users final project we place the code in a header file, and add a warning to not edit this file.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">WARNING</span> = <span style="color: #DB8E73;">"// THIS IS A GENERATED FILE DO NOT EDIT"</span>;
+</pre>
+</div>
+
+<p>
+Now we can look at the header file it generates.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">THIS IS A GENERATED FILE DO NOT EDIT</span>
+<span style="color: #85DDFF; font-weight: bold;">#pragma</span> once
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">test_input</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">variable</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">author</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">hi</span>) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!-- test.input --&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">"&lt;h1&gt;This an article about "</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, title);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/h1&gt;"</span>);
+    <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; <span style="color: #B5CEA8; font-weight: bold;">5</span>; i++) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/pre&gt;"</span>);
+    <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Great! I think we&rsquo;re finally ready to test this on the template we saw all the way back at the beginning of the article. Here it is as a refresher.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html">&lt;<span style="color: #339CDB;">!doctype</span> html&gt;
+&lt;<span style="color: #D9DAA2;">html</span> <span style="color: #85DDFF;">class</span>=<span style="color: #DB8E73;">"no-js"</span> <span style="color: #85DDFF;">lang</span>=<span style="color: #DB8E73;">""</span>&gt;
+    &lt;<span style="color: #D9DAA2;">head</span>&gt;
+        &lt;<span style="color: #D9DAA2;">meta</span> <span style="color: #85DDFF;">charset</span>=<span style="color: #DB8E73;">"utf-8"</span>&gt;
+        &lt;<span style="color: #D9DAA2;">link</span>&gt;${testing:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">link</span>&gt;
+        &lt;<span style="color: #D9DAA2;">style</span>&gt;
+         body {
+             background-color: #1a1a1a; /* Dark background color */
+             color: #ffffff; /* Light text color */
+         }
+        &lt;/<span style="color: #D9DAA2;">style</span>&gt;
+    &lt;/<span style="color: #D9DAA2;">head</span>&gt;
+    &lt;<span style="color: #D9DAA2;">body</span>&gt;
+        &lt;<span style="color: #D9DAA2;">div</span>&gt;Hi Mom! My name is ${name:<span style="color: #85DDFF;">%s</span>} ${last_name:<span style="color: #85DDFF;">%s</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+        @for(int i = 0; i &lt; 10; i++) {
+            &lt;<span style="color: #D9DAA2;">div</span>&gt;${$i:<span style="color: #85DDFF;">%d</span>}&lt;/<span style="color: #D9DAA2;">div</span>&gt;
+        @}
+
+        &lt;<span style="color: #D9DAA2;">pre</span>&gt;
+           @include{<span style="color: #DB8E73;">"index.md"</span>}
+        &lt;/<span style="color: #D9DAA2;">pre</span>&gt;
+
+        ${$sqrt(32):<span style="color: #85DDFF;">%f</span>}
+    &lt;/<span style="color: #D9DAA2;">body</span>&gt;
+&lt;/<span style="color: #D9DAA2;">html</span>&gt;
+</pre>
+</div>
+
+<p>
+Now we can see the function it generates.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">THIS IS A GENERATED FILE DO NOT EDIT</span>
+<span style="color: #85DDFF; font-weight: bold;">#pragma</span> once
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">index_html</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">testing</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">name</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">last_name</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">author</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">hi</span>) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!doctype html&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;html class="</span>no-js<span style="color: #DB8E73;">" lang=""&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"    &lt;head&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"        &lt;meta charset="</span>utf-<span style="color: #B5CEA8; font-weight: bold;">8</span><span style="color: #DB8E73;">"&gt;"</span>);
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/html&gt;"</span>);
+    <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+</div>
+<div id="outline-container-orgc99070a" class="outline-3">
+<h3 id="orgc99070a"><span class="underline">Escaping Quotes</span></h3>
+<div class="outline-text-3" id="text-orgc99070a">
+<p>
+Well that is an issue. It looks like our template&rsquo;s quoted strings are causing an error in the generated code. The quotes are causing the string literals in our <code>sprintf</code> calls to be malformed. This shouldn&rsquo;t be too hard to solve, we just need to check for <code>"</code> as we scan a line and escape them with a <code>\</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+        inside_variable = <span style="color: #339CDB;">false</span>;
+        line++;
+      } <span style="color: #339CDB;">else</span> {
+        <span style="color: #339CDB;">if</span> (*line == <span style="color: #DB8E73;">'"'</span>) { <span style="color: #579C4C;">// </span><span style="color: #579C4C;">&lt;=== Added conditional</span>
+          temporary_buffer[tb_len++] = <span style="color: #DB8E73;">'\\'</span>;
+        }
+        temporary_buffer[tb_len++] = *line;
+        temporary_buffer[tb_len] = <span style="color: #DB8E73;">'\0'</span>;
+        line++;
+      }
+    }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+With that fix in place we now generate a valid function from the user&rsquo;s template.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">index_html</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">testing</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">name</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">last_name</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">title</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span>* <span style="color: #85DDFF;">author</span>, <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">hi</span>) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_buffer</span> = (<span style="color: #35CDAF;">char</span>*)malloc(<span style="color: #B5CEA8; font-weight: bold;">4096</span>);
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">output_ptr</span> = output_buffer;
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;!doctype html&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;html class=\"no-js\" lang=\"\"&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"    &lt;head&gt;"</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"        &lt;meta charset=\"utf-8\"&gt;"</span>);
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s"</span>, <span style="color: #DB8E73;">""</span>);
+    output_ptr += sprintf(output_ptr, <span style="color: #DB8E73;">"%s\n"</span>, <span style="color: #DB8E73;">"&lt;/html&gt;"</span>);
+    <span style="color: #339CDB;">return</span> output_buffer;
+}
+</pre>
+</div>
+
+<p>
+Let&rsquo;s call the template with random values.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;math.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">"gen_templates.h"</span>
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>() {
+  puts(index_html(<span style="color: #DB8E73;">"this is a string "</span>, <span style="color: #DB8E73;">"Bob"</span>, <span style="color: #DB8E73;">"Bobby"</span>, <span style="color: #DB8E73;">"This is a title"</span>, <span style="color: #DB8E73;">"Bob Bobby"</span>, <span style="color: #B5CEA8; font-weight: bold;">5</span>));
+}
+</pre>
+</div>
+
+<p>
+Now we can look at the document it generates!
+</p>
+
+<iframe src="./template_engine/output.html" width="99%" height="400"></iframe>
+</div>
+</div>
+</div>
+<div id="outline-container-orgdfe38eb" class="outline-2">
+<h2 id="orgdfe38eb"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-orgdfe38eb">
+<p>
+We just built a templating engine in C! This was a fascinating project, and it taught me a ton about code generation. I think this is a great introductory project to building a parser and compiler. Of course, we&rsquo;re not building a programming language, we&rsquo;re building a templating language. The concepts are similar, we just have a much easier job.
+</p>
+
+<p>
+These template functions should be usable in any C project, or any other language if you decide to port to implementation elsewhere. Functions provide and explicit interface between your code and the template, but this can feel quite rigid and slow to work with. Complicated templates may take in 30+ paramaters at a time, which is a lot to pass, especially in the correct order.
+</p>
+
+<p>
+In the next article we will explore how we can expand upon our template engine so that it no longer needs to accept each variable as a parameter. At the same time we can also enable type inference for our variables so that format specifiers become optional!
+</p>
+
+<p>
+The code for the first half of the project can be found <a href="template_engine/temp_to_func.c">here.</a>
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+// THIS IS A GENERATED FILE DO NOT EDIT
+#pragma once
+#include <stdio.h>
+#include <stdlib.h>
+
+char *index_html(const char* testing, const char* name, const char* last_name, const char* title, const char* author, int hi) {
+	char *output_buffer = (char*)malloc(4096);
+	char *output_ptr = output_buffer;
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "<!doctype html>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "<html class=\"no-js\" lang=\"\">");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "    <head>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "        <meta charset=\"utf-8\">");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s", "        <link>");
+	output_ptr += sprintf(output_ptr, "%s", testing);
+	output_ptr += sprintf(output_ptr, "%s\n", "</link>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "        <style>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "         body {");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "             background-color: #1a1a1a; /* Dark background color */");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "             color: #ffffff; /* Light text color */");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "         }");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "        </style>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "    </head>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "    <body>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s", "        <div>Hi Mom! My name is ");
+	output_ptr += sprintf(output_ptr, "%s", name);
+	output_ptr += sprintf(output_ptr, "%s", " ");
+	output_ptr += sprintf(output_ptr, "%s", last_name);
+	output_ptr += sprintf(output_ptr, "%s\n", "</div>");
+	for(int i = 0; i < 10; i++) {
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s", "            <div>");
+	output_ptr += sprintf(output_ptr, "%d", i);
+	output_ptr += sprintf(output_ptr, "%s\n", "</div>");
+	}
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "        <pre>");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s\n", "---");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s", "title: ");
+	output_ptr += sprintf(output_ptr, "%s", title);
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s", "author: ");
+	output_ptr += sprintf(output_ptr, "%s", author);
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s\n", "---");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s", "# ");
+	output_ptr += sprintf(output_ptr, "%s", title);
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s", "[Author]: # (");
+	output_ptr += sprintf(output_ptr, "%s", author);
+	output_ptr += sprintf(output_ptr, "%s\n", ")");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s\n", "Content of article");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s", "Written by [");
+	output_ptr += sprintf(output_ptr, "%s", author);
+	output_ptr += sprintf(output_ptr, "%s\n", "].");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "		");
+	output_ptr += sprintf(output_ptr, "%d", hi);
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	char j = 'c';
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "        </pre>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s", "        ");
+	output_ptr += sprintf(output_ptr, "%f", sqrt(32));
+	output_ptr += sprintf(output_ptr, "%s\n", "");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "    </body>");
+	output_ptr += sprintf(output_ptr, "%s", "");
+	output_ptr += sprintf(output_ptr, "%s\n", "</html>");
+	return output_buffer;
+}
