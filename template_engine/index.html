@@ -2,7 +2,7 @@
 <html class="no-js" lang="">
     <head>
         <meta charset="utf-8">
-        <link>${testing:%s}</link>
+        <link>${}</link>
         <style>
          body {
              background-color: #1a1a1a; /* Dark background color */
@@ -11,15 +11,15 @@
         </style>
     </head>
     <body>
-        <div>Hi Mom! My name is ${name:%s} ${last_name:%s}</div>
+        <div>Hi Mom! My name is ${name} ${last_name}</div>
         @for(int i = 0; i < 10; i++) {
-            <div>${$i:%d}</div>
+            <div>${i}</div>
         @}
 
         <pre>
-          @include{"index.md"}
+            @include{"index.md"}
         </pre>
 
-        ${$sqrt(32):%f}
+        ${sqrt(32)}
     </body>
 </html>

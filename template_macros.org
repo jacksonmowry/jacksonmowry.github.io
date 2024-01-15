@@ -2,9 +2,629 @@
 #+HTML_LINK_UP: index.html
 #+title: /Building a Text Templating System in C/
 #+author: Jackson
-#+date: 1/10/24
+#+date: 1/15/24
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
-#+OPTIONS: html-postamble:nil html-scripts:t
 
 /A continuation of the [[file:text_templating.org][previous article]]/.
+
+* _Introduction_
+In the previous article we built a templating engine that could take any plain text template and convert it into a C function that can output dynamic content at runtime. We learned a ton about how to build a parser, and how to generate C code based on these templates. However, the function interface that we created is a lot to deal with, especially for a programmer who is unfamiliar with the templates.
+
+#+begin_src C
+char *index_html(const char* testing, const char* name, const char* last_name, const char* title, const char* author, int hi);
+#+end_src
+
+Every variable has to be passed in explicitly, and in the correct order. Not an impossible thing to deal with, but it felt unnecessary. What if instead of accepting variables as parameters, our templates could infer both the value and type of these variables from their local scope. That is what we hope to accomplish in this article, which gives us a much simpler interface.
+
+#+begin_src C
+char *output = index_html();
+#+end_src
+
+* _Ground Work_
+In order to accomplish what we laid out above we won't be able to use a standard function in C. What else can we use that looks like a function?
+
+** _Function Macros_
+
+C has a concept of [[https://en.wikipedia.org/wiki/Macro_(computer_science)#Parameterized_and_parameterless_macro][function macros]], which are able to accept parameters and even return values. We don't want our macro to accept any parameters, but it would be nice if it could return one. The whole goal of moving our template engine to a macro system is to make it easier on our users. Macros will allow us to do type inference on our variables!
+
+A basic function macro in C takes the following form...
+
+#+begin_src C
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#+end_src
+
+~A~ and ~B~ are the parameters of our function. We then make a comparison between the 2 variables, and returns the larger of the two. You may notice that we don't have an explicit ~return~ in the macro. How does that work?
+
+Macros (and all the C preprocessor) run during compile time. The compiler generates a normal C code depending on the argument that are being passed. If the values are known entirely at compiler time then it can simply substitute the higher value. Otherwise, it will generate a simple ternary to find the larger of the 2 values.
+
+#+begin_src C
+int main(int argc, char **argv) {
+  bool res = MAX(argc, 4);
+}
+#+end_src
+
+Expanding the code above using ~-e~ will give us the following expanded code.
+
+#+begin_src C
+int main(int argc, char **argv) {
+ _Bool res = ((argc) > (4) ? (argc) : (4));
+}
+#+end_src
+
+The macro gets inlined into a single ternary. Would we be able to use something like this to implement our template engine? Of course! Our macro will return a pointer to the buffer that it allocated.
+
+** _Type Inference_
+C doesn't have type inference (well now it [[https://thephd.dev/c23-is-coming-here-is-what-is-on-the-menu#n3006--n3007---type-inference-for-object-definitions][does]]), but even if it did, this wouldn't allow us to omit format specifiers from our templates. Instead, we will use ~_Generic~ to print a variable based on its type. You may have seen [[file:c_generics.org][this article]] where we explored ~_Generic~ in C. We covered some more esoteric uses cases there. Here we will cover a more realistic use case.
+
+It will be a simple function that chooses which format specifier to pass to ~sprintf~ based on the type of the variable being passed in. The great thing is that our users will still be able to use a custom format specifier if they desire.
+
+* _Implementation_
+We will take the same approach as before parsing out a template, and then generating C code to rebuild that template at runtime. We can start by building our the skeleton of our macro, and seeing how we can get that working.
+
+** _Macro Declaration_
+
+#+begin_src C
+#define index_html() ({\
+  char *output_buffer = malloc(10000); \
+  do {\
+    char *ob_ptr = output_buffer; \
+    // ....
+    // template code here
+    // ....
+  } while (0); \
+  output_buffer;\
+})
+#+end_src
+
+Since macros are just simple text substitutions we cannot create a regular looking function in C. This whole block of code we created has to end each line with ~\~, which continues the previous line without a line break. We've essentially created a single line function that has hundreds of lines of code. Why you may ask?
+
+Well, the macro needs to "value", and macros can't return values in the normal sense. As we saw above with ~MAX~, "returning" a value means that the entire thing evaluates to that value. Our macro needs to return a pointer to the buffer we've built up, so the entire "right-hand side" will evaluate to ~output_buffer~.
+
+We will start be reworking our original code to output macro syntax, instead of function syntax.
+
+#+begin_src C
+char *template_to_macro(const char *const file, bool include) {
+  FILE *fp = fopen(file, "r");
+  if (!fp) {
+    if (errno == ENOENT) {
+      fprintf(stderr, "error: File \"%s\" does not exist.\n", file);
+    } else if (errno == EMFILE) {
+      fprintf(stderr,
+              "error: Too many open files, do you have a circular import?\n");
+    } else {
+      perror("fopen");
+    }
+    return NULL;
+  }
+
+  char *macro_buffer = calloc(1, 10000);
+  char *mb_ptr = macro_buffer;
+
+  if (!include) {
+    char *const filename = convert_filename(file);
+    filename[0] = 'd';
+    mb_ptr += sprintf(mb_ptr, "#define %s()({\\\n", filename);
+    mb_ptr += sprintf(mb_ptr, "\tchar *output_buffer = malloc(%d);\\\n", OUTPUT_BUF_SIZE);
+    mb_ptr += sprintf(mb_ptr, "\tdo {\\\n");
+    mb_ptr += sprintf(mb_ptr, "\t\tchar *ob_ptr = output_buffer;\\\n");
+    free(filename);
+  }
+
+  char *input_line = NULL;
+  size_t size;
+  size_t line_number = 0;
+  int read = 0;
+  int pos = 0;
+
+  // Parsing code will go here
+  // ....
+
+  if (!include) {
+    mb_ptr += sprintf(mb_ptr, "\t} while (0); \\\n");
+    mb_ptr += sprintf(mb_ptr, "\toutput_buffer;\\\n");
+    mb_ptr += sprintf(mb_ptr, "})");
+  }
+
+  fclose(fp);
+  return macro_buffer;
+}
+#+end_src
+
+Notice here that we won't have to worry about keeping track of parameters, so we can create the macro entirely within this one function. We only want to output the macro definition once, which only happens if ~include~ is ~false~. A similar version of our parsing code will be sandwiched in the middle. Lastly, we add the closing section of the macro.
+
+There is one curious thing going on around the body of our macro, a ~do-while loop~. We use this to ensure that our code is executed properly within a macro, even if the macro is used within complex control flow blocks. Let's look at the code this generates for us.
+
+#+begin_src C
+#define index_html()({\
+	char *output_buffer = malloc(10000);\
+	do {\
+		char *ob_ptr = output_buffer;\
+	} while (0); \
+	output_buffer;\
+})
+#+end_src
+
+Great! We now have the outer portion of our macro, the only thing left to do is fill in the body to do something useful.
+
+*** Memory Management
+As a bit of an aside, this practice of allocating memory within a macro and returning a pointer to the memory is quite error-prone in C. We are relying on our users understanding how the macro works, and that they will free the memory themselves.
+
+If we wanted to create a more "C style" interface we could accept a pointer to a block of memory, and then branch on if that is a pointer to ~NULL~ or not. If they passed us a pointer to ~NULL~ we would allocate a buffer for them, otherwise we would use the buffer they gave us a pointer to. It would be a fairly easy change to make if you would like to.
+
+Here we just need to make our users aware that the memory address returned from ~index_html()~ must be freed. We can do this with generated documentation comments that will pop up in an LSP, or if they jump to definition.
+
+#+begin_src C
+  if (!include) {
+    char *const filename = convert_filename(file);
+    mb_ptr += sprintf(mb_ptr, "// GENERATED FUNCTION from file %s\n", file);
+    mb_ptr += sprintf(mb_ptr, "// Memory returned by %s is heap allocated, and must be freed\n", filename);
+    mb_ptr += sprintf(mb_ptr, "#define %s()({\\\n", filename);
+    mb_ptr += sprintf(mb_ptr, "\tchar *output_buffer = malloc(%d);\\\n", OUTPUT_BUF_SIZE);
+    mb_ptr += sprintf(mb_ptr, "\tdo {\\\n");
+    mb_ptr += sprintf(mb_ptr, "\t\tchar *ob_ptr = output_buffer;\\\n");
+    free(filename);
+  }
+#+end_src
+
+#+begin_src C
+// GENERATED FUNCTION from file index.html
+// Memory returned by index_html is heap allocated, and must be freed
+#define index_html()({\
+	char *output_buffer = malloc(10000);\
+	do {\
+		char *ob_ptr = output_buffer;\
+	} while (0); \
+	output_buffer;\
+})
+#+end_src
+
+** _Parsing Logic_
+The core of our parser will remain the same, we will just need to modify the code that it generates. Our first section of detecting lines of code or includes has the same structure. The only change needed is outputting a ~\~ at the end of the line to keep the macro valid.
+
+#+begin_src C
+  while ((read = getline(&input_line, &size, fp)) != -1) {
+    char *line = input_line;
+    trim_newline(line, read);
+    line_number++;
+
+    if ((pos = code_line_p(line)) != -1) {
+      if (include_p(&line[pos])) {
+        size_t include_indent =
+            (&line[pos] - line) / 4; // Calculate indentation
+        line += pos + 9;             // skip past @include{"
+        strtok(line, "\"");          // null terminate filename
+
+        char *parsed_file =
+            template_to_macro(line, indent_level + include_indent, true);
+        if (!parsed_file) {
+          fprintf(stderr, "error: %10s:%-5ld failed while importing \"%s\"\n",
+                  file, line_number, line);
+          free(input_line);
+          free(macro_buffer);
+          return NULL;
+        }
+        mb_ptr = stpcpy(mb_ptr, parsed_file);
+        free(parsed_file);
+        continue;
+      }
+      mb_ptr += sprintf(mb_ptr, "\t\t%s \\\n", &line[pos]);
+      continue;
+    }
+    // Continued below
+    // ....
+#+end_src
+
+The next segment of parsing out lines and variables has one slight change, we no longer need to track parameters explicitly. Instead, we will take in the variable name, and format specifier, placing those directly in our macro.
+
+#+begin_src C
+// ....
+    mb_ptr += sprintf(
+        mb_ptr, "\t\tob_ptr += sprintf(ob_ptr, \"%%s\", \"%s\"); \\\n",
+        indent);
+    char temp[500] = {0};
+    int temp_pos = 0;
+    bool inside_variable = false;
+    while (*line) {
+      if (*line == '$' && *(line + 1) && *(line + 1) == '{') {
+        inside_variable = true;
+        // Write out line before variable decl
+        if (temp_pos > 0) {
+          mb_ptr += sprintf(
+              mb_ptr,
+              "\t\tob_ptr += sprintf(ob_ptr, \"%%s\", \"%s\"); \\\n",
+              temp);
+          temp[0] = '\0';
+          temp_pos = 0;
+        }
+        line += 2;
+      } else if (inside_variable) {
+// Continued below
+// ....
+#+end_src
+
+We first indent the output line by printing the correct number of tab characters. A temporary buffer is created to store characters as we parse along the line. Just like we did before we check to see if our position matches the character sequence ~${~. If it does, we write out everything before the variable block, and then continue the loop.
+
+Notice again that we're using ~\\\n~ to end each line which translates to ~\~ and ~\n~ in the final output. Which will properly end each line of our macro, and move on to the next line.
+
+#+begin_src C
+// ....
+      } else if (inside_variable) {
+        while (*line && *line != ':') {
+          temp[temp_pos++] = *line++;
+        }
+        if (!*line) {
+          temp[temp_pos] = '\0';
+          fprintf(stderr,
+                  "error: %10s:%-5ld malformed variable block around \"%s\" "
+                  "hint: ${variable:%%s} \n",
+                  file, line_number, temp);
+          free(macro_buffer);
+          free(input_line);
+          return NULL;
+        }
+        temp[temp_pos++] = '\0';
+        line++;
+        char *fmt = &temp[temp_pos];
+        while (*line && *line != '}') {
+          temp[temp_pos++] = *line++;
+        }
+        temp[temp_pos] = '\0';
+        if (!*line || strlen(fmt) == 0) {
+          fprintf(stderr,
+                  "error: %10s:%-5ld missing format specifier for \"%s\" "
+                  "hint: ${variable:%%s} \n",
+                  file, line_number, temp);
+          free(macro_buffer);
+          free(input_line);
+          return NULL;
+        }
+        mb_ptr +=
+            sprintf(mb_ptr, "\t\tob_ptr += sprintf(ob_ptr, \"%s\", %s); \\\n",
+                    fmt, temp);
+        temp[0] = '\0';
+        temp_pos = 0;
+        inside_variable = false;
+        line++;
+      } else {
+// Continued below
+// ....
+#+end_src
+
+This section is where things change the most, as we no longer have to be concerned with keeping track of parameters, or differentiating between parameters and local variables. Instead, we scan along for the variable name, and then its format specifier. The error checking is done along the way to ensure that a malformed variable block is caught and correctly reported to the user.
+
+Once we have found a valid variable block we go ahead and write it out to our macro, substituting in the user specified format string, and variable name.
+
+#+begin_src C
+// ....
+      } else {
+        if (*line == '"') {
+          temp[temp_pos++] = '\\';
+        }
+        temp[temp_pos++] = *line++;
+        temp[temp_pos] = '\0';
+      }
+    }
+    temp[temp_pos] = '\0';
+    mb_ptr += sprintf(mb_ptr, "\t\tob_ptr += sprintf(ob_ptr, \"%%s\\n\", \"%s\"); \\\n", temp);
+  }
+
+  if (!include) {
+    mb_ptr += sprintf(mb_ptr, "\t} while (0); \\\n");
+// ....
+// Remaining function body below
+#+end_src
+
+The last case is a normal character in our line. In that case we first escape it, and then add it to our buffer. Once we reach the end of a line we write it out to the buffer, making sure to include a newline in this ~sprintf~ call to ensure the output text file moves to the next line.
+
+That should be all the code we need to generate a macro that runs out template code. I made a slight modification to main now that it may return ~NULL~.
+
+#+begin_src C
+int main(int argc, char **argv) {
+  char *output = template_to_macro("index.html", 0, false);
+  if (!output) {
+    return 1;
+  }
+  puts(output);
+  free(output);
+}
+#+end_src
+
+Great, now let's see the macro that it generates, along with the resulting html file.
+
+#+begin_src C
+// GENERATED FUNCTION from file index.html
+// Memory returned by index_html is heap allocated, and must be freed
+#define index_html()({\
+	char *output_buffer = malloc(10000);\
+	do {\
+		char *ob_ptr = output_buffer;\
+		ob_ptr += sprintf(ob_ptr, "%s", ""); \
+		ob_ptr += sprintf(ob_ptr, "%s\n", "<!doctype html>"); \
+        // ....
+		ob_ptr += sprintf(ob_ptr, "%s\n", "</html>"); \
+	} while (0); \
+	output_buffer;\
+})
+#+end_src
+
+Then if we can include this code in a separate file and run the template.
+
+#+begin_src C
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "templates.h"
+
+
+int main() {
+  char *testing = "this is a testing value";
+  char *name = "Jackson";
+  char *last_name = "Mowry";
+  puts(index_html());
+}
+#+end_src
+
+As we can now see, our template no longer requires passing in each variable! The code still requires that all the referenced variables be present in the scope the macro is run, so we still have type safety, and safety that a variable is present.
+
+If we forget to include a variable in the scope, or pass a variable with the wrong type but the same name, the code will refuse to compile or generate a warning.
+
+#+begin_src html
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <link>this is a testing value</link>
+        <style>
+         body {
+             background-color: #1a1a1a; /* Dark background color */
+             color: #ffffff; /* Light text color */
+         }
+        </style>
+    </head>
+    <body>
+        <div>Hi Mom! My name is Jackson Mowry</div>
+            <div>0</div>
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+            <div>4</div>
+            <div>5</div>
+            <div>6</div>
+            <div>7</div>
+            <div>8</div>
+            <div>9</div>
+
+        5.656854
+    </body>
+</html>
+
+#+end_src
+
+** _Wrapping ~template_to_macro~_
+That is significantly less code than generating a function, and it is even easier to use than a function. We'll probably want to wrap it up in a neat little CLI to match the functionality of the previous version.
+
+#+begin_src C
+int main(int argc, char **argv) {
+  FILE *fp = fopen("templates.h", "w");
+  if (!fp) {
+    perror("fopen");
+    exit(1);
+  }
+
+  fprintf(fp, "%s\n", "#include <stdio.h>");
+  fprintf(fp, "%s\n", "#include <stdlib.h>");
+
+  for (int i = 1; i < argc; i++) {
+    puts(argv[i]);
+    char *output = template_to_macro(argv[i], 0, false);
+    if (!output) {
+      fprintf(stderr, "error: %16s failed while creating template for %s\n", " ", argv[i]);
+      return 1;
+    }
+    fprintf(fp, "%s\n", output);
+    free(output);
+  }
+}
+#+end_src
+
+Nothing too fancy, just making it a bit easier to use on the CLI. We can flush this out later to add more error handling and hints to our user.
+
+* _Type Inference and Generics_
+We have created a much easier to use interface for our users, removing the need to differentiate between local variables and function parameters, and resolving variables from local scope. Wouldn't it be nice to allow our users to omit the format specifier all together?
+
+Luckily, thanks to ~_Generic~ in C we should be able to do this fairly easily.
+
+** _~print_generic~ and ~print_value~_
+Our first step will be to create a ~_Generic~ macro that can choose which version of ~sprintf~ to call based on the type it is presented with. ~_Generic~ was introduced in C11 and has still not seen widespread usage.
+
+One of the big downsides with generics in C is that it cannot do any code generation for you. It essentially just allows for function overloading, which isn't normally available in C. In our case we essentially want to "switch" on the type of the variable we are given, and pass the appropriate format string to ~sprintf~.
+
+#+begin_src C
+#define print_generic(value) _Generic((value), \
+   char: "%c", \
+   char*: "%s", \
+   const char*: "%s", \
+   float: "%.2f", \
+   double: "%.2f", \
+   signed char: "%d", \
+   unsigned char: "%u", \
+   signed short: "%d", \
+   unsigned short: "%u", \
+   signed int: "%d", \
+   unsigned int: "%u", \
+   signed long: "%ld", \
+   unsigned long: "%lu", \
+   signed long long: "%lld", \
+   unsigned long long: "%llu" \
+)
+
+#define print_value(buf, value) ({ \
+    int result = sprintf(buf, print_generic(value), value);\
+    result; \
+})
+#+end_src
+
+These are the 2 macros that we need to include in our final output.
+
+~print_generic~ takes in any primitive value, and passes the correct format string to ~sprintf~. We only want our users to print out primitive values here to not complicate our logic more than necessary. If a user needs to print more complicated types, like structs or containers, they would need to first create a string value that is then passed to our template.
+
+~print_value~ first calls ~print_generic~ to get the appropriate format string, and then outputs the string representation to the provided buffer.
+
+We can't simply just copy and paste this code somewhere in our code and have it run during the generation phase. These macros need to be included in our output so that they are run when the end user compiles their program. Instead, we need to turn these macros into strings that can then be output into the final header file.
+
+#+begin_src C
+const char *generic_print_macro =
+    "#define print_generic(value) _Generic((value), \\\n"
+    "   char: \"%c\", \\\n"
+    "   char*: \"%s\", \\\n"
+    "   const char*: \"%s\", \\\n"
+    "   float: \"%.2f\", \\\n"
+    "   double: \"%.2f\", \\\n"
+    "   signed char: \"%d\", \\\n"
+    "   unsigned char: \"%u\", \\\n"
+    "   signed short: \"%d\", \\\n"
+    "   unsigned short: \"%u\", \\\n"
+    "   signed int: \"%d\", \\\n"
+    "   unsigned int: \"%u\", \\\n"
+    "   signed long: \"%ld\", \\\n"
+    "   unsigned long: \"%lu\", \\\n"
+    "   signed long long: \"%lld\", \\\n"
+    "   unsigned long long: \"%llu\" \\\n"
+    ")\n"
+    "\n"
+    "#define print_value(buf, value) ({ \\\n"
+    "    int result = sprintf(buf, print_generic(value), value);\\\n"
+    "    result; \\\n"
+    "})\n";
+#+end_src
+
+** _Modifying the Code Generation_
+We need to allow our users to omit the format specifier from their variable blocks, so our parser will need to account for this. While scanning for a variable we need to check if we hit a ~:~ or ~}~ first.
+
+#+begin_src C
+// ....
+// Previous code above
+      } else if (inside_variable) {
+        bool generic_variable = false;
+        bool parsing_error = false;
+        while (*line && *line != ':') {
+          if (*line == '}' && strlen(temp) != 0) {
+            generic_variable = true;
+            break;
+          }
+          temp[temp_pos++] = *line++;
+        }
+        if (generic_variable) {
+          temp[temp_pos++] = '\0';
+          mb_ptr += sprintf(
+              mb_ptr, "\t\tob_ptr += print_value(ob_ptr, %s); \\\n", temp);
+          temp[0] = '\0';
+          temp_pos = 0;
+          line++;
+          inside_variable = false;
+          continue;
+        }
+        temp[temp_pos++] = '\0';
+        if (!*line) {
+          parsing_error = true;
+// Previous code below
+// ....
+#+end_src
+
+A new condition ~generic_variable~ is added to track when the user omits a format specifier. After parsing the variable name we check if the variable was considered "generic". This is where our new macro ~print_value~ comes in to print out the variable. We simply output the macro into the generated code, which will then be evaluated once the user compiles their code.
+
+The only other change is to unset ~inside_variable~ and continue on to the next portion of the line. We also make sure to set ~temp_pos~ back to 0 so that if the variable is the last thing on the line we don't accidentally print out garbage data from the temporary buffer afterward.
+
+With those changes in place we should be able to remove all format specifiers from our template.
+
+#+begin_src html
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <link>${testing}</link>
+        <style>
+         body {
+             background-color: #1a1a1a; /* Dark background color */
+             color: #ffffff; /* Light text color */
+         }
+        </style>
+    </head>
+    <body>
+        <div>Hi Mom! My name is ${name} ${last_name}</div>
+        @for(int i = 0; i < 10; i++) {
+            <div>${i}</div>
+        @}
+
+        <pre>
+            <!-- @include{"index.md"} -->
+        </pre>
+
+        ${sqrt(32)}
+    </body>
+</html>
+#+end_src
+
+Which can then be run just like before, with the types inferred automatically from the local scope.
+
+#+begin_src C
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "templates.h"
+
+int main() {
+  char *testing = "this is a testing value";
+  char *name = "Billy";
+  char *last_name = "Bob";
+  puts(index_html());
+}
+#+end_src
+
+#+begin_src html
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <link>this is a testing value</link>
+        <style>
+         body {
+             background-color: #1a1a1a; /* Dark background color */
+             color: #ffffff; /* Light text color */
+         }
+        </style>
+    </head>
+    <body>
+        <div>Hi Mom! My name is Billy Bob</div>
+            <div>0</div>
+            <!-- ........ -->
+            <div>9</div>
+    </body>
+</html>
+#+end_src
+
+Isn't that great! We've greatly simplified our user experience, without sacrificing type safety. If the user still wishes to have an explicit "contract" for their template they can specify the format string, and those that aren't concerned can omit it.
+
+You may have also noticed that we can now call functions directly within our variable blocks. Before this wasn't possible because every "variable" needed to actually be a variable that can be found with an identifier. Now we are able to call functions or access struct fields directly within a variable block, further simplifying the job for template authors.
+
+The types are automatically inferred from these values, and our template engine does not need to be concerned with what code is going to be called. That is the beauty and simplicity that comes with providing the primitives to our users and letting them decide what to do with them.
+
+If a function the user wants to call returns a more complex value it is easy to pick out the primitive fields, or even to perform transformations on that data directly within the template. Remember that any line beginning with ~@~ is just a line of C code.
+
+#+begin_src html
+<div>
+  @my_struct ms = db_query("billy bob");
+  <span>${ms.name}</span>
+  <span>${ms.age}</span>
+</div>
+#+end_src
+
+This is not something I would personally recommend doing, but the point is that it is possible. Our design allows users to do anything they would like from within a template, as simple or complex as they would like.
+
+* _Conclusion_
+That is all we needed to take our code from the last article, and move it to a macro based system. Overall I think both approaches have their merits, but I would always choose to use a macro based system that can grab variables from the local scope. If you're working on a project that involves a team of people I think the function approach makes more sense to keep the variable list explicit.
+
+I am going to clean the project up and eventually publish it on github. Hopefully someone else can get some use out of it, or at least I won't accidentally delete the project from my PC. Hopefully you are able to take the lessons learned here and apply them to your own project, or even to port this concept to another programming language.
+
+Learning how to parse strings is a very important skill in any language, and C makes that a very hard task. Coding a similar project in a higher level language can get the text processing out of the way and allow you to focus more on the code generation side of things. Either way, just code in what works for you, and whatever will help you learn the most.

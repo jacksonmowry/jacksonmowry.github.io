@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "gen_templates.h"
+#include "templates.h"
 
-int main() { puts(index_html("this is a string ", "Bob", "Bobby", "This is a title", "Bob Bobby", 5)); }
+int main() {
+  char *testing = "this is a testing value";
+  char *name = "Jackson";
+  char *last_name = "Mowry";
+  int hi = 5;
+  char *author = "Billy Bob";
+  char  *title = "article 5";
+  puts(index_html());
+}

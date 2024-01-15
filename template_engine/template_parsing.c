@@ -18,8 +18,8 @@ const char *header_warnings =
 
 const char *generic_print_macro =
     "#define print_generic(value) _Generic((value), \\\n"
-    "    char: \"%c\", \\\n"
-    "    char*: \"%s\", \\\n"
+    "   char: \"%c\", \\\n"
+    "   char*: \"%s\", \\\n"
     "   const char*: \"%s\", \\\n"
     "   float: \"%.2f\", \\\n"
     "   double: \"%.2f\", \\\n"
