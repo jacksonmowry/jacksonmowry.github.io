@@ -1,0 +1,1002 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Fast File Search/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Fast File Search</i></h1>
+<p>
+<i>The code for this article can be found at <a href="ffs.c">ffs.c</a>.</i>
+</p>
+<div id="outline-container-org1d4133e" class="outline-2">
+<h2 id="org1d4133e"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org1d4133e">
+<p>
+We have yet to explore multi-threading on our journey of systems programming. Today we are going to change that.
+</p>
+
+<p>
+Our goal it builds a simplistic version of <code>grep</code> that searches recursively downwards from the current directory, reporting every line containing some string. We&rsquo;ll start out building a single threaded searching function, that can later be adapted into a threading model.
+</p>
+</div>
+</div>
+<div id="outline-container-orgfef42c1" class="outline-2">
+<h2 id="orgfef42c1"><span class="underline">Includes</span></h2>
+<div class="outline-text-2" id="text-orgfef42c1">
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;alloca.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;bits/pthreadtypes.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;dirent.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;linux/limits.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;pthread.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdbool.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdio.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdlib.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;string.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;unistd.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;limits.h&gt;</span>
+<span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;stdarg.h&gt;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org4bc6f3b" class="outline-2">
+<h2 id="org4bc6f3b"><span class="underline">Searching</span></h2>
+<div class="outline-text-2" id="text-org4bc6f3b">
+<p>
+In order to find occurrences of a string in a file we can start out by opening a file, and reading it line by line. Each time we find the string the user is searching for we want to output the line number, and highlight the occurrence.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">CYAN_BOLD</span> <span style="color: #DB8E73;">"\033[1;36m"</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">RED_BOLD</span> <span style="color: #DB8E73;">"\033[1;31m"</span>
+<span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #85DDFF;">RESET</span> <span style="color: #DB8E73;">"\033[0m"</span>
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">file_search</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">needle</span>) {
+  <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">output</span>[<span style="color: #B5CEA8; font-weight: bold;">100000</span>];
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">output_cap</span> = <span style="color: #B5CEA8; font-weight: bold;">100000</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">output_len</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+
+  output_len += snprintf(&amp;output[output_len], output_cap - output_len,
+                         <span style="color: #DB8E73;">"%s%s%s:\n"</span>, CYAN_BOLD, filename, RESET);
+
+  <span style="color: #35CDAF;">FILE</span> *<span style="color: #85DDFF;">fp</span> = fopen(filename, <span style="color: #DB8E73;">"r"</span>);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>fp) {
+    perror(<span style="color: #DB8E73;">"fopen"</span>);
+    <span style="color: #339CDB;">return</span>;
+  }
+
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">read</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">line_number</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>;
+  <span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">found_something</span> = <span style="color: #339CDB;">NULL</span>;
+
+  <span style="color: #339CDB;">while</span> ((read = getline(&amp;buf, &amp;len, fp)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    line_number++;
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">prev</span> = buf;
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">found</span> = strcasestr(buf, needle);
+    <span style="color: #339CDB;">if</span> (found) {
+      output_len += snprintf(&amp;output[output_len], output_cap - output_len,
+                             <span style="color: #DB8E73;">"%s%lu%s: "</span>, CYAN_BOLD, line_number, RESET);
+    }
+    <span style="color: #339CDB;">while</span> (found) {
+      found_something = <span style="color: #339CDB;">true</span>;
+      <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len_before</span> = found - prev;
+      output_len += snprintf(&amp;output[output_len], output_cap - output_len,
+                             <span style="color: #DB8E73;">"%.*s"</span>, (<span style="color: #35CDAF;">int</span>)len_before, prev);
+      output_len +=
+        snprintf(&amp;output[output_len], output_cap - output_len, <span style="color: #DB8E73;">"%s%.*s%s"</span>,
+                 RED_BOLD, (<span style="color: #35CDAF;">int</span>)strlen(needle), found, RESET);
+      prev = found + strlen(needle);
+      found = strcasestr(prev, needle);
+      <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>found) {
+        output_len +=
+          snprintf(&amp;output[output_len], output_cap - output_len, <span style="color: #DB8E73;">"%s"</span>, prev);
+      }
+    }
+  }
+
+  <span style="color: #339CDB;">if</span> (found_something) {
+    printf(<span style="color: #DB8E73;">"%.*s\n"</span>, (<span style="color: #35CDAF;">int</span>)output_len, output);
+  }
+
+  free(buf);
+}
+</pre>
+</div>
+
+<p>
+A lot to go over here, but this is the base of our program, and it won&rsquo;t change much as we move to a multithreaded model.
+</p>
+
+<p>
+We first set up a simple buffer that will hold the output of our searching through each file. After that the file is opened, and we begin reading it line by line with <code>getline</code>. We can find occurrences of a string within another string in a case-insensitive manner using <code>strcasestr</code>. This returns a pointer to the first occurrence of that substring, or <code>NULL</code> if it was not found.
+</p>
+
+<p>
+It would be nice if our output had some color, we will make the line numbers and file names cyan, and each occurrence of the needle red. From there we can continue looping while <code>strcasestr</code> returns a value. We print everything before the needle, then print the needle itself, making sure the print the actual value from the line to preserve its upper or lower case.
+</p>
+
+<p>
+If <code>strcasestr</code> fails to return a value at any point we know we&rsquo;re done searching, so we can print the remainder of the line. If we have found something in the file we go ahead and print the entire buffer out at once. This conditional allows us to put the filename into the buffer at the beginning, and only print it out if necessary.
+</p>
+
+<p>
+The pattern above is going to be important once we multithread our program. In order to ensure that console output does not get jumbled up, each thread will have to acquire a &ldquo;lock&rdquo; before printing, and will release it once it&rsquo;s done. This will guarantee that only one thread attempts to print at a time, and that each file will have its output together.
+</p>
+
+<p>
+We can call the above function in our simple program to ensure that it is working.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">argc</span>, <span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">argv</span>) {
+  <span style="color: #339CDB;">if</span> (argc &lt; <span style="color: #B5CEA8; font-weight: bold;">3</span>) {
+    printf(<span style="color: #DB8E73;">"usage: %s needle files..."</span>, argv[<span style="color: #B5CEA8; font-weight: bold;">1</span>]);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">2</span>; i &lt; argc; i++) {
+    file_search(argv[i], argv[<span style="color: #B5CEA8; font-weight: bold;">1</span>]);
+  }
+}
+</pre>
+</div>
+
+<p>
+Here is a simple file we can test it one.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-nil">this is a test for needle
+what value does needle hold
+this line should not be output
+needle is a word with 2 e's
+here needle is the second word on the line
+</pre>
+</div>
+
+
+<div id="org532e2b9" class="figure">
+<p><img src="needle.png" alt="needle.png" />
+</p>
+</div>
+
+<p>
+Great! Just what we expected. Let&rsquo;s now look at how we can begin to multi-thread our simple program.
+</p>
+</div>
+</div>
+<div id="outline-container-orgfba9685" class="outline-2">
+<h2 id="orgfba9685"><span class="underline">pthread</span></h2>
+<div class="outline-text-2" id="text-orgfba9685">
+<p>
+The standard way to create multithreaded programs on unix systems is the <code>pthread</code> library, which stands for posix threads. When compiling a program with <code>pthreads</code> make sure to use <code>lpthread</code> as a compile flag. It provides all the primitives you need to create threads, have them do work, and finally close them down. We won&rsquo;t be diving into the entire library, just the essential parts you should know.
+</p>
+
+<p>
+At a basic level there are 3 major concepts and 1 minor concept when it comes to working with pthreads. A program has one main thread of execution, this doesn&rsquo;t change from a normal program. From there, any number of threads (up to an operating system or user limit) can be spawned to do work.
+</p>
+</div>
+<div id="outline-container-orgee7c527" class="outline-3">
+<h3 id="orgee7c527"><span class="underline">Tour of Features</span></h3>
+<div class="outline-text-3" id="text-orgee7c527">
+</div>
+<div id="outline-container-org68ba6a2" class="outline-4">
+<h4 id="org68ba6a2"><code>pthread_t</code></h4>
+<div class="outline-text-4" id="text-org68ba6a2">
+<p>
+This is the type that represents and individual thread in C. You interact with a thread through using some of the various functions that I will describe below. If you know exactly what you will be using a thread for you can create a single one in your main function and work with it that way.
+</p>
+
+<p>
+For most applications you will be using a thread pool. This is no different than an array of any other type, where each element is a thread handle. Common thread pools will be scaled according to the machine they are being run on, or to the task at hand. An important thing to note is that threads do carry some overhead, both in terms of memory usage, and CPU usage if those threads are sitting idle.
+</p>
+
+<p>
+Threads (including the main thread) are all running the same program, with their own stack space. This means the address space is shared, and global variables can be accessed from within every thread, this concept will be important later when it comes to synchronization.
+</p>
+</div>
+</div>
+<div id="outline-container-org31e3bdc" class="outline-4">
+<h4 id="org31e3bdc"><code>pthread_create</code></h4>
+<div class="outline-text-4" id="text-org31e3bdc">
+<p>
+Threads must be created before they can be used, and this is done using <code>pthread_create</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">pthread_t</span> <span style="color: #85DDFF;">other_thread</span>;
+pthread_create(&amp;other_thread, <span style="color: #339CDB;">NULL</span>, thread_function, <span style="color: #339CDB;">NULL</span>);
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">OR</span>
+
+<span style="color: #35CDAF;">pthread_t</span> *<span style="color: #85DDFF;">thread_pool</span> = malloc (NUM_THREADS * <span style="color: #339CDB;">sizeof</span>(pthread_t));
+<span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; NUM_THREADS; i++) {
+  pthread_create(&amp;thread_pool[i], <span style="color: #339CDB;">NULL</span>, thread_function, <span style="color: #339CDB;">NULL</span>);
+ }
+</pre>
+</div>
+
+<p>
+The function takes 4 arguments, although we will only use 2 for our implementation.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;pthread.h&gt;</span>
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">pthread_create</span>(<span style="color: #35CDAF;">pthread_t</span> *<span style="color: #339CDB;">restrict</span> <span style="color: #85DDFF;">thread</span>,
+                   <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">pthread_attr_t</span> *<span style="color: #339CDB;">restrict</span> <span style="color: #85DDFF;">attr</span>,
+                   <span style="color: #35CDAF;">void</span> *(*<span style="color: #D9DAA2;">start_routine</span>)(<span style="color: #35CDAF;">void</span> *),
+                   <span style="color: #35CDAF;">void</span> *<span style="color: #339CDB;">restrict</span> <span style="color: #85DDFF;">arg</span>);
+</pre>
+</div>
+
+<p>
+The first is a pointer to a thread type, this can be part of a thread pool, or a singular thread. After that we have attributes, which can be used to set stack size, stack address, scheduling policy, and other values related to a specific thread.
+</p>
+
+<p>
+Then we have the most important argument, our start<sub>routine</sub>, more commonly known as a <code>thread_function</code>. This is just a common name you will see when across many multithreaded programs. A thread function takes the form of <code>void *thread_function(void *)</code>, meaning that it can accept and return any value you would like.
+</p>
+
+<p>
+Our last argument is what will be passed to the thread function upon creation. You will commonly see this used to pass in some sort of in/out struct that can be used for 2 way communication while a thread is executing. This argument can be used to return a value, or the tread itself can return a value when it exits.
+</p>
+</div>
+</div>
+<div id="outline-container-orgc08b11b" class="outline-4">
+<h4 id="orgc08b11b">Thread Function</h4>
+<div class="outline-text-4" id="text-orgc08b11b">
+<p>
+A thread function will be used as the starting point for the work of a thread. If a thread a spawned, and after finished its work is no longer needed, then it can simply return a value, or call <code>pthread_exit</code>. If a thread is part of a thread pool or is longer living than it will usually take the form of a <code>while(true)</code> loop.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> *<span style="color: #D9DAA2;">thread_function</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">arg</span>) {
+  <span style="color: #339CDB;">while</span> (<span style="color: #339CDB;">true</span>) {
+    <span style="color: #339CDB;">if</span> (time to exit) {
+      <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">or</span>
+      pthread_exit(<span style="color: #339CDB;">NULL</span>);
+    } <span style="color: #339CDB;">else</span> {
+      <span style="color: #579C4C;">// </span><span style="color: #579C4C;">do work</span>
+    }
+  }
+}
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org7c164c0" class="outline-4">
+<h4 id="org7c164c0"><code>pthread_join</code></h4>
+<div class="outline-text-4" id="text-org7c164c0">
+<p>
+Once all the &ldquo;work&rdquo; has been passed out to threads we need to wait for them to finish executing. This is where <code>pthread_join</code> comes into play. Any thread can join any other thread from the same program, although it is most common to see your main thread join over a single thread, or and entire thread pool.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">return_value</span>;
+<span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; NUM_THREADS; i++) {
+  pthread_join(thread_pool[i], &amp;return_value);
+  <span style="color: #579C4C;">// </span><span style="color: #579C4C;">Do something with return value</span>
+ }
+
+<span style="color: #D9DAA2;">free</span>(thread_pool);
+</pre>
+</div>
+
+<p>
+A thread will not &ldquo;join&rdquo; back with the joining thread until it terminates, and when it does its return value will be placed in <code>retval</code>. Note here that we use the <code>thread_t</code> itself, not a pointer to it.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">pthread_join</span>(<span style="color: #35CDAF;">pthread_t</span> <span style="color: #85DDFF;">thread</span>, <span style="color: #35CDAF;">void</span> **<span style="color: #85DDFF;">retval</span>);
+</pre>
+</div>
+
+<p>
+We won&rsquo;t cover this here, but it is also possible for a thread to be &ldquo;cancelled&rdquo;, which is an external source telling it to stop execution. In that case <code>PTHREAD_CANCELED</code> will be placed in <code>retval</code>.
+</p>
+
+<p>
+<code>pthread_join</code> can cause your program to hang if the threads it is waiting on are stuck executing. You must ensure that any threads that you&rsquo;re waiting will eventually finish executing. We will go over this a bit more once we implement our own thread function, but it is important to step through the logic and ensure it has a valid exit condition.
+</p>
+</div>
+</div>
+<div id="outline-container-org511907e" class="outline-4">
+<h4 id="org511907e"><code>pthread_mutex_t</code></h4>
+<div class="outline-text-4" id="text-org511907e">
+<p>
+A <code>mutex</code> is the simplest, and most common, form of concurrency control in the <code>pthread</code> library. <code>mutex</code> stands for &ldquo;<a href="https://en.wikipedia.org/wiki/Lock_(computer_science)">mutual exclusion</a>&rdquo;, meaning that a thread has exclusive access to some set of resources. Common patterns have one <code>mutex</code> to control an entire thread pool, with each thread acquiring the mutex for some short period of time when it needs access to some shared resource.
+</p>
+
+<p>
+We can interact with a mutex using the lock and unlock functions.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">pthread_mutex_t</span> <span style="color: #85DDFF;">mutex</span> = PTHREAD_MUTEX_INITIALIZER;
+
+
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">pthread_mutex_lock</span>(<span style="color: #35CDAF;">pthread_mutex_t</span> *<span style="color: #85DDFF;">mutex</span>);
+<span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">pthread_mutex_unlock</span>(<span style="color: #35CDAF;">pthread_mutex_t</span> *<span style="color: #85DDFF;">mutex</span>);
+</pre>
+</div>
+
+<p>
+There are many things in a program that can be considered shared resources. You will commonly see locks around things like input/out, or global/shared data structures. For example, 2 threads that attempt to print at the same time, may end up printing on top of each other, causing a jumbled mess. Or if 2 threads both attempt to access the first element in an array and then remove it, both threads may end up with the actual first element, but the array would see 2 successive calls to <code>pop_front</code>. Meaning that both threads have element 0, but the array has removed 2 elements, element 1 was lost forever.
+</p>
+
+<p>
+This is why we use a <code>mutex</code>, or lock, to ensure that only one thread has access to these resources at a time. A thread will lock a mutex, then grab a piece of work off the queue, and finally release the lock. This sounds great! We can just grab locks all over the place to ensure our program is safe right? Not exactly. While yes, it will make your program safe from <a href="https://en.wikipedia.org/wiki/Race_condition">data races</a>, it will also slow your program down to a crawl.
+</p>
+
+<p>
+A <code>mutex</code> internally uses what are known as <a href="https://wiki.osdev.org/Atomic_operation">atomic operations</a>, which are hardware instructions that ensure only one processor has access to read/write the data in question. This is implemented differently on different architectures, but they are almost always more expensive than a regular operation.
+</p>
+
+<p>
+Once a thread acquires a lock, every other thread that attempts to acquire the lock will be forced to wait. For this reason, you should only hold a lock for the shortest amount of time possible. All work that can execute without accessing shared resources needs to be done before acquiring the lock, then once the work is done, the lock should be released before continuing.
+</p>
+
+<p>
+In our <code>file_search</code> function above you may have noticed that we build up an internal buffer, and print it out in a single line at the end of the function. This is because we will need to acquire the input/output lock before we print.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  <span style="color: #339CDB;">if</span> (found_something) {
+    pthread_mutex_lock(&amp;io_mutex);
+    printf(<span style="color: #DB8E73;">"%.*s\n"</span>, (<span style="color: #35CDAF;">int</span>)output_len, output);
+    pthread_mutex_unlock(&amp;io_mutex);
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orge2ba07e" class="outline-4">
+<h4 id="orge2ba07e"><code>pthread_cond_t</code></h4>
+<div class="outline-text-4" id="text-orge2ba07e">
+<p>
+Condition variables are not as common as threads or mutexes, but when your program can make use of them, it makes for a very elegant solution. A condition variable acts as a signal that is used to &ldquo;wake up&rdquo; a waiting thread, letting it know that more work is available. If your program uses threads to do a known amount of work and then exit, then condition variables won&rsquo;t be quite as useful to you. On the other hand, in a long-running program condition variables allow a thread to wait without wasting CPU cycles.
+</p>
+
+<p>
+Programs can be written without condition variables, you will just need to create your own strategy to allow a thread to wait for work. One common pattern is called a &ldquo;<a href="https://en.wikipedia.org/wiki/Spinlock">spin lock</a>&rdquo;, where a thread checks for work, and if none is available it loops back around and checks again. This is ok if a thread is only waiting for a short period of time, but is incredibly wasteful if it waits for long periods of time. A spin lock will take a thread up to 100% CPU usage as it loops around as quick as it can checking for work.
+</p>
+
+<p>
+To avoid this we can make use of condition variables, which act as the &ldquo;wake up&rdquo; call to our waiting threads. When a thread checks for work it has 2 options, it can find work and continue, or it has no work and needs to wait. When a thread needs to wait it calls <code>pthread_cond_wait</code>, which sets its &ldquo;alarm&rdquo;, so that it can wake up on time.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">pthread_cond_wait</span>(<span style="color: #35CDAF;">pthread_cond_t</span> *<span style="color: #339CDB;">restrict</span> <span style="color: #85DDFF;">cond</span>,
+                      <span style="color: #35CDAF;">pthread_mutex_t</span> *<span style="color: #339CDB;">restrict</span> <span style="color: #85DDFF;">mutex</span>);
+</pre>
+</div>
+
+<p>
+We call <code>pthread_cond_wait</code> with a pointer to the <code>mutex</code> that we <b>currently have locked</b>, and the condition variable we wish to wait on. The <code>mutex</code> will then be released, and our thread will wait for a signal from the condition variable. Once we are signaled, the <code>mutex</code> will be locked again, and we now know there is work available. We grab our work off the queue, and then release the <code>mutex</code>. While a thread is waiting its CPU usage will drop very low, a much better alternative to a spin lock.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgcb03daf" class="outline-3">
+<h3 id="orgcb03daf"><span class="underline">Learning <code>pthread</code></span></h3>
+<div class="outline-text-3" id="text-orgcb03daf">
+<p>
+We&rsquo;ve covered the major parts of the <code>pthread</code> library, but it will still take a lot of practice to implement them not only correctly, but in a way that speeds up a program.
+</p>
+
+<p>
+I find learning multi-threading to be particularly challenging because most programs can&rsquo;t easily benefit from more threads. Almost every problem can be solved with more threads, but that doesn&rsquo;t mean that it will make it any faster. Threads are not free, and they bring along a lot of overhead along with them. This is why it is important that you benchmark your code with and without threads to decide which variant is faster. You may be surprised by how much a single thread of execution can do on its own.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgf66a396" class="outline-2">
+<h2 id="orgf66a396"><span class="underline">Implementation</span></h2>
+<div class="outline-text-2" id="text-orgf66a396">
+<p>
+Having said all of that, our goal here is to create a fast file searching program, which lends itself very well to a multithreaded approach. Each file will be assigned its own thread from the pool, which can then parse the file for the needle independently.
+</p>
+</div>
+<div id="outline-container-org6968bba" class="outline-3">
+<h3 id="org6968bba"><span class="underline">Output Buffer</span></h3>
+<div class="outline-text-3" id="text-org6968bba">
+<p>
+Of course, our 100000 byte statically allocated buffer will probably work just fine for searching most files, but it won&rsquo;t cover every possible case. We&rsquo;ll create a dynamically allocated buffer to take care of this.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#define</span> <span style="color: #D9DAA2;">MAX</span>(<span style="color: #85DDFF;">a</span>, <span style="color: #85DDFF;">b</span>) ((a) &gt; (b) ? (a) : (b))
+
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">buffer</span> {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buffer</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">cap</span>;
+} <span style="color: #35CDAF;">buffer</span>;
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">buffer_resize</span>(<span style="color: #35CDAF;">buffer</span> *<span style="color: #85DDFF;">b</span>, <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">added_size</span>) {
+  <span style="color: #339CDB;">if</span> (b-&gt;len + added_size &gt; b-&gt;cap) {
+    b-&gt;cap += MAX(<span style="color: #B5CEA8; font-weight: bold;">4096</span>, added_size);
+    b-&gt;buffer = realloc(b-&gt;buffer, b-&gt;cap);
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>b-&gt;buffer) {
+      perror(<span style="color: #DB8E73;">"realloc"</span>);
+      exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+    }
+  }
+}
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">buffer_write</span>(<span style="color: #35CDAF;">buffer</span> *<span style="color: #85DDFF;">b</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">format</span>, ...) {
+  <span style="color: #35CDAF;">va_list</span> <span style="color: #85DDFF;">args</span>;
+  va_start(args, format);
+  <span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">length</span> = vsnprintf(<span style="color: #339CDB;">NULL</span>, <span style="color: #B5CEA8; font-weight: bold;">0</span>, format, args) + <span style="color: #B5CEA8; font-weight: bold;">1</span>;
+  va_end(args);
+  va_start(args, format);
+  buffer_resize(b, length );
+  b-&gt;len += vsprintf(&amp;b-&gt;buffer[b-&gt;len], format, args);
+  b-&gt;buffer[b-&gt;len] = <span style="color: #DB8E73;">'\0'</span>;
+  va_end(args);
+}
+</pre>
+</div>
+
+<p>
+We can use this buffer to replace the static array from before.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">file_search</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">filename</span>, <span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">needle</span>) {
+  <span style="color: #35CDAF;">buffer</span> <span style="color: #85DDFF;">b</span> = (buffer){.buffer = malloc(<span style="color: #B5CEA8; font-weight: bold;">128</span>), .len = <span style="color: #B5CEA8; font-weight: bold;">0</span>, .cap = <span style="color: #B5CEA8; font-weight: bold;">128</span>};
+
+  buffer_write(&amp;b, <span style="color: #DB8E73;">"%s%s%s:\n"</span>, CYAN_BOLD, filename, RESET);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">prev</span> = buf;
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">found</span> = strcasestr(buf, needle);
+    <span style="color: #339CDB;">if</span> (found) {
+      buffer_write(&amp;b, <span style="color: #DB8E73;">"%s%lu%s: "</span>, CYAN_BOLD, line_number, RESET);
+    }
+    <span style="color: #339CDB;">while</span> (found) {
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+      <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len_before</span> = found - prev;
+      buffer_write(&amp;b, <span style="color: #DB8E73;">"%.*s"</span>, (<span style="color: #35CDAF;">int</span>)len_before, prev);
+      buffer_write(&amp;b, <span style="color: #DB8E73;">"%s%.*s%s"</span>, RED_BOLD, (<span style="color: #35CDAF;">int</span>)strlen(needle), found, RESET);
+      prev = found + strlen(needle);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+      <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>found) {
+        buffer_write(&amp;b, <span style="color: #DB8E73;">"%s"</span>, prev);
+      }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  <span style="color: #339CDB;">if</span> (found_something) {
+    pthread_mutex_lock(&amp;io_mutex);
+    printf(<span style="color: #DB8E73;">"%s\n"</span>, b.buffer);
+    pthread_mutex_unlock(&amp;io_mutex);
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  free(b.buffer);
+  free(buf);
+  <span style="color: #339CDB;">return</span>;
+}
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orged6b487" class="outline-3">
+<h3 id="orged6b487"><span class="underline">Work Queue</span></h3>
+<div class="outline-text-3" id="text-orged6b487">
+<p>
+Our first step is to track all the work that needs to be done. Each thread will take different amounts of time to parse their respective files, so we place all the work on the queue, and then lets the threads pull work off as they are free. This is a very specific implementation of a queue, and its behavior specifically applies to this program. A more generic queue can be used if desired.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">node</span> {
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">node</span> *<span style="color: #85DDFF;">next</span>;
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">name</span>;
+};
+<span style="color: #339CDB;">typedef</span> <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">node</span> <span style="color: #35CDAF;">node_t</span>;
+
+<span style="color: #35CDAF;">node_t</span> *<span style="color: #85DDFF;">head</span> = <span style="color: #339CDB;">NULL</span>;
+<span style="color: #35CDAF;">node_t</span> *<span style="color: #85DDFF;">tail</span> = <span style="color: #339CDB;">NULL</span>;
+
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">enqueue</span>(<span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">entry</span>) {
+  <span style="color: #35CDAF;">node_t</span> *<span style="color: #85DDFF;">newnode</span> = malloc(<span style="color: #339CDB;">sizeof</span>(node_t));
+  newnode-&gt;name = entry;
+  newnode-&gt;next = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #339CDB;">if</span> (tail == <span style="color: #339CDB;">NULL</span>) {
+    head = newnode;
+  } <span style="color: #339CDB;">else</span> {
+    tail-&gt;next = newnode;
+  }
+  tail = newnode;
+}
+
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">dequeue returns dirent* or NULL</span>
+<span style="color: #35CDAF;">char</span> *<span style="color: #D9DAA2;">dequeue</span>(<span style="color: #35CDAF;">void</span>) {
+  <span style="color: #339CDB;">if</span> (head == <span style="color: #339CDB;">NULL</span>) {
+    <span style="color: #339CDB;">return</span> <span style="color: #339CDB;">NULL</span>;
+  } <span style="color: #339CDB;">else</span> {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">result</span> = head-&gt;name;
+    <span style="color: #35CDAF;">node_t</span> *<span style="color: #85DDFF;">temp</span> = head;
+    head = head-&gt;next;
+    <span style="color: #339CDB;">if</span> (head == <span style="color: #339CDB;">NULL</span>) {
+      tail = <span style="color: #339CDB;">NULL</span>;
+    }
+    free(temp);
+    <span style="color: #339CDB;">return</span> result;
+  }
+}
+</pre>
+</div>
+
+<p>
+The basic premise here is that a queue has a front and a back, called head and tail the above code. Items are placed at the tail of the list, and removed from the front of the list, that is the entire interface. When an item is inserted we allocate memory for its node, and place it into the list by updating the tail pointer, or the header pointer if the list is empty.
+</p>
+
+<p>
+When an item is removed from the list we want to return the string value directly, but we first grab a handle to the node, so we can free its memory. From there we update the links in the list and return the value. In the case the list is empty we return NULL, which signifies that our work queue is empty.
+</p>
+</div>
+</div>
+<div id="outline-container-org882b690" class="outline-3">
+<h3 id="org882b690"><span class="underline">Locking Strategy</span></h3>
+<div class="outline-text-3" id="text-org882b690">
+<p>
+Our program will require 2 pieces of synchronization between our threads. We need to have a <code>mutex</code> for our work queue, and a mutex for printing to the terminal. The queue <code>mutex</code> ensures that only one job is pulled off the queue at a time, and that jobs are added to the queue atomically. The input/output <code>mutex</code> ensures that an entire threads output is printed cleanly.
+</p>
+
+<p>
+Luckily, our program is a special case where all the work is placed into the queue up front, and then our thread pool just needs to go through the work until it is empty. Therefore, we won&rsquo;t have to use condition variables to alert a thread there is work to be done, we can just sit and spin until work shows up. Once again, this only works in short-lived programs where we do not anticipate threads sitting around and waiting for work (as in a web server).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">pthread_mutex_t</span> <span style="color: #85DDFF;">q_mutex</span> = PTHREAD_MUTEX_INITIALIZER;
+<span style="color: #35CDAF;">pthread_mutex_t</span> <span style="color: #85DDFF;">io_mutex</span> = PTHREAD_MUTEX_INITIALIZER;
+<span style="color: #35CDAF;">bool</span> <span style="color: #85DDFF;">terminate_work</span> = <span style="color: #339CDB;">false</span>;
+</pre>
+</div>
+
+<p>
+We create 2 <a href="https://stackoverflow.com/questions/866837/plural-form-of-word-mutex">mutexes</a>, and a third global variable to track when we should terminate work. This variable will be used by our <code>thread_function</code> telling it to spin while <code>terminate_work</code> is false, and terminate once it is true.
+</p>
+</div>
+</div>
+<div id="outline-container-org9434266" class="outline-3">
+<h3 id="org9434266"><span class="underline">Adding Work</span></h3>
+<div class="outline-text-3" id="text-org9434266">
+<p>
+In our case the &ldquo;work&rdquo; that we want to do is scan files, so each item in the queue should be a path to a file. Like we said before, we want to scan the current directory for files, and recursively scan its subdirectories. In C we get the contents of a directory through <code>opendir</code>, which through the use of <code>readdir</code> gives a pointer to each item in the directory. You can think of this as running <code>ls</code> in the terminal, and being given back a pointer to a struct representing each of the items.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">Recursively scans a directory placing all files</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">on the work queue</span>
+<span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">handle_dir</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">dir_path</span>) {
+  <span style="color: #35CDAF;">DIR</span> *<span style="color: #85DDFF;">dir</span>;
+  <span style="color: #339CDB;">struct</span> <span style="color: #35CDAF;">dirent</span> *<span style="color: #85DDFF;">entry</span>;
+
+  dir = opendir(dir_path);
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>dir) {
+    perror(<span style="color: #DB8E73;">"opendir"</span>);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">continued below</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+We start with a directory path as a string, which will be <code>"."</code> to start, indicating the current directory where the program is being run. The directory is then opened and error checked. Then we need to walk through each entry in the directory, placing it directly on the work queue if it is a file, or recursively scanning if it is a directory.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">continued from above</span>
+  <span style="color: #339CDB;">while</span> ((entry = readdir(dir))) {
+    <span style="color: #35CDAF;">char</span> <span style="color: #85DDFF;">path</span>[PATH_MAX];
+    sprintf(path, <span style="color: #DB8E73;">"%s/%s"</span>, dir_path, entry-&gt;d_name);
+    <span style="color: #339CDB;">if</span> (entry-&gt;d_type == DT_REG) {
+      pthread_mutex_lock(&amp;q_mutex);
+      enqueue(strdup(path));
+      pthread_mutex_unlock(&amp;q_mutex);
+    } <span style="color: #339CDB;">else</span> <span style="color: #339CDB;">if</span> (entry-&gt;d_type == DT_DIR &amp;&amp; strcmp(entry-&gt;d_name, <span style="color: #DB8E73;">"."</span>) != <span style="color: #B5CEA8; font-weight: bold;">0</span> &amp;&amp; strcmp(entry-&gt;d_name, <span style="color: #DB8E73;">".."</span>) != <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+      handle_dir(path);
+    }
+  }
+
+  <span style="color: #D9DAA2;">closedir</span>(dir);
+}
+</pre>
+</div>
+
+<p>
+Calling <code>readdir(dir)</code> yields the next entry from the directory. We assign this to the <code>entry</code> variable, and continue looping while its value is non-null. Our next step is to create a string representation of its path, which we can do by appending the name of the entry onto the current path. This means the file <code>temp.txt</code> in a subdirectory <code>foo</code> will result in a path of <code>./foo/temp.txt</code>.
+</p>
+
+<p>
+If we are looking at a file we push its path onto the work queue by creating a copy of the path. Otherwise, if we&rsquo;re looking at a subdirectory we call ourselves again to repeat the process until we get to a directory with nothing but files.
+</p>
+
+<p>
+You may notice that we acquire the <code>q_mutex</code>, then add our work on the queue, before finally releasing the lock. We will see why this is necessary later in <code>main</code>. For now, it is important to know that even though a queue has 2 ends which seem independent, when a queue has 1 element or is empty the ends begin to interact with each other. So when calling either <code>enqueue</code> or <code>dequeue</code> we need to lock the <code>q_mutex</code>.
+</p>
+</div>
+</div>
+<div id="outline-container-orgf1c47e2" class="outline-3">
+<h3 id="orgf1c47e2"><code>file_search</code></h3>
+<div class="outline-text-3" id="text-orgf1c47e2">
+<p>
+Other than adding an automatically resizing buffer we also need to make one small change to this function, simply locking the <code>io_mutex</code> before printing, and releasing it once we&rsquo;re done.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  <span style="color: #339CDB;">if</span> (found_something) {
+    pthread_mutex_lock(&amp;io_mutex);
+    printf(<span style="color: #DB8E73;">"%.*s\n"</span>, (<span style="color: #35CDAF;">int</span>)output_len, output);
+    pthread_mutex_unlock(&amp;io_mutex);
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org6144c78" class="outline-3">
+<h3 id="org6144c78"><code>thread_function</code></h3>
+<div class="outline-text-3" id="text-org6144c78">
+<p>
+Finally we can get to doing the work in our threads. Upon being created, each thread will enter a loop where they check for work, loop if none is found, and process a file if one is available.
+</p>
+
+<p>
+We will also use our <code>terminate_work</code> flag here to signal to a thread that if there is no work on the queue, and you are being told to terminate work, then you can go ahead and exit.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> *<span style="color: #D9DAA2;">thread_function</span>(<span style="color: #35CDAF;">void</span> *<span style="color: #85DDFF;">arg</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">needle</span> = (<span style="color: #35CDAF;">char</span>*)arg;
+  <span style="color: #339CDB;">while</span> (<span style="color: #339CDB;">true</span>) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">filename</span>;
+    pthread_mutex_lock(&amp;q_mutex);
+    <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>terminate_work &amp;&amp; head == <span style="color: #339CDB;">NULL</span>) {
+      pthread_mutex_unlock(&amp;q_mutex);
+      <span style="color: #339CDB;">continue</span>;
+    }
+    <span style="color: #339CDB;">if</span> (terminate_work &amp;&amp; head == <span style="color: #339CDB;">NULL</span>) {
+      pthread_mutex_unlock(&amp;q_mutex);
+      <span style="color: #339CDB;">break</span>;
+    }
+
+    filename = dequeue();
+
+    pthread_mutex_unlock(&amp;q_mutex);
+    <span style="color: #339CDB;">if</span> (filename) {
+      file_search(filename, needle);
+      free(filename);
+    }
+  }
+  pthread_exit(<span style="color: #339CDB;">NULL</span>);
+}
+</pre>
+</div>
+
+<p>
+Each thread will acquire the <code>q_mutex</code> and check for work by seeing if <code>head</code> is NULL. Once a thread has the lock it is free to check and/or modify any of the shared structures that <code>mutex</code> is protecting. In our case we make a decision based upon the value of <code>terminate_work</code> and the presence of work in the queue.
+</p>
+
+<p>
+If a thread finds work it can grab that filename off of the queue, and then release the lock allowing other threads to continue execution. By first acquiring the lock we guarantee that the state of the queue will not change until we release it. This is why it is so important that both <code>enqueue</code> and <code>dequeue</code> are only called while the <code>q_mutex</code> is held.
+</p>
+
+<p>
+Our 2 conditional checks have different behavior. If we want our thread to continue working we call <code>continue</code>, otherwise if we want to exit we <code>break</code> out of the infinite loop. This lands our thread at <code>pthread_exit(NULL)</code>, which allows the thread to now be joined on from <code>main</code>. Telling our threads to <code>continue</code> can be wasteful, but we will only be in this state for a very short period of time before work is placed onto the queue.
+</p>
+
+<p>
+The last thing to note here is that since each filename was cloned with <code>strdup</code>, its memory needs to be freed. After we call <code>file_search</code> we no longer need that filename, and we&rsquo;re safe to free it.
+</p>
+</div>
+</div>
+<div id="outline-container-org72880bc" class="outline-3">
+<h3 id="org72880bc"><code>main</code></h3>
+<div class="outline-text-3" id="text-org72880bc">
+<p>
+Now we can work to put everything together in <code>main</code>.
+</p>
+
+<p>
+We can start out with a simple usage statement that helps our users use the CLI.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">int</span> <span style="color: #D9DAA2;">main</span>(<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">argc</span>, <span style="color: #35CDAF;">char</span> **<span style="color: #85DDFF;">argv</span>) {
+  <span style="color: #339CDB;">if</span> (argc &lt; <span style="color: #B5CEA8; font-weight: bold;">2</span>) {
+    printf(<span style="color: #DB8E73;">"usage: %s needle"</span>, argv[<span style="color: #B5CEA8; font-weight: bold;">0</span>]);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">continued below</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+The string we are searching for is called our &ldquo;needle&rdquo;, and it is expected to the in <code>argv[1]</code>. We want to pass this needle to each thread, so we store it in a variable to give it some semantic meaning aside from <code>argv[1]</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">needle</span> = argv[<span style="color: #B5CEA8; font-weight: bold;">1</span>];
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+As I said before, it is common to scale the number of threads to the number of CPUs available on a machine. When our program starts up it will ask the operating system how many CPUs is has, and then we create a thread pool of that size.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  <span style="color: #35CDAF;">long</span> <span style="color: #85DDFF;">num_cpu</span> = sysconf(_SC_NPROCESSORS_CONF);
+  <span style="color: #339CDB;">if</span> (num_cpu &lt;= <span style="color: #B5CEA8; font-weight: bold;">0</span>) {
+    fprintf(stderr, <span style="color: #DB8E73;">"Error determining the number of CPUs.\n"</span>);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">1</span>);
+  }
+
+  <span style="color: #35CDAF;">pthread_t</span> *<span style="color: #85DDFF;">thread_pool</span> = alloca(num_cpu * <span style="color: #339CDB;">sizeof</span>(pthread_t));
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_cpu; i++) {
+    pthread_create(&amp;thread_pool[i], <span style="color: #339CDB;">NULL</span>, thread_function, (<span style="color: #35CDAF;">void</span>*)needle);
+  }
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+After calling <code>sysconf</code> we have the number of CPUs available, which we error check to ensure it is a value that makes sense.
+</p>
+
+<p>
+We then create a thread pool of type <code>pthread_t*</code>, which has its memory allocated with <code>alloca</code>. <code>alloca</code> is another allocation function similar to <code>malloc</code>, but instead of getting memory from the heap, we dynamically get memory from the stack. It is a very interesting function that allows for a stack allocation of a size that is only known at runtime. Since the memory resides on the stack, that also means that there is no need to call a <code>free</code> function, the memory is automatically cleaned up.
+</p>
+
+<p>
+Each thread is created with our thread function, with their only argument being the <code>needle</code> itself. To avoid any type warnings we must cast our <code>needle</code> to a <code>void*</code> since that is what the type the <code>thread_function</code> accepts. We will type cast this back to a <code>char*</code> in our thread function.
+</p>
+
+<p>
+Now all of our threads are spinning, waiting for work, so let&rsquo;s give them something to work on.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  handle_dir(<span style="color: #DB8E73;">"."</span>);
+  terminate_work = <span style="color: #339CDB;">true</span>;
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+Because <code>handle_dir</code> is recursive, we only need to give it an entry point, and it does all the work from there. This leaves our main function very clean, only having to specify the current directory with <code>"."</code>.
+</p>
+
+<p>
+The work queue is now being filled up, and at the same time the threads are churning through the files as fast as they can. As soon as <code>handle_dir</code> returns we know all the work has been added to the queue, at that point we can tell our threads to terminate work. However, they won&rsquo;t immediately stop working. Our <code>thread_function</code> will only exit when it is told to terminate <b>and</b> there is no work left on the queue.
+</p>
+
+<p>
+If we finished main off now we would be missing some of our output, so we need to wait for each thread to finish working. We can do that with <code>pthread_join</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+  <span style="color: #339CDB;">for</span> (<span style="color: #35CDAF;">int</span> <span style="color: #85DDFF;">i</span> = <span style="color: #B5CEA8; font-weight: bold;">0</span>; i &lt; num_cpu; i++) {
+    pthread_join(thread_pool[i], <span style="color: #339CDB;">NULL</span>);
+  }
+
+}
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">end of main</span>
+</pre>
+</div>
+
+<p>
+That&rsquo;s it! No need to clean up any memory from our thread pool because it was stack allocated!
+</p>
+
+<p>
+Let&rsquo;s see how this works in a real directory structure.
+</p>
+
+
+<div id="org7475420" class="figure">
+<p><img src="ffs_multi.png" alt="ffs_multi.png" />
+</p>
+</div>
+
+<p>
+We can compare that to <code>ripgrep</code>, which is a program that has a mode with very similar features to our implementation.
+</p>
+
+
+<div id="org99b7f72" class="figure">
+<p><img src="rg_ten.png" alt="rg_ten.png" />
+</p>
+</div>
+
+<p>
+Speaking of <code>ripgrep</code> it has another feature that allows it to filter any input given to it on <code>stdin</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #C586C0;">[</span>jarch@jarch jacksonmowry.github.io<span style="color: #C586C0;">]</span>$ <span style="color: #35CDAF;">ls</span> | rg <span style="color: #DB8E73;">".txt"</span>
+analysis.txt
+needle.txt
+</pre>
+</div>
+
+<p>
+We should be able to adapt our program to match this functionality.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org1ceff76" class="outline-2">
+<h2 id="org1ceff76"><span class="underline">Extending FFS</span></h2>
+<div class="outline-text-2" id="text-org1ceff76">
+<p>
+A program can tell if it has input coming in on <code>stdin</code> (through a pipe) by using <code>isatty</code>. If you remember from our <a href="shell.html">shell</a>, piping between processes uses pipes and file descriptors to send output from one program to the input of another. <code>isatty</code> allows us to compare our programs input pipe to <code>stdin</code>. If we are using <code>stdin</code> that means the input is from a terminal, otherwise our input is coming from a pipe.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">main above</span>
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">needle</span> = argv[<span style="color: #B5CEA8; font-weight: bold;">1</span>];
+
+  <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>isatty(fileno(stdin))) {
+    <span style="color: #579C4C;">// </span><span style="color: #579C4C;">pipe</span>
+    stdin_search(needle);
+    exit(<span style="color: #B5CEA8; font-weight: bold;">0</span>);
+  }
+
+  <span style="color: #35CDAF;">long</span> <span style="color: #85DDFF;">num_cpu</span> = sysconf(_SC_NPROCESSORS_CONF);
+<span style="color: #579C4C;">// </span><span style="color: #579C4C;">....</span>
+</pre>
+</div>
+
+<p>
+If we determine our input is coming from <code>stdin</code> we can jump immediately to that function. The main reason I wanted to include this example is to show how just adding multithreading to a program can greatly increase its complexity. Compare our original <code>file_search</code> with the following.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #35CDAF;">void</span> <span style="color: #D9DAA2;">stdin_search</span>(<span style="color: #339CDB;">const</span> <span style="color: #35CDAF;">char</span> *<span style="color: #339CDB;">const</span> <span style="color: #85DDFF;">needle</span>) {
+  <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">buf</span> = <span style="color: #339CDB;">NULL</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len</span>;
+  <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">read</span>;
+
+  <span style="color: #339CDB;">while</span> ((read = getline(&amp;buf, &amp;len, stdin)) != -<span style="color: #B5CEA8; font-weight: bold;">1</span>) {
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">prev</span> = buf;
+    <span style="color: #35CDAF;">char</span> *<span style="color: #85DDFF;">found</span> = strcasestr(buf, needle);
+    <span style="color: #339CDB;">while</span> (found) {
+      <span style="color: #35CDAF;">size_t</span> <span style="color: #85DDFF;">len_before</span> = found - prev;
+      printf(<span style="color: #DB8E73;">"%.*s"</span>, (<span style="color: #35CDAF;">int</span>)len_before, prev);
+      printf(<span style="color: #DB8E73;">"%s%.*s%s"</span>, RED_BOLD, (<span style="color: #35CDAF;">int</span>)strlen(needle), found, RESET);
+      prev = found + strlen(needle);
+      found = strcasestr(prev, needle);
+      <span style="color: #339CDB;">if</span> (<span style="color: #85DDFF; font-weight: bold;">!</span>found) {
+        printf(<span style="color: #DB8E73;">"%s"</span>, prev);
+      }
+    }
+  }
+  free(buf);
+  <span style="color: #339CDB;">return</span>;
+}
+</pre>
+</div>
+
+<p>
+No mutexes to mess with here. We just scan through our input line by line and output the lines that match with the needle highlighted.
+</p>
+</div>
+</div>
+<div id="outline-container-org555ad8b" class="outline-2">
+<h2 id="org555ad8b"><span class="underline">Takeaways</span></h2>
+<div class="outline-text-2" id="text-org555ad8b">
+<p>
+Implement the simple single-threaded solution first and see if it fits your needs. If you don&rsquo;t, you may find that your multithreaded solution doesn&rsquo;t offer a speed-up for your use case. There are a few things to look for when determining if a program can benefit from multi-threading.
+</p>
+</div>
+<div id="outline-container-org1fd5b1a" class="outline-3">
+<h3 id="org1fd5b1a"><span class="underline">User Interface</span></h3>
+<div class="outline-text-3" id="text-org1fd5b1a">
+<p>
+Apps that render any sort of live user interface often benefit from separating rendering and application logic to different threads. This way any heavy computation on one thread does not slow the user interface to a crawl. Chat apps may have one thread to listen for incoming messages, another to send messages, and yet another to render the messages.
+</p>
+</div>
+</div>
+<div id="outline-container-org5febd04" class="outline-3">
+<h3 id="org5febd04"><span class="underline">Independent Inputs</span></h3>
+<div class="outline-text-3" id="text-org5febd04">
+<p>
+This is the category that our FFS program falls under. Each input to our find function is an entirely separate file, they share nothing in common other than their location in the file system. If you have used <code>ripgrep</code> before, or were following along and running the code here, you may have noticed that the output from either is <a href="https://en.wikipedia.org/wiki/Nondeterministic_algorithm">non-deterministic</a>. This is because threads are scheduled by the operating system, and when a thread is spawned it may be backgrounded for a brief time, while another more important thread is run.
+</p>
+
+<p>
+Each time the program is run we may get a different ordering of files. We are ok with this tradeoff because each file it treated as its own entity, which is searched independently of other files. That is not to say that programs requiring a specific output order cannot also use multi-threading, those problems just require extra work to maintain ordering.
+</p>
+
+<p>
+If a single-threaded program has numerous inputs that are currently being processed one-by-one with no relation to the previous item processed, it may be a good candidate for multithreaded.
+</p>
+</div>
+</div>
+<div id="outline-container-orgad794e1" class="outline-3">
+<h3 id="orgad794e1"><span class="underline">Large Inputs</span></h3>
+<div class="outline-text-3" id="text-orgad794e1">
+<p>
+If each item in a large set is being processed one after the other, there may be a chance to split that set up in to smaller sets for processing. This is a hard one to get right, as it requires much more careful control over mutual exclusion, which may slow the program down.
+</p>
+</div>
+</div>
+<div id="outline-container-org39324a8" class="outline-3">
+<h3 id="org39324a8"><span class="underline">I/O Bound</span></h3>
+<div class="outline-text-3" id="text-org39324a8">
+<p>
+Our program also falls into this category, to a much lesser extent. In terms of speed reading from a file, or printing output to the terminal are much slower than the rest of the program. So a program may benefit from having separate threads of execution so that while one thread is waiting on a file to open, another can be doing a heavy computation.
+</p>
+</div>
+</div>
+<div id="outline-container-org3dd317a" class="outline-3">
+<h3 id="org3dd317a"><span class="underline">Socket Servers</span></h3>
+<div class="outline-text-3" id="text-org3dd317a">
+<p>
+Most servers that communicate over a socket architecture will benefit from having more handlers for those sockets. Imagine a web server able to handle 1 concurrent connection, versus a server able to handle 12 concurrent connections. Not only will these speed up average response times for you users, you will also allow your code to scale much better across different architectures.
+</p>
+
+<p>
+Hopefully we will be building a simple socket server coming up very soon!
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org8bfce69" class="outline-2">
+<h2 id="org8bfce69"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-org8bfce69">
+<p>
+We built a simple program that can find any line from <code>stdin</code> or a file containing a specified string. Our program started out with a single-threaded implementation, which we then easily changed to take advantage of all the available CPU threads. The task at hand was relatively simple, we just had to fit it within our concurrency control model using mutexes.
+</p>
+
+<p>
+The framework that we set up can be used as a starting point to solve many problems with multi-threading. Break the problem down into its simplest form, and solve in first as a function that run single-threaded. Then take the time to find a data structure that fits the problem well, and create a thread function that can interact with that data structure.
+</p>
+
+<p>
+Most problems take a lot of work to benefit from multi-threading, but when you find a good candidate you can massively improve performance. Take some time to explore a few old programs that you&rsquo;ve written to see how you can adapt them to a multithreaded paradigm.
+</p>
+
+<p>
+<i>The code for this article can be found at <a href="ffs.c">ffs.c</a>.</i>
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 1/17/24</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>

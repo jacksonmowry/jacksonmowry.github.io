@@ -3,6 +3,8 @@
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
 * Articles
+** Fast File Search (multithreaded grep)
+[[file:fast_file_search.org][Fast File Search]]
 ** Template Engine in C Using Generated Macros
 [[file:template_macros.org][Template Engine w/ Macros]]
 ** Template Engine in C Using Generated Functions

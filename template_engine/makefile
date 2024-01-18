@@ -1,5 +1,5 @@
 # Cats
-# C Auto Templating System
+# C Auto Template System
 # @file
 # @version 0.1
 
