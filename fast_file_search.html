@@ -20,11 +20,11 @@
 </div><div id="content" class="content">
 <h1 class="title"><i>Fast File Search</i></h1>
 <p>
-<i>The code for this article can be found at <a href="ffs.c">ffs.c</a>.</i>
+<i>The code for this article can be found at <a href="ffs.c">ffs.c</a>, or on <a href="https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/ffs.c">github</a></i>
 </p>
-<div id="outline-container-org1d4133e" class="outline-2">
-<h2 id="org1d4133e"><span class="underline">Introduction</span></h2>
-<div class="outline-text-2" id="text-org1d4133e">
+<div id="outline-container-org3f9f352" class="outline-2">
+<h2 id="org3f9f352"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org3f9f352">
 <p>
 We have yet to explore multi-threading on our journey of systems programming. Today we are going to change that.
 </p>
@@ -34,9 +34,9 @@ Our goal it builds a simplistic version of <code>grep</code> that searches recur
 </p>
 </div>
 </div>
-<div id="outline-container-orgfef42c1" class="outline-2">
-<h2 id="orgfef42c1"><span class="underline">Includes</span></h2>
-<div class="outline-text-2" id="text-orgfef42c1">
+<div id="outline-container-orgc3b12ba" class="outline-2">
+<h2 id="orgc3b12ba"><span class="underline">Includes</span></h2>
+<div class="outline-text-2" id="text-orgc3b12ba">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;alloca.h&gt;</span>
 <span style="color: #85DDFF; font-weight: bold;">#include</span> <span style="color: #DB8E73;">&lt;bits/pthreadtypes.h&gt;</span>
@@ -54,9 +54,9 @@ Our goal it builds a simplistic version of <code>grep</code> that searches recur
 </div>
 </div>
 </div>
-<div id="outline-container-org4bc6f3b" class="outline-2">
-<h2 id="org4bc6f3b"><span class="underline">Searching</span></h2>
-<div class="outline-text-2" id="text-org4bc6f3b">
+<div id="outline-container-org80341f8" class="outline-2">
+<h2 id="org80341f8"><span class="underline">Searching</span></h2>
+<div class="outline-text-2" id="text-org80341f8">
 <p>
 In order to find occurrences of a string in a file we can start out by opening a file, and reading it line by line. Each time we find the string the user is searching for we want to output the line number, and highlight the occurrence.
 </p>
@@ -172,7 +172,7 @@ here needle is the second word on the line
 </div>
 
 
-<div id="org532e2b9" class="figure">
+<div id="org2e5585d" class="figure">
 <p><img src="needle.png" alt="needle.png" />
 </p>
 </div>
@@ -182,9 +182,9 @@ Great! Just what we expected. Let&rsquo;s now look at how we can begin to multi-
 </p>
 </div>
 </div>
-<div id="outline-container-orgfba9685" class="outline-2">
-<h2 id="orgfba9685"><span class="underline">pthread</span></h2>
-<div class="outline-text-2" id="text-orgfba9685">
+<div id="outline-container-orgc73249b" class="outline-2">
+<h2 id="orgc73249b"><span class="underline">pthread</span></h2>
+<div class="outline-text-2" id="text-orgc73249b">
 <p>
 The standard way to create multithreaded programs on unix systems is the <code>pthread</code> library, which stands for posix threads. When compiling a program with <code>pthreads</code> make sure to use <code>lpthread</code> as a compile flag. It provides all the primitives you need to create threads, have them do work, and finally close them down. We won&rsquo;t be diving into the entire library, just the essential parts you should know.
 </p>
@@ -193,13 +193,13 @@ The standard way to create multithreaded programs on unix systems is the <code>p
 At a basic level there are 3 major concepts and 1 minor concept when it comes to working with pthreads. A program has one main thread of execution, this doesn&rsquo;t change from a normal program. From there, any number of threads (up to an operating system or user limit) can be spawned to do work.
 </p>
 </div>
-<div id="outline-container-orgee7c527" class="outline-3">
-<h3 id="orgee7c527"><span class="underline">Tour of Features</span></h3>
-<div class="outline-text-3" id="text-orgee7c527">
+<div id="outline-container-org4d96161" class="outline-3">
+<h3 id="org4d96161"><span class="underline">Tour of Features</span></h3>
+<div class="outline-text-3" id="text-org4d96161">
 </div>
-<div id="outline-container-org68ba6a2" class="outline-4">
-<h4 id="org68ba6a2"><code>pthread_t</code></h4>
-<div class="outline-text-4" id="text-org68ba6a2">
+<div id="outline-container-org88ec63e" class="outline-4">
+<h4 id="org88ec63e"><code>pthread_t</code></h4>
+<div class="outline-text-4" id="text-org88ec63e">
 <p>
 This is the type that represents and individual thread in C. You interact with a thread through using some of the various functions that I will describe below. If you know exactly what you will be using a thread for you can create a single one in your main function and work with it that way.
 </p>
@@ -213,9 +213,9 @@ Threads (including the main thread) are all running the same program, with their
 </p>
 </div>
 </div>
-<div id="outline-container-org31e3bdc" class="outline-4">
-<h4 id="org31e3bdc"><code>pthread_create</code></h4>
-<div class="outline-text-4" id="text-org31e3bdc">
+<div id="outline-container-orgb5c4808" class="outline-4">
+<h4 id="orgb5c4808"><code>pthread_create</code></h4>
+<div class="outline-text-4" id="text-orgb5c4808">
 <p>
 Threads must be created before they can be used, and this is done using <code>pthread_create</code>.
 </p>
@@ -260,9 +260,9 @@ Our last argument is what will be passed to the thread function upon creation. Y
 </p>
 </div>
 </div>
-<div id="outline-container-orgc08b11b" class="outline-4">
-<h4 id="orgc08b11b">Thread Function</h4>
-<div class="outline-text-4" id="text-orgc08b11b">
+<div id="outline-container-org7718729" class="outline-4">
+<h4 id="org7718729">Thread Function</h4>
+<div class="outline-text-4" id="text-org7718729">
 <p>
 A thread function will be used as the starting point for the work of a thread. If a thread a spawned, and after finished its work is no longer needed, then it can simply return a value, or call <code>pthread_exit</code>. If a thread is part of a thread pool or is longer living than it will usually take the form of a <code>while(true)</code> loop.
 </p>
@@ -283,9 +283,9 @@ A thread function will be used as the starting point for the work of a thread. I
 </div>
 </div>
 </div>
-<div id="outline-container-org7c164c0" class="outline-4">
-<h4 id="org7c164c0"><code>pthread_join</code></h4>
-<div class="outline-text-4" id="text-org7c164c0">
+<div id="outline-container-org1ee56fe" class="outline-4">
+<h4 id="org1ee56fe"><code>pthread_join</code></h4>
+<div class="outline-text-4" id="text-org1ee56fe">
 <p>
 Once all the &ldquo;work&rdquo; has been passed out to threads we need to wait for them to finish executing. This is where <code>pthread_join</code> comes into play. Any thread can join any other thread from the same program, although it is most common to see your main thread join over a single thread, or and entire thread pool.
 </p>
@@ -319,9 +319,9 @@ We won&rsquo;t cover this here, but it is also possible for a thread to be &ldqu
 </p>
 </div>
 </div>
-<div id="outline-container-org511907e" class="outline-4">
-<h4 id="org511907e"><code>pthread_mutex_t</code></h4>
-<div class="outline-text-4" id="text-org511907e">
+<div id="outline-container-org921ee13" class="outline-4">
+<h4 id="org921ee13"><code>pthread_mutex_t</code></h4>
+<div class="outline-text-4" id="text-org921ee13">
 <p>
 A <code>mutex</code> is the simplest, and most common, form of concurrency control in the <code>pthread</code> library. <code>mutex</code> stands for &ldquo;<a href="https://en.wikipedia.org/wiki/Lock_(computer_science)">mutual exclusion</a>&rdquo;, meaning that a thread has exclusive access to some set of resources. Common patterns have one <code>mutex</code> to control an entire thread pool, with each thread acquiring the mutex for some short period of time when it needs access to some shared resource.
 </p>
@@ -371,9 +371,9 @@ In our <code>file_search</code> function above you may have noticed that we buil
 </div>
 </div>
 </div>
-<div id="outline-container-orge2ba07e" class="outline-4">
-<h4 id="orge2ba07e"><code>pthread_cond_t</code></h4>
-<div class="outline-text-4" id="text-orge2ba07e">
+<div id="outline-container-orgde8668c" class="outline-4">
+<h4 id="orgde8668c"><code>pthread_cond_t</code></h4>
+<div class="outline-text-4" id="text-orgde8668c">
 <p>
 Condition variables are not as common as threads or mutexes, but when your program can make use of them, it makes for a very elegant solution. A condition variable acts as a signal that is used to &ldquo;wake up&rdquo; a waiting thread, letting it know that more work is available. If your program uses threads to do a known amount of work and then exit, then condition variables won&rsquo;t be quite as useful to you. On the other hand, in a long-running program condition variables allow a thread to wait without wasting CPU cycles.
 </p>
@@ -398,9 +398,9 @@ We call <code>pthread_cond_wait</code> with a pointer to the <code>mutex</code> 
 </div>
 </div>
 </div>
-<div id="outline-container-orgcb03daf" class="outline-3">
-<h3 id="orgcb03daf"><span class="underline">Learning <code>pthread</code></span></h3>
-<div class="outline-text-3" id="text-orgcb03daf">
+<div id="outline-container-orge976e36" class="outline-3">
+<h3 id="orge976e36"><span class="underline">Learning <code>pthread</code></span></h3>
+<div class="outline-text-3" id="text-orge976e36">
 <p>
 We&rsquo;ve covered the major parts of the <code>pthread</code> library, but it will still take a lot of practice to implement them not only correctly, but in a way that speeds up a program.
 </p>
@@ -411,16 +411,16 @@ I find learning multi-threading to be particularly challenging because most prog
 </div>
 </div>
 </div>
-<div id="outline-container-orgf66a396" class="outline-2">
-<h2 id="orgf66a396"><span class="underline">Implementation</span></h2>
-<div class="outline-text-2" id="text-orgf66a396">
+<div id="outline-container-orgf3e5749" class="outline-2">
+<h2 id="orgf3e5749"><span class="underline">Implementation</span></h2>
+<div class="outline-text-2" id="text-orgf3e5749">
 <p>
 Having said all of that, our goal here is to create a fast file searching program, which lends itself very well to a multithreaded approach. Each file will be assigned its own thread from the pool, which can then parse the file for the needle independently.
 </p>
 </div>
-<div id="outline-container-org6968bba" class="outline-3">
-<h3 id="org6968bba"><span class="underline">Output Buffer</span></h3>
-<div class="outline-text-3" id="text-org6968bba">
+<div id="outline-container-orgb06d477" class="outline-3">
+<h3 id="orgb06d477"><span class="underline">Output Buffer</span></h3>
+<div class="outline-text-3" id="text-orgb06d477">
 <p>
 Of course, our 100000 byte statically allocated buffer will probably work just fine for searching most files, but it won&rsquo;t cover every possible case. We&rsquo;ll create a dynamically allocated buffer to take care of this.
 </p>
@@ -499,9 +499,9 @@ We can use this buffer to replace the static array from before.
 </div>
 </div>
 </div>
-<div id="outline-container-orged6b487" class="outline-3">
-<h3 id="orged6b487"><span class="underline">Work Queue</span></h3>
-<div class="outline-text-3" id="text-orged6b487">
+<div id="outline-container-orgd0b2dc3" class="outline-3">
+<h3 id="orgd0b2dc3"><span class="underline">Work Queue</span></h3>
+<div class="outline-text-3" id="text-orgd0b2dc3">
 <p>
 Our first step is to track all the work that needs to be done. Each thread will take different amounts of time to parse their respective files, so we place all the work on the queue, and then lets the threads pull work off as they are free. This is a very specific implementation of a queue, and its behavior specifically applies to this program. A more generic queue can be used if desired.
 </p>
@@ -555,9 +555,9 @@ When an item is removed from the list we want to return the string value directl
 </p>
 </div>
 </div>
-<div id="outline-container-org882b690" class="outline-3">
-<h3 id="org882b690"><span class="underline">Locking Strategy</span></h3>
-<div class="outline-text-3" id="text-org882b690">
+<div id="outline-container-org183a289" class="outline-3">
+<h3 id="org183a289"><span class="underline">Locking Strategy</span></h3>
+<div class="outline-text-3" id="text-org183a289">
 <p>
 Our program will require 2 pieces of synchronization between our threads. We need to have a <code>mutex</code> for our work queue, and a mutex for printing to the terminal. The queue <code>mutex</code> ensures that only one job is pulled off the queue at a time, and that jobs are added to the queue atomically. The input/output <code>mutex</code> ensures that an entire threads output is printed cleanly.
 </p>
@@ -578,9 +578,9 @@ We create 2 <a href="https://stackoverflow.com/questions/866837/plural-form-of-w
 </p>
 </div>
 </div>
-<div id="outline-container-org9434266" class="outline-3">
-<h3 id="org9434266"><span class="underline">Adding Work</span></h3>
-<div class="outline-text-3" id="text-org9434266">
+<div id="outline-container-org408deeb" class="outline-3">
+<h3 id="org408deeb"><span class="underline">Adding Work</span></h3>
+<div class="outline-text-3" id="text-org408deeb">
 <p>
 In our case the &ldquo;work&rdquo; that we want to do is scan files, so each item in the queue should be a path to a file. Like we said before, we want to scan the current directory for files, and recursively scan its subdirectories. In C we get the contents of a directory through <code>opendir</code>, which through the use of <code>readdir</code> gives a pointer to each item in the directory. You can think of this as running <code>ls</code> in the terminal, and being given back a pointer to a struct representing each of the items.
 </p>
@@ -639,9 +639,9 @@ You may notice that we acquire the <code>q_mutex</code>, then add our work on th
 </p>
 </div>
 </div>
-<div id="outline-container-orgf1c47e2" class="outline-3">
-<h3 id="orgf1c47e2"><code>file_search</code></h3>
-<div class="outline-text-3" id="text-orgf1c47e2">
+<div id="outline-container-orgd1d4d4d" class="outline-3">
+<h3 id="orgd1d4d4d"><code>file_search</code></h3>
+<div class="outline-text-3" id="text-orgd1d4d4d">
 <p>
 Other than adding an automatically resizing buffer we also need to make one small change to this function, simply locking the <code>io_mutex</code> before printing, and releasing it once we&rsquo;re done.
 </p>
@@ -658,9 +658,9 @@ Other than adding an automatically resizing buffer we also need to make one smal
 </div>
 </div>
 </div>
-<div id="outline-container-org6144c78" class="outline-3">
-<h3 id="org6144c78"><code>thread_function</code></h3>
-<div class="outline-text-3" id="text-org6144c78">
+<div id="outline-container-org17eb252" class="outline-3">
+<h3 id="org17eb252"><code>thread_function</code></h3>
+<div class="outline-text-3" id="text-org17eb252">
 <p>
 Finally we can get to doing the work in our threads. Upon being created, each thread will enter a loop where they check for work, loop if none is found, and process a file if one is available.
 </p>
@@ -714,9 +714,9 @@ The last thing to note here is that since each filename was cloned with <code>st
 </p>
 </div>
 </div>
-<div id="outline-container-org72880bc" class="outline-3">
-<h3 id="org72880bc"><code>main</code></h3>
-<div class="outline-text-3" id="text-org72880bc">
+<div id="outline-container-org81ed300" class="outline-3">
+<h3 id="org81ed300"><code>main</code></h3>
+<div class="outline-text-3" id="text-org81ed300">
 <p>
 Now we can work to put everything together in <code>main</code>.
 </p>
@@ -823,7 +823,7 @@ Let&rsquo;s see how this works in a real directory structure.
 </p>
 
 
-<div id="org7475420" class="figure">
+<div id="org66e5433" class="figure">
 <p><img src="ffs_multi.png" alt="ffs_multi.png" />
 </p>
 </div>
@@ -833,7 +833,7 @@ We can compare that to <code>ripgrep</code>, which is a program that has a mode 
 </p>
 
 
-<div id="org99b7f72" class="figure">
+<div id="org05021fa" class="figure">
 <p><img src="rg_ten.png" alt="rg_ten.png" />
 </p>
 </div>
@@ -855,9 +855,9 @@ We should be able to adapt our program to match this functionality.
 </div>
 </div>
 </div>
-<div id="outline-container-org1ceff76" class="outline-2">
-<h2 id="org1ceff76"><span class="underline">Extending FFS</span></h2>
-<div class="outline-text-2" id="text-org1ceff76">
+<div id="outline-container-orgb9d1eb4" class="outline-2">
+<h2 id="orgb9d1eb4"><span class="underline">Extending FFS</span></h2>
+<div class="outline-text-2" id="text-orgb9d1eb4">
 <p>
 A program can tell if it has input coming in on <code>stdin</code> (through a pipe) by using <code>isatty</code>. If you remember from our <a href="shell.html">shell</a>, piping between processes uses pipes and file descriptors to send output from one program to the input of another. <code>isatty</code> allows us to compare our programs input pipe to <code>stdin</code>. If we are using <code>stdin</code> that means the input is from a terminal, otherwise our input is coming from a pipe.
 </p>
@@ -913,24 +913,24 @@ No mutexes to mess with here. We just scan through our input line by line and ou
 </p>
 </div>
 </div>
-<div id="outline-container-org555ad8b" class="outline-2">
-<h2 id="org555ad8b"><span class="underline">Takeaways</span></h2>
-<div class="outline-text-2" id="text-org555ad8b">
+<div id="outline-container-orgd15dbdc" class="outline-2">
+<h2 id="orgd15dbdc"><span class="underline">Takeaways</span></h2>
+<div class="outline-text-2" id="text-orgd15dbdc">
 <p>
 Implement the simple single-threaded solution first and see if it fits your needs. If you don&rsquo;t, you may find that your multithreaded solution doesn&rsquo;t offer a speed-up for your use case. There are a few things to look for when determining if a program can benefit from multi-threading.
 </p>
 </div>
-<div id="outline-container-org1fd5b1a" class="outline-3">
-<h3 id="org1fd5b1a"><span class="underline">User Interface</span></h3>
-<div class="outline-text-3" id="text-org1fd5b1a">
+<div id="outline-container-orgc2dc869" class="outline-3">
+<h3 id="orgc2dc869"><span class="underline">User Interface</span></h3>
+<div class="outline-text-3" id="text-orgc2dc869">
 <p>
 Apps that render any sort of live user interface often benefit from separating rendering and application logic to different threads. This way any heavy computation on one thread does not slow the user interface to a crawl. Chat apps may have one thread to listen for incoming messages, another to send messages, and yet another to render the messages.
 </p>
 </div>
 </div>
-<div id="outline-container-org5febd04" class="outline-3">
-<h3 id="org5febd04"><span class="underline">Independent Inputs</span></h3>
-<div class="outline-text-3" id="text-org5febd04">
+<div id="outline-container-org4b6ec62" class="outline-3">
+<h3 id="org4b6ec62"><span class="underline">Independent Inputs</span></h3>
+<div class="outline-text-3" id="text-org4b6ec62">
 <p>
 This is the category that our FFS program falls under. Each input to our find function is an entirely separate file, they share nothing in common other than their location in the file system. If you have used <code>ripgrep</code> before, or were following along and running the code here, you may have noticed that the output from either is <a href="https://en.wikipedia.org/wiki/Nondeterministic_algorithm">non-deterministic</a>. This is because threads are scheduled by the operating system, and when a thread is spawned it may be backgrounded for a brief time, while another more important thread is run.
 </p>
@@ -944,25 +944,25 @@ If a single-threaded program has numerous inputs that are currently being proces
 </p>
 </div>
 </div>
-<div id="outline-container-orgad794e1" class="outline-3">
-<h3 id="orgad794e1"><span class="underline">Large Inputs</span></h3>
-<div class="outline-text-3" id="text-orgad794e1">
+<div id="outline-container-org863f440" class="outline-3">
+<h3 id="org863f440"><span class="underline">Large Inputs</span></h3>
+<div class="outline-text-3" id="text-org863f440">
 <p>
 If each item in a large set is being processed one after the other, there may be a chance to split that set up in to smaller sets for processing. This is a hard one to get right, as it requires much more careful control over mutual exclusion, which may slow the program down.
 </p>
 </div>
 </div>
-<div id="outline-container-org39324a8" class="outline-3">
-<h3 id="org39324a8"><span class="underline">I/O Bound</span></h3>
-<div class="outline-text-3" id="text-org39324a8">
+<div id="outline-container-org679ee9d" class="outline-3">
+<h3 id="org679ee9d"><span class="underline">I/O Bound</span></h3>
+<div class="outline-text-3" id="text-org679ee9d">
 <p>
 Our program also falls into this category, to a much lesser extent. In terms of speed reading from a file, or printing output to the terminal are much slower than the rest of the program. So a program may benefit from having separate threads of execution so that while one thread is waiting on a file to open, another can be doing a heavy computation.
 </p>
 </div>
 </div>
-<div id="outline-container-org3dd317a" class="outline-3">
-<h3 id="org3dd317a"><span class="underline">Socket Servers</span></h3>
-<div class="outline-text-3" id="text-org3dd317a">
+<div id="outline-container-org0137981" class="outline-3">
+<h3 id="org0137981"><span class="underline">Socket Servers</span></h3>
+<div class="outline-text-3" id="text-org0137981">
 <p>
 Most servers that communicate over a socket architecture will benefit from having more handlers for those sockets. Imagine a web server able to handle 1 concurrent connection, versus a server able to handle 12 concurrent connections. Not only will these speed up average response times for you users, you will also allow your code to scale much better across different architectures.
 </p>
@@ -973,9 +973,9 @@ Hopefully we will be building a simple socket server coming up very soon!
 </div>
 </div>
 </div>
-<div id="outline-container-org8bfce69" class="outline-2">
-<h2 id="org8bfce69"><span class="underline">Conclusion</span></h2>
-<div class="outline-text-2" id="text-org8bfce69">
+<div id="outline-container-org8f145d1" class="outline-2">
+<h2 id="org8f145d1"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-org8f145d1">
 <p>
 We built a simple program that can find any line from <code>stdin</code> or a file containing a specified string. Our program started out with a single-threaded implementation, which we then easily changed to take advantage of all the available CPU threads. The task at hand was relatively simple, we just had to fit it within our concurrency control model using mutexes.
 </p>
@@ -989,7 +989,7 @@ Most problems take a lot of work to benefit from multi-threading, but when you f
 </p>
 
 <p>
-<i>The code for this article can be found at <a href="ffs.c">ffs.c</a>.</i>
+<i>The code for this article can be found at <a href="ffs.c">ffs.c</a>, or on <a href="https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/ffs.c">github</a></i>
 </p>
 </div>
 </div>

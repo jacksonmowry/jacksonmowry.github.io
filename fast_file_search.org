@@ -6,7 +6,7 @@
 #+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
 #+SETUPFILE: retro_dark.theme
 
-/The code for this article can be found at [[file:ffs.c][ffs.c]]./
+/The code for this article can be found at [[file:ffs.c][ffs.c]], or on [[https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/ffs.c][github]]/
 
 * _Introduction_
 We have yet to explore multi-threading on our journey of systems programming. Today we are going to change that.
@@ -669,6 +669,6 @@ The framework that we set up can be used as a starting point to solve many probl
 
 Most problems take a lot of work to benefit from multi-threading, but when you find a good candidate you can massively improve performance. Take some time to explore a few old programs that you've written to see how you can adapt them to a multithreaded paradigm.
 
-/The code for this article can be found at [[file:ffs.c][ffs.c]]./
+/The code for this article can be found at [[file:ffs.c][ffs.c]], or on [[https://github.com/jacksonmowry/jacksonmowry.github.io/blob/main/ffs.c][github]]/
 
 #  LocalWords:  mutexes backgrounded ripgrep
