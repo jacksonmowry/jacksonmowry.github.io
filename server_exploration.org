@@ -1,0 +1,51 @@
+#+HTML_LINK_HOME: index.html
+#+HTML_LINK_UP: index.html
+#+title: /Server Exploration/
+#+author: Jackson
+#+date: 3/28/24
+#+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
+#+SETUPFILE: retro_dark.theme
+* Single Connection
+| Server               |      1 |     10 |     256 |     512 |    1024 |
+|----------------------+--------+--------+---------+---------+---------|
+| /                    |      < |        |         |         |         |
+| Single Socket        | 154758 | 155403 |  154884 |  155399 |  155492 |
+| Select               | 165016 | 151162 |  151552 |  154511 |  151089 |
+| Poll                 | 154788 | 155740 |  154970 |  155061 |  154846 |
+| epoll                | 152802 | 389627 |  388277 |  385719 |  387243 |
+| io_uring             | 163538 | 373608 |  376141 |  356641 |  351202 |
+|----------------------+--------+--------+---------+---------+---------|
+| Multi Threaded       | 154564 | 605416 |  942349 | 916230* |       - |
+| Multi Threaded epoll | 147172 | 659724 | 1454485 | 1401809 | 1402205 |
+
+* Lower
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:*]"
+#+PLOT: labels:("x" "Single Socket" "Select" "Poll" "epoll" "io uring")
+| Concurrent Connections | Single Socket | Select |   Poll |  epoll | io_uring |
+|                      1 |        154758 | 165016 | 154788 | 152802 |   163538 |
+|                     10 |        155403 | 151162 | 155740 | 389627 |   373608 |
+|                    256 |        154884 | 151552 | 154970 | 388277 |   376141 |
+|                    512 |        155399 | 154511 | 155061 | 385719 |   356641 |
+|                   1024 |        155492 | 151098 | 154846 | 387243 |   351202 |
+[[file:lower_rps.png]]
+
+* Chart Testing
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:'key font ",40"'
+#+PLOT: labels:("x" "Single Socket" "Select" "Poll" "epoll" "io uring" "Multi Threaded" "Multi Threaded epoll")
+| Concurrent Connections | Single Socket | Select |   Poll |  epoll | io_uring | Multi Threaded | Multi Threaded epoll |
+|                      1 |        154758 | 165016 | 154788 | 152802 |   163538 |         154564 |               147172 |
+|                     10 |        155403 | 151162 | 155740 | 389627 |   373608 |         605416 |               659724 |
+|                    256 |        154884 | 151552 | 154970 | 388277 |   376141 |         942349 |              1454485 |
+|                    512 |        155399 | 154511 | 155061 | 385719 |   356641 |         916230 |              1401809 |
+|                   1024 |        155492 | 151098 | 154846 | 387243 |   351202 |                |              1402205 |
+
+[[file:rps.png]]
+
+* Links
+https://unixism.net/loti/tutorial/link_liburing.html
+https://unixism.net/loti/tutorial/webserver_liburing.html
+https://unixism.net/loti/tutorial/fixed_buffers.html
+https://unixism.net/loti/ref-liburing/advanced_usage.html
+https://unixism.net/loti/low_level.html
+https://unixism.net/2020/04/io-uring-by-example-part-1-introduction/
+https://unixism.net/loti/tutorial/link_liburing.html

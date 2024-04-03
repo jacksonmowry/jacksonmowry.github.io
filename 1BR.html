@@ -1,0 +1,2246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/1 Billion Row Challenge/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>1 Billion Row Challenge</i></h1>
+<div id="outline-container-org2d3bb4f" class="outline-2">
+<h2 id="org2d3bb4f"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org2d3bb4f">
+<p>
+The <i>1 Billion Row Challenge</i> was introduced to the world at the beginning of 2024 as a way to learn how quickly we can process data. The premise is simple, you are given a file with 1 billion lines, each containing a weather station name, and a temperature recording, separated by a <code>;</code> and finished with a <code>\n</code>.
+</p>
+
+
+<pre class="example" id="orgb5571aa">
+Hamburg;12.0
+Bulawayo;8.9
+Palembang;38.8
+St. John's;15.2
+Cracow;12.6
+Bridgetown;26.9
+Istanbul;6.2
+Roseau;34.4
+Conakry;31.2
+Istanbul;23.0
+</pre>
+
+<p>
+Your program then takes this data, organizes it alphabetically by station name, and finally outputs to <code>STDOUT</code> in the following format: <code>&lt;station_name&gt;=&lt;min&gt;/&lt;mean&gt;/&lt;max&gt;, ...</code>.
+</p>
+
+<p>
+For me, the most appealing part of this challenge is that the naive solution is extremely simple, but simple doesn&rsquo;t cut it when we are dealing with an input file around 15GB in size. Nonetheless, we will start with a simple solution, and gradually evolve it as we go along.
+</p>
+</div>
+</div>
+<div id="outline-container-orgd30b42d" class="outline-2">
+<h2 id="orgd30b42d"><span class="underline">Setup</span></h2>
+<div class="outline-text-2" id="text-orgd30b42d">
+<p>
+The original <i>1BR</i> challenge required solutions to be written in Java, but since then participants from many other languages have joined, though not officially. I thought that since the solution can be simple I would use this as an opportunity to improve my skills in C. The basic process will be to read the file line-by-line and enter each station into a hashmap. If the station already exists we will simply update its record. At the end we will sort the backing array alphabetically and print it all out.
+</p>
+
+<p>
+I have previously written about a <a href="hashmap.html">quadratic probing hashmap in C</a> and that will make a great starting point for our solution.
+</p>
+</div>
+<div id="outline-container-org0c5c6b8" class="outline-3">
+<h3 id="org0c5c6b8">Hashmap</h3>
+<div class="outline-text-3" id="text-org0c5c6b8">
+<p>
+The hashmap we had previously written uses a predefined struct called a <code>pair</code> which allows the underlying type to be changed out relatively effortlessly. For our solution today we will define a <code>Record</code> struct for each station, which serves as the <code>value</code> of our pair.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Record</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">name</span>;
+    <span style="color: #ECBE7B;">int64_t</span> <span style="color: #dcaeea;">total</span>;
+    <span style="color: #ECBE7B;">int64_t</span> <span style="color: #dcaeea;">count</span>;
+    <span style="color: #ECBE7B;">int64_t</span> <span style="color: #dcaeea;">min</span>;
+    <span style="color: #ECBE7B;">int64_t</span> <span style="color: #dcaeea;">max</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Record</span>;
+
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">key</span>;
+    <span style="color: #ECBE7B;">Record</span> <span style="color: #dcaeea;">value</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">pair</span>;
+</pre>
+</div>
+
+<p>
+We will of course be using string keys, which can make use of the string hashing and string equality functions already defined in the hashmap library.
+</p>
+</div>
+</div>
+<div id="outline-container-orge815d3c" class="outline-3">
+<h3 id="orge815d3c">Sorting</h3>
+<div class="outline-text-3" id="text-orge815d3c">
+<p>
+At the end of the program it needs to output each station sorted alphabetically. We might as well take advantage of the <code>qsort</code> function given in the <code>cstdlib</code>, as it should fast enough for our uses.
+</p>
+
+<p>
+<code>qsort</code> takes 4 arguments, a pointer to the array, the number of elements, the size of each element, and a sorting predicate. The first 3 are self-explanatory, but the sorting predicate is probably a bit more unfamiliar. When sorting simple types like integers or floats we can use the comparison operators directly (<code>&gt;</code>, <code>&lt;</code>, etc.), but we are not storing simple types. We need a function that can sort the pairs stored in our hashmap.
+</p>
+
+<pre class="example" id="orge7ce75e">
+If the relationship between an array and a hashmap is unfamiliar just think about a hashing function returning an index into an array, which tells us where we can go to find the data associated with that key. By the end of our program we should have an array with about half of its slots being full, but the ordering of elements has no significance to us.
+</pre>
+
+<p>
+Our sorting predicate will take in 2 <code>pair</code> pointers, which contain both a key and value. We are not interested in the value for sorting, so we immediately narrow down to the key. From there we can simply call <code>strcmp</code> on the 2 keys, which conveniently returns the exact right values for <code>qsort</code> to work. <code>qsort</code> needs to know the relationship between the 2 values, this is what is expects our sorting predicate to return.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Ordering</th>
+<th scope="col" class="org-right">Return Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">A &lt; B</td>
+<td class="org-right">-1</td>
+</tr>
+
+<tr>
+<td class="org-left">A == B</td>
+<td class="org-right">0</td>
+</tr>
+
+<tr>
+<td class="org-left">A &gt; B</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+For less than and greater than the magnitude of the number returned does not matter, only its sign. If you are familiar with <code>strcmp</code> you may realize that this is exactly the same table of values that it returns. Putting this all together gives us the following comparison function.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">Comparison function for qsort</span>
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">compare_pairs</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">a</span>, <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">pair_a</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">pair</span>*<span style="color: #c678dd;">)</span>a;
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">pair_b</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">pair</span>*<span style="color: #c678dd;">)</span>b;
+
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Assuming key is a string (char *)</span>
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">key_a</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>*<span style="color: #c678dd;">)</span>pair_a-&gt;key;
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">key_b</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>*<span style="color: #c678dd;">)</span>pair_b-&gt;key;
+
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>key_a == <span style="color: #a9a1e1;">NULL</span> &amp;&amp; key_b == <span style="color: #a9a1e1;">NULL</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Both keys are null, consider them equal</span>
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>key_a == <span style="color: #a9a1e1;">NULL</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">1</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Null key should come after non-null key</span>
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>key_b == <span style="color: #a9a1e1;">NULL</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">return</span> -<span style="color: #da8548; font-weight: bold;">1</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Null key should come after non-null key</span>
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">return</span> strcmp<span style="color: #98be65;">(</span>key_a, key_b<span style="color: #98be65;">)</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Compare non-null keys</span>
+    <span style="color: #c678dd;">}</span>
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+That&rsquo;s a lot more code than we explained above, so lets breakdown the addition <code>NULL</code> checks. Our hashmap will start out looking like a bit of Swiss cheese, with half of it&rsquo;s space unused.
+</p>
+
+
+<div id="org80c8833" class="figure">
+<p><img src="swiss_cheese.png" alt="swiss_cheese.png" />
+</p>
+</div>
+
+<p>
+In order to move the empty cells to the end of the array we need to treat them as the greatest possible values so they will sort last. To do this we can make some simple checks for each of our 2 keys. If they&rsquo;re both <code>NULL</code> we can obviously return 0, otherwise we check either key for a <code>NULL</code> value.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orge5cfbd4" class="outline-2">
+<h2 id="orge5cfbd4"><span class="underline">Naive Solution</span></h2>
+<div class="outline-text-2" id="text-orge5cfbd4">
+<p>
+With the setup work out of the way, we can finally look at the complete naive solution.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">"hashmap/hashmap.h"</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">assert.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdio.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdlib.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">string.h</span><span style="color: #51afef;">&gt;</span>
+
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Comparison function for qsort</span>
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">compare_pairs</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">a</span>, <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Covered above</span>
+<span style="color: #51afef;">}</span>
+
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">h</span> = hashmap_init<span style="color: #c678dd;">(</span>&amp;fnv_string_hash, &amp;str_equals, <span style="color: #da8548; font-weight: bold;">0.5</span>, <span style="color: #da8548; font-weight: bold;">17720</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #ECBE7B;">FILE</span>* <span style="color: #dcaeea;">fin</span>;
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">line</span> = <span style="color: #a9a1e1;">NULL</span>;
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">len</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+    <span style="color: #ECBE7B;">ssize_t</span> <span style="color: #dcaeea;">nread</span>;
+
+    fin = fopen<span style="color: #c678dd;">(</span><span style="color: #98be65;">"./data/measurements.txt"</span>, <span style="color: #98be65;">"r"</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span>nread = getline<span style="color: #a9a1e1;">(</span>&amp;line, &amp;len, fin<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span> != -<span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">copy</span> = line;
+        strtok<span style="color: #98be65;">(</span>copy, <span style="color: #98be65;">";"</span><span style="color: #98be65;">)</span>;
+        <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">temp_s</span> = strtok<span style="color: #98be65;">(</span><span style="color: #a9a1e1;">NULL</span>, <span style="color: #98be65;">"\n"</span><span style="color: #98be65;">)</span>;
+        <span style="color: #ECBE7B;">float</span> <span style="color: #dcaeea;">temp_f</span> = strtof<span style="color: #98be65;">(</span>temp_s, <span style="color: #a9a1e1;">NULL</span><span style="color: #98be65;">)</span>;
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_i</span> = temp_f * <span style="color: #da8548; font-weight: bold;">10</span>;
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #98be65;">(</span>&amp;h, copy<span style="color: #98be65;">)</span>;
+        <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span>p<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            p-&gt;value.count++;
+            p-&gt;value.total += temp_i;
+            <span style="color: #51afef;">if</span> <span style="color: #a9a1e1;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
+                p-&gt;value.max = temp_i;
+            <span style="color: #a9a1e1;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #a9a1e1;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
+                p-&gt;value.min = temp_i;
+            <span style="color: #a9a1e1;">}</span>
+        <span style="color: #98be65;">}</span> <span style="color: #51afef;">else</span> <span style="color: #98be65;">{</span>
+            hashmap_insert<span style="color: #a9a1e1;">(</span>&amp;h, strdup<span style="color: #51afef;">(</span>copy<span style="color: #51afef;">)</span>,
+                           <span style="color: #51afef;">(</span>Record<span style="color: #51afef;">){</span>.name = copy,
+                                    .total = temp_i,
+                                    .count = <span style="color: #da8548; font-weight: bold;">1</span>,
+                                    .max = temp_i,
+                                    .min = temp_i<span style="color: #51afef;">}</span><span style="color: #a9a1e1;">)</span>;
+        <span style="color: #98be65;">}</span>
+    <span style="color: #c678dd;">}</span>
+
+    qsort<span style="color: #c678dd;">(</span>h.array, h.capacity, <span style="color: #51afef;">sizeof</span><span style="color: #98be65;">(</span>pair<span style="color: #98be65;">)</span>, compare_pairs<span style="color: #c678dd;">)</span>;
+
+    <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h.capacity &amp;&amp; h.array<span style="color: #98be65;">[</span>i<span style="color: #98be65;">]</span>.key; i++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        printf<span style="color: #98be65;">(</span><span style="color: #98be65;">"%s=%.1f/%.1f/%.1f, "</span>, <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">char</span>*<span style="color: #a9a1e1;">)</span>h.array<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>.key,
+               <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">float</span><span style="color: #a9a1e1;">)</span>h.array<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>.value.min / <span style="color: #da8548; font-weight: bold;">10</span>,
+               <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">float</span><span style="color: #a9a1e1;">)</span>h.array<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>.value.total / <span style="color: #da8548; font-weight: bold;">10</span> /
+                   <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">float</span><span style="color: #a9a1e1;">)</span>h.array<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>.value.count,
+               <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">float</span><span style="color: #a9a1e1;">)</span>h.array<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>.value.max / <span style="color: #da8548; font-weight: bold;">10</span><span style="color: #98be65;">)</span>;
+        free<span style="color: #98be65;">(</span>h.array<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>.key<span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+
+    free<span style="color: #c678dd;">(</span>line<span style="color: #c678dd;">)</span>;
+    fclose<span style="color: #c678dd;">(</span>fin<span style="color: #c678dd;">)</span>;
+    hashmap_free<span style="color: #c678dd;">(</span>&amp;h<span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Let&rsquo;s go over each part of the code in a bit more detail before we begin our optimizations. We start by initializing our hashmap with some sane default values. A load factor of 0.5 was determined to be optimal for a <a href="https://en.wikipedia.org/wiki/Quadratic_probing">quadratic probing</a> hashmap, and we know the size of our input so we can pre-allocate the array to 17720 elements (this may be considered cheating, but the constraints say nothing about pre-allocation).
+</p>
+
+<p>
+From there we setup a simple <code>getline</code> loop that reads the file one line at a time. Within the loop we can split the line using <code>strtok</code> on the <code>;</code> and <code>\n</code> characters respectively. Floating point numbers are  parsed using <code>strtof</code> before being converted to an integer to save time in future computations.
+</p>
+
+<p>
+The last step in this loop is to check if the station exists in the hashmap, updating it if it does, and creating it if it does not.
+</p>
+
+<p>
+The loop ends when we hit <code>EOF</code>, and we can then sort the array. As stated before, we pass in the array itself, the size, the size of each element, and the sorting predicate.
+</p>
+
+<p>
+Finally, we can rip through the array printing out the required data.
+</p>
+</div>
+<div id="outline-container-orgf57a0da" class="outline-3">
+<h3 id="orgf57a0da">Running Time</h3>
+<div class="outline-text-3" id="text-orgf57a0da">
+<p>
+I will be compiling code examples with the <a href="1BR/makefile">makefile</a> in the 1BR subdirectory. The only real highlights are the use of <code>-O3</code> optimizations. Attempts with a runtime over 1 minute will likely only be run once to save my some time. Later solutions with runtimes under 1 minute will be run several times for consistency.
+</p>
+
+<p>
+Our first attempt comes in at 116.01 seconds, not the quickest, but much faster than I was expecting after reading about other attempts.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-orge908ecb" class="outline-3">
+<h3 id="orge908ecb">Flamegraph</h3>
+<div class="outline-text-3" id="text-orge908ecb">
+<p>
+It seems like every article on the challenge shows a flamegraph of their different attempts, so I figured I would produce some as well.
+</p>
+
+
+<div id="orgb84ac4a" class="figure">
+<p><img src="naive_fg.svg" alt="naive_fg.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+It looks like we&rsquo;re spending nearly all of our time in <code>hashmap_find</code>, something we will definitely have to look at as we go along.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org4accc35" class="outline-2">
+<h2 id="org4accc35"><span class="underline">mmap</span></h2>
+<div class="outline-text-2" id="text-org4accc35">
+<p>
+For iteration 2 were are going to change from a buffered file stream through <code>fopen</code>, to mmapping the entire file into our address space. This allows us to treat the file as one giant array, while the operating system manages the actual fetching of pages from disk. This change may seem simple, but it causes us to have to rewrite our parsing logic just slightly.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">"hashmap/hashmap.h"</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">assert.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">fcntl.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdio.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdlib.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">string.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">sys/mman.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">sys/stat.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">unistd.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">h</span> = hashmap_init<span style="color: #c678dd;">(</span>&amp;fnv_string_hash, &amp;str_equals, <span style="color: #da8548; font-weight: bold;">0.5</span>, <span style="color: #da8548; font-weight: bold;">17720</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">file</span>;
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">fd</span>;
+    <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">stat</span> <span style="color: #dcaeea;">sb</span>;
+
+    fd = open<span style="color: #c678dd;">(</span><span style="color: #98be65;">"./data/measurements.txt"</span>, <span style="color: #a9a1e1;">O_RDONLY</span><span style="color: #c678dd;">)</span>;
+
+    fstat<span style="color: #c678dd;">(</span>fd, &amp;sb<span style="color: #c678dd;">)</span>;
+
+    file = mmap<span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">NULL</span>, sb.st_size, <span style="color: #a9a1e1;">PROT_READ</span>, <span style="color: #a9a1e1;">MAP_PRIVATE</span>, fd, <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">cursor</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">name</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">100</span><span style="color: #c678dd;">]</span>;
+    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">temp</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">5</span><span style="color: #c678dd;">]</span>;
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>cursor &lt; sb.st_size<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">name_pos</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_pos</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>file<span style="color: #a9a1e1;">[</span>cursor<span style="color: #a9a1e1;">]</span> != <span style="color: #98be65;">';'</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            name<span style="color: #a9a1e1;">[</span>name_pos++<span style="color: #a9a1e1;">]</span> = file<span style="color: #a9a1e1;">[</span>cursor++<span style="color: #a9a1e1;">]</span>;
+        <span style="color: #98be65;">}</span>
+        name<span style="color: #98be65;">[</span>name_pos<span style="color: #98be65;">]</span> = <span style="color: #98be65;">'\0'</span>;
+        cursor++;
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>file<span style="color: #a9a1e1;">[</span>cursor<span style="color: #a9a1e1;">]</span> != <span style="color: #98be65;">'\n'</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            temp<span style="color: #a9a1e1;">[</span>temp_pos++<span style="color: #a9a1e1;">]</span> = file<span style="color: #a9a1e1;">[</span>cursor++<span style="color: #a9a1e1;">]</span>;
+        <span style="color: #98be65;">}</span>
+        temp<span style="color: #98be65;">[</span>temp_pos<span style="color: #98be65;">]</span> = <span style="color: #98be65;">'\0'</span>;
+        cursor++;
+        <span style="color: #ECBE7B;">float</span> <span style="color: #dcaeea;">temp_f</span> = strtof<span style="color: #98be65;">(</span>temp, <span style="color: #a9a1e1;">NULL</span><span style="color: #98be65;">)</span>;
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_i</span> = temp_f * <span style="color: #da8548; font-weight: bold;">10</span>;
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #98be65;">(</span>&amp;h, name<span style="color: #98be65;">)</span>;
+        <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span>p<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            p-&gt;value.count++;
+            p-&gt;value.total += temp_i;
+            <span style="color: #51afef;">if</span> <span style="color: #a9a1e1;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
+                p-&gt;value.max = temp_i;
+            <span style="color: #a9a1e1;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #a9a1e1;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
+                p-&gt;value.min = temp_i;
+            <span style="color: #a9a1e1;">}</span>
+        <span style="color: #98be65;">}</span> <span style="color: #51afef;">else</span> <span style="color: #98be65;">{</span>
+            hashmap_insert<span style="color: #a9a1e1;">(</span>&amp;h, strdup<span style="color: #51afef;">(</span>name<span style="color: #51afef;">)</span>,
+                           <span style="color: #51afef;">(</span>Record<span style="color: #51afef;">){</span>.name = name,
+                                    .total = temp_i,
+                                    .count = <span style="color: #da8548; font-weight: bold;">1</span>,
+                                    .max = temp_i,
+                                    .min = temp_i<span style="color: #51afef;">}</span><span style="color: #a9a1e1;">)</span>;
+        <span style="color: #98be65;">}</span>
+    <span style="color: #c678dd;">}</span>
+
+    qsort<span style="color: #c678dd;">(</span>h.array, h.capacity, <span style="color: #51afef;">sizeof</span><span style="color: #98be65;">(</span>pair<span style="color: #98be65;">)</span>, compare_pairs<span style="color: #c678dd;">)</span>;
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+Previously we used <code>getline</code>, which is a great function for small program, but can drastically slow down more complex ones. One reason why is that we end up doing twice the amount of work to read over a string, once to find the newline, and a second time to split the string up. Instead of relying on <code>getline</code> we can tune the parsing to be specific to our use case.
+</p>
+
+<p>
+We create two buffers, one for the station name, and another for the temperature. According to the original problem statement we know the station names can be at most 100 characters, and the temperatures will be a most 5 characters (<code>-55.5</code>). From there we read along one character at a time adding it to the name array, which gets null terminated once we the hit <code>;</code>. We then move on to the temperature repeating the exact same process until we come across a newline.
+</p>
+
+<p>
+Do these changes net us any benefit? Let&rsquo;s find out.
+</p>
+</div>
+<div id="outline-container-org8076725" class="outline-3">
+<h3 id="org8076725">Running Time</h3>
+<div class="outline-text-3" id="text-org8076725">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-left">% Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-left">-37.73%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Great! We made a huge time savings just in our file reading strategy. I know there is still plenty of room for improvement, so let&rsquo;s look at that flamegraph again.
+</p>
+</div>
+</div>
+<div id="outline-container-org81ec04a" class="outline-3">
+<h3 id="org81ec04a">Flamegraph</h3>
+<div class="outline-text-3" id="text-org81ec04a">
+
+<div id="org315c205" class="figure">
+<p><img src="mmap_fg.svg" alt="mmap_fg.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+Obviously we&rsquo;re still spending most of our time in <code>hashmap_find</code>, which we haven&rsquo;t got around to optimizing yet. Interestingly the graph looks mostly the same even with our runtime dropping by 37%. Before we move on to other optimizations I think we can actually improve our parsing even further.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org5573a16" class="outline-2">
+<h2 id="org5573a16"><span class="underline">Parsing Ints</span></h2>
+<div class="outline-text-2" id="text-org5573a16">
+<p>
+So far we have been converting parsed floats directly into integers to keep future computations off the FPU, which is much slower than the ALU. Because of the strict input format we can actually skip the floating-point conversion entirely.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+        <span style="color: #51afef;">while</span> <span style="color: #51afef;">(</span>file<span style="color: #c678dd;">[</span>cursor<span style="color: #c678dd;">]</span> != <span style="color: #98be65;">'\n'</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>file<span style="color: #98be65;">[</span>cursor<span style="color: #98be65;">]</span> == <span style="color: #98be65;">'.'</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+                cursor++;
+            <span style="color: #c678dd;">}</span>
+            temp<span style="color: #c678dd;">[</span>temp_pos++<span style="color: #c678dd;">]</span> = file<span style="color: #c678dd;">[</span>cursor++<span style="color: #c678dd;">]</span>;
+        <span style="color: #51afef;">}</span>
+        <span style="color: #ECBE7B;">temp</span><span style="color: #51afef;">[</span>temp_pos<span style="color: #51afef;">]</span> = <span style="color: #98be65;">'\0'</span>;
+        cursor++;
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_i</span> = atoi<span style="color: #51afef;">(</span>temp<span style="color: #51afef;">)</span>;
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+We made one optimization that saves us quite a bit time. Instead of parsing <code>55.5</code> as a float and then multiplying by 10 we can simply drop the decimal and parse the number as an int. This results in the same value as if we multiplied the float by 10 before converting to an integer.
+</p>
+
+<p>
+A change like that is easy to read and would probably net us a sizeable improvement for such little effort, but that&rsquo;s not what this challenge is about. We want absolute speed at any cost, so we will write our own integer parsing function.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">parse_int</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">c</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">bool</span> <span style="color: #dcaeea;">negative</span> = <span style="color: #c678dd;">(</span>*c == <span style="color: #98be65;">'-'</span><span style="color: #c678dd;">)</span>;
+    c += negative;
+
+    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">num</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">3</span><span style="color: #c678dd;">]</span> = <span style="color: #c678dd;">{</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span>;
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">num_pos</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>*c != <span style="color: #98be65;">'\0'</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        num<span style="color: #98be65;">[</span>num_pos<span style="color: #98be65;">]</span> = <span style="color: #98be65;">(</span>*c != <span style="color: #98be65;">'.'</span><span style="color: #98be65;">)</span>
+                           ? *c
+                           : num<span style="color: #98be65;">[</span>num_pos<span style="color: #98be65;">]</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">If c is '.', keep num[num_pos] the</span>
+                                           <span style="color: #5B6268;">// </span><span style="color: #5B6268;">same, otherwise assign *c to it</span>
+        num_pos += <span style="color: #98be65;">(</span>*c != <span style="color: #98be65;">'.'</span><span style="color: #98be65;">)</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Increment num_pos only if c is not '.'</span>
+        c++;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">accum</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">cursor</span> = num;
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>*cursor<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        accum = <span style="color: #98be65;">(</span>accum * <span style="color: #da8548; font-weight: bold;">10</span><span style="color: #98be65;">)</span> + <span style="color: #98be65;">(</span>*cursor - <span style="color: #98be65;">'0'</span><span style="color: #98be65;">)</span>;
+        cursor++;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">2's complement by hand</span>
+    <span style="color: #51afef;">return</span> <span style="color: #c678dd;">(</span>accum ^ -negative<span style="color: #c678dd;">)</span> + negative;
+<span style="color: #51afef;">}</span>
+
+
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+        <span style="color: #51afef;">while</span> <span style="color: #51afef;">(</span>file<span style="color: #c678dd;">[</span>cursor<span style="color: #c678dd;">]</span> != <span style="color: #98be65;">'\n'</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            temp<span style="color: #c678dd;">[</span>temp_pos++<span style="color: #c678dd;">]</span> = file<span style="color: #c678dd;">[</span>cursor++<span style="color: #c678dd;">]</span>;
+        <span style="color: #51afef;">}</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+A bit more complex, but we wrote it ourselves so surely it must be faster 🤓. The majority of the optimizations here are to remove branches from our code as much as possible.
+</p>
+
+<p>
+The first line is a little trick that takes advantage of the fact the true/false are just stored as 1/0. If we see a negative sign first it will advance our cursor so that we look past it. From there we create a fixed size buffer and parse our integer as before. Our code scans along until the null byte, adding each character unless it happens to be a <code>'.'</code>.
+</p>
+
+<p>
+We then create the actual integer by first multiplying the accumulator by 10, and adding the digit value of the character. The last step is to XOR the accumulator with <code>-negative</code>, and add back in <code>negative</code>. This is possibly the most confusing part so let&rsquo;s step through both cases.
+</p>
+
+<p>
+If the number is to remain positive we would XOR <code>accum</code> with <code>0</code>, and finally add back in <code>0</code>, which would do nothing to our number. Easy enough to understand. However if the number is meant to be negative things get more complex.
+</p>
+
+<p>
+If you&rsquo;ve previously learned <a href="https://en.wikipedia.org/wiki/Two%27s_complement">two&rsquo;s complement</a> this may look familiar. Negative numbers can be represented using their positive counterpart with some addition bit manipulation. To convert between the two forms we can follow two simple steps.
+</p>
+<ol class="org-ol">
+<li>Flip every bit, (0 =&gt; 1) and (1 =&gt; 0)</li>
+<li>Add 1</li>
+</ol>
+
+<p>
+That might seem like it has nothing to do with the last line of our <code>parse_int</code> function, but in fact that is exactly what we&rsquo;re doing. If <code>negative</code> is true it will hold a value of <code>1</code>. <code>XORing</code> any value with all 1&rsquo;s will flip its bits, step 1 accomplished. The only remaining step is to add <code>1</code>, which just so happens to be the value held in <code>negative</code>!
+</p>
+
+<p>
+Does this slightly unreadable code give us significant gains?
+</p>
+</div>
+<div id="outline-container-org049c7dc" class="outline-3">
+<h3 id="org049c7dc">Running Time</h3>
+<div class="outline-text-3" id="text-org049c7dc">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-left">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-left">-59.95%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+An 35% reduction in runtime over the <code>mmap</code> solution! That puts us at a 60% reduction in runtime from the naive solution. For a single threaded approach I think we&rsquo;re now at just about the limit for reading and parsing the file, let&rsquo;s look at the flamegraph to see if we can gain any insights.
+</p>
+</div>
+</div>
+<div id="outline-container-org0cc9db3" class="outline-3">
+<h3 id="org0cc9db3">Flamegraph</h3>
+<div class="outline-text-3" id="text-org0cc9db3">
+
+<div id="org4f33c8f" class="figure">
+<p><img src="parse_int_fg.svg" alt="parse_int_fg.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+We can now see where our code is spending time parsing <code>ints</code> which is great knowledge for future optimizations. There isn&rsquo;t much to gain from this iteration of the flamegraph, so let&rsquo;s finally address that large chunk of time spent in _hashmap<sub>find</sub>=.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org5b328cb" class="outline-2">
+<h2 id="org5b328cb">Hashmap Find</h2>
+<div class="outline-text-2" id="text-org5b328cb">
+<p>
+In day to day programming it is pretty rare that you get to manipulate the underlying data structures being used in a program, but luckily in C we have to write our own data structures! I happen to know that we can make some significant optimizations around our find and insert logic to hopefully speed up our program. This optimization is actually going to be inspired my the hashmap behavior in C++. When you do a simple lookup on a key (using <code>[]</code>) in C++ it will not only return you the value there, but it will also insert it if it doesn&rsquo;t exist. This would simplify our logic as we insert rows, so let&rsquo;s see what we can do to achieve that.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">In hashmap.c</span>
+
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Returns a pointer to the pair if found,</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">otherwise returns NULL</span>
+<span style="color: #ECBE7B;">pair</span>* <span style="color: #c678dd;">hashmap_find</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">hashmap</span>* <span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">key</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func<span style="color: #c678dd;">(</span>key<span style="color: #c678dd;">)</span> % h-&gt;capacity;
+    <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity / <span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = <span style="color: #98be65;">(</span>index + <span style="color: #a9a1e1;">(</span>i * i<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span> % h-&gt;capacity;
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = &amp;h-&gt;array<span style="color: #98be65;">[</span>new_index<span style="color: #98be65;">]</span>;
+        <span style="color: #51afef;">switch</span> <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">uint64_t</span><span style="color: #a9a1e1;">)</span>p-&gt;key<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+        <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">0</span>: <span style="color: #a9a1e1;">{</span>
+            p-&gt;key = strdup<span style="color: #51afef;">(</span>key<span style="color: #51afef;">)</span>;
+            p-&gt;value = <span style="color: #51afef;">(</span>Record<span style="color: #51afef;">){</span>.name = p-&gt;key,
+                                .count = <span style="color: #da8548; font-weight: bold;">0</span>,
+                                .total = <span style="color: #da8548; font-weight: bold;">0</span>,
+                                .min = INT64_MAX,
+                                .max = INT64_MIN<span style="color: #51afef;">}</span>;
+        <span style="color: #a9a1e1;">}</span>
+            <span style="color: #51afef;">return</span> p;
+        <span style="color: #51afef;">default</span>:
+            <span style="color: #51afef;">if</span> <span style="color: #a9a1e1;">(</span>h-&gt;equals_func<span style="color: #51afef;">(</span>p-&gt;key, key<span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
+                <span style="color: #51afef;">return</span> p;
+            <span style="color: #a9a1e1;">}</span>
+        <span style="color: #98be65;">}</span>
+    <span style="color: #c678dd;">}</span>
+    <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_i</span> = parse_int<span style="color: #51afef;">(</span>temp<span style="color: #51afef;">)</span>;
+
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #51afef;">(</span>&amp;h, name<span style="color: #51afef;">)</span>;
+        p-&gt;value.count++;
+        p-&gt;value.total += temp_i;
+        <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            p-&gt;value.max = temp_i;
+        <span style="color: #51afef;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            p-&gt;value.min = temp_i;
+        <span style="color: #51afef;">}</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+This saves us from having to branch on every iteration of the loop, now we perform the exact same algorithm every time. This won&rsquo;t give us the biggest time save as the branch predictor was probably able to figure out that the record exist after the first ~8000 or so iterations.
+</p>
+</div>
+<div id="outline-container-org5c5a70f" class="outline-3">
+<h3 id="org5c5a70f">Running Time</h3>
+<div class="outline-text-3" id="text-org5c5a70f">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-left">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-left">-59.95%</td>
+</tr>
+
+<tr>
+<td class="org-left">hashmap<sub>find</sub></td>
+<td class="org-left">43.29 seconds</td>
+<td class="org-right">-6.82%</td>
+<td class="org-left">-62.68%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Not the biggest savings but every little bit helps, we&rsquo;re now well under half of the original runtime. Although with such a small change our flamegraph won&rsquo;t be much different from before.
+</p>
+</div>
+</div>
+<div id="outline-container-org9316fbc" class="outline-3">
+<h3 id="org9316fbc">Flamegraph</h3>
+<div class="outline-text-3" id="text-org9316fbc">
+
+<div id="org7908994" class="figure">
+<p><img src="hashmap_find_fg.svg" alt="hashmap_find_fg.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+One thing that has been on my mind looking at these flamegraphs is the hash function we&rsquo;re using. Currently we are using and fnv hash which is known for its effectiveness and simplicity, however we don&rsquo;t know if it is the fastest for our data. The hash function is called exactly 1 billion times so any speed up will hopefully show a large impact.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc1a327d" class="outline-2">
+<h2 id="orgc1a327d">Hash Functions</h2>
+<div class="outline-text-2" id="text-orgc1a327d">
+<p>
+I want to experiment with a few different hash functions to see what different they make in our overall runtime.
+</p>
+</div>
+<div id="outline-container-orgc3b492b" class="outline-3">
+<h3 id="orgc3b492b">MurmurHash2</h3>
+<div class="outline-text-3" id="text-orgc3b492b">
+<p>
+<a href="https://en.wikipedia.org/wiki/MurmurHash">MurmurHash</a> is designed specifically for use in hash-based lookups, which hopefully means it is better suited to our use case.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">MIX</span><span style="color: #51afef;">(</span><span style="color: #dcaeea;">h</span>,<span style="color: #dcaeea;">k</span>,<span style="color: #dcaeea;">m</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span> k *= m; k ^= k &gt;&gt; r; k *= m; h *= m; h ^= k; <span style="color: #51afef;">}</span>
+
+<span style="color: #ECBE7B;">uint32_t</span> <span style="color: #c678dd;">MurmurHash2</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">len</span>, <span style="color: #ECBE7B;">uint32_t</span> <span style="color: #dcaeea;">seed</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint32_t</span> <span style="color: #dcaeea;">m</span> = <span style="color: #da8548; font-weight: bold;">0x5bd1e995</span>;
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">r</span> = <span style="color: #da8548; font-weight: bold;">24</span>;
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">unsigned</span> <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">data</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">unsigned</span> <span style="color: #ECBE7B;">char</span>*<span style="color: #c678dd;">)</span>key;
+    <span style="color: #ECBE7B;">uint32_t</span> <span style="color: #dcaeea;">h</span> = seed ^ len;
+    <span style="color: #ECBE7B;">uint32_t</span> <span style="color: #dcaeea;">k</span>;
+
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>len &gt;= <span style="color: #da8548; font-weight: bold;">4</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        k = *<span style="color: #98be65;">(</span><span style="color: #ECBE7B;">uint32_t</span>*<span style="color: #98be65;">)</span>data;
+        <span style="color: #a9a1e1;">MIX</span><span style="color: #98be65;">(</span>h, k, m<span style="color: #98be65;">)</span>;
+        data += <span style="color: #da8548; font-weight: bold;">4</span>;
+        len -= <span style="color: #da8548; font-weight: bold;">4</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">switch</span> <span style="color: #c678dd;">(</span>len<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">3</span>: h ^= data<span style="color: #98be65;">[</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">]</span> &lt;&lt; <span style="color: #da8548; font-weight: bold;">16</span>;
+        <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">2</span>: h ^= data<span style="color: #98be65;">[</span><span style="color: #da8548; font-weight: bold;">1</span><span style="color: #98be65;">]</span> &lt;&lt; <span style="color: #da8548; font-weight: bold;">8</span>;
+        <span style="color: #51afef;">case</span> <span style="color: #da8548; font-weight: bold;">1</span>: h ^= data<span style="color: #98be65;">[</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #98be65;">]</span>;
+                h *= m;
+    <span style="color: #c678dd;">}</span>
+
+    h ^= h &gt;&gt; <span style="color: #da8548; font-weight: bold;">13</span>;
+    h *= m;
+    h ^= h &gt;&gt; <span style="color: #da8548; font-weight: bold;">15</span>;
+
+    <span style="color: #51afef;">return</span> h;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Surprisingly enough, mh2 was significantly slower than our original fnv hash.
+</p>
+</div>
+<div id="outline-container-org5bdddba" class="outline-4">
+<h4 id="org5bdddba">Running Time</h4>
+<div class="outline-text-4" id="text-org5bdddba">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-right">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-right">-59.95%</td>
+</tr>
+
+<tr>
+<td class="org-left">hashmap<sub>find</sub></td>
+<td class="org-left">43.29 seconds</td>
+<td class="org-right">-6.82%</td>
+<td class="org-right">-62.68%</td>
+</tr>
+
+<tr>
+<td class="org-left">murmur<sub>hash</sub><sub>2</sub></td>
+<td class="org-left">59.28 seconds</td>
+<td class="org-right">37.81%</td>
+<td class="org-right">-48.97%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="outline-container-orgcd66ce9" class="outline-3">
+<h3 id="orgcd66ce9">Other Hash Functions</h3>
+<div class="outline-text-3" id="text-orgcd66ce9">
+<p>
+I find it interesting that a faster hashing function performed so much worse than a simple FNV hash. The hash function has 2 key impacts on the speed of our hash table.
+</p>
+
+<p>
+For one it has a runtime cost to compute the actual hash, which involves taking each character of the string and performing some sort of computation. For our dataset most keys are in the range of 16 bytes so that time to compute won&rsquo;t have much of an impact.
+</p>
+
+<p>
+The other way a hash function effects the speed of the hash table is in the number of collisions. Theoretically we would have a perfect hash function that mapped each of the ~9000 stations to a unique position in the table with zero collisions. In the real world this is nearly impossible, especially if the dataset is unknown at the time of implementation. This is where the probing strategy of our hash table comes in. Quadratic probing in combination with a prime number table size guarantees that it will find an empty spot within <code>table_size/2</code> jumps.
+</p>
+
+<p>
+Even with this smart probing strategy collisions still slow us down. So the better a hash function is at evenly distributing our values, the faster performance we will get. Luckily for us we have the source code for the hashmap, meaning we can count the exact number of collisions for different hash functions. In this section I will show a general overview of the hash function and how many collisions it produced.
+</p>
+
+<pre class="example" id="org0f5673f">
+I will not be covering runtimes in this section as I did not have time to perfectly integrate each hash function, meaning that their runtimes could be lowered with more careful planning. Instead, we will focus only on the number of collisions, as that was determined to have a greater impact on runtime.
+</pre>
+</div>
+<div id="outline-container-org19e5075" class="outline-4">
+<h4 id="org19e5075"><code>fnv_string_hash</code></h4>
+<div class="outline-text-4" id="text-org19e5075">
+<p>
+The original code uses the <a href="https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function">FNV hashing algorithm</a>, specifically the FNV-1 version. The algorithm works with any array of bytes, which allows us to input a C-string.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">fnv_string_hash</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+  <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span><span style="color: #51afef; font-weight: bold;">!</span>pointer<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+    <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+  <span style="color: #c678dd;">}</span>
+  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">14695981039346656037ull</span>;
+  <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">str</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">char</span> *<span style="color: #c678dd;">)</span>pointer;
+  <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>*str<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+    hash *= <span style="color: #da8548; font-weight: bold;">1099511628211</span>;
+    hash ^= *str++;
+  <span style="color: #c678dd;">}</span>
+  <span style="color: #51afef;">return</span> hash;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Our FNV hash produces 3758 collisions, which is a lot more than I was expecting. This number does not represent the number of elements which have a collision, instead it represent the total number of hops each element has to make to find its position. Mostly elements have 0 hops, some have 1-2, and hopefully very few have &gt;2 hops.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-org73d88ba" class="outline-4">
+<h4 id="org73d88ba"><code>pointer_cast</code></h4>
+<div class="outline-text-4" id="text-org73d88ba">
+<p>
+I thought I would try my hand at coming up with a hashing function focuses purely on runtime, and this is where I learned that runtime had very little impact on performance for this problem. With most of the station names being around 16 characters I figured it would be safe cast the <code>char*</code> pointer into a 64-bit integer and use that as a key.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">pointer_cast</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">return</span> *<span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #c678dd;">)</span>pointer;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+A simple one instruction function that loads 64-bits from the memory address provided. Since the station names are fairly unique I figured this would way outperform the original FNV hash, but I was wrong. Coming in at 4353 collisions.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub></td>
+<td class="org-right">4353</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-orgd325df3" class="outline-4">
+<h4 id="orgd325df3"><code>pointer_cast_2</code></h4>
+<div class="outline-text-4" id="text-orgd325df3">
+<p>
+Along the same idea as the previous iteration I tried creating a more complex hash by including a shift operation to scramble the bits some more.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">pointer_cast_2</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">return</span> *<span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #c678dd;">)</span>pointer | <span style="color: #c678dd;">(</span>*<span style="color: #98be65;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #98be65;">)</span>pointer &gt;&gt; <span style="color: #da8548; font-weight: bold;">32</span><span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Once again this implementation came up short, although I was at least moving in the right direction with a very slight improvement at 4325 collisions.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub></td>
+<td class="org-right">4353</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub><sub>2</sub></td>
+<td class="org-right">4325</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-orgb68586b" class="outline-4">
+<h4 id="orgb68586b"><code>djb2</code></h4>
+<div class="outline-text-4" id="text-orgb68586b">
+<p>
+Moving back to more traditional hash functions we have <code>djb2</code> which essentially performs similar operation to the original FNV style of hash. The hash is multiplied by 33 each iteration, and the current character is added.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">djb2</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">key</span> = <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">char</span>*<span style="color: #c678dd;">)</span>pointer;
+    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">5381</span>;
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">c</span>;
+    <span style="color: #51afef;">while</span><span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span>c = *key++<span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        hash = <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span>hash &lt;&lt; <span style="color: #da8548; font-weight: bold;">5</span><span style="color: #a9a1e1;">)</span> + hash<span style="color: #98be65;">)</span> + c;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">return</span> hash;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+A simple function along the lines of many population hashing algorithms, and finally our first improvement in collisions! This time we have dropped to 3726 collisions.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub></td>
+<td class="org-right">4353</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub><sub>2</sub></td>
+<td class="org-right">4325</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-right">3726</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-org4e0e985" class="outline-4">
+<h4 id="org4e0e985"><code>sdbm</code></h4>
+<div class="outline-text-4" id="text-org4e0e985">
+<p>
+The original hashing function used in berkely db, with seemingly random constants that works surprisingly well. How does it work?
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">sdbm</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">pointer</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">key</span> = <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">char</span>*<span style="color: #c678dd;">)</span>pointer;
+    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">c</span>;
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span>c = *key++<span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        hash = c + <span style="color: #98be65;">(</span>hash &lt;&lt; <span style="color: #da8548; font-weight: bold;">6</span><span style="color: #98be65;">)</span> + <span style="color: #98be65;">(</span>hash &lt;&lt; <span style="color: #da8548; font-weight: bold;">16</span><span style="color: #98be65;">)</span> - hash;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">return</span> hash;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Coming in at 3862 collisions it might work for some problems, but that won&rsquo;t cut it here.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub></td>
+<td class="org-right">4353</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub><sub>2</sub></td>
+<td class="org-right">4325</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-right">3726</td>
+</tr>
+
+<tr>
+<td class="org-left">sdbm</td>
+<td class="org-right">3862</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-orga080502" class="outline-4">
+<h4 id="orga080502"><code>xxhash</code></h4>
+<div class="outline-text-4" id="text-orga080502">
+<p>
+xxhash is an extremely fast hashing algorithm popular in many open source projects. It carries with it a lot more complexity than any of the functions we have seen thus far.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">XXH_PRIME64_1</span> <span style="color: #da8548; font-weight: bold;">0x9E3779B185EBCA87ULL</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">XXH_PRIME64_2</span> <span style="color: #da8548; font-weight: bold;">0xC2B2AE3D27D4EB4FULL</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">XXH_PRIME64_3</span> <span style="color: #da8548; font-weight: bold;">0x165667B19E3779F9ULL</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">XXH_PRIME64_4</span> <span style="color: #da8548; font-weight: bold;">0x85EBCA77C2B2AE63ULL</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">XXH_PRIME64_5</span> <span style="color: #da8548; font-weight: bold;">0x27D4EB2F165667C5ULL</span>
+
+<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">xxhash</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">input</span>, <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">len</span>, <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">seed</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint8_t</span>* <span style="color: #dcaeea;">p</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint8_t</span>*<span style="color: #c678dd;">)</span>input;
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint8_t</span>* <span style="color: #51afef;">const</span> <span style="color: #dcaeea;">end</span> = p + len;
+    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">h64</span>;
+
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>len &gt;= <span style="color: #da8548; font-weight: bold;">32</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint8_t</span>* <span style="color: #51afef;">const</span> <span style="color: #dcaeea;">limit</span> = end - <span style="color: #da8548; font-weight: bold;">32</span>;
+        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">v1</span> = seed + <span style="color: #a9a1e1;">XXH_PRIME64_1</span> + <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">v2</span> = seed + <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">v3</span> = seed;
+        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">v4</span> = seed - <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+
+        <span style="color: #51afef;">do</span> <span style="color: #98be65;">{</span>
+            <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">k1</span>, <span style="color: #dcaeea;">k2</span>, <span style="color: #dcaeea;">k3</span>, <span style="color: #dcaeea;">k4</span>;
+            k1 = *<span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #a9a1e1;">)</span>p; p += <span style="color: #da8548; font-weight: bold;">8</span>;
+            k2 = *<span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #a9a1e1;">)</span>p; p += <span style="color: #da8548; font-weight: bold;">8</span>;
+            k3 = *<span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #a9a1e1;">)</span>p; p += <span style="color: #da8548; font-weight: bold;">8</span>;
+            k4 = *<span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #a9a1e1;">)</span>p; p += <span style="color: #da8548; font-weight: bold;">8</span>;
+
+            v1 += k1 * <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+            v1 = <span style="color: #a9a1e1;">(</span>v1 &lt;&lt; <span style="color: #da8548; font-weight: bold;">31</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v1 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span><span style="color: #a9a1e1;">)</span>; v1 *= <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+            v1 ^= v2; v1 = v1 * <span style="color: #a9a1e1;">XXH_PRIME64_1</span> + <span style="color: #a9a1e1;">XXH_PRIME64_4</span>;
+
+            v2 += k2 * <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+            v2 = <span style="color: #a9a1e1;">(</span>v2 &lt;&lt; <span style="color: #da8548; font-weight: bold;">31</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v2 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span><span style="color: #a9a1e1;">)</span>; v2 *= <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+            v2 ^= v3; v2 = v2 * <span style="color: #a9a1e1;">XXH_PRIME64_1</span> + <span style="color: #a9a1e1;">XXH_PRIME64_4</span>;
+
+            v3 += k3 * <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+            v3 = <span style="color: #a9a1e1;">(</span>v3 &lt;&lt; <span style="color: #da8548; font-weight: bold;">31</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v3 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span><span style="color: #a9a1e1;">)</span>; v3 *= <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+            v3 ^= v4; v3 = v3 * <span style="color: #a9a1e1;">XXH_PRIME64_1</span> + <span style="color: #a9a1e1;">XXH_PRIME64_4</span>;
+
+            v4 += k4 * <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+            v4 = <span style="color: #a9a1e1;">(</span>v4 &lt;&lt; <span style="color: #da8548; font-weight: bold;">31</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v4 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span><span style="color: #a9a1e1;">)</span>; v4 *= <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+            v4 ^= v1; v4 = v4 * <span style="color: #a9a1e1;">XXH_PRIME64_1</span> + <span style="color: #a9a1e1;">XXH_PRIME64_4</span>;
+
+        <span style="color: #98be65;">}</span> <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>p &lt;= limit<span style="color: #98be65;">)</span>;
+
+        h64 = <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span>v1 &lt;&lt; <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v1 &gt;&gt; <span style="color: #da8548; font-weight: bold;">63</span><span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span>
+            + <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span>v2 &lt;&lt; <span style="color: #da8548; font-weight: bold;">7</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v2 &gt;&gt; <span style="color: #da8548; font-weight: bold;">57</span><span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span>
+            + <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span>v3 &lt;&lt; <span style="color: #da8548; font-weight: bold;">12</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v3 &gt;&gt; <span style="color: #da8548; font-weight: bold;">52</span><span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span>
+            + <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span>v4 &lt;&lt; <span style="color: #da8548; font-weight: bold;">18</span><span style="color: #a9a1e1;">)</span> | <span style="color: #a9a1e1;">(</span>v4 &gt;&gt; <span style="color: #da8548; font-weight: bold;">46</span><span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span>;
+
+        h64 = xxhash_finalize<span style="color: #98be65;">(</span>h64<span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        h64 = seed + <span style="color: #a9a1e1;">XXH_PRIME64_5</span>;
+    <span style="color: #c678dd;">}</span>
+
+    h64 += <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">uint64_t</span><span style="color: #c678dd;">)</span>len;
+
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>p + <span style="color: #da8548; font-weight: bold;">8</span> &lt;= end<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">k1</span> = *<span style="color: #98be65;">(</span><span style="color: #ECBE7B;">uint64_t</span>*<span style="color: #98be65;">)</span>p;
+        k1 *= <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+        k1 = <span style="color: #98be65;">(</span>k1 &lt;&lt; <span style="color: #da8548; font-weight: bold;">31</span><span style="color: #98be65;">)</span> | <span style="color: #98be65;">(</span>k1 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span><span style="color: #98be65;">)</span>;
+        k1 *= <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+        h64 ^= k1;
+        h64 = <span style="color: #98be65;">(</span>h64 &lt;&lt; <span style="color: #da8548; font-weight: bold;">27</span><span style="color: #98be65;">)</span> | <span style="color: #98be65;">(</span>h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">37</span><span style="color: #98be65;">)</span>;
+        h64 = h64 * <span style="color: #a9a1e1;">XXH_PRIME64_1</span> + <span style="color: #a9a1e1;">XXH_PRIME64_4</span>;
+        p += <span style="color: #da8548; font-weight: bold;">8</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>p + <span style="color: #da8548; font-weight: bold;">4</span> &lt;= end<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        h64 ^= *<span style="color: #98be65;">(</span><span style="color: #ECBE7B;">uint32_t</span>*<span style="color: #98be65;">)</span><span style="color: #ECBE7B;">p</span> * <span style="color: #dcaeea;">XXH_PRIME64_1</span>;
+        h64 = <span style="color: #98be65;">(</span>h64 &lt;&lt; <span style="color: #da8548; font-weight: bold;">23</span><span style="color: #98be65;">)</span> | <span style="color: #98be65;">(</span>h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">41</span><span style="color: #98be65;">)</span>;
+        h64 = h64 * <span style="color: #a9a1e1;">XXH_PRIME64_2</span> + <span style="color: #a9a1e1;">XXH_PRIME64_3</span>;
+        p += <span style="color: #da8548; font-weight: bold;">4</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>p &lt; end<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        h64 ^= <span style="color: #98be65;">(</span>*p<span style="color: #98be65;">)</span> * <span style="color: #a9a1e1;">XXH_PRIME64_5</span>;
+        h64 = <span style="color: #98be65;">(</span>h64 &lt;&lt; <span style="color: #da8548; font-weight: bold;">11</span><span style="color: #98be65;">)</span> | <span style="color: #98be65;">(</span>h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">53</span><span style="color: #98be65;">)</span>;
+        h64 = h64 * <span style="color: #a9a1e1;">XXH_PRIME64_1</span>;
+        p++;
+    <span style="color: #c678dd;">}</span>
+
+    h64 ^= h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span>;
+    h64 *= <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+    h64 ^= h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">29</span>;
+    h64 *= <span style="color: #a9a1e1;">XXH_PRIME64_3</span>;
+    h64 ^= h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">32</span>;
+
+    <span style="color: #51afef;">return</span> h64;
+<span style="color: #51afef;">}</span>
+
+<span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">xxhash_finalize</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">h64</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    h64 ^= h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">33</span>;
+    h64 *= <span style="color: #a9a1e1;">XXH_PRIME64_2</span>;
+    h64 ^= h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">29</span>;
+    h64 *= <span style="color: #a9a1e1;">XXH_PRIME64_3</span>;
+    h64 ^= h64 &gt;&gt; <span style="color: #da8548; font-weight: bold;">32</span>;
+    <span style="color: #51afef;">return</span> h64;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Even with all that complexity our distribution is still right around the same ~3700 collisions. Any benefit in distribution would likely be negated by the slower runtime of this algorithm anyway.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub></td>
+<td class="org-right">4353</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub><sub>2</sub></td>
+<td class="org-right">4325</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-right">3726</td>
+</tr>
+
+<tr>
+<td class="org-left">sdbm</td>
+<td class="org-right">3862</td>
+</tr>
+
+<tr>
+<td class="org-left">xxhash</td>
+<td class="org-right">3734</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-org694f62a" class="outline-4">
+<h4 id="org694f62a"><code>jenkins</code></h4>
+<div class="outline-text-4" id="text-org694f62a">
+<p>
+The jenkins hash is very simple, and is touted to produce a great distribution. Once again we are not concerned with runtime, we just need a lower number of overall collisions.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">uint64_t</span> <span style="color: #c678dd;">jenkins_hash</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">len</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint8_t</span>* <span style="color: #dcaeea;">data</span> = <span style="color: #c678dd;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">uint8_t</span>*<span style="color: #c678dd;">)</span>key;
+    <span style="color: #ECBE7B;">uint32_t</span> <span style="color: #dcaeea;">hash</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">i</span>;
+
+    <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span>i = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; length; ++i<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        hash += data<span style="color: #98be65;">[</span>i<span style="color: #98be65;">]</span>;
+        hash += <span style="color: #98be65;">(</span>hash &lt;&lt; <span style="color: #da8548; font-weight: bold;">10</span><span style="color: #98be65;">)</span>;
+        hash ^= <span style="color: #98be65;">(</span>hash &gt;&gt; <span style="color: #da8548; font-weight: bold;">6</span><span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+
+    hash += <span style="color: #c678dd;">(</span>hash &lt;&lt; <span style="color: #da8548; font-weight: bold;">3</span><span style="color: #c678dd;">)</span>;
+    hash ^= <span style="color: #c678dd;">(</span>hash &gt;&gt; <span style="color: #da8548; font-weight: bold;">11</span><span style="color: #c678dd;">)</span>;
+    hash += <span style="color: #c678dd;">(</span>hash &lt;&lt; <span style="color: #da8548; font-weight: bold;">15</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #51afef;">return</span> hash;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+A simple algorithm, but not an improvement over any other solution we&rsquo;ve been able to find so far.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Hash Algorithm</th>
+<th scope="col" class="org-right">Collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">FNV-1</td>
+<td class="org-right">3758</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub></td>
+<td class="org-right">4353</td>
+</tr>
+
+<tr>
+<td class="org-left">pointer<sub>cast</sub><sub>2</sub></td>
+<td class="org-right">4325</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-right">3726</td>
+</tr>
+
+<tr>
+<td class="org-left">sdbm</td>
+<td class="org-right">3862</td>
+</tr>
+
+<tr>
+<td class="org-left">xxhash</td>
+<td class="org-right">3734</td>
+</tr>
+
+<tr>
+<td class="org-left">jenkins</td>
+<td class="org-right">3870</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="outline-container-org616314d" class="outline-3">
+<h3 id="org616314d">Hashing Conclusions</h3>
+<div class="outline-text-3" id="text-org616314d">
+<p>
+For now we will move forward while focusing on the <code>djb2</code> hash algorithm. In the future it would be nice to create a test suite for our hashmap that allows us to easily benchmark many different hash algorithms at once for both speed and collision comparisons.
+</p>
+
+<p>
+Just to make sure we are all on the same page let&rsquo;s take a look at the runtime of our current fastest solution.
+</p>
+</div>
+<div id="outline-container-org74835d2" class="outline-4">
+<h4 id="org74835d2">Running Time</h4>
+<div class="outline-text-4" id="text-org74835d2">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-right">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-right">-59.95%</td>
+</tr>
+
+<tr>
+<td class="org-left">hashmap<sub>find</sub></td>
+<td class="org-left">43.29 seconds</td>
+<td class="org-right">-6.82%</td>
+<td class="org-right">-62.68%</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-left">42.31 seconds</td>
+<td class="org-right">-2.26%</td>
+<td class="org-right">-63.53%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org33b95e8" class="outline-2">
+<h2 id="org33b95e8"><span class="underline">Multithreading</span></h2>
+<div class="outline-text-2" id="text-org33b95e8">
+<p>
+Now we can finally get to the big performance improvements. I&rsquo;m sure there is more we can squeeze out of a single threaded solution, but I am pretty happy with where we&rsquo;ve ended up. For now, we can rewrite out code to start taking advantage of all these CPU cores.
+</p>
+
+<p>
+There are many different approaches to concurrent and parallel programming, but we will try to choose the simplest of them all. With a file this large (~15GB) there is a lot of room on the table to work in parallel. I won&rsquo;t say everything in this task can be done entirely independently, but a majority of the work before sorting the weather stations can.
+</p>
+
+<p>
+For our first pass we will simply create 12 independent workers that will start at 12 different places in the file. They will each parse records independently, adding each to the hashmap. You may already see a problem with this approach, how do we know where to start each worker? If we split the file up evenly into 12 chunks we have no guarantee that each worker will start on the beginning of a line. We can solve this by having each worker walk backwards until they either hit the beginning of the file, or they find a newline.
+</p>
+
+
+<div id="orged349fb" class="figure">
+<p><img src="worker_back.png" alt="worker_back.png" />
+</p>
+</div>
+
+<p>
+Simple enough, but there is still an issue. Unless we give each worker their own hashmap (which would be a pain to reconcile at the end) we will have to synchronize their access to the memory. Shared resources are generally the hardest part of implementing a multithreaded program, with many valid solutions available. The simplest solution is a mutex surrounding their entire hashmap, which is simple enough to implement. Let&rsquo;s take a look at how that would work.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">threads.h</span><span style="color: #51afef;">&gt;</span>
+
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+
+<span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">h</span>;
+<span style="color: #ECBE7B;">mtx_t</span> <span style="color: #dcaeea;">hashmap_mutex</span>;
+
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">thread_args</span> <span style="color: #51afef;">{</span>
+  <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">file</span>;
+  <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">size</span>;
+  <span style="color: #ECBE7B;">ssize_t</span> <span style="color: #dcaeea;">cursor</span>;
+  <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">end</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">thread_args</span>;
+</pre>
+</div>
+
+<p>
+We start off by including a new header file <code>threads.h</code> which is part of the C11 standard. You can choose to use either <code>threads.h</code> or <code>pthread.h</code> here, the choice is up to you. A mutex is defined to protect access to the hashmap, which are both defined as a global so they are easily accessible to all threads. Threads can take in an argument in the form of a pointer to some piece of memory, which we will define in a struct. Each thread will need a pointer to the file, the size of the file, plus a start and end point.
+</p>
+
+<p>
+Our thread function will first walk back to find an appropriate place to start, and then process data until it reaches its endpoint.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">worker</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">arg</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">thread_args</span> <span style="color: #dcaeea;">ta</span> = *<span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">thread_args</span>*<span style="color: #c678dd;">)</span>arg;
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>ta.cursor != <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>ta.cursor &gt; <span style="color: #da8548; font-weight: bold;">0</span> &amp;&amp; ta.file<span style="color: #a9a1e1;">[</span>ta.cursor<span style="color: #a9a1e1;">]</span> != <span style="color: #98be65;">'\n'</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            ta.cursor--;
+        <span style="color: #98be65;">}</span>
+        ta.cursor++;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Cursor is now pointing to the beginning of a line</span>
+    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">name</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">100</span><span style="color: #c678dd;">]</span>;
+    <span style="color: #ECBE7B;">char</span> <span style="color: #dcaeea;">temp</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">6</span><span style="color: #c678dd;">]</span>;
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>ta.cursor &lt; ta.end<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">name_pos</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_pos</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>ta.file<span style="color: #a9a1e1;">[</span>ta.cursor<span style="color: #a9a1e1;">]</span> != <span style="color: #98be65;">';'</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            name<span style="color: #a9a1e1;">[</span>name_pos++<span style="color: #a9a1e1;">]</span> = ta.file<span style="color: #a9a1e1;">[</span>ta.cursor++<span style="color: #a9a1e1;">]</span>;
+        <span style="color: #98be65;">}</span>
+        name<span style="color: #98be65;">[</span>name_pos<span style="color: #98be65;">]</span> = <span style="color: #98be65;">'\0'</span>;
+        ta.cursor++;
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>ta.file<span style="color: #a9a1e1;">[</span>ta.cursor<span style="color: #a9a1e1;">]</span> != <span style="color: #98be65;">'\n'</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            temp<span style="color: #a9a1e1;">[</span>temp_pos++<span style="color: #a9a1e1;">]</span> = ta.file<span style="color: #a9a1e1;">[</span>ta.cursor++<span style="color: #a9a1e1;">]</span>;
+        <span style="color: #98be65;">}</span>
+        temp<span style="color: #98be65;">[</span>temp_pos<span style="color: #98be65;">]</span> = <span style="color: #98be65;">'\0'</span>;
+        ta.cursor++;
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_i</span> = parse_int<span style="color: #98be65;">(</span>temp<span style="color: #98be65;">)</span>;
+
+        mtx_lock<span style="color: #98be65;">(</span>&amp;hashmap_mutex<span style="color: #98be65;">)</span>;
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #98be65;">(</span>&amp;h, strdup<span style="color: #a9a1e1;">(</span>name<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span>;
+        p-&gt;value.count++;
+        p-&gt;value.total += temp_i;
+        <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            p-&gt;value.max = temp_i;
+        <span style="color: #98be65;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            p-&gt;value.min = temp_i;
+        <span style="color: #98be65;">}</span>
+        mtx_unlock<span style="color: #98be65;">(</span>&amp;hashmap_mutex<span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+A fairly straightforward solution which follows the outline described above. The actual parsing logic is copied over from the previous main function, producing the same <code>name</code> and <code>temp</code> variables. We then have to lock the entire table, perform our insert/update, and then release the lock. Can you see the problem with the solution already? If not, don&rsquo;t worry, we will check both the runtime and flamegraph for more hints.
+</p>
+
+<p>
+The final step is to set up our thread pool in main so that we can split out the work.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">thread_count</span> = <span style="color: #da8548; font-weight: bold;">12</span>;
+    <span style="color: #ECBE7B;">thrd_t</span> <span style="color: #dcaeea;">threads</span><span style="color: #c678dd;">[</span>thread_count<span style="color: #c678dd;">]</span>;
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">work_size</span> = sb.st_size / thread_count;
+
+    <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; thread_count; i++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">thread_args</span>* <span style="color: #dcaeea;">ta</span> = malloc<span style="color: #98be65;">(</span><span style="color: #51afef;">sizeof</span><span style="color: #a9a1e1;">(</span>thread_args<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span>;
+        *ta = <span style="color: #98be65;">(</span>thread_args<span style="color: #98be65;">){</span>.file = file,
+                            .size = sb.st_size,
+                            .cursor = i * work_size,
+                            .end = <span style="color: #a9a1e1;">(</span>i * work_size<span style="color: #a9a1e1;">)</span> + work_size<span style="color: #98be65;">}</span>;
+        thrd_create<span style="color: #98be65;">(</span>&amp;threads<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>, worker, ta<span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; thread_count; i++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        thrd_join<span style="color: #98be65;">(</span>threads<span style="color: #a9a1e1;">[</span>i<span style="color: #a9a1e1;">]</span>, <span style="color: #a9a1e1;">NULL</span><span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+</div>
+<div id="outline-container-org20ccd20" class="outline-3">
+<h3 id="org20ccd20">Running Time</h3>
+<div class="outline-text-3" id="text-org20ccd20">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-right">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-right">-59.95%</td>
+</tr>
+
+<tr>
+<td class="org-left">hashmap<sub>find</sub></td>
+<td class="org-left">43.29 seconds</td>
+<td class="org-right">-6.82%</td>
+<td class="org-right">-62.68%</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-left">42.31 seconds</td>
+<td class="org-right">-2.26%</td>
+<td class="org-right">-63.53%</td>
+</tr>
+
+<tr>
+<td class="org-left">Naive Threading</td>
+<td class="org-left">355.71 seconds</td>
+<td class="org-right">740.70%</td>
+<td class="org-right">206.62%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Oops, we must have seriously mess something up there. But how? We increased the amount of work we are able to do in parallel, surely that should have cut our runtime by a factor of 12! Let&rsquo;s see if the flamegraph can offer us any information as to why we were so much slower.
+</p>
+</div>
+</div>
+<div id="outline-container-org1214575" class="outline-3">
+<h3 id="org1214575">Flamegraph</h3>
+<div class="outline-text-3" id="text-org1214575">
+
+<div id="org10aef6c" class="figure">
+<p><img src="naive_multi.svg" alt="naive_multi.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+Well no wonder we are slow! Our workers are spending 14.69% of their time attempting to acquire a mutex lock, not nice!
+</p>
+
+<p>
+This problem is referred to as resource contention. The more workers we have fighting over a single lock, the slower our program will run. If we have to call <code>hashmap_find</code> 1 billion times, we just made that around 750% slower by allowing 12 threads to fight for access to the hashmap. Sadly we can&rsquo;t just remove the lock and lets the threads have free access to our hashmap. Instead we can try and limit the scope of our locks to hopefully allow more concurrent access throughout the hashmap.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgae7b6ed" class="outline-2">
+<h2 id="orgae7b6ed"><span class="underline">Internal Locks</span></h2>
+<div class="outline-text-2" id="text-orgae7b6ed">
+<p>
+What if instead of locking the entire table we were able to just lock a single entry. That would allow for all 12 threads to do work independently, only rarely having to wait when they happen to try to insert a record for the same station. That sounds like a reasonable approach, and one made possible by the fact that we can preallocate our table, preventing it from ever having to grow.
+</p>
+
+<p>
+A general purpose hashtable needs to be able to dynamically resize as more elements are added, but we know exactly how large our table needs to be at compile time. Because of this we are able to move closer to what is known as a &ldquo;lock free&rdquo; hashmap. Our solution will still require the use of a lock, but locking the entire table for updates will no longer be required. We will still require locking the entire table for insert calls, as we need to ensure proper selection of a position in the hashmap.
+</p>
+
+<p>
+We can start by slightly modifying the <code>pair</code> struct which our hashmap is based on.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdatomic.h</span><span style="color: #51afef;">&gt;</span>
+
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #51afef;">{</span>
+  <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span>;
+  <span style="color: #ECBE7B;">Record</span> <span style="color: #dcaeea;">value</span>;
+  <span style="color: #ECBE7B;">atomic_bool</span> <span style="color: #dcaeea;">locked</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">pair</span>;
+</pre>
+</div>
+
+<p>
+Atomic operations are the building blocks on top of which concurrency control mechanisms like muticies are built on top of. They are specific hardware instructions that are able to execute atomically, meaning they are guarantee to do exactly what they say they will. These instructions are able to provide this guarantee because they block access by any other thread of execution while the operation is performed. This means the operations are slower than your average <code>ADD</code> or <code>LSL</code>, but their value is worth the runtime cost.
+</p>
+
+<p>
+For our implementation each pair can either be &ldquo;<i>locked</i>&rdquo; or &ldquo;<i>unlocked</i>&rdquo;. If a thread goes to update a locked record it will simply wait its turn. This &ldquo;waiting&rdquo; behavior can be costly if the pair is locked for a long period of time, but in our program we know it will only be locked as long as it takes to update 4 fields of the struct. Our point of comparison here will be time spent in <code>pthread_mutex_unlock</code> vs time spent in <code>spin_lock</code>. Speaking of <code>spin_lock</code> let&rsquo;s quickly implement one.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">spin_lock</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">while</span> <span style="color: #c678dd;">(</span>atomic_exchange<span style="color: #98be65;">(</span>&amp;p-&gt;locked, <span style="color: #a9a1e1;">true</span><span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Spin until the lock is released</span>
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>atomic_load<span style="color: #a9a1e1;">(</span>&amp;p-&gt;locked<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+            <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Do nothing, just spin</span>
+        <span style="color: #98be65;">}</span>
+    <span style="color: #c678dd;">}</span>
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+If you&rsquo;ve heard of a spin lock before this will probably make perfect sense, but the concept is new to me. Let&rsquo;s break down the atomic operations first, and then we&rsquo;ll see how those factor in to the <code>spin_lock</code>.
+</p>
+
+<p>
+<code>atomic_exchange</code> attempts to put the value true in <code>locked</code>, in either case it returns the previous value in <code>locked</code>. So if the lock was already acquired it will return <code>true</code> causing us to enter the inner loop. Once inside we continuously call <code>atomic_load</code>, which returns the current value of the lock. We will loop as long as the lock is held, exiting as soon as the value returned is false, at which point the outer look will acquire the lock and we are free to move on.
+</p>
+
+<p>
+This concept is called a spin lock as is very common when synchronizing memory access across multiple threads. Just as we acquire a lock we will also need to release the lock.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">spin_unlock</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    atomic_store<span style="color: #c678dd;">(</span>&amp;p-&gt;locked, <span style="color: #a9a1e1;">false</span><span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Unlock will only ever be called while we hold the lock, so it is safe to perform this directly with a <code>store</code> operation.
+</p>
+
+<p>
+We can update the worker thread to take advantage of the new locks.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #51afef;">(</span>&amp;h, strdup<span style="color: #c678dd;">(</span>name<span style="color: #c678dd;">)</span><span style="color: #51afef;">)</span>;
+        <span style="color: #c678dd;">spin_lock</span><span style="color: #51afef;">(</span>p<span style="color: #51afef;">)</span>;
+        p-&gt;value.count++;
+        p-&gt;value.total += temp_i;
+        <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            p-&gt;value.max = temp_i;
+        <span style="color: #51afef;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            p-&gt;value.min = temp_i;
+        <span style="color: #51afef;">}</span>
+        <span style="color: #c678dd;">spin_unlock</span><span style="color: #51afef;">(</span>p<span style="color: #51afef;">)</span>;
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+Now all 12 threads should be able to seamlessly update records without having to fight over locks, and we have an elegant solution in place for when there is resource contention. But you may have noticed something that will make our solution invalid. We only lock down a record as we go to update it, which leaves the case of inserting a new record unprotected. Sadly, this means we will have to walk back out <code>hashmap_find</code> optimization and return to also calling <code>hashmap_insert</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">hashmap_insert</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">hashmap</span>* <span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">key</span>, <span style="color: #ECBE7B;">Record</span> <span style="color: #dcaeea;">value</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">pair</span> <span style="color: #dcaeea;">new</span> = <span style="color: #c678dd;">{</span>key, value, <span style="color: #a9a1e1;">false</span><span style="color: #c678dd;">}</span>;
+
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Locking for the shortest possible time</span>
+    mtx_lock<span style="color: #c678dd;">(</span>&amp;hm_mutex<span style="color: #c678dd;">)</span>;
+    <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">first_avail</span> = hashmap_first_avail<span style="color: #c678dd;">(</span>h, key<span style="color: #c678dd;">)</span>;
+    *first_avail = new;
+    mtx_unlock<span style="color: #c678dd;">(</span>&amp;hm_mutex<span style="color: #c678dd;">)</span>;
+
+    h-&gt;size++;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+I&rsquo;m only showing the relevant code here, but we essentially will call insert and block all other inserts until our changes have settled. The nice thing about this change is that hopefully inserts will only happen in the first few moments of execution, and everything from then on will be updates.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #51afef;">(</span>&amp;h, name<span style="color: #51afef;">)</span>;
+        <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>p<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            spin_lock<span style="color: #c678dd;">(</span>p<span style="color: #c678dd;">)</span>;
+            p-&gt;value.count++;
+            p-&gt;value.total += temp_i;
+            <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+                p-&gt;value.max = temp_i;
+            <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+                p-&gt;value.min = temp_i;
+            <span style="color: #c678dd;">}</span>
+            spin_unlock<span style="color: #c678dd;">(</span>p<span style="color: #c678dd;">)</span>;
+        <span style="color: #51afef;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">{</span>
+            <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">name_copy</span> = strdup<span style="color: #c678dd;">(</span>name<span style="color: #c678dd;">)</span>;
+            hashmap_insert<span style="color: #c678dd;">(</span>&amp;h, name_copy,
+                           <span style="color: #98be65;">(</span>Record<span style="color: #98be65;">){</span>.name = name_copy,
+                                    .total = temp_i,
+                                    .count = <span style="color: #da8548; font-weight: bold;">1</span>,
+                                    .min = temp_i,
+                                    .max = temp_i<span style="color: #98be65;">}</span><span style="color: #c678dd;">)</span>;
+        <span style="color: #51afef;">}</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+
+<p>
+Our insert/update logic now has to branch on if the record exists or not. Sadly for the best performance the locking on inserts is hidden from us in the main function, but I think we can ignore that for now. Let&rsquo;s see if that helps our runtime.
+</p>
+</div>
+<div id="outline-container-orga127e83" class="outline-3">
+<h3 id="orga127e83">Running Time</h3>
+<div class="outline-text-3" id="text-orga127e83">
+<p>
+This is going to be our most sizeable improvement since the first step in our exploration.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-right">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-right">-59.95%</td>
+</tr>
+
+<tr>
+<td class="org-left">hashmap<sub>find</sub></td>
+<td class="org-left">43.29 seconds</td>
+<td class="org-right">-6.82%</td>
+<td class="org-right">-62.68%</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-left">42.31 seconds</td>
+<td class="org-right">-2.26%</td>
+<td class="org-right">-63.53%</td>
+</tr>
+
+<tr>
+<td class="org-left">Naive Threading</td>
+<td class="org-left">355.71 seconds</td>
+<td class="org-right">740.70%</td>
+<td class="org-right">206.62%</td>
+</tr>
+
+<tr>
+<td class="org-left">Internal Lock</td>
+<td class="org-left">9.01 seconds</td>
+<td class="org-right">-97.47%</td>
+<td class="org-right">-92.23%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+We have achieved at 92% reduction in runtime! Lets check out any potential bottlenecks in our flamegraph.
+</p>
+
+
+<div id="orgf298729" class="figure">
+<p><img src="multi.svg" alt="multi.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+We see that our workers are spending ~15% of their time working with the internal locks we added to each record. While this is obviously a huge improvement from before, I don&rsquo;t like the fact that our threads are still fighting over locks.
+</p>
+
+<p>
+Earlier I had mentioned that giving each thread its own hashmap could improve performance, but reconciling those individual hashmaps at the end would be pain. Well now it&rsquo;s time to embrace that pain and see if it can improve performnce.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org9f9e251" class="outline-2">
+<h2 id="org9f9e251"><span class="underline">Individual Maps</span></h2>
+<div class="outline-text-2" id="text-org9f9e251">
+<p>
+Before we start rewriting our workers and the main function lets rationalize these decisions. Currently our program called <code>hashmap_find</code> 1 billion times, with around 8800 calls to insert when a new record is discovered. Giving each worker its own hashmap would keep the 1 billion called to <code>hashmap_find</code>, the same ~8800 calls to insert (per thread), and adding in <code>11 * ~8800</code> calls to <code>hashmap_find</code> to reconcile at the end.
+</p>
+
+<p>
+That comes in right around 100,000 calls to <code>hashmap_find</code> after the threads have finished parsing. A drop in the bucket compared to other 1 billion calls, just 0.01% of the total operations.
+</p>
+
+<p>
+Just judging on numbers alone this should be a worthwhile improvement, but as always we are going to implement it and check the performance.
+</p>
+
+<p>
+To start off each thread will now need to take in a pointer to a hashmap.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">thread_args</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">file</span>;
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">size</span>;
+    <span style="color: #ECBE7B;">ssize_t</span> <span style="color: #dcaeea;">cursor</span>;
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">end</span>;
+    <span style="color: #ECBE7B;">hashmap</span>* <span style="color: #dcaeea;">internal_hm</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">thread_args</span>;
+</pre>
+</div>
+
+<p>
+Which we will create in main, and initialize per thread.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">thread_count</span> = <span style="color: #da8548; font-weight: bold;">12</span>;
+    <span style="color: #ECBE7B;">thrd_t</span> <span style="color: #dcaeea;">threads</span><span style="color: #c678dd;">[</span>thread_count<span style="color: #c678dd;">]</span>;
+    <span style="color: #ECBE7B;">hashmap</span> <span style="color: #dcaeea;">hashmaps</span><span style="color: #c678dd;">[</span>thread_count<span style="color: #c678dd;">]</span>;
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">worker</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">arg</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">thread_args</span> <span style="color: #dcaeea;">ta</span> = *<span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">thread_args</span>*<span style="color: #c678dd;">)</span>arg;
+    *ta.internal_hm = hashmap_init<span style="color: #c678dd;">(</span>&amp;fnv_string_hash, &amp;str_equals, <span style="color: #da8548; font-weight: bold;">0.5</span>, <span style="color: #da8548; font-weight: bold;">17729</span><span style="color: #c678dd;">)</span>;
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>ta.cursor != <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">while</span> <span style="color: #98be65;">(</span>ta.cursor &gt; <span style="color: #da8548; font-weight: bold;">0</span> &amp;&amp; ta.file<span style="color: #a9a1e1;">[</span>ta.cursor<span style="color: #a9a1e1;">]</span> != <span style="color: #98be65;">'\n'</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+The other nice part is that we can drop all locks and special insert/update logic. Our code will look much more similar to previous implementations.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+        <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">temp_i</span> = parse_int<span style="color: #51afef;">(</span>temp<span style="color: #51afef;">)</span>;
+        <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>ta.cursor &gt;= ta.end<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">0</span>;
+        <span style="color: #51afef;">}</span>
+        <span style="color: #ECBE7B;">pair</span>* <span style="color: #dcaeea;">p</span> = hashmap_find<span style="color: #51afef;">(</span>ta.internal_hm, name<span style="color: #51afef;">)</span>;
+        p-&gt;value.count++;
+        p-&gt;value.total += temp_i;
+        <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>temp_i &gt; p-&gt;value.max<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            p-&gt;value.max = temp_i;
+        <span style="color: #51afef;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>temp_i &lt; p-&gt;value.min<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+            p-&gt;value.min = temp_i;
+        <span style="color: #51afef;">}</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">....</span>
+</pre>
+</div>
+
+<p>
+Meaning we will need to revert our changes to <code>hashmap_find</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">pair</span> *<span style="color: #c678dd;">hashmap_find</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">hashmap</span> *<span style="color: #dcaeea;">h</span>, <span style="color: #ECBE7B;">void</span> *<span style="color: #dcaeea;">key</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+  <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">index</span> = h-&gt;hash_func<span style="color: #c678dd;">(</span>key<span style="color: #c678dd;">)</span> % h-&gt;capacity;
+  <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; h-&gt;capacity / <span style="color: #da8548; font-weight: bold;">2</span> + <span style="color: #da8548; font-weight: bold;">1</span>; i++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+    <span style="color: #ECBE7B;">uint64_t</span> <span style="color: #dcaeea;">new_index</span> = <span style="color: #98be65;">(</span>index + <span style="color: #a9a1e1;">(</span>i * i<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span> % h-&gt;capacity;
+    <span style="color: #ECBE7B;">pair</span> *<span style="color: #dcaeea;">p</span> = &amp;h-&gt;array<span style="color: #98be65;">[</span>new_index<span style="color: #98be65;">]</span>;
+    <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span>p-&gt;key == <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+      <span style="color: #ECBE7B;">char</span> *<span style="color: #dcaeea;">copy_key</span> = strdup<span style="color: #a9a1e1;">(</span>key<span style="color: #a9a1e1;">)</span>;
+      *p = <span style="color: #a9a1e1;">(</span>pair<span style="color: #a9a1e1;">){</span>.key = copy_key,
+                  .value = <span style="color: #51afef;">(</span>Record<span style="color: #51afef;">){</span>
+                      .name = key,
+                      .total = <span style="color: #da8548; font-weight: bold;">0</span>,
+                      .count = <span style="color: #da8548; font-weight: bold;">0</span>,
+                      .min = INT64_MAX,
+                      .max = INT64_MIN,
+                  <span style="color: #51afef;">}</span><span style="color: #a9a1e1;">}</span>;
+      <span style="color: #51afef;">return</span> p;
+    <span style="color: #98be65;">}</span> <span style="color: #51afef;">else</span> <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span><span style="color: #51afef; font-weight: bold;">!</span>unsafe_strcmp<span style="color: #a9a1e1;">(</span>p-&gt;key, key<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
+      <span style="color: #51afef;">return</span> p;
+    <span style="color: #98be65;">}</span>
+  <span style="color: #c678dd;">}</span>
+  <span style="color: #51afef;">return</span> <span style="color: #a9a1e1;">NULL</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Great! We are able to remove all locks and muticies from our code. As we observed previously our program spend around 15-20% of its time waiting to acquire a lock, or releasing it. Hopefully by making this change we will see a ~15% reduction in run time.
+</p>
+</div>
+<div id="outline-container-org13b4734" class="outline-3">
+<h3 id="org13b4734">Running Time</h3>
+<div class="outline-text-3" id="text-org13b4734">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Attempt</th>
+<th scope="col" class="org-left">Runtime</th>
+<th scope="col" class="org-right">% Change</th>
+<th scope="col" class="org-right">% Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Naive</td>
+<td class="org-left">116.01 seconds</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">73.24 seconds</td>
+<td class="org-right">-37.73%</td>
+<td class="org-right">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">parse<sub>int</sub></td>
+<td class="org-left">46.46 seconds</td>
+<td class="org-right">-35.20%</td>
+<td class="org-right">-59.95%</td>
+</tr>
+
+<tr>
+<td class="org-left">hashmap<sub>find</sub></td>
+<td class="org-left">43.29 seconds</td>
+<td class="org-right">-6.82%</td>
+<td class="org-right">-62.68%</td>
+</tr>
+
+<tr>
+<td class="org-left">djb2</td>
+<td class="org-left">42.31 seconds</td>
+<td class="org-right">-2.26%</td>
+<td class="org-right">-63.53%</td>
+</tr>
+
+<tr>
+<td class="org-left">Naive Threading</td>
+<td class="org-left">355.71 seconds</td>
+<td class="org-right">740.70%</td>
+<td class="org-right">206.62%</td>
+</tr>
+
+<tr>
+<td class="org-left">Internal Lock</td>
+<td class="org-left">9.01 seconds</td>
+<td class="org-right">-97.47%</td>
+<td class="org-right">-92.23%</td>
+</tr>
+
+<tr>
+<td class="org-left">Individual Maps</td>
+<td class="org-left">6.72 seconds</td>
+<td class="org-right">-25.42%</td>
+<td class="org-right">-94.21%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Even better than we anticipated! With each thread having its own map I was expecting more pressure on our CPUs cache, which would have led to slower performance, but it looks like we were able to get away with that here. Now we can see where this version of the program is spending time.
+</p>
+</div>
+</div>
+<div id="outline-container-orgf2ff9b4" class="outline-3">
+<h3 id="orgf2ff9b4">Flamegraph</h3>
+<div class="outline-text-3" id="text-orgf2ff9b4">
+
+<div id="org0281516" class="figure">
+<p><img src="indiv_map.svg" alt="indiv_map.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+Ignoring the &ldquo;hair&rdquo; from the graph (which are mostly related to page faults), we can see that our time is now being spent in the 3 key function that we wrote! The majority of time is still spent in <code>hashmap_find</code> which is expected, as the majority of work is done here. At this point our paths for improvement are either a rewrite, or to continue tweaking the 3 key functions.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org93afe3b" class="outline-2">
+<h2 id="org93afe3b">Final Improvements</h2>
+<div class="outline-text-2" id="text-org93afe3b">
+<p>
+For now this is where I am going to call it. Of course the time could be dropped further, but that would likely require an architectural rewrite, which I don&rsquo;t have the time for currently. I was able to bring the time down to 6.12 seconds by increasing the initial capacity of the map, subsequently dropping the collisions to ~1700, just around half of the previous value.
+</p>
+
+<p>
+Another easy change to the hashmap is changing up the probing strategy. The original implementation uses quadratic probing, which can produce suboptimal results, especially with lots of non unqiue data. I had a suggestion to try linear probing, but that actually made both the number of collisions and the runtime worse. I could also try separate chaining, but something tells me that would also be slower. What I ultimately ended up settling on is chain hashing. Instead of calculating a hash once and then following a fixed probing strategy, we can calculate a new hash for each collision.
+</p>
+
+<p>
+At that point we are no longer hashing an entire string, so we may see potential performance improvement. In fact, both the overall collisions and the runtime dropped, leaving us with a runtime of 6.08 seconds. Here&rsquo;s one final flamegraph to show how far we&rsquo;ve come!
+</p>
+
+
+<div id="org17e3599" class="figure">
+<p><img src="final_tm.svg" alt="final_tm.svg" class="org-svg" />
+</p>
+</div>
+
+<p>
+The small blocks are once again mostly related to page faults, which I don&rsquo;t really want to explore right now. So that&rsquo;s it! A sizeable improvement over our original naive implementation, but it&rsquo;s always good to know that both solutions solved the problem, and that original solution took less than 10 minutes to write, whereas the final solution is the effort of days of work!
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 3/28/24</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>

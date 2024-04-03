@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Server Exploration/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Server Exploration</i></h1>
+<div id="outline-container-org4d651dc" class="outline-2">
+<h2 id="org4d651dc">Single Connection</h2>
+<div class="outline-text-2" id="text-org4d651dc">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Server</th>
+<th scope="col" class="org-right">1</th>
+<th scope="col" class="org-right">10</th>
+<th scope="col" class="org-right">256</th>
+<th scope="col" class="org-right">512</th>
+<th scope="col" class="org-right">1024</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Single Socket</td>
+<td class="org-right">154758</td>
+<td class="org-right">155403</td>
+<td class="org-right">154884</td>
+<td class="org-right">155399</td>
+<td class="org-right">155492</td>
+</tr>
+
+<tr>
+<td class="org-left">Select</td>
+<td class="org-right">165016</td>
+<td class="org-right">151162</td>
+<td class="org-right">151552</td>
+<td class="org-right">154511</td>
+<td class="org-right">151089</td>
+</tr>
+
+<tr>
+<td class="org-left">Poll</td>
+<td class="org-right">154788</td>
+<td class="org-right">155740</td>
+<td class="org-right">154970</td>
+<td class="org-right">155061</td>
+<td class="org-right">154846</td>
+</tr>
+
+<tr>
+<td class="org-left">epoll</td>
+<td class="org-right">152802</td>
+<td class="org-right">389627</td>
+<td class="org-right">388277</td>
+<td class="org-right">385719</td>
+<td class="org-right">387243</td>
+</tr>
+
+<tr>
+<td class="org-left">io<sub>uring</sub></td>
+<td class="org-right">163538</td>
+<td class="org-right">373608</td>
+<td class="org-right">376141</td>
+<td class="org-right">356641</td>
+<td class="org-right">351202</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">Multi Threaded</td>
+<td class="org-right">154564</td>
+<td class="org-right">605416</td>
+<td class="org-right">942349</td>
+<td class="org-right">916230*</td>
+<td class="org-right">-</td>
+</tr>
+
+<tr>
+<td class="org-left">Multi Threaded epoll</td>
+<td class="org-right">147172</td>
+<td class="org-right">659724</td>
+<td class="org-right">1454485</td>
+<td class="org-right">1401809</td>
+<td class="org-right">1402205</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-orge97fdc2" class="outline-2">
+<h2 id="orge97fdc2">Lower</h2>
+<div class="outline-text-2" id="text-orge97fdc2">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-right">Concurrent Connections</td>
+<td class="org-right">Single Socket</td>
+<td class="org-right">Select</td>
+<td class="org-right">Poll</td>
+<td class="org-right">epoll</td>
+<td class="org-right">io<sub>uring</sub></td>
+</tr>
+
+<tr>
+<td class="org-right">1</td>
+<td class="org-right">154758</td>
+<td class="org-right">165016</td>
+<td class="org-right">154788</td>
+<td class="org-right">152802</td>
+<td class="org-right">163538</td>
+</tr>
+
+<tr>
+<td class="org-right">10</td>
+<td class="org-right">155403</td>
+<td class="org-right">151162</td>
+<td class="org-right">155740</td>
+<td class="org-right">389627</td>
+<td class="org-right">373608</td>
+</tr>
+
+<tr>
+<td class="org-right">256</td>
+<td class="org-right">154884</td>
+<td class="org-right">151552</td>
+<td class="org-right">154970</td>
+<td class="org-right">388277</td>
+<td class="org-right">376141</td>
+</tr>
+
+<tr>
+<td class="org-right">512</td>
+<td class="org-right">155399</td>
+<td class="org-right">154511</td>
+<td class="org-right">155061</td>
+<td class="org-right">385719</td>
+<td class="org-right">356641</td>
+</tr>
+
+<tr>
+<td class="org-right">1024</td>
+<td class="org-right">155492</td>
+<td class="org-right">151098</td>
+<td class="org-right">154846</td>
+<td class="org-right">387243</td>
+<td class="org-right">351202</td>
+</tr>
+</tbody>
+</table>
+
+<div id="org8cffba2" class="figure">
+<p><img src="lower_rps.png" alt="lower_rps.png" />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org406d6fd" class="outline-2">
+<h2 id="org406d6fd">Chart Testing</h2>
+<div class="outline-text-2" id="text-org406d6fd">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-right">Concurrent Connections</td>
+<td class="org-right">Single Socket</td>
+<td class="org-right">Select</td>
+<td class="org-right">Poll</td>
+<td class="org-right">epoll</td>
+<td class="org-right">io<sub>uring</sub></td>
+<td class="org-right">Multi Threaded</td>
+<td class="org-right">Multi Threaded epoll</td>
+</tr>
+
+<tr>
+<td class="org-right">1</td>
+<td class="org-right">154758</td>
+<td class="org-right">165016</td>
+<td class="org-right">154788</td>
+<td class="org-right">152802</td>
+<td class="org-right">163538</td>
+<td class="org-right">154564</td>
+<td class="org-right">147172</td>
+</tr>
+
+<tr>
+<td class="org-right">10</td>
+<td class="org-right">155403</td>
+<td class="org-right">151162</td>
+<td class="org-right">155740</td>
+<td class="org-right">389627</td>
+<td class="org-right">373608</td>
+<td class="org-right">605416</td>
+<td class="org-right">659724</td>
+</tr>
+
+<tr>
+<td class="org-right">256</td>
+<td class="org-right">154884</td>
+<td class="org-right">151552</td>
+<td class="org-right">154970</td>
+<td class="org-right">388277</td>
+<td class="org-right">376141</td>
+<td class="org-right">942349</td>
+<td class="org-right">1454485</td>
+</tr>
+
+<tr>
+<td class="org-right">512</td>
+<td class="org-right">155399</td>
+<td class="org-right">154511</td>
+<td class="org-right">155061</td>
+<td class="org-right">385719</td>
+<td class="org-right">356641</td>
+<td class="org-right">916230</td>
+<td class="org-right">1401809</td>
+</tr>
+
+<tr>
+<td class="org-right">1024</td>
+<td class="org-right">155492</td>
+<td class="org-right">151098</td>
+<td class="org-right">154846</td>
+<td class="org-right">387243</td>
+<td class="org-right">351202</td>
+<td class="org-right">&#xa0;</td>
+<td class="org-right">1402205</td>
+</tr>
+</tbody>
+</table>
+
+
+<div id="org359b9e0" class="figure">
+<p><img src="rps.png" alt="rps.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 3/28/24</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>
