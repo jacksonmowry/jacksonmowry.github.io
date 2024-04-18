@@ -49,3 +49,173 @@ https://unixism.net/loti/ref-liburing/advanced_usage.html
 https://unixism.net/loti/low_level.html
 https://unixism.net/2020/04/io-uring-by-example-part-1-introduction/
 https://unixism.net/loti/tutorial/link_liburing.html
+
+* Serving Files over HTTP (9 Byte, Tiny File)
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:'key font ",40"' set:"yrange [0:*]"
+#+PLOT: labels:("x" "epoll" "io_uring basic" "io_uring full")
+| Concurrent Connections |    epoll | io_uring basic | io_uring full |
+|                      1 | 15900.51 |       16036.64 |      15579.83 |
+|                     10 | 15084.43 |       19011.26 |      15579.83 |
+|                    256 | 15027.16 |       23243.24 |      39371.90 |
+|                    512 | 15676.89 |       23565.49 |      40840.13 |
+|                   1024 | 17022.94 |       24089.12 |      42422.53 |
+|                   2048 | 16905.92 |       24364.16 |      42224.32 |
+|                   4096 | 17034.19 |       24254.91 |      42243.61 |
+|                   8192 | 16580.64 |       23727.16 |      42513.00 |
+
+* Serving Files over HTTP (1.6KB, Reasonable Sized File)
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:'key font ",40"' set:"yrange [0:*]"
+#+PLOT: labels:("x" "epoll" "io_uring basic" "io_uring full")
+| Server |    epoll | io_uring basic | io_uring full |
+|      1 | 15748.46 |       16147.04 |      15332.02 |
+|     10 | 15576.71 |       19408.42 |      19713.71 |
+|    256 | 15916.17 |       23081.70 |      39383.36 |
+|    512 | 15659.98 |       24089.48 |      41101.76 |
+|   1024 | 20766.10 |       24660.70 |      42141.92 |
+|   2048 | 19733.64 |       24351.87 |      42496.73 |
+|   4096 | 20152.35 |       24525.64 |      41472.64 |
+|   8192 | 20831.61 |       24592.22 |      42420.12 |
+
+* 12KB, Larger Than a Standard MTU
+** Requests Per Second
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:90000]"
+#+PLOT: labels:("x" "epoll" "io uring full" "io uring basic")
+| Server |    epoll | io_uring full | io_uring basic |
+|      1 | 38066.45 |      15718.86 |       42698.63 |
+|     10 | 39956.86 |      20677.96 |       78668.01 |
+|    256 | 39824.55 |      37897.40 |       79972.05 |
+|    512 | 37512.00 |      48076.07 |       79936.89 |
+|   1024 | 37502.49 |      53307.83 |       78517.94 |
+|   2048 | 37434.72 |      44846.93 |       78879.10 |
+|   4096 | 37685.37 |      43731.19 |       78951.22 |
+|   8192 | 37703.28 |      45559.63 |       79461.36 |
+
+** Mb per Second
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Transfers(MB) per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:*]"
+#+PLOT: labels:("x" "epoll" "io uring full" "io uring basic")
+| Server |  epoll | io_uring full | io_uring basic |
+|      1 | 395.85 |        164.34 |         444.02 |
+|     10 | 415.51 |        216.19 |         818.06 |
+|    256 | 414.13 |        396.22 |         831.62 |
+|    512 | 390.08 |        502.64 |         831.25 |
+|   1024 | 389.98 |        557.34 |         816.50 |
+|   2048 | 389.28 |        468.88 |         820.25 |
+|   4096 | 391.89 |        457.22 |         821.00 |
+|   8192 | 392.07 |        476.33 |         826.31 |
+
+* Stable uring simple 12kb file
+| Conn |  Req/sec | Mb/sec | P99     |
+|    1 | 16650.40 | 173.82 | 17.00us |
+|    4 | 56515.62 | 590.01 | 60.00us |
+|    8 | 52234.75 | 545.32 | 99.00us |
+|   16 | 47504.45 | 495.94 | 1.01ms  |
+|   32 | 58652.68 | 612.32 | 2.68ms  |
+|   64 | 63731.30 | 665.34 | 3.20ms  |
+|  128 | 71874.08 | 750.35 | 2.22ms  |
+|  256 | 73823.56 | 770.71 | 4.19ms  |
+|  512 | 73041.34 | 762.54 | 8.25ms  |
+| 1024 | 71625.02 | 747.75 | 16.53ms |
+| 2048 | 71481.22 | 746.25 | 16.75ms |
+| 4096 | 71741.84 | 748.97 | 16.94ms |
+| 8192 | 71502.96 | 746.48 | 16.75ms |
+
+* Stable epoll simple 12kb file
+| Conn |  Req/sec | Mb/sec | P99      |
+|    1 | 16140.96 | 168.51 | 20.00us  |
+|    4 | 35576.13 | 371.41 | 498.00us |
+|    8 | 31193.11 | 325.65 | 2.03ms   |
+|   16 | 31368.16 | 329.76 | 2.93ms   |
+|   32 | 32558.94 | 339.91 | 2.77ms   |
+|   64 | 33061.86 | 345.16 | 3.79ms   |
+|  128 | 34312.50 | 358.22 | 6.24ms   |
+|  256 | 33005.28 | 344.57 | 14.91ms  |
+|  512 | 35206.10 | 367.55 | 22.43ms  |
+| 1024 | 32558.56 | 339.91 | 50.77ms  |
+| 2048 | 32316.11 | 337.38 | 61.84ms  |
+| 4096 | 32580.59 | 340.14 | 51.16ms  |
+| 8192 | 32143.92 | 335.58 | 64.16ms  |
+
+
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:*]"
+#+PLOT: labels:("x" "epoll" "io uring basic")
+| Server |    epoll | io_uring basic |
+|      1 | 16140.96 |       16650.40 |
+|      4 | 35576.13 |       56515.62 |
+|      8 | 31193.11 |       52234.75 |
+|     16 | 31368.16 |       47504.45 |
+|     32 | 32558.94 |       58652.68 |
+|     64 | 33061.86 |       63731.30 |
+|    128 | 34312.50 |       71874.08 |
+|    256 | 33005.28 |       73823.56 |
+|    512 | 35206.10 |       73041.34 |
+|   1024 | 32558.56 |       71625.02 |
+|   2048 | 32316.11 |       71481.22 |
+|   4096 | 32580.59 |       71741.84 |
+|   8192 | 32143.92 |       71502.96 |
+
+
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Transfers(MB) per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:*]"
+#+PLOT: labels:("x" "epoll" "io uring basic")
+| Server |  epoll | io_uring |
+|      1 | 168.51 |   173.82 |
+|      4 | 371.41 |   590.01 |
+|      8 | 325.65 |   545.32 |
+|     16 | 329.76 |   495.94 |
+|     32 | 339.91 |   612.32 |
+|     64 | 345.16 |   665.34 |
+|    128 | 358.22 |   750.35 |
+|    256 | 344.57 |   770.71 |
+|    512 | 367.55 |   762.54 |
+|   1024 | 339.91 |   747.75 |
+|   2048 | 337.38 |   746.25 |
+|   4096 | 340.14 |   748.97 |
+|   8192 | 335.58 |   746.48 |
+
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'P99 Latency (ms)'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:*]"
+#+PLOT: labels:("x" "epoll" "io uring basic")
+ | Server | epoll | io_uring |
+ |      1 | 0.020 |    0.017 |
+ |      4 | 0.498 |    0.060 |
+ |      8 |  2.03 |    0.099 |
+ |     16 |  2.93 |     1.01 |
+ |     32 |  2.77 |     2.68 |
+ |     64 |  3.79 |     3.20 |
+ |    128 |  6.24 |     2.22 |
+ |    256 | 14.91 |     4.19 |
+ |    512 | 22.43 |     8.25 |
+ |   1024 | 50.77 |    16.53 |
+ |   2048 | 61.84 |    16.75 |
+ |   4096 | 51.16 |    16.94 |
+ |   8192 | 64.16 |    16.75 |
+
+* Another attempt at full iouring
+| Conn |  Req/sec | Mb/sec | P99      |  Latency across 3 runs     |
+|    1 | 15352.08 | 160.27 | 33.00us  | 34.00us  33.00us  35.00us  |
+|    4 | 17118.86 | 178.72 | 102.00us | 92.00us  102.00us 100.00us |
+|    8 | 18571.53 | 193.88 | 123.00us | 123.00us 123.00us 123.00us |
+|   16 | 18908.47 | 197.40 | 1.14ms   | 1.14ms   1.14ms   1.15ms   |
+|   32 | 19085.56 | 199.25 | 4.09ms   | 4.09ms   4.09ms   4.10ms   |
+|   64 | 19766.40 | 206.36 | 8.23ms   | 8.30ms   8.23ms   8.27ms   |
+|  128 | 21994.15 | 229.61 | 13.82ms  | 14.05ms  13.82ms  13.65ms  |
+|  256 | 25066.64 | 261.69 | 19.83ms  | 20.24ms  19.83ms  19.74ms  |
+|  512 | 26017.22 | 271.61 | 255.68ms | 222.11ms 255.68ms 211.56ms |
+| 1024 | 26328.77 | 274.87 | 348.97ms | 278.44ms 348.97ms 347.83ms |
+| 2048 | 26332.64 | 274.91 | 272.46ms | 216.59ms 272.46ms 271.84ms |
+| 4096 | 25769.44 | 269.03 | 208.85ms | 212.63ms 208.85ms 208.87ms |
+| 8192 | 26378.62 | 275.38 | 40.27ms  | 43.90ms  40.27ms  38.62ms  |
+
+* Submission polling + simple uring
+| Conn |  Req/sec | Mb/sec | P99     |                           |
+|    1 | 15660.41 | 163.49 | 21.00us | 25.00us  21.00us  20.00us |
+|    4 | 21888.36 | 228.51 | 61.00us | 62.00us  61.00us  60.00us |
+|    8 | 24997.85 | 260.97 | 73.00us | 73.00us  73.00us  74.00us |
+|   16 | 26993.78 | 281.81 | 1.15ms  | 1.15ms   1.15ms   1.16ms  |
+|   32 | 30672.00 | 320.21 | 4.09ms  | 4.05ms   4.09ms   4.04ms  |
+|   64 | 37925.75 | 395.94 | 5.91ms  | 5.88ms   5.91ms   5.94ms  |
+|  128 | 49347.62 | 515.18 | 6.54ms  | 7.17ms   6.54ms   6.51ms  |
+|  256 | 61326.88 | 640.24 | 6.72ms  | 7.53ms   6.72ms   7.00ms  |
+|  512 | 72508.06 | 756.97 | 10.29ms | 10.19ms  10.29ms  9.86ms  |
+| 1024 | 80483.46 | 840.24 | 19.00ms | 19.42ms  19.00ms  17.55ms |
+| 2048 | 79898.08 | 834.12 | 19.30ms | 19.14ms  19.30ms  18.71ms |
+| 4096 | 79952.56 | 834.69 | 19.20ms | 18.92ms  19.20ms  19.12ms |
+| 8192 | 79764.62 | 832.73 | 18.75ms | 19.89ms  18.75ms  18.95ms |
