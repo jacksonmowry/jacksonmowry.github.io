@@ -1,0 +1,11 @@
+#+TITLE: i
+#+begin_src C
+#include <stdlib.h>
+int main(int argc, char **argv) {
+  char string[argc];
+  string[argc-1] = '\0';
+  puts(string);
+}
+#+end_src
+
+#+RESULTS:

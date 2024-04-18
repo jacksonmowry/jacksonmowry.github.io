@@ -43,6 +43,8 @@ The design can be broken down into two distinct parts, a job submission queue, a
 
 Once a job is complete it is placed in the completion queue, which an application can pull from. Completions have 2 main fields to pay attention to: a result code, and the associated user data. The result code is analogous to the return value from regular blocking system calls with one exception. Due to the concurrent execution of submissions the system cannot garuntee that the =ERRNO= associated with each system call will still be properly set when a user recieves a completion. Instead, =ERRNO= is placed in the completion struct, with its value negated so that it will not be confused with a successful execution.
 
+With the basic system in place the programmer now has to design a state machine around completion events. Most tasks can procede one step at a time
+
 * Methods
 
 * Results

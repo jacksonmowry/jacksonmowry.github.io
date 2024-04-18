@@ -1,10 +1,10 @@
+#include "gallocc.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "gallocc.h"
 
 heap_seg *heap_base = NULL;
 heap_seg *heap_end = NULL;
@@ -143,8 +143,7 @@ void *malloc(size_t bytes) {
       if ((sbrk(increment + sizeof(heap_seg))) == (void *)-1) {
         return NULL;
       }
-      next_size =
-          old_size + increment - (cur_size ^ 0x1) + sizeof(heap_seg);
+      next_size = old_size + increment - (cur_size ^ 0x1) + sizeof(heap_seg);
     }
     new_seg->size = cur_size;
   }
@@ -215,59 +214,3 @@ void *realloc(void *ptr, size_t size) {
   memmove(new_ptr, ptr, min);
   return new_ptr;
 }
-
-/* void heap_size() { */
-/*   printf("Heap is %ld bytes\n", ((void *)heap_end - (void *)heap_base)); */
-/* } */
-
-/* void heap_walk() { */
-/*   size_t total_size = 0; */
-/*   heap_seg *ptr = heap_base; */
-/*   while (ptr < heap_end && ptr->size) { */
-/*     printf("Segment size: %4ld, Prev: %14p, Value: %3d, Address: %p", */
-/* ptr->size, */
-/*            ptr->prev, (ptr->size & 1) ? *(int8_t *)(ptr + 1) : (int8_t)-1, */
-/* ptr); */
-/*     if (segment_free(ptr)) { */
-/*       printf(" --> Next Free: %p\n", ptr->next_free); */
-/*     } else { */
-/*       printf("\n"); */
-/*     } */
-/*     total_size += segment_size(ptr); */
-/*     ptr = (void *)ptr + segment_size(ptr); */
-/*   } */
-/*   printf("\nEnding Size: %ld\n", total_size); */
-/* } */
-
-/* int main() { */
-/*   int8_t *block = malloc(242); */
-/*   *block = 4; */
-
-/*   int8_t *num = malloc(243); */
-/*   *num = 7; */
-
-/*   int8_t *test = malloc(244); */
-/*   *test = 66; */
-
-/*   int8_t *big_num = malloc(245); */
-/*   *big_num = 64; */
-
-/*   int8_t *buf = malloc(1024); */
-/*   *buf = 7; */
-
-/*   int8_t *small_num = calloc(64, 8); */
-/*   *small_num = 99; */
-
-/*   free(block); */
-
-/*   void *reallocated = realloc(small_num, 8); */
-/*   assert(reallocated); */
-
-/*   int8_t *testing_clear = malloc(9000); */
-
-/*   heap_walk(); */
-/*   heap_size(); */
-/*   printf("end: %p\n\n", heap_end); */
-
-/*   return 0; */
-/* } */
