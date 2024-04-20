@@ -45,8 +45,13 @@ Once a job is complete it is placed in the completion queue, which an applicatio
 
 =io_uring= also offers one distinct advantage over the other asynchronous io methods presented here. Jobs can be submitted through a system call, or by having the kernel continuously poll the submission queue using a separate thread. This allows for a program to operate entirely in user space, avoiding system calls which have become even more costly in the age of speculative execution mitigations. We will explore both methods of job submission to see where their advantages lie.
 * Methods
-=epoll= and =io_uring= HTTP 1.1 file servers will be benchmarked. A third synchronous server will be included as a control. Servers will parse a request, open a file, respond with the appropriate headers, send the file, and finally close the connection. Performance testing using =wrk= at {1, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192} concurrent connections run over 30 seconds, with the mean of 3 runs reported for each metric.
+Testing will include an =epoll= server, two distinct =io_uring= servers, and a fourth synchronous server using =poll=. Servers will parse a request, open a file, respond with the appropriate headers, send the file, and finally close the connection. Performance testing using =wrk= at {1, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192} concurrent connections run over 30 seconds, with the mean of 3 runs reported for each metric.
+#+LATEX_HEADER: \onecolumn
 * Results
+[[file:p99_latency.png]]
+[[file:mbps.pn.png]]
+[[file:rps.png]]
+#+LATEX_HEADER: \twocolumn
 * Discussion
 * Cite
 https://www.kernel.org/doc/ols/2003/ols2003-pages-351-366.pdf
