@@ -258,7 +258,8 @@ int add_close_pipe_request(request* req) {
 int main() {
     signal(SIGINT, signal_handler);
 
-    io_uring_queue_init(MAX_WORK, &ring, IORING_SETUP_SQPOLL);
+    io_uring_queue_init(MAX_WORK, &ring, 0);
+    /* io_uring_queue_init(MAX_WORK, &ring, IORING_SETUP_SQPOLL); */
 
     struct sockaddr_in addr = {0};
     int listen_socket = socket(PF_INET, SOCK_STREAM, 0);
@@ -408,7 +409,6 @@ int main() {
             if (cqe->res < 0) {
                 fprintf(stderr, "io_uring_prep_close: %s\n",
                         strerror(-cqe->res));
-                add_close_socket_request(req, true);
 
                 free(req);
                 break;
