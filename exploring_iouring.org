@@ -20,7 +20,7 @@ The issue lies in the fact that these workloads are still inhrently synchronous 
 * Asynchronous IO
 Most if not all system calls used in day to day software are considered "blocking", meaning they will only return once the entire function has finished executing. This model allows for programs to not having to worry about order of execution, as they know their program will run top to bottom without skipping a step. However, large web servers simply cannot afford to spend the time waiting for each system call to execute to completion. To avoid this problem of blocking programmers may choose to design their software around asynchronous IO.
 
-On Linux this has taken the form of =epoll=, which allows for certain operations to be performed without blocking the main thread of execution.
+For most applications it may not makes sense to perform all system calls asyncronously. We certainly want slower system calls to complete in the background, but the added overhead of an asynchronous system call may make faster calls worse. We would expect to see greater differences in throughput for large files as they would stall the server while attempting to read/write.
 
 * =aio=
 The =aio= system in Linux has two implementations, POSIX compliant, and the Linux implementation. Both systems suffer the same issue, they are intended to work with regular files, and as such don't play well with sockets. glibc creates a thread pool to perform regular synchronous io off the main thread, giving the illusion of asynchronosity.
@@ -46,6 +46,7 @@ Once a job is complete it is placed in the completion queue, which an applicatio
 =io_uring= also offers one distinct advantage over the other asynchronous io methods presented here. Jobs can be submitted through a system call, or by having the kernel continuously poll the submission queue using a separate thread. This allows for a program to operate entirely in user space, avoiding system calls which have become even more costly in the age of speculative execution mitigations. We will explore both methods of job submission to see where their advantages lie.
 
 Being the latest in the asyncronous IO space =io_uring= is still lacking some features. Most notably is missing system calls, and event notification on a submission/completion level. Most missing system calls can be implemented without changing the underlying system, with the remaining few not being necessary to implement asynchronously.
+
 * System Calls
 One of the major mitigations put into place after the speculative execution attacks were discovered (spectr and meltdown) was isolation of kernel and user space memory. This slows system calls as they now have to switch into a different address space to perform the operation, and switch back once they're done.
 
