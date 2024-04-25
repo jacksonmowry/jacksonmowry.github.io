@@ -23,157 +23,158 @@
 #define MAX_CLIENTS 8192
 
 static void epoll_ctl_add(int epfd, int fd, uint32_t events) {
-    struct epoll_event ev;
-    ev.events = events;
-    ev.data.fd = fd;
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-        perror("epoll_ctl()\n");
-        exit(1);
-    }
+  struct epoll_event ev;
+  ev.events = events;
+  ev.data.fd = fd;
+  if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+    perror("epoll_ctl()\n");
+    exit(1);
+  }
 }
 
-static void set_sockaddr(struct sockaddr_in* addr) {
-    memset((char*)addr, 0, sizeof(struct sockaddr_in));
-    *addr = (struct sockaddr_in){.sin_family = AF_INET,
-                                 .sin_addr.s_addr = INADDR_ANY,
-                                 .sin_port = htons(PORT)};
+static void set_sockaddr(struct sockaddr_in *addr) {
+  memset((char *)addr, 0, sizeof(struct sockaddr_in));
+  *addr = (struct sockaddr_in){.sin_family = AF_INET,
+                               .sin_addr.s_addr = INADDR_ANY,
+                               .sin_port = htons(PORT)};
 }
 
 static int set_non_blocking(int sockfd) {
-    if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1) {
-        return -1;
-    }
+  if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1) {
+    return -1;
+  }
 
-    return 0;
+  return 0;
 }
 
 int server_socket;
 void signal_handler(int num) {
-    int code = close(server_socket);
-    if (code != 0) {
-        perror("close");
-    }
-    exit(0);
+  int code = close(server_socket);
+  if (code != 0) {
+    perror("close");
+  }
+  shutdown(server_socket, 0);
+  exit(0);
 }
 
 int main() {
-    signal(SIGINT, signal_handler);
-    signal(SIGPIPE, SIG_IGN);
+  signal(SIGINT, signal_handler);
+  signal(SIGPIPE, SIG_IGN);
 
-    int client_socket;
-    char buffer[BUFFER_SIZE];
-    struct sockaddr_in server_addr, client_addr;
-    int epfd, nfds;
-    struct epoll_event events[MAX_CLIENTS];
+  int client_socket;
+  char buffer[BUFFER_SIZE];
+  struct sockaddr_in server_addr, client_addr;
+  int epfd, nfds;
+  struct epoll_event events[MAX_CLIENTS];
 
-    server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  server_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-    set_sockaddr(&server_addr);
-    int code = bind(server_socket, (struct sockaddr*)&server_addr,
-                    sizeof(server_addr));
-    if (code == -1) {
-        perror("bind");
-        exit(1);
+  set_sockaddr(&server_addr);
+  int code =
+      bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+  if (code == -1) {
+    perror("bind");
+    exit(1);
+  }
+
+  set_non_blocking(server_socket);
+  code = listen(server_socket, MAX_CLIENTS);
+  if (code == -1) {
+    perror("listen");
+    exit(1);
+  }
+
+  epfd = epoll_create(1);
+  epoll_ctl_add(epfd, server_socket, EPOLLIN | EPOLLOUT | EPOLLET);
+
+  uint32_t socklen = sizeof(client_addr);
+
+  while (true) {
+    nfds = epoll_wait(epfd, events, MAX_CLIENTS, -1);
+    if (nfds == -1) {
+      perror("epoll_wait");
+      exit(1);
     }
+    for (int i = 0; i < nfds; i++) {
+      if (events[i].data.fd == server_socket) {
+        // This is a new incoming connection
+        client_socket =
+            accept(server_socket, (struct sockaddr *)&client_addr, &socklen);
+        set_non_blocking(client_socket);
+        epoll_ctl_add(epfd, client_socket,
+                      EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
+      } else if (events[i].events & EPOLLRDHUP) {
+        close(events[i].data.fd);
+        /* epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL); */
+      } else if (events[i].events & EPOLLIN) {
+        // Handling incoming request
+        int incoming_socket = events[i].data.fd;
+        int read = recv(incoming_socket, buffer, BUFFER_SIZE, 0);
+        if (read <= 0) {
+          close(incoming_socket);
+          /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket, NULL); */
+        } else {
+          // Open and send requested file
+          char *method = strtok(buffer, " ");
+          char *path = strtok(NULL, " ");
+          path++;
+          char *filepath = realpath(path, NULL);
 
-    set_non_blocking(server_socket);
-    code = listen(server_socket, MAX_CLIENTS);
-    if (code == -1) {
-        perror("listen");
-        exit(1);
-    }
+          // Stat for filesize
+          struct stat st;
+          stat(filepath, &st);
 
-    epfd = epoll_create(1);
-    epoll_ctl_add(epfd, server_socket, EPOLLIN | EPOLLOUT | EPOLLET);
+          // Send HTTP Header
+          size_t header_length =
+              snprintf(buffer, sizeof(buffer) - 1,
+                       "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: "
+                       "text/plain\r\nContent-Length: %ld\r\n\r\n",
+                       st.st_size);
+          int code = send(incoming_socket, buffer, header_length, 0);
+          if (code < 0) {
+            free(filepath);
+            perror("send");
+            code = close(incoming_socket);
+            /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket,
+             * NULL); */
+            continue;
+          }
 
-    uint32_t socklen = sizeof(client_addr);
-
-    while (true) {
-        nfds = epoll_wait(epfd, events, MAX_CLIENTS, -1);
-        if (nfds == -1) {
-            perror("epoll_wait");
+          // Open file for sendfile
+          int fd = open(filepath, O_RDONLY);
+          if (fd == -1) {
+            perror("open");
             exit(1);
+          }
+          free(filepath);
+
+          // Send file contents to client
+          code = sendfile(incoming_socket, fd, NULL, st.st_size);
+          if (code < 0) {
+            perror("sendfile");
+            code = close(incoming_socket);
+            code = close(fd);
+            /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket,
+             * NULL); */
+            continue;
+          }
+
+          // Close open fd
+          code = close(fd);
+          if (code == -1) {
+            perror("close");
+            exit(1);
+          }
+          // TEMPORARY SHUTDOWN
+          code = close(incoming_socket);
+          if (code == -1) {
+            perror("close");
+            exit(1);
+          }
+          /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket, NULL); */
+          // TEMPORARY SHUTDOWN
         }
-        for (int i = 0; i < nfds; i++) {
-            if (events[i].data.fd == server_socket) {
-                // This is a new incoming connection
-                client_socket = accept(
-                    server_socket, (struct sockaddr*)&client_addr, &socklen);
-                set_non_blocking(client_socket);
-                epoll_ctl_add(epfd, client_socket,
-                              EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
-            } else if (events[i].events & EPOLLRDHUP) {
-                close(events[i].data.fd);
-                /* epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL); */
-            } else if (events[i].events & EPOLLIN) {
-                // Handling incoming request
-                int incoming_socket = events[i].data.fd;
-                int read = recv(incoming_socket, buffer, BUFFER_SIZE, 0);
-                if (read <= 0) {
-                    close(incoming_socket);
-                    /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket, NULL); */
-                } else {
-                    // Open and send requested file
-                    char* method = strtok(buffer, " ");
-                    char* path = strtok(NULL, " ");
-                    path++;
-                    char* filepath = realpath(path, NULL);
-
-                    // Stat for filesize
-                    struct stat st;
-                    stat(filepath, &st);
-
-                    // Send HTTP Header
-                    size_t header_length = snprintf(
-                        buffer, sizeof(buffer) - 1,
-                        "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: "
-                        "text/plain\r\nContent-Length: %ld\r\n\r\n",
-                        st.st_size);
-                    int code = send(incoming_socket, buffer, header_length, 0);
-                    if (code < 0) {
-                        free(filepath);
-                        perror("send");
-                        code = close(incoming_socket);
-                        /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket,
-                         * NULL); */
-                        continue;
-                    }
-
-                    // Open file for sendfile
-                    int fd = open(filepath, O_RDONLY);
-                    if (fd == -1) {
-                        perror("open");
-                        exit(1);
-                    }
-                    free(filepath);
-
-                    // Send file contents to client
-                    code = sendfile(incoming_socket, fd, NULL, st.st_size);
-                    if (code < 0) {
-                        perror("sendfile");
-                        code = close(incoming_socket);
-                        code = close(fd);
-                        /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket,
-                         * NULL); */
-                        continue;
-                    }
-
-                    // Close open fd
-                    code = close(fd);
-                    if (code == -1) {
-                        perror("close");
-                        exit(1);
-                    }
-                    // TEMPORARY SHUTDOWN
-                    code = close(incoming_socket);
-                    if (code == -1) {
-                        perror("close");
-                        exit(1);
-                    }
-                    /* epoll_ctl(epfd, EPOLL_CTL_DEL, incoming_socket, NULL); */
-                    // TEMPORARY SHUTDOWN
-                }
-            }
-        }
+      }
     }
+  }
 }
