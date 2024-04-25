@@ -368,7 +368,7 @@ https://unixism.net/loti/tutorial/link_liburing.html
 | 8192 | 27196.70 |   2.38 | 80.66ms |
 
 ** RPS
-#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size ratio 0.5" set:"key left top" set:"yrange [0:*]" set:"xrange [1:8192]"
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
 #+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
 | Server |     poll |    epoll | u simple | u simple p | uring full | uring full + polling |
 |      1 | 15749.24 | 15613.00 | 15650.83 |   15546.03 |   15402.52 |             15232.20 |
@@ -384,3 +384,156 @@ https://unixism.net/loti/tutorial/link_liburing.html
 |   2048 | 15764.06 | 14642.55 | 66630.40 |  100200.89 |   25477.78 |             43737.78 |
 |   4096 | 15655.48 | 15101.14 | 65155.64 |  100084.49 |   25322.99 |             45270.99 |
 |   8192 | 15605.34 | 14801.21 | 64564.52 |  100212.02 |   27196.70 |             43751.03 |
+
+** Mbps
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Megabytes per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
+| Server | poll | epoll | u simple | u simple p | uring full | uring full + polling |
+|      1 | 1.38 |  1.37 |     1.37 |       1.36 |       1.35 |                 1.34 |
+|      4 | 1.53 |  1.36 |     1.58 |       1.63 |       1.50 |                 1.54 |
+|      8 | 1.39 |  1.32 |     1.95 |       7.71 |       1.38 |                 1.49 |
+|     16 | 1.39 |  1.33 |     2.21 |       8.91 |       1.42 |                 1.55 |
+|     32 | 1.39 |  1.32 |     2.93 |       9.10 |       1.62 |                 1.91 |
+|     64 | 1.39 |  1.33 |     4.18 |       9.04 |       1.72 |                 2.27 |
+|    128 | 1.38 |  1.36 |     4.68 |       9.03 |       1.92 |                 2.86 |
+|    256 | 1.38 |  1.31 |     5.50 |       8.95 |       2.05 |                 3.09 |
+|    512 | 1.38 |  1.35 |     5.69 |       8.93 |       2.20 |                 3.52 |
+|   1024 | 1.38 |  1.33 |     5.72 |       8.77 |       2.20 |                 3.71 |
+|   2048 | 1.38 |  1.28 |     5.84 |       8.79 |       2.23 |                 3.84 |
+|   4096 | 1.37 |  1.32 |     5.71 |       8.78 |       2.22 |                 3.97 |
+|   8192 | 1.37 |  1.30 |     5.66 |       8.79 |       2.38 |                 3.84 |
+
+** P99 Latency
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Latency(ms)'" ind:1 title:"P99 Latency" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
+| Server |   poll |  epoll | u simple | u simple p | uring full | uring full + polling |
+|      1 |  0.019 |  0.019 |    0.018 |      0.020 |      0.030 |                0.033 |
+|      4 |  0.090 |   6.03 |    0.067 |      0.059 |      0.084 |                0.074 |
+|      8 |   2.76 |  11.05 |     3.17 |       0.99 |       2.93 |                 2.90 |
+|     16 |   6.27 |  23.46 |     4.86 |      0.233 |       6.23 |                 6.22 |
+|     32 |  13.25 |  57.66 |     3.33 |      0.424 |       6.89 |                 7.39 |
+|     64 |  28.14 | 106.05 |     3.11 |       0.86 |      10.06 |                 8.34 |
+|    128 |  56.70 | 141.26 |     6.17 |       1.72 |      13.11 |                 8.88 |
+|    256 | 113.54 | 219.46 |     7.66 |       3.46 |      21.60 |                15.95 |
+|    512 | 232.90 | 316.91 |    11.96 |       6.86 |      40.81 |                26.48 |
+|   1024 | 463.43 | 506.52 |    38.44 |      13.42 |      85.16 |                47.53 |
+|   2048 | 465.87 | 523.01 |    20.52 |      13.35 |      81.64 |                47.38 |
+|   4096 | 468.12 | 553.22 |    26.64 |      13.52 |      81.58 |                45.15 |
+|   8192 | 473.13 | 530.56 |    26.42 |      13.08 |      80.66 |                46.50 |
+
+* Large file testing 2.1Mb
+** poll
+| Conn | Req/sec | Gb/sec | P99      |                            |
+|    1 | 3815.97 |   7.65 | 307.00us | 313.00us 307.00us 307.00us |
+|    4 | 3648.31 |   7.31 | 1.57ms   | 1.40ms   1.57ms   2.02ms   |
+|    8 | 3736.80 |   7.49 | 2.44ms   | 3.01ms   2.44ms   2.45ms   |
+|   16 | 3753.17 |   7.53 | 4.77ms   | 11.28ms  4.77ms   4.73ms   |
+|   32 | 3767.91 |   7.56 | 9.48ms   | 9.51ms   9.48ms   9.50ms   |
+|   64 | 3761.61 |   7.54 | 19.13ms  | 19.13ms  19.13ms  18.93ms  |
+|  128 | 3752.78 |   7.52 | 37.47ms  | 37.40ms  37.47ms  37.67ms  |
+|  256 | 3743.58 |   7.51 | 72.56ms  | 74.28ms  72.56ms  76.71ms  |
+|  512 | 3726.27 |   7.47 | 193.62ms | 160.88ms 193.62ms 206.44ms |
+| 1024 | 3722.88 |   7.47 | 330.09ms | 281.62ms 330.09ms 282.03ms |
+| 2048 | 3724.55 |   7.47 | 337.60ms | 285.76ms 337.60ms 349.68ms |
+| 4096 | 3732.35 |   7.48 | 282.32ms | 279.64ms 282.32ms 342.11ms |
+| 8192 | 3723.50 |   7.47 | 281.25ms | 341.52ms 281.25ms 343.89ms |
+** epoll
+| Conn | Req/sec | Gb/sec | P99      |
+|    1 | 3767.09 | 7.55GB | 303.00us |
+|    4 | 3650.45 | 7.23GB | 1.27ms   |
+|    8 | 3608.22 | 7.23GB | 2.18ms   |
+|   16 | 3645.60 | 7.31GB | 4.24ms   |
+|   32 | 3628.34 | 7.27GB | 10.55ms  |
+|   64 | 3579.76 | 7.18GB | 21.57ms  |
+|  128 | 3557.40 | 7.13GB | 41.52ms  |
+|  256 | 3561.19 | 7.14GB | 77.61ms  |
+|  512 | 3571.69 | 7.16GB | 153.65ms |
+| 1024 | 3557.94 | 7.13GB | 299.71ms |
+| 2048 | 3552.05 | 7.12GB | 300.95ms |
+| 4096 | 3586.17 | 7.19GB | 305.55ms |
+| 8192 | 3584.48 | 7.18GB | 301.11ms |
+** uring simple
+| Conn | Req/sec | Gb/sec | P99      |                            |
+|    1 | 3778.56 |   7.57 | 293.00us | 296.00us 293.00us 295.00us |
+|    4 | 5278.39 |  10.59 | 0.94ms   | 0.95ms   0.94ms   0.96ms   |
+|    8 | 5476.76 |  11.05 | 1.92ms   | 1.93ms   1.92ms   1.91ms   |
+|   16 | 5334.82 |  11.01 | 3.91ms   | 3.88ms   3.91ms   3.90ms   |
+|   32 | 5300.35 |  10.87 | 6.89ms   | 7.23ms   6.89ms   6.96ms   |
+|   64 | 5234.81 |  10.71 | 13.59ms  | 13.19ms  13.59ms  13.84ms  |
+|  128 | 5186.47 |  10.61 | 26.00ms  | 25.93ms  26.00ms  25.69ms  |
+|  256 | 5162.56 |  10.49 | 50.26ms  | 49.51ms  50.26ms  49.39ms  |
+|  512 | 5162.10 |  10.45 | 96.04ms  | 97.68ms  96.04ms  96.57ms  |
+| 1024 | 5145.11 |  10.39 | 189.83ms | 191.77ms 189.83ms 191.77ms |
+| 2048 | 5148.79 |  10.40 | 192.94ms | 195.84ms 192.94ms 187.64ms |
+| 4096 | 5148.91 |  10.40 | 193.24ms | 195.75ms 193.24ms 192.41ms |
+| 8192 | 5133.75 |  10.37 | 192.87ms | 194.63ms 192.87ms 191.33ms |
+
+** uring simple p
+| Conn | Req/sec | Mb/sec | P99      |                            |
+|    1 | 3638.85 |   7.30 | 315.00us | 317.00us 315.00us 315.00us |
+|    4 | 5248.56 |  10.52 | 1.03ms   | 1.04ms   1.03ms   1.04ms   |
+|    8 | 5348.36 |  10.73 | 2.10ms   | 2.07ms   2.10ms   2.11ms   |
+|   16 | 5275.98 |  10.58 | 4.19ms   | 4.24ms   4.19ms   4.20ms   |
+|   32 | 5201.98 |  10.43 | 8.55ms   | 8.60ms   8.55ms   8.49ms   |
+|   64 | 5147.51 |  10.32 | 16.63ms  | 16.72ms  16.63ms  16.54ms  |
+|  128 | 5137.68 |  10.30 | 30.49ms  | 30.55ms  30.49ms  29.23ms  |
+|  256 | 5094.65 |  10.22 | 56.17ms  | 57.02ms  56.17ms  55.16ms  |
+|  512 | 5070.41 |  10.17 | 106.60ms | 106.73ms 106.60ms 107.21ms |
+| 1024 | 5044.89 |  10.12 | 210.50ms | 209.07ms 210.50ms 210.40ms |
+| 2048 | 5022.24 |  10.07 | 210.77ms | 208.99ms 210.77ms 209.10ms |
+| 4096 | 5016.49 |  10.06 | 209.59ms | 211.59ms 209.59ms 213.43ms |
+| 8192 | 5020.59 |  10.07 | 211.82ms | 207.05ms 211.82ms 214.75ms |
+** uring full
+** uring full p
+
+** RPS
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'RPS'" ind:1 title:"RPS" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
+| Server |    poll |   epoll | u simple | u simple p | uring full | uring full + polling |
+|      1 | 3815.97 | 3767.09 |  3778.56 |            |            |                      |
+|      4 | 3648.31 | 3650.45 |  5278.39 |            |            |                      |
+|      8 | 3736.80 | 3608.22 |  5476.76 |            |            |                      |
+|     16 | 3753.17 | 3645.60 |  5334.82 |            |            |                      |
+|     32 | 3767.91 | 3628.34 |  5300.35 |            |            |                      |
+|     64 | 3761.61 | 3579.76 |  5234.81 |            |            |                      |
+|    128 | 3752.78 | 3557.40 |  5186.47 |            |            |                      |
+|    256 | 3743.58 | 3561.19 |  5162.56 |            |            |                      |
+|    512 | 3726.27 | 3571.69 |  5162.10 |            |            |                      |
+|   1024 | 3722.88 | 3557.94 |  5145.11 |            |            |                      |
+|   2048 | 3724.55 | 3552.05 |  5148.79 |            |            |                      |
+|   4096 | 3732.35 | 3586.17 |  5148.91 |            |            |                      |
+|   8192 | 3723.50 | 3584.48 |  5133.75 |            |            |                      |
+** Mbps
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Gb per Second'" ind:1 title:"Megabytes transferred per Second" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
+| Server | poll | epoll | u simple | u simple p | uring full | uring full + polling |
+|      1 | 7.65 |  7.55 |     7.57 |            |            |                      |
+|      4 | 7.31 |  7.23 |    10.59 |            |            |                      |
+|      8 | 7.49 |  7.23 |    11.05 |            |            |                      |
+|     16 | 7.53 |  7.31 |    11.01 |            |            |                      |
+|     32 | 7.56 |  7.27 |    10.87 |            |            |                      |
+|     64 | 7.54 |  7.18 |    10.71 |            |            |                      |
+|    128 | 7.52 |  7.13 |    10.61 |            |            |                      |
+|    256 | 7.51 |  7.14 |    10.49 |            |            |                      |
+|    512 | 7.47 |  7.16 |    10.45 |            |            |                      |
+|   1024 | 7.47 |  7.13 |    10.39 |            |            |                      |
+|   2048 | 7.47 |  7.12 |    10.40 |            |            |                      |
+|   4096 | 7.48 |  7.19 |    10.40 |            |            |                      |
+|   8192 | 7.47 |  7.18 |    10.37 |            |            |                      |
+** P99
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Latency(ms)'" ind:1 title:"P99 Latency" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
+| Server |   poll |  epoll | u simple | u simple p | uring full | uring full + polling |
+|      1 |  0.307 |  0.303 |    0.293 |            |            |                      |
+|      4 |   1.57 |   1.27 |     0.94 |            |            |                      |
+|      8 |   2.44 |   2.18 |     1.92 |            |            |                      |
+|     16 |   4.77 |   4.24 |     3.91 |            |            |                      |
+|     32 |   9.48 |  10.55 |     6.89 |            |            |                      |
+|     64 |  19.13 |  21.57 |    13.59 |            |            |                      |
+|    128 |  37.47 |  41.52 |    26.00 |            |            |                      |
+|    256 |  72.56 |  77.61 |    50.26 |            |            |                      |
+|    512 | 193.62 | 153.65 |    96.04 |            |            |                      |
+|   1024 | 330.09 | 299.71 |   189.83 |            |            |                      |
+|   2048 | 337.60 | 300.95 |   192.94 |            |            |                      |
+|   4096 | 282.32 | 305.55 |   193.24 |            |            |                      |
+|   8192 | 281.25 | 301.11 |   192.87 |            |            |                      |
