@@ -40,9 +40,9 @@ do
     do
     # Run the command with the current value and capture the last 2 lines of stdout
     if [ $val -ge 8 ]; then
-        output=$(wrk -t 6 -c $val -d 30s --latency http://localhost:8069/http_uring_rough.c | grep -v "Socket errors:" | tail -n 4)
+        output=$(wrk -T 6 -c $val -d 30s --latency http://localhost:8069/test.txt | grep -v "Socket errors:" | tail -n 4)
     else
-        output=$(wrk -t $val -c $val -d 30s --latency http://localhost:8069/http_uring_rough.c | tail -n 4)
+        output=$(wrk -t $val -c $val -d 30s --latency http://localhost:8069/test.txt | tail -n 4)
     fi
 
     latency_array+=("$(echo $output | awk '{print $2}')")

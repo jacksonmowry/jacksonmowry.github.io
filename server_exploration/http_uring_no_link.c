@@ -214,7 +214,7 @@ int add_close_pipe_request(request* req) {
 int main() {
     signal(SIGINT, signal_handler);
 
-    io_uring_queue_init(MAX_WORK, &ring, IORING_SETUP_SQPOLL);
+    io_uring_queue_init(MAX_WORK, &ring, 0);
 
     struct sockaddr_in addr = {0};
     int listen_socket = socket(PF_INET, SOCK_STREAM, 0);
