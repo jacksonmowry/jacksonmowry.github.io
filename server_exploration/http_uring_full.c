@@ -18,7 +18,7 @@
 #include <unistd.h>
 
 #define PORT 8069
-#define MAX_WORK 256
+#define MAX_WORK 8192
 #define BUFFER_SIZE 1024
 #define MAX_FILES 1024
 #define MAX_SQE_PER_LOOP 2
@@ -158,6 +158,8 @@ int add_splice_request(request* req) {
         perror("pipe");
         exit(1);
     }
+    int pipe_sz = fcntl(req->pipes[0], F_SETPIPE_SZ, req->stat.stx_size);
+    pipe_sz = fcntl(req->pipes[1], F_SETPIPE_SZ, req->stat.stx_size);
 
     request* req1 = malloc(sizeof(struct request));
     if (!req1) {

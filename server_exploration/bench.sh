@@ -40,9 +40,9 @@ do
     do
     # Run the command with the current value and capture the last 2 lines of stdout
     if [ $val -ge 8 ]; then
-        output=$(wrk -T 6 -c $val -d 30s --latency http://localhost:8069/test.txt | grep -v "Socket errors:" | tail -n 4)
+        output=$(wrk -t 6 -c $val -d 30s --latency http://localhost:8069/big.bin | grep -v "Socket errors:" | tail -n 4)
     else
-        output=$(wrk -t $val -c $val -d 30s --latency http://localhost:8069/test.txt | tail -n 4)
+        output=$(wrk -t $val -c $val -d 30s --latency http://localhost:8069/big.bin | grep -v "Socket errors:" | tail -n 4)
     fi
 
     latency_array+=("$(echo $output | awk '{print $2}')")
@@ -54,6 +54,7 @@ do
     # printf "%d:\n%s\n" "$val" "$output"
     done
 
+    # echo ${mbps_array[@]}
     req_avg=$(calculate_average "${requests_array[@]}")
     mbps_avg=$(calculate_average "${mbps_array[@]}")
 

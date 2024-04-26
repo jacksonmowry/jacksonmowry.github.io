@@ -84,6 +84,10 @@ int main() {
     exit(1);
   }
 
+  int enable = 1;
+  setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+  setsockopt(server_socket, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable));
+
   epfd = epoll_create(1);
   epoll_ctl_add(epfd, server_socket, EPOLLIN | EPOLLOUT | EPOLLET);
 
