@@ -174,7 +174,7 @@ https://unixism.net/loti/tutorial/link_liburing.html
 |   8192 | 179.04 | 335.58 |       746.48 |                 832.73 |     411.37 |               406.69 |
 
 * P99 Latency
-#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'P99 Latency (ms)'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'P99 Latency (ms)'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1,1" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
 #+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
  | Server |   poll | epoll | uring simple | uring simple + polling | uring full | uring full + polling |
  |      1 |  0.020 | 0.020 |        0.017 |                  0.021 |      0.035 |                0.034 |
@@ -368,7 +368,7 @@ https://unixism.net/loti/tutorial/link_liburing.html
 | 8192 | 27196.70 |   2.38 | 80.66ms |
 
 ** RPS
-#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Requests per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1,1" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
 #+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
 | Server |     poll |    epoll | u simple | u simple p | uring full | uring full + polling |
 |      1 | 15749.24 | 15613.00 | 15650.83 |   15546.03 |   15402.52 |             15232.20 |
@@ -386,7 +386,7 @@ https://unixism.net/loti/tutorial/link_liburing.html
 |   8192 | 15605.34 | 14801.21 | 64564.52 |  100212.02 |   27196.70 |             43751.03 |
 
 ** Mbps
-#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Megabytes per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1,0.6" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Megabytes per Second'" ind:1 title:"Server Performance" set:"logscale x 2" set:"size 1,1" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
 #+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
 | Server | poll | epoll | u simple | u simple p | uring full | uring full + polling |
 |      1 | 1.38 |  1.37 |     1.37 |       1.36 |       1.35 |                 1.34 |
@@ -404,7 +404,7 @@ https://unixism.net/loti/tutorial/link_liburing.html
 |   8192 | 1.37 |  1.30 |     5.66 |       8.79 |       2.38 |                 3.84 |
 
 ** P99 Latency
-#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Latency(ms)'" ind:1 title:"P99 Latency" set:"logscale x 2" set:"size 1.1,0.75" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Latency(ms)'" ind:1 title:"P99 Latency (9 byte File)" set:"logscale x 2" set:"size 0.7,1" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
 #+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
 | Server |   poll |  epoll | u simple | u simple p | uring full | uring full + polling |
 |      1 |  0.019 |  0.019 |    0.018 |      0.020 |      0.030 |                0.033 |
@@ -548,7 +548,7 @@ https://unixism.net/loti/tutorial/link_liburing.html
 |   4096 | 7.48 |  7.19 |      10.06 |                24.79 |
 |   8192 | 7.47 |  7.18 |      10.07 |                24.81 |
 ** P99
-#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Latency(ms)'" ind:1 title:"P99 Latency" set:"logscale x 2" set:"size 1,0.55" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
+#+PLOT: set:"xlabel 'Concurrent Connections'" set:"ylabel 'Latency(ms)'" ind:1 title:"P99 Latency (2.1Mb File)" set:"logscale x 2" set:"size 0.7,1" set:"ylabel font ',16'" set:"xlabel font ',16'" set:"tics font ',10'" set:"title font ',16'" set:"key left top" set:"yrange [0:*]" set:"xrange[1:8192]"
 #+PLOT: labels:("x" "poll" "epoll" "uring simple" "uring + polling" "uring full" "uring full + polling")
 | Server |   poll |  epoll | u simple | u simple p | uring full | uring full + polling |
 |      1 |  0.307 |  0.303 |    0.293 |      0.315 |      0.340 |                0.320 |
