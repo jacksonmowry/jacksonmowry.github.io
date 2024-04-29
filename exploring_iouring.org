@@ -4,8 +4,8 @@
 #+date: 4/16/24
 #+OPTIONS: toc:nil
 #+setupfile: ~/jacksonmowry.github.io/two.setup
+#+bibliography: exploring_iouring.bib
 # #+options: \n:t
-#+BIBLIOGRAPY: exploring_iouring.bib
 
 * Abstract
 *This research paper investigates the transformative potential of =io_uring= in scaling HTTP web servers to accommodate the needs of numerous concurrent clients. Despite the extensive exploration of various scaling techniques, little attention has been paid to the potential paradigm shift that =io_uring= may introduce in asynchronous I/O architectures. =io_uring= enables the handling of workloads traditionally confined to highly parallelized systems. This paper aims to explore the implications of =io_uring= on asynchronous I/O systems, shedding light on its promise for enhancing server scalability and performance in the face of ever increasing demands.*
@@ -33,9 +33,9 @@ For all of these reasons =aio= is generally avoided in application code.
 * =epoll=
 =epoll= is kernel based implementation of =poll=, with both providing a way to monitor a range of file descriptors, and alerting the user when one or many are ready for IO. It has become a common architecture for web servers and other asychronous io systems to be built on top of. Most notably to implement the primatives golang's =net/http= package is built upon, and =libuv= which powers the Node.js event loop.
 
-=epoll= expands on the original ideas of poll by sharing a list of file descriptors between the user and kernel, preventing the need for data to be copied back and forth. When any number of file descriptors are ready for IO they will be placed in a separate shared list, which the user can then perform the desired action on.
+=epoll= expands on the original ideas of poll by sharing a list of file descriptors between the user and kernel, preventing the need for data to be copied back and forth. When any number of file descriptors are ready for IO they will be placed in a separate shared list, which the user can then perform the desired action on [cite:@epoll_arch].
 
-This architecture allows for a single thread to handle large numbers of active file descriptors, only slowing down to perform the synchronous operations like reading or writing. The actual implementation does not allow for asynchronous sending or recieving of data, merely alerting the user when those operations can be performed without blocking. One downside of =epoll= is that it does not behave consistently across file descriptors of different types. While it is true that recieving data from a socket can block, which =epoll= is aware of, regular files do not exhibit the same behavior.
+This architecture allows for a single thread to handle large numbers of active file descriptors, only slowing down to perform the synchronous operations like reading or writing [cite:@modcon]. The actual implementation does not allow for asynchronous sending or recieving of data, merely alerting the user when those operations can be performed without blocking. One downside of =epoll= is that it does not behave consistently across file descriptors of different types. While it is true that recieving data from a socket can block, which =epoll= is aware of, regular files do not exhibit the same behavior.
 
 Due to =epoll='s handling of regular files they will always be placed on the ready list immedietly. On Linux read and write calls to a file should not block, but as we all know this is not true. You can make a write call and expect it to complete instantly, but if the kernels write cache is full, you will have to wait. The same goes for a read call which can blocked if the file is on a slow drive.
 
@@ -59,7 +59,7 @@ To mitigate this, modern software systems have transitioned to a model where sys
 
 Allowing system calls to proceed asynchronously also allows for a program to handle clients with heavy requests without blocking clients with lighter weight requests. This is a major advantage over synchronous servers where either an entire program is blocking reading/writing a file, or a thread is held up waiting. This can slow the overall throughput of these systems, whereas an asynchronous implementation would proceed handling other clients while a file is being read.
 
-Many modern web servers also try to combat the cost of system calls by using auxiliary threads to handle either entire requests, or smaller portions. This approach works until a certain point, as the overthread of spawning an operating system thread is non-trivial. The best approach will likely vary application to application, as certain applications may require heavy synchronous computations, which a single thread would not be able to handle.
+Many modern web servers also try to combat the cost of system calls by using auxiliary threads to handle either entire requests, or smaller portions. This approach works until a certain point, as the overthread of spawning an operating system thread is non-trivial. The best approach will likely vary application to application, as certain applications may require heavy synchronous computations, which a single thread would not be able to handle [cite:@thread_bad].
 
 * Methods & Implementation
 Testing will include an =epoll= server, four distinct =io_uring= servers, and a sixth synchronous server using =poll=. Servers will parse a request, open a file, respond with the appropriate headers, send the file, and finally close the connection. Performance testing using =wrk= at {1, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192} concurrent connections run over 30 seconds, with the mean of 3 runs reported for each metric.
