@@ -18,7 +18,7 @@
 #include <unistd.h>
 
 #define PORT 8069
-#define MAX_WORK 8192
+#define MAX_WORK 1000000
 #define BUFFER_SIZE 1024
 #define MAX_FILES 1024
 #define MAX_SQE_PER_LOOP 2

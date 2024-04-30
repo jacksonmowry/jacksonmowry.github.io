@@ -22,3 +22,139 @@ pages = {},
 title = {Comparing and Evaluating epoll, select, and poll Event Mechanisms},
 journal = {Proceedings of the 6th Annual Ottawa Linux Symposium}
 }
+@article{low2018overview,
+  title={Overview of meltdown and spectre patches and their impacts},
+  author={L{\"o}w, Marc},
+  journal={Advanced Microkernel Operating Systems},
+  pages={53},
+  year={2018}
+}
+@inproceedings{anycall,
+  title={AnyCall: Fast and flexible system-call aggregation},
+  author={Gerhorst, Luis and Herzog, Benedict and Reif, Stefan and Schr{\"o}der-Preikschat, Wolfgang and H{\"o}nig, Timo},
+  booktitle={Proceedings of the 11th Workshop on Programming Languages and Operating Systems},
+  pages={1--8},
+  year={2021}
+}
+@inproceedings{measuring,
+  title={Measuring the impact of spectre and meltdown},
+  author={Prout, Andrew and Arcand, William and Bestor, David and Bergeron, Bill and Byun, Chansup and Gadepally, Vijay and Houle, Michael and Hubbell, Matthew and Jones, Michael and Klein, Anna and others},
+  booktitle={2018 IEEE High Performance extreme Computing Conference (HPEC)},
+  pages={1--5},
+  year={2018},
+  organization={IEEE}
+}
+@inproceedings{s&m_analysis,
+  title={An analysis of performance evolution of Linux's core operations},
+  author={Ren, Xiang and Rodrigues, Kirk and Chen, Luyuan and Vega, Camilo and Stumm, Michael and Yuan, Ding},
+  booktitle={Proceedings of the 27th ACM Symposium on Operating Systems Principles},
+  pages={554--569},
+  year={2019}
+}
+@inproceedings{fastIO,
+  title={I/O is faster than the CPU: Let's partition resources and eliminate (most) OS abstractions},
+  author={Enberg, Pekka and Rao, Ashwin and Tarkoma, Sasu},
+  booktitle={Proceedings of the Workshop on Hot Topics in Operating Systems},
+  pages={81--87},
+  year={2019}
+}
+@inproceedings{bpf,
+  title={BPF for storage: an exokernel-inspired approach},
+  author={Zhong, Yuhong and Wang, Hongyi and Wu, Yu Jian and Cidon, Asaf and Stutsman, Ryan and Tai, Amy and Yang, Junfeng},
+  booktitle={Proceedings of the Workshop on Hot Topics in Operating Systems},
+  pages={128--135},
+  year={2021}
+}
+@inproceedings{measuringRPS,
+  title={Measuring the capacity of a web server},
+  author={Banga, Gaurav and Druschel, Peter},
+  booktitle={USENIX Symposium on Internet Technologies and Systems (USITS 97)},
+  year={1997}
+}
+@article{comparingRPS,
+  title={Comparing the performance of web server architectures},
+  author={Pariag, David and Brecht, Tim and Harji, Ashif and Buhr, Peter and Shukla, Amol and Cheriton, David R},
+  journal={ACM SIGOPS Operating Systems Review},
+  volume={41},
+  number={3},
+  pages={231--243},
+  year={2007},
+  publisher={ACM New York, NY, USA}
+}
+@article{c10k,
+  title={The C10K problem},
+  author={Kegel, Dan},
+  journal={http://www. kegel. com/c10k. html},
+  year={2006}
+}
+@inproceedings{low_latency,
+  title={It's time for low latency},
+  author={Rumble, Stephen M and Ongaro, Diego and Stutsman, Ryan and Rosenblum, Mendel and Ousterhout, John K},
+  booktitle={13th Workshop on Hot Topics in Operating Systems (HotOS XIII)},
+  year={2011}
+}
+@article{new_with_uring,
+  title={What’s new with io\_uring},
+  author={Axboe, Jens},
+  journal={Kernel Recipes},
+  year={2022}
+}
+@misc{kernel_dk,
+  title={Efficient io with io_uring},
+  url={https://kernel.dk/io_uring.pdf},
+  journal={kernel.dk},
+  author={Axboe, Jens}
+}
+@misc{lord,
+  title={Welcome to lord of the io_uring},
+  url={https://unixism.net/loti/},
+  journal={Welcome to Lord of the io_uring - Lord of the io_uring documentation},
+  author={Hussain, Shuveb}
+}
+@inproceedings{async_linux_2.5,
+  title={Asynchronous I/O support in Linux 2.5},
+  author={Bhattacharya, Suparna and Pratt, Steven and Pulavarty, Badari and Morgan, Janet},
+  booktitle={Proceedings of the Linux Symposium},
+  pages={371--386},
+  year={2003},
+  organization={Citeseer}
+}
+@misc{lwn,
+  title={Ringing in a new asynchronous I/O API},
+  author={Jonathan Corbet},
+  url={https://lwn.net/Articles/776703/},
+  journal={lwn.net}
+}
+@inproceedings{uring_storage_1,
+  title={Understanding modern storage APIs: a systematic study of libaio, SPDK, and io_uring},
+  author={Didona, Diego and Pfefferle, Jonas and Ioannou, Nikolas and Metzler, Bernard and Trivedi, Animesh},
+  booktitle={Proceedings of the 15th ACM International Conference on Systems and Storage},
+  pages={120--127},
+  year={2022}
+}
+@inproceedings{uring_storage_2,
+  title={Performance characterization of modern storage stacks: Posix i/o, libaio, spdk, and io_uring},
+  author={Ren, Zebin and Trivedi, Animesh},
+  booktitle={Proceedings of the 3rd Workshop on Challenges and Opportunities of Efficient and Performant Storage Systems},
+  pages={35--45},
+  year={2023}
+}
+@article{uring_storage_3,
+  title={Comparative Evaluation of Asynchronous IO Interface between io_uring and libaio implemented in a NoSQL DB for SSDs},
+  author={Endo, Tatsuro and Al-Mashni, Shahed Mohammed Saleh},
+  journal={情報処理学会第 82 回全国大会},
+  volume={5},
+  pages={02},
+  year={2020}
+}
+@inproceedings{uring_vuln_1,
+  title={RingGuard: Guard io_uring with eBPF},
+  author={He, Wanning and Lu, Hongyi and Zhang, Fengwei and Wang, Shuai},
+  booktitle={Proceedings of the 1st Workshop on eBPF and Kernel Extensions},
+  pages={56--62},
+  year={2023}
+}
+@article{uring_vuln_2,
+  title={MOCK: Optimizing Kernel Fuzzing Mutation with Context-aware Dependency},
+  author={Xu, Jiacheng and Zhang, Xuhong and Ji, Shouling and Tian, Yuan and Zhao, Binbin and Wang, Qinying and Cheng, Peng and Chen, Jiming}
+}
