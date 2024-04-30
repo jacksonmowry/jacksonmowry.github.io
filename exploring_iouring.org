@@ -32,7 +32,7 @@ A common mark of server performance is requests per second [cite:@measuringRPS;@
 
 This problems was first described as the "C10K" problem, which refers to handling 10,000 concurrent requests on a server in 1999. The discussions at the time covered different server architectures, ranging from fully synchronous, to the state of the art, which at the time was the emerging =aio= system. A general conclusion is that the scalability of web servers is largely dependent on how request handling is scheduled, and how many tasks can be performed concurrently [cite:@c10k].
 
-Both =poll= and =epoll= (along with other synchronous approaches) fall short in this regard. Due to the linear scanning of all incoming requests, latency will grow quickly as the number of clients increases (figure X)[fn:1]. I threaded model will easily outperform a single core are lower connected clients, but will quickly begin to climb in latency as the number of clients grows. The overhead from spawning a thread per request is not feasible past a certain point. =io_uring= is able to avoid this problem by scheduling requests within the kernel, which allows the application to handle an event as soon as it completes [cite:@kernel_dk].
+Both =poll= and =epoll= (along with other synchronous approaches) fall short in this regard. Due to the linear scanning of all incoming requests, latency will grow quickly as the number of clients increases (figure 1). I threaded model will easily outperform a single core are lower connected clients, but will quickly begin to climb in latency as the number of clients grows. The overhead from spawning a thread per request is not feasible past a certain point. =io_uring= is able to avoid this problem by scheduling requests within the kernel, which allows the application to handle an event as soon as it completes [cite:@kernel_dk].
 
 
 * =aio=
@@ -82,27 +82,30 @@ The complete =io_uring= server will replace every system call (except for =pipe=
 
 * Results
 ** Latency
-#+ATTR_LATEX: :width 4.5in :float multicolumn
-[[./p99_latency.png]]
-
 As expected, the synchronous =poll= based server experiences substantial growth in latency as the number of concurrent request in increased. This is due to the fact the scanning the list of watched file descriptors happens in linear time as each is checked for a =POLLIN= event. The =epoll= server is able to maintain a similar latency to either =io_uring= server until 128 concurrent request when it begins to climb rapidly. Latency continues to grow with connections, and would be expected to continue rising.
+
+#+ATTR_LATEX: :width 4.5in :float multicolumn
+#+CAPTION: Latency for serving a large file, the full =io_uring= server exhibits the best latency curve, half that of simple =io_uring=, and a third of either =poll= or =epoll=
+[[file:big_latency.png]]
 
 Both =io_uring= servers exhibit similar P99 latency, quickly reaching a plateau around 25ms from 1024 concurrent requests and beyond. One of the key benefits of =io_uring= is its ability to handle massively concurrent workloads, as observed with either implementation. Submission queue polling increases latency by a fixed amount across the entire test range, the change seems to have the largest impact when serving small files, as was predicted. For the simple and full =io_uring= server enabling polling dropped latency by 67% and 53% respectivly.
 
-#+ATTR_LATEX: :width 5in
-[[file:tiny_p99.png]]
+#+ATTR_LATEX: :width 3.35in :float nil
+#+CAPTION: Both full and simple =io_uring= servers show similar latency characteristics with small files, whereas either synchronous option is up to 10x slower
+[[file:small_latency.png]]
 
-#+ATTR_LATEX: :width 5in
-[[file:large_p99.png]]
+#+ATTR_LATEX: :width 3.35in :float nil
+#+CAPTION: With medium sized files simple =io_uring= performs the best at about half the latency of the full =io_uring= server. =poll= begins to show major disadvantages compare to any other option.
+[[./med_latency.png]]
 
 While serving small files still benefits substantially from =io_uring=, the simple =io_uring= server beats a full server by a factor of 2x. A small file tends to be less performance bound by disk IO, as the entire file can easily be read and written in a single page. Moving up to a medium sized file (12Kb) we see that the gap between either =io_uring= remains about the same, just around 2x. It is not until the large file is requested that a full =io_uring= server begins to show its advantages. At a full 8192 connection load the simple =io_uring= server peaks at 200ms of latency, whereas the full =io_uring= server just begins to push 100ms. Either synchronous server continues to climb in latency up until a peak of 300ms at full load.
 
 ** Throughput
-
-[[file:mbps.pn.png]]
-[[file:rps.png]]
-
 Throughput of the synchronous server follows our expectations, a nearly flat line across the entire testing range. The rate at which we can push data over the wire is entirely limited by the fact that each request is handled one at a time, which is entirely dependent on the time on which we are blocked in system calls. For simple applications this approach may be enough to handle the workload, and it comes with the upside that a =poll= implementation is a much simpler architecture.
+
+#+ATTR_LATEX: :width 3.35in :float nil
+#+CAPTION: Both synchronous servers exhibit a very similar throughput across the entire request range. Either =io_uring= server with submission queue polling performs worse at lower concurrent requests, which hits a crossover point and ultamitely exceeds the simple =io_uring= server at 512 connected clients.
+[[file:med_throughput.png]]
 
 =epoll= exhibits nearly the same behavior as the poll based implementation, only at a higher overall throughput. We see no degradation in throughput for either server up to 8192 concurrent request. The advantage for =epoll= comes in the fact that it's "work queue" is only populated with requests that have data ready, meaning that each file descriptor can have work done without having to check its status.
 
@@ -111,13 +114,14 @@ A basic =io_uring= server without submission queue polling quickly reaches its m
 As suspected the fully asynchronous server is still slower for medium sized files. The performance scales in the same manner at half the overall throughput. We observe similar performance impacts from enabling submission queue polling, only overcoming non-polling past 512 concurrent requests as seen in the previous example.
 
 #+ATTR_LATEX: :width 4.5in :float multicolumn
+#+CAPTION: Both synchronous servers, and the simple =io_uring= server show near similar performace across the entire request range, whereas the full =io_uring= server beats the servers by 3.5x and 2.5x respectively.
 [[file:gbps.png]]
 
 Testing with large file sizes begins to highlight the advantages from the newer =io_uring= system. When clients request a 2.1Mb file we finally begin to see that the full =io_uring= server has major advantages. Without blocking each request on a single synchronous path we greatly increase throughput, and decrease latency. Both synchronous servers, and the simple =io_uring= server spend the majority of their runtime blocked in system calls, meaning that even though we have thousands of connected clients, we cannot concurrently send any information to multiple clients.
 
 The general flow of a request is to first open =stat= the file to gather information, open the file for reading and then using either =sendfile=, or a combination of pipes and splicing to achieve the same effect. When using a single thread in a synchronous context we see a large increase in latency due to this linear pipeline of information transfer. We must wait until the entire file (and corresponding headers) have been passed off to the kernel to send. This results in our latency being enitrely determined by the speed at which a single client can be served.
 
-In a fully asynchronous context, many thousands of clients can connect at the same time, with each of their requests being processed concurrently. The largest contributing factor to decreased throughput (and thus increased latency) is the sending of the large 2.1Mb file, which is entirely mitigated when using asynchronous IO. This results in our fully asynchronous server beating =epoll= by 3.5x, and a simple =io_uring= server by 2.5x. At 8 concurrent clients the fully asynchronous implementation achieves an average throughput of 27.94GB/s, settling in to just around 24.8GB/s for the remaining tests.
+In a fully asynchronous context, many thousands of clients can connect at the same time, with each of their requests being processed concurrently. The largest contributing factor to decreased throughput (and thus increased latency) is the sending of the large 2.1Mb file, which is entirely mitigated when using asynchronous IO. This results in our fully asynchronous server beating =epoll= by 3.5x, and a simple =io_uring= server by 2.5x. At 8 concurrent clients the fully asynchronous implementation achieves an average throughput of 27.94GB/s, settling in to just around 24.8GB/s for the remaining tests (Figure 5).
 
 We see the opposite results when testing a smaller 9 byte file, as the overhead of processing system calls asynchronously greatly decreases overall throughput. The best performer with small files was the simple =io_uring= implementation with submission queue polling enabled, which managed 8.79MB/s at 8192 concurrent connections. Our fully asynchronous server was able to achieve just under half the throughput (3.84MB/s), still beating either synchronous server (~1.30MB/s).
 
