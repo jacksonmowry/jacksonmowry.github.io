@@ -18,7 +18,7 @@
 #include <unistd.h>
 
 #define PORT 8069
-#define MAX_WORK 1000000
+#define MAX_WORK 4096
 #define BUFFER_SIZE 1024
 #define MAX_FILES 1024
 #define MAX_SQE_PER_LOOP 2
@@ -260,8 +260,8 @@ int add_close_pipe_request(request* req) {
 int main() {
     signal(SIGINT, signal_handler);
 
-    io_uring_queue_init(MAX_WORK, &ring, 0);
-    /* io_uring_queue_init(MAX_WORK, &ring, IORING_SETUP_SQPOLL); */
+    /* io_uring_queue_init(MAX_WORK, &ring, 0); */
+    io_uring_queue_init(MAX_WORK, &ring, IORING_SETUP_SQPOLL);
 
     struct sockaddr_in addr = {0};
     int listen_socket = socket(PF_INET, SOCK_STREAM, 0);
