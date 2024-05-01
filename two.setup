@@ -1,5 +1,5 @@
 #+LaTeX_CLASS: org-plain-latex
-#+LaTeX_CLASS_OPTIONS: [letterpaper, 10pt, twocolumn]
+#+LaTeX_CLASS_OPTIONS: [conference]{IEEEtran}
 #+LATEX_HEADER: \usepackage{lmodern} % Ensures we have the right font
 
 #+LATEX_HEADER: \usepackage[T1]{fontenc}
