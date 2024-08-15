@@ -1,0 +1,23 @@
+#+title: Jack Sparrow
+#+subtitle: Binary Message Passing Solution
+
+* Schema
+Start by defining your messages via XML
+
+#+begin_src xml
+<schema>
+  <messages>
+    <message name="Reaction" version="1.0.0">
+      <string required="true">Emoji</string>
+      <integer default="0">Count</integer>
+    </message>
+    <message name="Chat Message" version="1.0.0">
+      <string required="true">Author</string>
+      <timestamp required="true">Message Sent</timestamp>
+      <integer>Likes</integer>
+      <string required="true">Body</string>
+      <struct[] type="reaction">Reactions</struct[]>
+    </message>
+  </messages>
+</schema>
+#+end_src
