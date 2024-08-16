@@ -88,12 +88,26 @@ void set_cap(element_t* e, uint16_t cap) {
     }
 }
 
-void set_content(text_content* tc, const char* content, uint16_t length) {
-    tc->content = vector_char_from(content, length);
+void set_content(element_t* e, const char* content, uint16_t length) {
+    switch (e->tag) {
+    TC:
+        e->e.tc.content = vector_char_from(content, length);
+    TS:
+    E:
+    default:
+        exit(1);
+    }
 }
 
-const char* get_element_type(element* element) {
-    return element_types->types[element->tag_size.element_type];
+const char* get_element_type(element_t e) {
+    switch (e.tag) {
+    E:
+        return element_types->types[e.e.e.tag_size.element_type];
+    TS:
+    TC:
+    default:
+        exit(1);
+    }
 }
 
 element_t new_plain_content(char* text, size_t size) {
@@ -103,37 +117,35 @@ element_t new_plain_content(char* text, size_t size) {
         return no_content;
     }
     element_t text_content;
+    text_content.tag = TC;
     set_type(&text_content, PLAIN_TEXT);
     set_size(&text_content, size);
     set_cap(&text_content, size);
-    set_content(tc, text, size);
-    return tc;
+    set_content(&text_content, text, size);
+    return text_content;
 }
-element* new_element(char* type) {
-    element* elem = calloc(1, sizeof(element) + sizeof(element*) * 1);
-    set_type((tag_size*)elem, OPENING_TAG);
-    int16_t tag_type = add_element_type(type, strlen(type));
-    elem->tag_size.element_type = tag_type;
-    set_size((tag_size*)elem, 0);
-    set_cap((tag_size*)elem, 1);
-    elem->properties = plist_init();
-    return elem;
-}
-tag_size new_closing_tag(const char* type) {
-    tag_size closing;
-    set_type(&closing, CLOSING_TAG);
-    int16_t tag_type = add_element_type(type, strlen(type));
-    closing.element_type = tag_type;
-    return closing;
+element_t new_element(char* type) {
+    return (element_t){.tag = E,
+                       .e.e = {.tag_size = {.type = OPENING_TAG,
+                                            .element_type = add_element_type(
+                                                type, strlen(type)),
+                                            .size = 0,
+                                            .cap = 1},
+                               .properties = plist_init()}};
 }
 
-text_content* new_comment(const char* comment, size_t size) {
-    text_content* tc = calloc(1, sizeof(tag_size) + size + 1);
-    set_type((tag_size*)tc, COMMENT);
-    set_size((tag_size*)tc, size);
-    set_cap((tag_size*)tc, size);
-    set_content(tc, comment, size);
-    return tc;
+element_t new_closing_tag(const char* type) {
+    return (element_t){.tag = E,
+                       .e.e = {.tag_size = {.type = CLOSING_TAG,
+                                            .element_type = add_element_type(
+                                                type, strlen(type))}}};
+}
+
+element_t new_comment(const char* comment, size_t size) {
+    return (element_t){
+        .tag = TC,
+        .e.tc = {.tag_size = {.type = COMMENT, .size = size, .cap = size},
+                 .content = vector_char_from(comment, size)}};
 }
 
 void initialize_element_types() {
@@ -175,18 +187,20 @@ int16_t add_element_type(const char* type, size_t size) {
     return -1;
 }
 
-void add_child_element(element** parent, element* child) {
-    if (get_size((tag_size*)(*parent)) >= get_cap((tag_size*)(*parent))) {
-        *parent = (element*)grow_tag_size((tag_size*)(*parent));
+void add_child_element(element_t parent, element_t child) {
+    switch (parent.tag) {
+    E:
+        vector_element_t_pb(parent.e.e.children, child);
+    TS:
+    TC:
+    default:
+        exit(1);
     }
-
-    (*parent)->children[get_size((tag_size*)(*parent))] = child;
-    set_size((tag_size*)(*parent), get_size((tag_size*)(*parent)) + 1);
 }
 
-element* parse_tag(parser* p) {
+element_t parse_tag(parser* p) {
     if (parser_peek(p) != '<') {
-        return NULL;
+        return (element_t){};
     }
     // Cursor is now on '<'
     parser_get(p);
@@ -202,9 +216,9 @@ element* parse_tag(parser* p) {
 
     // temp should now contain the name,unless it is empty
     if (temp_pos == 0) {
-        return NULL;
+        return (element_t){};
     }
-    element* new_elem = new_element(temp);
+    element_t new_elem = new_element(temp);
 
     parser_skip_whitespace(p);
 
@@ -250,7 +264,7 @@ element* parse_tag(parser* p) {
         char* value = strndup(&p->input[start], size);
         /* puts(value); */
 
-        plist_add(new_elem->properties, key, value);
+        plist_add(new_elem.e.e.properties, key, value);
     }
     assert(parser_peek(p) == '>');
 
@@ -261,25 +275,25 @@ element* parse_tag(parser* p) {
 // parse_contents will look at the inner xml of an element and parse it
 // depending on if it is plain text of a child element.
 // In either case contents will be appended to their parents children
-element* parse_contents(parser* p, element** parent) {
+element_t parse_contents(parser* p, element_t parent) {
     // If the first thing we see is '<' we have a child element
     // Otherwise we have a string (plain text)
     if (comment_tag(p)) {
-        text_content* comment = parse_comment(p);
-        add_child_element(parent, (element*)comment);
-        return (element*)comment;
+        element_t comment = parse_comment(p);
+        add_child_element(parent, comment);
+        return comment;
     } else if (parser_peek(p) == '<') {
-        element* child = parse_element(p);
+        element_t child = parse_element(p);
         add_child_element(parent, child);
         return child;
     } else {
-        text_content* plain_text = parse_text(p);
-        add_child_element(parent, (element*)plain_text);
-        return (element*)plain_text;
+        element_t plain_text = parse_text(p);
+        add_child_element(parent, plain_text);
+        return plain_text;
     }
 }
 
-text_content* parse_text(parser* p) {
+element_t parse_text(parser* p) {
     parser_skip_whitespace(p);
 
     size_t start = p->cursor;
@@ -294,12 +308,11 @@ text_content* parse_text(parser* p) {
         size++;
     }
 
-    return new_thing_plain_content(&p->input[start],
-                                   last_nonwhitespace - start + 1);
+    return new_plain_content(&p->input[start], last_nonwhitespace - start + 1);
 }
 
-element* parse_element(parser* p) {
-    element* new_element = parse_tag(p);
+element_t parse_element(parser* p) {
+    element_t new_element = parse_tag(p);
     size_t closing_tag_len = strlen(get_element_type(new_element)) + 4;
     char closing_tag[closing_tag_len];
     memset(closing_tag, 0, sizeof(closing_tag));
@@ -309,7 +322,7 @@ element* parse_element(parser* p) {
 
     // While I am not looking at my own closing tag
     while (!closing_tag_p(closing_tag, closing_tag_len - 1, p)) {
-        parse_contents(p, &new_element);
+        parse_contents(p, new_element);
     }
 
     // Advance past closing tag
@@ -335,7 +348,7 @@ bool comment_tag(parser* p) {
     return !strncmp("<!--", &p->input[p->cursor], 4);
 }
 
-text_content* parse_comment(parser* p) {
+element_t parse_comment(parser* p) {
     p->cursor += 4;
 
     size_t start = p->cursor;
@@ -344,7 +357,7 @@ text_content* parse_comment(parser* p) {
         parser_get(p);
     }
 
-    text_content* comment = new_comment(&p->input[start], p->cursor - start);
+    element_t comment = new_comment(&p->input[start], p->cursor - start);
     p->cursor += 3;
     return comment;
 }
@@ -355,25 +368,25 @@ void print_indent(size_t depth) {
     }
 }
 
-void in_order_traversal(element* root, vector_tag_size* tsv) {
-    switch (get_type((tag_size*)root)) {
+void in_order_traversal(element_t root, vector_element_t* elements) {
+    switch (get_type(root)) {
     case COMMENT:
     case PLAIN_TEXT: {
-        vector_tag_size_pb(tsv, *(tag_size*)root);
+        vector_element_t_pb(elements, root);
         break;
     }
     case OPENING_TAG: {
         // Opening tag
-        vector_tag_size_pb(tsv, *(tag_size*)root);
+        vector_element_t_pb(elements, root);
 
         // All Children
-        for (int i = 0; i < get_size((tag_size*)root); i++) {
-            in_order_traversal(root->children[i], tsv);
+        for (int i = 0; i < get_size(root); i++) {
+            in_order_traversal(root.e.e.children->array[i], elements);
         }
 
         // Closing tag
-        tag_size closing_tag = new_closing_tag(get_element_type(root));
-        vector_tag_size_pb(tsv, closing_tag);
+        element_t closing_tag = new_closing_tag(get_element_type(root));
+        vector_element_t_pb(elements, closing_tag);
         break;
     }
     default:
@@ -382,22 +395,22 @@ void in_order_traversal(element* root, vector_tag_size* tsv) {
 }
 
 // In order dfs
-tag_size next_element(vector_tag_size tsv) {
+element_t next_element(vector_element_t elements) {
     static int pos = 0;
 
-    if (pos >= tsv.len) {
+    if (pos >= elements.len) {
         pos = 0;
-        return (tag_size){};
+        return (element_t){};
     }
 
-    return tsv.array[pos++];
+    return elements.array[pos++];
 }
 
-void tree_free(vector_tag_size tsv) {
-    tag_size thing;
+void tree_free(vector_element_t elements) {
+    element_t thing;
 
-    while ((thing = next_element(tsv)).cap != 0) {
-        switch (get_type(&thing)) {
+    while (get_type(thing = next_element(elements)) != NO_CONTENT) {
+        switch (get_type(thing)) {
         case OPENING_TAG:
             plist_free(((element*)&thing)->properties);
         case PLAIN_TEXT:
@@ -409,32 +422,34 @@ void tree_free(vector_tag_size tsv) {
     }
 }
 
-vector_tag_size traverse_tree(element* root, size_t depth) {
-    vector_tag_size tsv = vector_tag_size_init(20);
-    in_order_traversal(root, &tsv);
+vector_element_t traverse_tree(element_t root, size_t depth) {
+    vector_element_t elements = vector_element_t_init(20);
+    in_order_traversal(root, &elements);
 
-    assert(tsv.len > 0);
+    assert(elements.len > 0);
 
-    tag_size thing;
+    element_t thing;
 
-    while ((thing = next_element(tsv)).cap != 0) {
-        switch (get_type(&thing)) {
+    for (int i = 0; i < elements.len; i++) {
+        thing = elements.array[i];
+        switch (get_type(thing)) {
         case NO_CONTENT:
             break;
         case COMMENT:
             print_indent(depth);
-            printf("<!--%*s-->\n", get_size(&thing),
-                   get_content((text_content*)&thing));
+            printf("<!--%*s-->\n", (int)thing.e.tc.content.len,
+                   thing.e.tc.content.array);
             break;
         case PLAIN_TEXT: {
             print_indent(depth);
-            printf("%s\n", get_content((text_content*)&thing));
+            printf("%*s\n", (int)thing.e.tc.content.len,
+                   thing.e.tc.content.array);
             break;
         }
         case OPENING_TAG:
             print_indent(depth);
             depth += 4;
-            printf("<%s", get_element_type((element*)&thing));
+            printf("<%s", get_element_type(thing));
             if (((element*)&thing)->properties->size > 0) {
                 for (size_t i = 0; i < ((element*)&thing)->properties->size;
                      i++) {
@@ -449,13 +464,13 @@ vector_tag_size traverse_tree(element* root, size_t depth) {
         case CLOSING_TAG:
             depth -= 4;
             print_indent(depth);
-            printf("</%s>\n", get_element_type((element*)&thing));
+            printf("</%s>\n", get_element_type(thing));
             break;
         }
     }
 
-    tree_free(tsv);
-    return tsv;
+    /* tree_free(elements); */
+    return elements;
 }
 
 parser parser_from_stdin() {
@@ -492,7 +507,7 @@ int main() {
 
     initialize_element_types();
 
-    element* elem = parse_element(&p);
+    element_t elem = parse_element(&p);
 
     traverse_tree(elem, 0);
 

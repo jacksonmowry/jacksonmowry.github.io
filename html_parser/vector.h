@@ -125,22 +125,22 @@ uint16_t get_cap(element_t);
 void set_cap(element_t*, uint16_t);
 
 const char* get_content(text_content*);
-void set_content(text_content*, const char*, uint16_t);
+void set_content(element_t* e, const char* content, uint16_t length);
 
-const char* get_element_type(element*);
+const char* get_element_type(element_t);
 
 int16_t add_element_type(const char* type, size_t size);
 
-element* parse_element(parser* p);
-text_content* parse_text(parser* p);
+element_t parse_element(parser* p);
+element_t parse_text(parser* p);
 
-element* parse_tag(parser* p);
+element_t parse_tag(parser* p);
 
 bool closing_tag_p(const char*, size_t, parser*);
 
 bool comment_tag(parser*);
-text_content* parse_comment(parser*);
-text_content* new_comment(const char*, size_t);
+element_t parse_comment(parser*);
+element_t new_comment(const char*, size_t);
 
 typedef enum field_type { i32, f32, string, substruct, timestamp } field_type;
 
