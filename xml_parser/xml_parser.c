@@ -1,10 +1,14 @@
 #include <assert.h>
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 /*********************************/
 /* generic vector implementation */
@@ -16,9 +20,21 @@
         size_t cap;                                                            \
     } vector_##type;                                                           \
     void vector_##type##_pb(vector_##type* v, type item) {                     \
+        if (!v) {                                                              \
+            fprintf(stderr,                                                    \
+                    "%s:%d: Attempting to push back on a null vector\n",       \
+                    __FILE__, __LINE__);                                       \
+            exit(1);                                                           \
+        }                                                                      \
         if (v->len >= v->cap) {                                                \
             v->cap *= 2;                                                       \
             v->array = (type*)realloc(v->array, v->cap * sizeof(type));        \
+            if (!v->array) {                                                   \
+                fprintf(stderr,                                                \
+                        "%s:%d: Failed to reallocate memory for vector\n",     \
+                        __FILE__, __LINE__);                                   \
+                exit(1);                                                       \
+            }                                                                  \
         }                                                                      \
         v->array[v->len++] = item;                                             \
     }                                                                          \
@@ -32,13 +48,21 @@
         return v->array[index];                                                \
     }                                                                          \
     vector_##type vector_##type##_init(size_t cap) {                           \
-        return (vector_##type){.array = (type*)calloc(cap, sizeof(type)),      \
-                               .cap = cap};                                    \
+        vector_##type v = {.array = (type*)calloc(cap, sizeof(type)),          \
+                           .cap = cap};                                        \
+        if (!v.array) {                                                        \
+            fprintf(stderr, "%s:%d: Failed to initialize memory for vector\n", \
+                    __FILE__, __LINE__);                                       \
+            exit(1);                                                           \
+        }                                                                      \
+                                                                               \
+        return v;                                                              \
     }                                                                          \
     vector_##type vector_##type##_from(const type* const input, size_t size) { \
         vector_##type blank = vector_##type##_init(size);                      \
         blank.len = size;                                                      \
         memcpy(blank.array, input, sizeof(type) * size);                       \
+        assert(blank.len == size);                                             \
         return blank;                                                          \
     }                                                                          \
     bool vector_##type##_eq(vector_##type a, vector_##type b,                  \
@@ -77,6 +101,11 @@ typedef struct plist {
 
 plist* plist_init() {
     plist* p = calloc(1, sizeof(plist));
+    if (!p) {
+        fprintf(stderr, "%s:%d: Failed to allocate memory for plist", __FILE__,
+                __LINE__);
+        exit(1);
+    }
     p->size = 0;
     p->cap = 1;
     p->list = calloc(2, sizeof(char*));
@@ -136,7 +165,7 @@ VECTOR(string);
 
 vector_string tag_type_cache = {};
 
-const char* const get_element_tag(const char* const tag, size_t size) {
+char* get_element_tag(const char* const tag, size_t size) {
     // On first we need to init the global variable
     if (tag_type_cache.cap == 0) {
         tag_type_cache = vector_string_init(10);
@@ -156,20 +185,22 @@ const char* const get_element_tag(const char* const tag, size_t size) {
 /*********************/
 /* generic element_t */
 /*********************/
-typedef enum type { PLAIN_TEXT, OPENING_TAG, CLOSING_TAG, COMMENT } type;
+typedef enum element_types { OPENING_TAG, CLOSING_TAG } element_type;
+
+typedef enum text_type { PLAIN_TEXT, COMMENT } text_type;
 
 typedef struct vector_element_t vector_element_t;
 VECTOR(char);
 
 typedef struct element {
-    type type;
+    element_type type;
     char* element_type;
     plist* properties;
     vector_element_t* children;
 } element;
 
 typedef struct text_content {
-    type type;
+    text_type type;
     vector_char content;
 } text_content;
 
@@ -178,7 +209,7 @@ typedef union element_u {
     text_content tc;
 } element_u;
 
-typedef enum element_e { EMPTY, ELEMENT, TEXT_CONTENT } element_e;
+typedef enum element_e { EMPTY, ELEMENT, TEXT_CONTENT, END_OF_FILE } element_e;
 
 typedef struct element_t {
     element_e tag;
@@ -191,6 +222,65 @@ VECTOR(element_t);
 /* element_t functions */
 /***********************/
 element_t new_empty() { return (element_t){.tag = EMPTY}; }
+element_t new_eof() { return (element_t){.tag = END_OF_FILE}; }
+
+void element_t_print(element_t e) {
+    switch (e.tag) {
+    case ELEMENT: {
+        printf("<");
+
+        switch (e.e.e.type) {
+        case OPENING_TAG: {
+            printf("%s", e.e.e.element_type);
+
+            for (size_t i = 0; i < e.e.e.properties->size; i++) {
+                kv_pair kv = plist_get_pair(e.e.e.properties, i);
+                printf(" %s=\"%s\"", kv.key, kv.val);
+            }
+        } break;
+        case CLOSING_TAG: {
+            printf("/%s", e.e.e.element_type);
+        } break;
+        }
+
+        printf(">");
+    } break;
+    case TEXT_CONTENT: {
+        switch (e.e.tc.type) {
+        case PLAIN_TEXT: {
+            printf("%.*s", (int)e.e.tc.content.len, e.e.tc.content.array);
+        } break;
+        case COMMENT: {
+            printf("<!-- %.*s -->", (int)e.e.tc.content.len,
+                   e.e.tc.content.array);
+        } break;
+        }
+    }
+    default:
+        break;
+    }
+}
+
+void element_t_free(element_t e) {
+    switch (e.tag) {
+    case ELEMENT: {
+        switch (e.e.e.type) {
+        case OPENING_TAG: {
+            plist_free(e.e.e.properties);
+            vector_element_t_free(*e.e.e.children);
+            free(e.e.e.children);
+        } break;
+        case CLOSING_TAG: {
+        } break;
+        }
+    } break;
+    case TEXT_CONTENT: {
+        vector_char_free(e.e.tc.content);
+    }
+    default:
+        break;
+    }
+}
 
 /**************************/
 /* text_content functions */
@@ -218,6 +308,15 @@ element_t new_opening_tag(const char* const tag, size_t length) {
                            .type = OPENING_TAG,
                            .children = calloc(1, sizeof(vector_element_t)),
                            .properties = plist_init()}};
+
+    if (!e.e.e.children) {
+        fprintf(
+            stderr,
+            "%s:%d: Failed to allocate memory for .children in opening tag\n",
+            __FILE__, __LINE__);
+        exit(1);
+    }
+
     *e.e.e.children = vector_element_t_init(1);
     return e;
 }
@@ -252,10 +351,16 @@ char parser_get(streaming_parser* p) {
     return ret;
 }
 
-void streaming_parser_skip_whitespace(streaming_parser* p) {
-    while (is_whitespace(p->current)) {
+bool streaming_parser_skip_whitespace(streaming_parser* p) {
+    while (is_whitespace(p->current) && p->position < p->length - 1) {
         parser_get(p);
     }
+
+    if (p->position >= p->length - 1) {
+        return true;
+    }
+
+    return false;
 }
 
 // "myClass"
@@ -288,8 +393,47 @@ char* parse_token(streaming_parser* p) {
     }
 
     // myClass or myClass>
-    // ^          ^
-    return strndup(&p->input[start], p->position - start);
+    //        ^          ^
+    char* token = strndup(&p->input[start], p->position - start);
+    if (!token) {
+        fprintf(stderr, "%s:%s:%d: Failed to call 'strndup' to copy token",
+                __FILE__, __FUNCTION__, __LINE__);
+        exit(1);
+    }
+
+    return token;
+}
+
+// value=42>This is some text<span class=""
+//          ^
+element_t parse_text(streaming_parser* p, const char* delimiter,
+                     size_t delimiter_length) {
+    if (streaming_parser_skip_whitespace(p)) {
+        return new_eof();
+    }
+
+    size_t start = p->position;
+
+    while (strncmp(&p->input[p->position], delimiter, delimiter_length)) {
+        parser_get(p);
+    }
+
+    if (p->position - start == 0) {
+        return new_empty();
+    }
+
+    return new_plain_text(&p->input[start], p->position - start);
+}
+
+// <!-- This is a comment -->
+//      ^
+element_t parse_comment(streaming_parser* p) {
+    element_t comment = parse_text(p, "-->", 3);
+    parser_get(p);
+    parser_get(p);
+    parser_get(p);
+
+    return comment;
 }
 
 // <div class="myClass" id="opening">
@@ -327,9 +471,7 @@ kv_pair parse_property(streaming_parser* p) {
         // class="myClass"
         //                ^
     } else {
-        // class = myClass>
-        //         ^
-        value = parse_token(p);
+        assert("Prop values must be strings!" == false);
     }
 
     // class="myClass" or class = myClass>
@@ -337,14 +479,38 @@ kv_pair parse_property(streaming_parser* p) {
     return (kv_pair){.key = key, .val = value};
 }
 
+// </div>
+//  ^
+element_t parse_closing_tag(streaming_parser* p) {
+    assert(p->current == '/');
+    parser_get(p);
+
+    char* tag_name = parse_token(p);
+    parser_get(p);
+
+    element_t closing_tag = new_closing_tag(tag_name, strlen(tag_name));
+    free(tag_name);
+
+    return closing_tag;
+}
+
 // <div class="myClass" id="opening">
 // ^ cursor starts here              ^ we return the cursor here
 element_t parse_opening_tag(streaming_parser* p) {
     parser_get(p);
 
+    switch (p->current) {
+    case '!':
+        return parse_comment(p);
+    case '/':
+        return parse_closing_tag(p);
+    default:
+        break;
+    }
+
     // Record start of tag name
     size_t start = p->position;
-    while (!is_whitespace(p->current)) {
+    while (!is_whitespace(p->current) && p->current != '>') {
         parser_get(p);
     }
 
@@ -359,5 +525,74 @@ element_t parse_opening_tag(streaming_parser* p) {
     while (p->current != '>') {
         kv_pair kv = parse_property(p);
         plist_add(element.e.e.properties, kv.key, kv.val);
+        streaming_parser_skip_whitespace(p);
     }
+
+    assert(p->current == '>');
+    parser_get(p);
+
+    return element;
+}
+
+element_t next_element(streaming_parser* p) {
+    if (streaming_parser_skip_whitespace(p)) {
+        return new_eof();
+    }
+
+    if (p->current == '<') {
+        return parse_opening_tag(p);
+    } else {
+        element_t thing = parse_text(p, "<", 1);
+
+        if (thing.tag == EMPTY) {
+            element_t_free(thing);
+            return next_element(p);
+        }
+
+        return thing;
+    }
+}
+
+void print_indent(size_t depth) {
+    for (int i = 0; i < depth; i++) {
+        printf(" ");
+    }
+}
+
+void print_document(streaming_parser* p) {
+    size_t depth = 0;
+    while (p->position < p->length) {
+        element_t e = next_element(p);
+        if (e.tag == END_OF_FILE) {
+            break;
+        }
+
+        if (e.tag == ELEMENT && e.e.e.type == CLOSING_TAG) {
+            depth -= 4;
+        }
+
+        print_indent(depth);
+        element_t_print(e);
+
+        if (e.tag == ELEMENT && e.e.e.type == OPENING_TAG) {
+            depth += 4;
+        }
+        printf("\n");
+
+        element_t_free(e);
+    }
+}
+
+int main() {
+    struct stat sb;
+
+    int fd = open("example.xml", O_RDONLY);
+    fstat(fd, &sb);
+    char* file = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
+
+    streaming_parser p = (streaming_parser){
+        .input = file, .length = sb.st_size, .current = file[0]};
+
+    print_document(&p);
 }
