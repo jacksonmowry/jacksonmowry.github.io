@@ -123,11 +123,12 @@ kv_pair plist_get_pair(plist* p, size_t pos) {
 
 // Also frees the plist
 void plist_free(plist* p) {
-    for (int i = 0; i < p->size; i++) {
+    for (size_t i = 0; i < p->size; i++) {
         kv_pair kv = plist_get_pair(p, i);
         free(kv.key);
         free(kv.val);
     }
+
     free(p->list);
     free(p);
 }
@@ -172,7 +173,7 @@ char* get_element_tag(const char* const tag, size_t size) {
     }
 
     // Try to find the tag, otherwise make a copy and return that pointer
-    for (int i = 0; i < tag_type_cache.len; i++) {
+    for (size_t i = 0; i < tag_type_cache.len; i++) {
         if (!strcmp(tag_type_cache.array[i], tag)) {
             return tag_type_cache.array[i];
         }
@@ -554,7 +555,7 @@ element_t next_element(streaming_parser* p) {
 }
 
 void print_indent(size_t depth) {
-    for (int i = 0; i < depth; i++) {
+    for (size_t i = 0; i < depth; i++) {
         printf(" ");
     }
 }
