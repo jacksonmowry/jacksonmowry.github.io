@@ -1,3 +1,4 @@
+#include "xml_parser.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -10,31 +11,18 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-/*********************************/
-/* generic vector implementation */
-/*********************************/
+typedef char* string;
+VECTOR_PROTOTYPE(string);
+VECTOR_PROTOTYPE(element_t);
+
+/***********************/
+/* generic vector impl */
+/***********************/
 #define VECTOR(type)                                                           \
-    typedef struct vector_##type {                                             \
-        type* array;                                                           \
-        size_t len;                                                            \
-        size_t cap;                                                            \
-    } vector_##type;                                                           \
     void vector_##type##_pb(vector_##type* v, type item) {                     \
-        if (!v) {                                                              \
-            fprintf(stderr,                                                    \
-                    "%s:%d: Attempting to push back on a null vector\n",       \
-                    __FILE__, __LINE__);                                       \
-            exit(1);                                                           \
-        }                                                                      \
         if (v->len >= v->cap) {                                                \
             v->cap *= 2;                                                       \
             v->array = (type*)realloc(v->array, v->cap * sizeof(type));        \
-            if (!v->array) {                                                   \
-                fprintf(stderr,                                                \
-                        "%s:%d: Failed to reallocate memory for vector\n",     \
-                        __FILE__, __LINE__);                                   \
-                exit(1);                                                       \
-            }                                                                  \
         }                                                                      \
         v->array[v->len++] = item;                                             \
     }                                                                          \
@@ -48,21 +36,13 @@
         return v->array[index];                                                \
     }                                                                          \
     vector_##type vector_##type##_init(size_t cap) {                           \
-        vector_##type v = {.array = (type*)calloc(cap, sizeof(type)),          \
-                           .cap = cap};                                        \
-        if (!v.array) {                                                        \
-            fprintf(stderr, "%s:%d: Failed to initialize memory for vector\n", \
-                    __FILE__, __LINE__);                                       \
-            exit(1);                                                           \
-        }                                                                      \
-                                                                               \
-        return v;                                                              \
+        return (vector_##type){.array = (type*)calloc(cap, sizeof(type)),      \
+                               .cap = cap};                                    \
     }                                                                          \
     vector_##type vector_##type##_from(const type* const input, size_t size) { \
         vector_##type blank = vector_##type##_init(size);                      \
         blank.len = size;                                                      \
         memcpy(blank.array, input, sizeof(type) * size);                       \
-        assert(blank.len == size);                                             \
         return blank;                                                          \
     }                                                                          \
     bool vector_##type##_eq(vector_##type a, vector_##type b,                  \
@@ -85,20 +65,11 @@
     }                                                                          \
     void vector_##type##_free(vector_##type v) { free(v.array); }
 
+VECTOR(char);
+VECTOR(string);
 /*********/
 /* plist */
 /*********/
-typedef struct kv_pair {
-    char* key;
-    char* val;
-} kv_pair;
-
-typedef struct plist {
-    size_t size;
-    size_t cap;
-    char** list;
-} plist;
-
 plist* plist_init() {
     plist* p = calloc(1, sizeof(plist));
     if (!p) {
@@ -162,7 +133,6 @@ const char* plist_get_val(plist* p, char* key) {
 /* tag type cache */
 /******************/
 typedef char* string;
-VECTOR(string);
 
 vector_string tag_type_cache = {};
 
@@ -186,37 +156,6 @@ char* get_element_tag(const char* const tag, size_t size) {
 /*********************/
 /* generic element_t */
 /*********************/
-typedef enum element_types { OPENING_TAG, CLOSING_TAG } element_type;
-
-typedef enum text_type { PLAIN_TEXT, COMMENT } text_type;
-
-typedef struct vector_element_t vector_element_t;
-VECTOR(char);
-
-typedef struct element {
-    element_type type;
-    char* element_type;
-    plist* properties;
-    vector_element_t* children;
-} element;
-
-typedef struct text_content {
-    text_type type;
-    vector_char content;
-} text_content;
-
-typedef union element_u {
-    element e;
-    text_content tc;
-} element_u;
-
-typedef enum element_e { EMPTY, ELEMENT, TEXT_CONTENT, END_OF_FILE } element_e;
-
-typedef struct element_t {
-    element_e tag;
-    element_u e;
-} element_t;
-
 VECTOR(element_t);
 
 /***********************/
@@ -331,14 +270,6 @@ element_t new_closing_tag(const char* const tag, size_t length) {
 /***********************/
 /* streaming_parser */
 /***********************/
-
-// either mmap a buffer for `input`, or directly pass a buffer
-typedef struct streaming_parser {
-    char* input;
-    size_t position;
-    size_t length;
-    char current;
-} streaming_parser;
 
 bool is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 
@@ -582,18 +513,4 @@ void print_document(streaming_parser* p) {
 
         element_t_free(e);
     }
-}
-
-int main() {
-    struct stat sb;
-
-    int fd = open("example.xml", O_RDONLY);
-    fstat(fd, &sb);
-    char* file = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    close(fd);
-
-    streaming_parser p = (streaming_parser){
-        .input = file, .length = sb.st_size, .current = file[0]};
-
-    print_document(&p);
 }
