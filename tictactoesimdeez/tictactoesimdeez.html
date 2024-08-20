@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/tictactoesimdeez/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>tictactoesimdeez</i></h1>
+<div id="outline-container-orga329ac1" class="outline-2">
+<h2 id="orga329ac1">SIMD</h2>
+<div class="outline-text-2" id="text-orga329ac1">
+<p>
+SIMD stands for single instruction, multiple data. This would be in contract to SISD, or single instruction, single data. As stated in the name, this will allow us to pass multiple piece of data into a single operation. SIMD is an entire extension set to the original x86 instruction set, which may or may not be implemented by your specific processor. These instructions allow a processor to operate on pices of data larger than your architecture may normally support. In this post we will look at SSE4, which supports 128-bit registers, although many modern x64 processors have support for 256, and 512-bit registers.
+</p>
+
+<p>
+It is important to understand that the <code>instruction</code> in SIMD means that this maps 1-to-1 with an assembly instruction on your processor. This means that prior to calling a SIMD instruction we will need to populate one of the SIMD registers with the data we want to work on. Another important feature of SIMD instructions is that they can change what size of data they are working on.
+</p>
+
+
+<div id="org3e6937c" class="figure">
+<p><img src="vector_register.png" alt="vector_register.png" />
+</p>
+</div>
+
+<p>
+For our simple introduction to SIMD we are going to use these instructions to implment a giant game of tic-tac-toe, specifically a 16x16 grid.
+</p>
+</div>
+</div>
+<div id="outline-container-org791bf4c" class="outline-2">
+<h2 id="org791bf4c">Applications</h2>
+<div class="outline-text-2" id="text-org791bf4c">
+<p>
+While there are many different instructions supported under the <a href="https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ssetechs=SSE2">SSE4 extention</a> we will only focus on a subset of instructions to keep things simple. Specifically <code>xor</code> and <code>test_all_zeros</code>, the latter is fairly self explainatory, treating the entire 128-bit register as one large integer and checking if it is equal to 0. A SIMD <code>xor</code> instruction is no different than the 64-bit <code>xor</code> you are used to using, the algorithm/implementation for <code>xor</code> always stays the same.
+</p>
+
+<p>
+So why would we need <code>xor</code> to play tic-tac-toe? The reason is
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 3/28/24</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>
