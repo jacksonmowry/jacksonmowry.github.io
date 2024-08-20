@@ -1,0 +1,133 @@
+% Created 2024-08-20 Tue 10:56
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{CS312 Notes}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={CS312 Notes},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.8)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Theory Of Computation Introduction}
+\label{sec:org0ac23a1}
+The 3 componenets of problem solving
+\begin{enumerate}
+\item Unknowns
+\item Data
+\item Conditions
+\end{enumerate}
+
+To solve a problem we need to find a way of determining the unknowns from given data such that conditions of the problem are satisfied.
+
+The traditional areas of the theory of computation (TOC)
+\begin{itemize}
+\item Automata
+\begin{itemize}
+\item Provide problem solving devices
+\end{itemize}
+\item Computability
+\begin{itemize}
+\item Provide framework that can characterize devices by their computing power
+\end{itemize}
+\item Complexity
+\begin{itemize}
+\item Provide framework to classify problems acording to time/space complexity of the toold used to solve them
+\end{itemize}
+\end{itemize}
+\subsection{Automata (Automaton)}
+\label{sec:org191f283}
+\begin{itemize}
+\item Abstration of computing devices
+\item How much memory can be used?
+\item What operations can be performed?
+\end{itemize}
+\subsection{Computability}
+\label{sec:orgf4ef912}
+\begin{itemize}
+\item Study different computing models and identify the most powerful ones
+\item Range of problems
+\item Problems can be undecidable or uncomputatble
+\begin{itemize}
+\item The halting problem
+\end{itemize}
+\end{itemize}
+\subsection{Complexity}
+\label{sec:org7a952eb}
+\begin{itemize}
+\item Computing problems range from easy to hard; sorting is easier than scheduling
+\item Question
+\begin{itemize}
+\item What makes some problems computationally hard or others easy?
+\end{itemize}
+\end{itemize}
+\subsection{Problem Abstration}
+\label{sec:orgb87c38b}
+Data
+\begin{itemize}
+\item Abstracted as a word in a given alphabet
+\end{itemize}
+Conditions
+\begin{itemize}
+\item Abstracted as a set of words called a language
+\end{itemize}
+Unknowns
+\begin{itemize}
+\item A boolean variable: true if a word is in the language or false other wise
+\end{itemize}
+\subsubsection{Abstration of Data}
+\label{sec:orgfb2873a}
+\begin{itemize}
+\item \(\Sigma\): alphabet, a finite, nonempty set of symbols
+\item \(\Sigma\)\textsuperscript{*}: all words of a finite length built up using \(\Sigma\)
+\item Rules: (1) the empty word (\(\epsilon\)) is in \(\Sigma\)\textsuperscript{*}; (2) if w \(\in\) \(\Sigma\)\textsuperscript{*} and a \(\in\) \(\Sigma\), then aw \(\in\) \(\Sigma\)\textsuperscript{*}, and (3) nothing else is in \(\Sigma\)\textsuperscript{*}
+\end{itemize}
+
+Example: If \(\Sigma\) = \{0,1\}, then \(\Sigma\)\textsuperscript{*} = \{\(\epsilon\),0,1,00,01,10,11,000,001,010,011,\ldots{}\}.
+\begin{enumerate}
+\item Valid C
+\label{sec:orgcc9c6af}
+\begin{verbatim}
+int my_func() { return 1; };
+
+int main() {
+    int var = my_func(1,2,3,4,5,6,7);
+    for (;;) {}
+    // You cannot just simply change the syntax of a for loop
+    for(;) {}
+}
+\end{verbatim}
+\item Invalid C++
+\label{sec:orga547a80}
+\begin{verbatim}
+int my_func() { return 1; };
+
+int main() {
+    int var = my_func(1,2,3,4,5,6,7);
+    for (;;) {}
+    // You cannot just simply change the syntax of a for loop
+    for(;) {}
+}
+\end{verbatim}
+\end{enumerate}
+\subsubsection{\textlnot{} \^{} V}
+\label{sec:org372e4a8}
+\all
+\end{document}

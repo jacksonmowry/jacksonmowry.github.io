@@ -1,0 +1,78 @@
+#+title: CS312 Notes
+
+* Theory Of Computation Introduction
+The 3 componenets of problem solving
+1. Unknowns
+2. Data
+3. Conditions
+
+To solve a problem we need to find a way of determining the unknowns from given data such that conditions of the problem are satisfied.
+
+The traditional areas of the theory of computation (TOC)
+- Automata
+  - Provide problem solving devices
+- Computability
+  - Provide framework that can characterize devices by their computing power
+- Complexity
+  - Provide framework to classify problems acording to time/space complexity of the toold used to solve them
+
+** Automata (Automaton)
+- Abstration of computing devices
+- How much memory can be used?
+- What operations can be performed?
+
+** Computability
+- Study different computing models and identify the most powerful ones
+- Range of problems
+- Problems can be undecidable or uncomputatble
+  - The halting problem
+
+** Complexity
+- Computing problems range from easy to hard; sorting is easier than scheduling
+- Question
+  - What makes some problems computationally hard or others easy?
+
+** Problem Abstration
+Data
+- Abstracted as a word in a given alphabet
+Conditions
+- Abstracted as a set of words called a language
+Unknowns
+- A boolean variable: true if a word is in the language or false other wise
+
+*** Abstration of Data
+- \Sigma: alphabet, a finite, nonempty set of symbols
+- \Sigma^{*}: all words of a finite length built up using \Sigma
+- Rules: (1) the empty word (\epsilon) is in \Sigma^{*}; (2) if w \in \Sigma^{*} and a \in \Sigma, then aw \in \Sigma^{*}, and (3) nothing else is in \Sigma^{*}
+
+Example: If \Sigma = {0,1}, then \Sigma^{*} = {\epsilon,0,1,00,01,10,11,000,001,010,011,...}.
+
+**** Valid C
+#+begin_src C
+int my_func() { return 1; };
+
+int main() {
+    int var = my_func(1,2,3,4,5,6,7);
+    for (;;) {}
+    // You cannot just simply change the syntax of a for loop
+    for(;) {}
+}
+#+end_src
+
+#+RESULTS:
+**** Invalid C++
+#+begin_src C++
+int my_func() { return 1; };
+
+int main() {
+    int var = my_func(1,2,3,4,5,6,7);
+    for (;;) {}
+    // You cannot just simply change the syntax of a for loop
+    for(;) {}
+}
+#+end_src
+
+#+RESULTS:
+
+*** \not ^ V
+\all
