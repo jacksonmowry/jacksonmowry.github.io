@@ -1,0 +1,87 @@
+#+title: One Two
+* Example
+\left (
+\begin{array}{ccc|c}
+1 & 0 & 0 & 1\\
+0 & 1 & 0 & 2\\
+0 & 0 & 1 & 3
+\end{array}
+\right )
+
+Now apply the row operation from example 3, section 1.1 (we will come back to this)
+
+
+* Gausian Elimination
+** Reduced Row Echelon Form
+1. If a row does not consist entirely of zeros, then the first nonzero number in the row is a 1, this is called a leading 1
+2. If there are any rows that consist entirely of zeros, then they are grouped together at the bottom of the matrix
+3. In any 2 seuccessive rows that do not consist entirely of zeros, the leading 1 in the lower rows occurs farther to the right than the leading 1 in the higher row.
+4. Each column that contains a leading 1 has zeros everywhere else in the column
+
+A matrix that has props 1-3 is in *row echelon form*, thus a matrix in reduced row echelon form is of necessity in row echelon form.
+
+*** Example 1
+Which of these are in reduced echelon form
+
+yes
+\left (
+\begin{array}{ccc|c}
+1 & 0 & 0 & 4\\
+0&1&0&7\\
+0&0&1&-1
+\end{array}
+\right )
+
+yes
+\left (
+\begin{array}{cc|c}
+1&0&0\\
+0&1&0\\
+0&0&1
+\end{array}
+\right )
+
+yes
+\left (
+\begin{array}{cccc|c}
+0&1&-2&0&1\\
+0&0&0&1&3\\
+0&0&0&0&0\\
+0&0&0&0&0
+\end{array}
+\right )
+
+yes
+\left (
+\begin{array}{c|c}
+0&0\\
+0&0
+\end{array}
+\right )
+
+no
+\left (
+\begin{array}{ccc|c}
+1&4&-3&7
+0&1&6&2\\
+0&0&1&5
+\end{array}
+\right )
+
+no
+\left (
+\begin{array}{cc|c}
+1&1&0\\
+0&1&0\\
+0&0&)
+\end{array}
+\right )
+
+no
+\left (
+\begin{array}{cccc|c}
+0&1&2&6&0\\
+0&0&1&-1&0\\
+0&0&0&0&1
+\end{array}
+\right )
