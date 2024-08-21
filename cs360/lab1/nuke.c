@@ -10,13 +10,17 @@ struct Point {
 };
 
 static double calc(const struct Point *p1, const struct Point *p2) {
-  return sqrt(pow(p2->x - p1->x, 2) + pow(p2->y - p1->y, 2));
+  return sqrt(((p2->x - p1->x) * (p2->x - p1->x)) +
+              ((p2->y - p1->y) * (p2->y - p1->y)));
 }
 
 int main(int argc, char *argv[]) {
+  // Error checking cli arguments, both for them being present, and that they
+  // are the correct type
   if (argc != 5) {
-    fprintf(stderr, "usage: ./nuke <initial_blast_strength> "
-                    "<attenuation_factor> <start X> <start Y> < input.txt\n");
+    fprintf(stderr,
+            "Usage: %s <blast strength> <attenuation> <blast x> <blast y>\n",
+            argv[0]);
     return 1;
   }
 
@@ -26,33 +30,35 @@ int main(int argc, char *argv[]) {
   int y_start;
 
   if (sscanf(argv[1], "%f", &initial_blast_strength) != 1) {
-    fprintf(stderr, "Error reading inital blast strength\n");
+    fprintf(stderr, "Error: unable to read blast strength.\n");
     return 1;
   }
   if (sscanf(argv[2], "%lf", &attenuation_factor) != 1) {
-    fprintf(stderr, "Error reading attenuation factor\n");
+    fprintf(stderr, "Error: unable to read blast attenuation.\n");
     return 1;
   }
   if (sscanf(argv[3], "%d", &x_start) != 1) {
-    fprintf(stderr, "Error reading inital X coord\n");
+    fprintf(stderr, "Error: unable to read blast x coordinate.\n");
     return 1;
   }
   if (sscanf(argv[4], "%d", &y_start) != 1) {
-    fprintf(stderr, "Error reading inital Y coord\n");
+    fprintf(stderr, "Error: unable to read blast y coordinate.\n");
     return 1;
   }
 
+  // Create the "starting" point for our blast
   struct Point start = {.x = x_start, .y = y_start};
 
   int x;
   int y;
-  char name[65] = {};
+  char name[65] = {}; // 65th bit for the '\0' sentinal
 
-  while (scanf("%d %d %64s", &x, &y, name) != EOF) {
+  while (scanf("%d %d %64s", &x, &y, name) == 3) {
+    // Read in line-by-line perform the calculation and print out the result
     double distance = calc(&start, &(struct Point){.x = x, .y = y});
 
     double dosage = pow(attenuation_factor, distance) * initial_blast_strength;
 
-    printf("%-8s: %8.3f Sv\n", name, dosage);
+    printf("%-8s: %8.3lf Sv\n", name, dosage);
   }
 }
