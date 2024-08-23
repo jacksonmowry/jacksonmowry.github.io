@@ -1,0 +1,10 @@
+#+title: Notes
+* File Descriptors
+| fd | common name | buffering  |
+|----+-------------+------------|
+|  0 | stdin       |            |
+|  1 | stdout      | buffered   |
+|  2 | stderr      | unbuffered |
+* printf
+
+* scanf

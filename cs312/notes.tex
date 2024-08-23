@@ -1,17 +1,45 @@
-% Created 2024-08-20 Tue 10:56
+% Created 2024-08-22 Thu 10:50
 % Intended LaTeX compiler: pdflatex
-\documentclass[11pt]{article}
-\usepackage[utf8]{inputenc}
+\documentclass[letterpaper, 12pt]{article}
+                                \usepackage{lmodern} % Ensures we have the right font
 \usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage{graphicx}
-\usepackage{longtable}
-\usepackage{wrapfig}
-\usepackage{rotating}
-\usepackage[normalem]{ulem}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{capt-of}
-\usepackage{hyperref}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage[table, xcdraw]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+\renewcommand{\thesection}{\Roman{section}}
+\renewcommand{\thesubsection}{}
+\renewcommand{\thesubsubsection}{}
+\definecolor{bblue}{HTML}{0645AD}
+\usepackage[colorlinks]{hyperref}
+\hypersetup{colorlinks, linkcolor=blue, urlcolor=bblue}
+\usepackage{titling}
+\setlength{\droptitle}{-6em}
+\setlength{\parindent}{12pt}
+\setlength{\parskip}{0em}
+\usepackage[stretch=10]{microtype}
+\usepackage{hyphenat}
+\usepackage{ragged2e}
+\usepackage{subfig} % Subfigures (not needed in Org I think)
+\usepackage{hyperref} % Links
+\usepackage{listings} % Code highlighting
+\usepackage[top=1in, bottom=1.00in, left=0.85in, right=0.85in]{geometry}
+\renewcommand{\baselinestretch}{1.00}
+\usepackage[explicit]{titlesec}
+\pretitle{\begin{center}\fontsize{20pt}{20pt}\selectfont}
+\posttitle{\par\end{center}}
+\preauthor{\begin{center}\vspace{-6bp}\fontsize{12pt}{12pt}\selectfont}
+\postauthor{\par\end{center}\vspace{-25bp}}
+\predate{\begin{center}\fontsize{12pt}{12pt}\selectfont\vspace{1em}}
+\postdate{\par\end{center}\vspace{0em}}
+\titlespacing\section{0pt}{5pt}{5pt} % left margin, space before section header, space after section header
+\titlespacing\subsection{0pt}{5pt}{2pt} % left margin, space before subsection header, space after subsection header
+\titlespacing\subsubsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
+\usepackage{enumitem}
+\setlist{itemsep=-2pt} % or \setlist{noitemsep} to leave space around whole list
+\usepackage{listings}
 \date{\today}
 \title{CS312 Notes}
 \hypersetup{
@@ -27,83 +55,83 @@
 \tableofcontents
 
 \section{Theory Of Computation Introduction}
-\label{sec:org0ac23a1}
-The 3 componenets of problem solving
+\label{sec:orgde07a04}
+The 3 componenets of problem solving\\
 \begin{enumerate}
-\item Unknowns
-\item Data
-\item Conditions
+\item Unknowns\\
+\item Data\\
+\item Conditions\\
 \end{enumerate}
 
-To solve a problem we need to find a way of determining the unknowns from given data such that conditions of the problem are satisfied.
+To solve a problem we need to find a way of determining the unknowns from given data such that conditions of the problem are satisfied.\\
 
-The traditional areas of the theory of computation (TOC)
+The traditional areas of the theory of computation (TOC)\\
 \begin{itemize}
-\item Automata
+\item Automata\\
 \begin{itemize}
-\item Provide problem solving devices
+\item Provide problem solving devices\\
 \end{itemize}
-\item Computability
+\item Computability\\
 \begin{itemize}
-\item Provide framework that can characterize devices by their computing power
+\item Provide framework that can characterize devices by their computing power\\
 \end{itemize}
-\item Complexity
+\item Complexity\\
 \begin{itemize}
-\item Provide framework to classify problems acording to time/space complexity of the toold used to solve them
+\item Provide framework to classify problems acording to time/space complexity of the toold used to solve them\\
 \end{itemize}
 \end{itemize}
 \subsection{Automata (Automaton)}
-\label{sec:org191f283}
+\label{sec:org96a2e56}
 \begin{itemize}
-\item Abstration of computing devices
-\item How much memory can be used?
-\item What operations can be performed?
+\item Abstration of computing devices\\
+\item How much memory can be used?\\
+\item What operations can be performed?\\
 \end{itemize}
 \subsection{Computability}
-\label{sec:orgf4ef912}
+\label{sec:org1aad31c}
 \begin{itemize}
-\item Study different computing models and identify the most powerful ones
-\item Range of problems
-\item Problems can be undecidable or uncomputatble
+\item Study different computing models and identify the most powerful ones\\
+\item Range of problems\\
+\item Problems can be undecidable or uncomputatble\\
 \begin{itemize}
-\item The halting problem
+\item The halting problem\\
 \end{itemize}
 \end{itemize}
 \subsection{Complexity}
-\label{sec:org7a952eb}
+\label{sec:org872b554}
 \begin{itemize}
-\item Computing problems range from easy to hard; sorting is easier than scheduling
-\item Question
+\item Computing problems range from easy to hard; sorting is easier than scheduling\\
+\item Question\\
 \begin{itemize}
-\item What makes some problems computationally hard or others easy?
+\item What makes some problems computationally hard or others easy?\\
 \end{itemize}
 \end{itemize}
 \subsection{Problem Abstration}
-\label{sec:orgb87c38b}
-Data
+\label{sec:org78ac5d9}
+Data\\
 \begin{itemize}
-\item Abstracted as a word in a given alphabet
+\item Abstracted as a word in a given alphabet\\
 \end{itemize}
-Conditions
+Conditions\\
 \begin{itemize}
-\item Abstracted as a set of words called a language
+\item Abstracted as a set of words called a language\\
 \end{itemize}
-Unknowns
+Unknowns\\
 \begin{itemize}
-\item A boolean variable: true if a word is in the language or false other wise
+\item A boolean variable: true if a word is in the language or false other wise\\
 \end{itemize}
 \subsubsection{Abstration of Data}
-\label{sec:orgfb2873a}
+\label{sec:org2927922}
 \begin{itemize}
-\item \(\Sigma\): alphabet, a finite, nonempty set of symbols
-\item \(\Sigma\)\textsuperscript{*}: all words of a finite length built up using \(\Sigma\)
-\item Rules: (1) the empty word (\(\epsilon\)) is in \(\Sigma\)\textsuperscript{*}; (2) if w \(\in\) \(\Sigma\)\textsuperscript{*} and a \(\in\) \(\Sigma\), then aw \(\in\) \(\Sigma\)\textsuperscript{*}, and (3) nothing else is in \(\Sigma\)\textsuperscript{*}
+\item \(\Sigma\): alphabet, a finite, nonempty set of symbols\\
+\item \(\Sigma\)\textsuperscript{*}: all words of a finite length built up using \(\Sigma\)\\
+\item Rules: (1) the empty word (\(\epsilon\)) is in \(\Sigma\)\textsuperscript{*}; (2) if w \(\in\) \(\Sigma\)\textsuperscript{*} and a \(\in\) \(\Sigma\), then aw \(\in\) \(\Sigma\)\textsuperscript{*}, and (3) nothing else is in \(\Sigma\)\textsuperscript{*}\\
 \end{itemize}
 
-Example: If \(\Sigma\) = \{0,1\}, then \(\Sigma\)\textsuperscript{*} = \{\(\epsilon\),0,1,00,01,10,11,000,001,010,011,\ldots{}\}.
+Example: If \(\Sigma\) = \{0,1\}, then \(\Sigma\)\textsuperscript{*} = \{\(\epsilon\),0,1,00,01,10,11,000,001,010,011,\ldots{}\}.\\
 \begin{enumerate}
 \item Valid C
-\label{sec:orgcc9c6af}
+\label{sec:org0f5a396}
 \begin{verbatim}
 int my_func() { return 1; };
 
@@ -115,7 +143,7 @@ int main() {
 }
 \end{verbatim}
 \item Invalid C++
-\label{sec:orga547a80}
+\label{sec:org81e87b6}
 \begin{verbatim}
 int my_func() { return 1; };
 
@@ -127,7 +155,205 @@ int main() {
 }
 \end{verbatim}
 \end{enumerate}
-\subsubsection{\textlnot{} \^{} V}
-\label{sec:org372e4a8}
-\all
+\section{Finite Automata}
+\label{sec:orge0d386c}
+\subsection{Formal Language}
+\label{sec:org2082710}
+\begin{itemize}
+\item Some set of strings over a give alphabet\\
+\item How do you specify a language?\\
+\item How do you recognize strings in a language?\\
+\item How do you translate the language?\\
+\end{itemize}
+\subsection{Abstraction of Problems}
+\label{sec:org418cb97}
+\begin{enumerate}
+\item Data - word in a given alphabet\\
+\begin{itemize}
+\item \(\Sigma\) alphabet, a finite non-empty set of symbols\\
+\item \(\Sigma\)\textsuperscript{*} all words of finite length built-up using \(\Sigma\)\\
+\end{itemize}
+\item Conditions - Set of words called a language\\
+\begin{itemize}
+\item Any subset L \subseteq \(\Sigma\)\textsuperscript{*} is a formal language\\
+\end{itemize}
+\item Unknown - a boolean variable that is true, if word is in language; false, otherwise.\\
+\begin{itemize}
+\item Given w \(\in\) \(\Sigma\)\textsuperscript{*} and L \subseteq \(\Sigma\)\textsuperscript{*}, is w \(\in\) L?\\
+\end{itemize}
+\end{enumerate}
+\subsection{Formal Definition}
+\label{sec:orgbc7cf42}
+\begin{itemize}
+\item Simplest computational model also referred to as a finite-state machine or finite automaton (FA)\\
+\item Representations: graphical, tabular, and mathmatical\\
+\item A finite automaton is a 5-tuple (Q,\(\Sigma\),\(\delta\),q\textsubscript{0},F), where Q is a finite set of states, \(\Sigma\) is a finite set of symbols (alphabet), the transition function \(\delta\) maps Q X \(\Sigma\) to Q, q\textsubscript{0} \(\in\) Q is the start (initial) state, and F \(\subseteq{}\) Q is the set of accept (final) states\\
+\item Used to design embedded systems, or compilers\\
+\end{itemize}
+\subsubsection{Example}
+\label{sec:org78a4af9}
+If the machine is in a start state, where the initial state is an accept state, that means that our FA can accept an empty string \(\epsilon\)\\
+\subsection{DFA}
+\label{sec:org7fd7db2}
+Deterministic Finite Automata\\
+\subsection{Applications}
+\label{sec:org875407a}
+\begin{itemize}
+\item Parsers for compilers\\
+\item Pattern recognition\\
+\item Speech processing and OCR\\
+\item Financial planning and market prediction\\
+\end{itemize}
+\subsection{FA Computation}
+\label{sec:org0b51b05}
+\begin{itemize}
+\item Automaton M\textsubscript{1} receives input symbols one-by-one (left to right)\\
+\item After reading each symbol, M\textsubscript{1} moves from one state to another along the transition that has that symbol as its label\\
+\item When M\textsubscript{1} reads the last symbol of the input, it produces the output: accept if M\textsubscript{1} is in an accept state, or reject if M\textsubscript{1} is not in an accept state\\
+\end{itemize}
+\subsection{Language Recognition}
+\label{sec:org799b4d2}
+\begin{itemize}
+\item If L is the set of all strings that an FA M accepts, we say that L is the language of the machine M and write L(M) = L\\
+\item An automaton may accept several strings, but it always recognizes only one language\\
+\item If a machine accepts no strings, it still recognizes one language, namely the empty language 0\\
+\end{itemize}
+The machines are recognizing words in the language\\
+Any given automaton only recognizes specifically one language\\
+\subsection{Formal Definition of Acceptance}
+\label{sec:org62f517c}
+\begin{itemize}
+\item LEt M = (Q,\(\Sigma\),\(\delta\),q\textsubscript{0},F) be an FA and w = a\textsubscript{1}a\textsubscript{2}\ldots{}a\textsubscript{n} be a string over \(\Sigma\). We say M accepts w if a sequence of states r\textsubscript{0}r\textsubscript{1}\ldots{}r\textsubscript{n} exist in Q such that\\
+\begin{itemize}
+\item r\textsubscript{0} = q\textsubscript{0} (where machine starts)\\
+\item \(\delta\)(r\textsubscript{i},a\textsubscript{i+1}) = r\textsubscript{i+1}, i=0,1,\ldots{},n-1,(transitions based on \(\delta\))\\
+\item r\textsubscript{n} \(\in\) F (input accepted)\\
+\end{itemize}
+\end{itemize}
+\subsection{Regular Languages}
+\label{sec:orgd92f395}
+\begin{itemize}
+\item We say that FA recognizes the language L if L = \{w | M accepts w\}\\
+\item A language is called a \textbf{regular} language, if there exists an FA that recognizes it\\
+\item Q: how do you design/build an FA\\
+\end{itemize}
+\subsection{FA Design Approach}
+\label{sec:orge2b61cb}
+\begin{enumerate}
+\item Identify finite pieces of information you need, i.e., the states (possibilities)\\
+\item Identify the condition (or alphabet) to change from one state to another\\
+\item Idenitfy the starting and final/accept states\\
+\item Add missing transitions\\
+\end{enumerate}
+\subsection{Example}
+\label{sec:org225b040}
+Let M\textsubscript{1} = (Q,\(\Sigma\),\(\delta\),q\textsubscript{1},F), Q = \{q\textsubscript{1},q\textsubscript{2},q\textsubscript{3}\}, \(\Sigma\) = \{0,1\}, and F = \{q\textsubscript{2}\}. Let's define a transition functoin \(\delta\) for M\textsubscript{1} and then draw the resulting (graph-based) \textbf{state transition diagram} for M\textsubscript{1}\\
+
+DFA, this table is Q X \(\Sigma\) \(\rightarrow\) Q\\
+q\textsubscript{1} is the start state\\
+q\textsubscript{2} is the accept\\
+
+\begin{center}
+\begin{tabular}{lll}
+ & 0 & 1\\
+\hline
+q\textsubscript{1} & q\textsubscript{1} & q\textsubscript{2}\\
+q\textsubscript{2} & q\textsubscript{3} & q\textsubscript{2}\\
+q\textsubscript{3} & q\textsubscript{2} & q\textsubscript{2}\\
+\end{tabular}
+\end{center}
+
+\tikzset{
+        ->, % makes the edges directed
+        node distance=3cm, % specifies the minimum distance between two nodes. Change if necessary.
+        every state/.style={thick, fill=gray!10}, % sets the properties for each ’state’ node
+        initial text=$ $, % sets the text that appears on the start arrow
+}
+
+
+\begin{tikzpicture}
+        \node[state, initial] (q1) {$q_1$};
+        \node[state, accepting, right of=q1] (q2) {$q_2$};
+        \node[state, right of=q2] (q3) {$q_3$};
+        \draw (q1) edge[loop above] node{0} (q1)
+        (q1) edge[above] node{1} (q2)
+        (q2) edge[loop above] node{1} (q2)
+        (q2) edge[bend left, above] node{0} (q3)
+        (q3) edge[bend left, below] node{0, 1} (q2);
+\end{tikzpicture}
+\subsubsection{Notes on Example}
+\label{sec:org4f6627f}
+L(M\textsubscript{1}) = ?\\
+L(M\textsubscript{1}) = A\\
+A = \{w | w contains at least one 1 AND an event number of 0's following the last 1\}\\
+\subsection{Example 2}
+\label{sec:orgdcb5187}
+\(\delta\)  Q X \(\Sigma\) \(\rightarrow\) Q\\
+
+\begin{center}
+\begin{tabular}{lll}
+ & 0 & 1\\
+\hline
+q\textsubscript{1} & q\textsubscript{1} & q\textsubscript{2}\\
+q\textsubscript{2} & q\textsubscript{1} & q\textsubscript{2}\\
+\end{tabular}
+\end{center}
+
+\begin{tikzpicture}
+        \node[state, initial] (q1) {$q_1$};
+        \node[state, accepting, right of=q1] (q2) {$q_2$};
+        \draw (q1) edge[loop above] node{0} (q1)
+        (q1) edge[bend left, above] node{1} (q2)
+        (q2) edge[loop above] node{1} (q2)
+        (q2) edge[bend left, below] node{0} (q1)
+\end{tikzpicture}
+
+L(M\textsubscript{2}) = B = \{ w | w ends in a 1 \}\\
+\subsubsection{Expanstion on Above M\textsubscript{3}}
+\label{sec:org875e3ce}
+
+\begin{tikzpicture}
+        \node[state, initial, accepting] (q1) {$q_1$};
+        \node[state, right of=q1] (q2) {$q_2$};
+        \draw (q1) edge[loop above] node{0} (q1)
+        (q1) edge[bend left, above] node{1} (q2)
+        (q2) edge[loop above] node{1} (q2)
+        (q2) edge[bend left, below] node{0} (q1)
+\end{tikzpicture}
+
+Language of M\textsubscript{3} = C = \{ w | w ends in a 0 OR w is empty \}\\
+\subsubsection{What does this give us?}
+\label{sec:orgafbbb08}
+If we flip the accept and initial state, we generate the complement of the machine (flip the meaning)\\
+\subsection{Last DFA Example}
+\label{sec:org9bad656}
+Q=\{s,q\textsubscript{1},q\textsubscript{2},r\textsubscript{1},r\textsubscript{2}\}\\
+\(\Sigma\)=\{a,b\}\\
+F = \{q\textsubscript{1},r\textsubscript{1}\}\\
+
+\(\Delta\) chart\\
+\begin{center}
+\begin{tabular}{lll}
+ & a & b\\
+\hline
+s & q\textsubscript{1} & r\textsubscript{1}\\
+q\textsubscript{1} & q\textsubscript{1} & q\textsubscript{2}\\
+q\textsubscript{2} & q\textsubscript{1} & q\textsubscript{2}\\
+r\textsubscript{1} & r\textsubscript{2} & r\textsubscript{1}\\
+r\textsubscript{2} & r\textsubscript{2} & r\textsubscript{1}\\
+\end{tabular}
+\end{center}
+
+\begin{tikzpicture}
+        \node[state, initial] (s) {$s$};
+        \node[state, accepting, right of=s] (q1) {$q_1$};
+        \node[state, accepting, left of=s] (r1) {$r_1$};
+        \node[state, below of =q1] (q2) {$q_2$};
+        \node[state, below of =r1] (r2) {$r_2$};
+        (s) edge[] node{a} (q1)
+        (s) edge[] node{b} (r1)
+        (q1) edge[loop above] node{a} (q1)
+\end{tikzpicture}
+
+\{ w | starts with 'a' AND ends with 'a' \}\\
 \end{document}

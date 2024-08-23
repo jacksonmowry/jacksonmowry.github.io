@@ -1,4 +1,6 @@
 #+title: CS312 Notes
+#+setupfile: ../jake.setup
+#+options: \n:t
 
 * Theory Of Computation Introduction
 The 3 componenets of problem solving
@@ -74,4 +76,163 @@ int main() {
 
 #+RESULTS:
 
-*** \not ^ V
+* Finite Automata
+** Formal Language
+- Some set of strings over a give alphabet
+- How do you specify a language?
+- How do you recognize strings in a language?
+- How do you translate the language?
+** Abstraction of Problems
+1. Data - word in a given alphabet
+   - \Sigma alphabet, a finite non-empty set of symbols
+   - \Sigma^* all words of finite length built-up using \Sigma
+2. Conditions - Set of words called a language
+   - Any subset L \subseteq \Sigma^* is a formal language
+3. Unknown - a boolean variable that is true, if word is in language; false, otherwise.
+   - Given w \in \Sigma^* and L \subseteq \Sigma^*, is w \in L?
+** Formal Definition
+- Simplest computational model also referred to as a finite-state machine or finite automaton (FA)
+- Representations: graphical, tabular, and mathmatical
+- A finite automaton is a 5-tuple (Q,\Sigma,\delta,q_{0},F), where Q is a finite set of states, \Sigma is a finite set of symbols (alphabet), the transition function \delta maps Q X \Sigma to Q, q_0 \in Q is the start (initial) state, and F $\subseteq{}$ Q is the set of accept (final) states
+- Used to design embedded systems, or compilers
+*** Example
+If the machine is in a start state, where the initial state is an accept state, that means that our FA can accept an empty string \epsilon
+** DFA
+Deterministic Finite Automata
+** Applications
+- Parsers for compilers
+- Pattern recognition
+- Speech processing and OCR
+- Financial planning and market prediction
+** FA Computation
+- Automaton M_{1} receives input symbols one-by-one (left to right)
+- After reading each symbol, M_{1} moves from one state to another along the transition that has that symbol as its label
+- When M_{1} reads the last symbol of the input, it produces the output: accept if M_{1} is in an accept state, or reject if M_{1} is not in an accept state
+** Language Recognition
+- If L is the set of all strings that an FA M accepts, we say that L is the language of the machine M and write L(M) = L
+- An automaton may accept several strings, but it always recognizes only one language
+- If a machine accepts no strings, it still recognizes one language, namely the empty language 0
+The machines are recognizing words in the language
+Any given automaton only recognizes specifically one language
+** Formal Definition of Acceptance
+- LEt M = (Q,\Sigma,\delta,q_{0},F) be an FA and w = a_{1}a_{2}...a_{n} be a string over \Sigma. We say M accepts w if a sequence of states r_{0}r_{1}...r_{n} exist in Q such that
+  - r_{0} = q_{0} (where machine starts)
+  - \delta{}(r_{i},a_{i+1}) = r_{i+1}, i=0,1,...,n-1,(transitions based on \delta)
+  - r_{n} \in F (input accepted)
+** Regular Languages
+- We say that FA recognizes the language L if L = {w | M accepts w}
+- A language is called a *regular* language, if there exists an FA that recognizes it
+- Q: how do you design/build an FA
+** FA Design Approach
+1. Identify finite pieces of information you need, i.e., the states (possibilities)
+2. Identify the condition (or alphabet) to change from one state to another
+3. Idenitfy the starting and final/accept states
+4. Add missing transitions
+** Example
+Let M_{1} = (Q,\Sigma,\delta,q_{1},F), Q = {q_{1},q_{2},q_{3}}, \Sigma = {0,1}, and F = {q_{2}}. Let's define a transition functoin \delta for M_{1} and then draw the resulting (graph-based) *state transition diagram* for M_{1}
+
+DFA, this table is Q X \Sigma \rightarrow{} Q
+q_{1} is the start state
+q_{2} is the accept
+
+|       | 0     | 1     |
+|-------+-------+-------|
+| q_{1} | q_{1} | q_{2} |
+| q_{2} | q_{3} | q_{2} |
+| q_{3} | q_{2} | q_{2} |
+
+#+begin_export latex
+\tikzset{
+        ->, % makes the edges directed
+        node distance=3cm, % specifies the minimum distance between two nodes. Change if necessary.
+        every state/.style={thick, fill=gray!10}, % sets the properties for each ’state’ node
+        initial text=$ $, % sets the text that appears on the start arrow
+}
+#+end_export
+
+
+#+begin_export latex
+\begin{tikzpicture}
+        \node[state, initial] (q1) {$q_1$};
+        \node[state, accepting, right of=q1] (q2) {$q_2$};
+        \node[state, right of=q2] (q3) {$q_3$};
+        \draw (q1) edge[loop above] node{0} (q1)
+        (q1) edge[above] node{1} (q2)
+        (q2) edge[loop above] node{1} (q2)
+        (q2) edge[bend left, above] node{0} (q3)
+        (q3) edge[bend left, below] node{0, 1} (q2);
+\end{tikzpicture}
+#+end_export
+
+*** Notes on Example
+L(M_{1}) = ?
+L(M_{1}) = A
+A = {w | w contains at least one 1 AND an event number of 0's following the last 1}
+
+** Example 2
+\delta{}  Q X \Sigma \rightarrow{} Q
+
+|       | 0     | 1      |
+|-------+-------+--------|
+| q_{1} | q_{1} | q_{2}  |
+| q_{2} | q_{1} | q_{2}  |
+
+#+begin_export latex
+\begin{tikzpicture}
+        \node[state, initial] (q1) {$q_1$};
+        \node[state, accepting, right of=q1] (q2) {$q_2$};
+        \draw (q1) edge[loop above] node{0} (q1)
+        (q1) edge[bend left, above] node{1} (q2)
+        (q2) edge[loop above] node{1} (q2)
+        (q2) edge[bend left, below] node{0} (q1)
+\end{tikzpicture}
+#+end_export
+
+L(M_{2}) = B = { w | w ends in a 1 }
+
+*** Expanstion on Above M_{3}
+
+#+begin_export latex
+\begin{tikzpicture}
+        \node[state, initial, accepting] (q1) {$q_1$};
+        \node[state, right of=q1] (q2) {$q_2$};
+        \draw (q1) edge[loop above] node{0} (q1)
+        (q1) edge[bend left, above] node{1} (q2)
+        (q2) edge[loop above] node{1} (q2)
+        (q2) edge[bend left, below] node{0} (q1)
+\end{tikzpicture}
+#+end_export
+
+Language of M_{3} = C = { w | w ends in a 0 OR w is empty }
+
+*** What does this give us?
+If we flip the accept and initial state, we generate the complement of the machine (flip the meaning)
+
+** Last DFA Example
+Q={s,q_{1},q_{2},r_{1},r_{2}}
+\Sigma={a,b}
+F = {q_{1},r_{1}}
+
+\Delta chart
+|       | a     | b     |
+|-------+-------+-------|
+| s     | q_{1} | r_{1} |
+| q_{1} | q_{1} | q_{2} |
+| q_{2} | q_{1} | q_{2} |
+| r_{1} | r_{2} | r_{1} |
+| r_{2} | r_{2} | r_{1} |
+
+#+begin_export latex
+\begin{tikzpicture}
+        \node[state, initial] (s) {$s$};
+        \node[state, accepting, right of=s] (q1) {$q_1$};
+        \node[state, accepting, left of=s] (r1) {$r_1$};
+        \node[state, below of =q1] (q2) {$q_2$};
+        \node[state, below of =r1] (r2) {$r_2$};
+        (s) edge[] node{a} (q1)
+        (s) edge[] node{b} (r1)
+        (q1) edge[loop above] node{a} (q1)
+\end{tikzpicture}
+#+end_export
+
+{ w | starts with 'a' AND ends with 'a' }
