@@ -13,7 +13,6 @@
 
 typedef char* string;
 VECTOR_PROTOTYPE(string);
-VECTOR_PROTOTYPE(element_t);
 
 /***********************/
 /* generic vector impl */
@@ -94,6 +93,10 @@ char* get_element_tag(const char* const tag, size_t size) {
     // On first we need to init the global variable
     if (tag_type_cache.cap == 0) {
         tag_type_cache = vector_string_init(10);
+        if (!tag_type_cache.array) {
+            fprintf(stderr, "failed to allocate tag type cache\n");
+            exit(1);
+        }
     }
 
     // Try to find the tag, otherwise make a copy and return that pointer

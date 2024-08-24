@@ -49,6 +49,10 @@
     }                                                                          \
     vector_##type vector_##type##_from(const type* const input, size_t size) { \
         vector_##type blank = vector_##type##_init(size);                      \
+        if (!blank.array) {                                                    \
+            fprintf(stderr, "Failed to allocate vector_##type##_init\n");      \
+            exit(1);                                                           \
+        }                                                                      \
         blank.len = size;                                                      \
         memcpy(blank.array, input, sizeof(type) * size);                       \
         return blank;                                                          \
@@ -126,6 +130,7 @@ typedef struct element_t {
     element_u e;
 } element_t;
 
+VECTOR_PROTOTYPE(element_t);
 void element_t_print(element_t e);
 void element_t_free(element_t e);
 

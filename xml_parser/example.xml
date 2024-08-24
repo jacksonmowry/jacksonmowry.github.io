@@ -1,15 +1,42 @@
-<schema version = "1.0.0">
+<schema version="1.0.0">
   <messages>
     <message name="Reaction">
-      <string required="true">Emoji</string>
-      <integer default="0">Count</integer>
+      <field type="string" required="true">Emoji</field>
+      <field type="integer" default="0">Count</field>
     </message>
-    <message name="Chat Message">
-      <string required="true">Author</string>
-      <timestamp required="true">Message Sent</timestamp>
-      <integer>Likes</integer>
-      <string required="true">Body</string>
-      <structs type="reaction">Reactions</structs>
+    <message type="chat_message">
+      <field type="string" required="true">Author</field>
+      <field type="timestamp" required="true">Message Sent</field>
+      <field type="integer">Likes</field>
+      <field type="string" required="true">Body</field>
+      <field type="reaction[]">Reactions</field>
     </message>
   </messages>
+  <procedures>
+    <procedure name = "send_message">
+      <description>
+        Submits a new chat message along with the users authentication token.
+      </description>
+      <parameters>
+        <parameter type="chat_message" required="true">Message</parameter>
+        <parameter type="string" required="true">Auth Token</parameter>
+      </parameters>
+      <returns>
+        <field type="boolean">Success</field>
+      </returns>
+    </procedure>
+    <procedure name = "get_messages">
+      <description>
+        Get the latest `Count` messages from the server, requires a users authentication token.
+        `Count` defaults to 10 messages.
+      </description>
+      <parameters>
+        <parameter type="integer">Count</parameter>
+        <parameter type="string" required="true">Auth Token</parameter>
+      </parameters>
+      <returns>
+        <field type="chat_message[]">Messages</field>
+      </returns>
+    </procedure>
+  </procedures>
 </schema>
