@@ -1,15 +1,15 @@
 <schema version="1.0.0">
   <messages>
-    <message name="Reaction">
-      <field type="string" required="true">Emoji</field>
-      <field type="integer" default="0">Count</field>
+    <message name="reaction">
+      <field type="string" required="true">emoji</field>
+      <field type="integer" default="0">count</field>
     </message>
-    <message type="chat_message">
-      <field type="string" required="true">Author</field>
-      <field type="timestamp" required="true">Message Sent</field>
-      <field type="integer">Likes</field>
-      <field type="string" required="true">Body</field>
-      <field type="reaction[]">Reactions</field>
+    <message name="chat_message">
+      <field type="string" required="true">author</field>
+      <field type="timestamp" required="true">message_sent</field>
+      <field type="integer">likes</field>
+      <field type="string" required="true">body</field>
+      <field type="reaction[]">reactions</field>
     </message>
   </messages>
   <procedures>
@@ -18,11 +18,11 @@
         Submits a new chat message along with the users authentication token.
       </description>
       <parameters>
-        <parameter type="chat_message" required="true">Message</parameter>
-        <parameter type="string" required="true">Auth Token</parameter>
+        <field type="chat_message" required="true">message</field>
+        <field type="string" required="true">auth_token</field>
       </parameters>
       <returns>
-        <field type="boolean">Success</field>
+        <field type="boolean">success</field>
       </returns>
     </procedure>
     <procedure name = "get_messages">
@@ -31,11 +31,11 @@
         `Count` defaults to 10 messages.
       </description>
       <parameters>
-        <parameter type="integer">Count</parameter>
-        <parameter type="string" required="true">Auth Token</parameter>
+        <field type="integer">count</field>
+        <field type="string" required="true">auth_token</field>
       </parameters>
       <returns>
-        <field type="chat_message[]">Messages</field>
+        <field type="chat_message[]">messages</field>
       </returns>
     </procedure>
   </procedures>

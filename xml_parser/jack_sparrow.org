@@ -1,0 +1,14 @@
+#+title: Jack Sparrow
+
+* Memory Layout
+Jack Sparrow has 2 memory layout modes, automatic (default), and explict field ordering.
+
+** Automatic Memory Layout
+Automatic field ordering allows Jack Sparrow to reorder fields in the best possible order, while still maintaining field alignment. In a general sense we can think of this as ordering each field by its size, sorting from high to low, and then following the standard C-style layout.
+
+This field ordering generally offers a 1.18x increase in efficiency (non-padding bytes/total bytes). In addition to the fields a user specifies in the schema, Jack Sparrow also needs to add an additional 1 bit per field to indicate if an optional field is present. This means that even if a users ensures their message is properly ordered to minimize padding, that benefit might be thrown away when Jack Sparrow adds =ciel(num_fields / 8)= bytes to the message.
+
+** Explict Memory Layout
+Explicit field ordering will adhere to typical C-style struct layouts, where fields are aligned based upon their native alignment size. Generally this means 4-byte fields must be placed at a memory address divisible by 4, or divisible by 8 for an 8-byte field. Characters (and other 1-byte) fields can be placed on any byte in memory.
+
+This results in a more predictible memory model, at the cost of potentially wasted space due to needed padding.
