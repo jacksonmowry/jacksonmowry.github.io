@@ -22,37 +22,31 @@
     fprintf(stderr, "%-10s %s:%s:%d: ", level, __FILE__, __func__, __LINE__);  \
     fprintf(stderr, fmt_string, ##__VA_ARGS__)
 
-// Not super happy with this part yet, needs to be dynamic so that types can
-// added at runtime, although the primitive types needs to be defined somewhere
-/* The list of values we want to turn into an enum and a string array */
-#define LIST_OF_TYPES                                                          \
-    X(STRING)                                                                  \
-    X(INTEGER)                                                                 \
-    X(TIMESTAMP)                                                               \
-    X(FLOAT)                                                                   \
-    X(DOUBLE)
-
-/* Create the enumeration */
-#define X(name) name,
-typedef enum { LIST_OF_TYPES } types_t;
-#undef X
-
-/* Create the strings mapped to the enumeration */
-#define X(name) #name,
-static char* type_strings[] = {LIST_OF_TYPES};
-#undef X
-
-types_t find_type(const char* type) {
-    char* copy = strdupa(type);
-    // Convert to upper
-    for (size_t i = 0; copy[i]; i++) {
-        if (copy[i] >= 'a' && type[i] <= 'z') {
-            copy[i] -= 'a' - 'A';
-        }
-    }
-
-    for (size_t i = 0; i < sizeof(type_strings) / sizeof(char*); i++) {
-        if (!strcmp(type_strings[i], copy)) {
+typedef enum primitive_t {
+    js_string,    // => 8
+    js_i64,       // => 8
+    js_u64,       // => 8
+    js_i32,       // => 4
+    js_u32,       // => 4
+    js_i16,       // => 2
+    js_u16,       // => 2
+    js_i8,        // => 1
+    js_u8,        // => 1
+    js_char,      // => 1
+    js_double,    // => 8
+    js_float,     // => 4
+    js_half,      // => 2
+    js_timestamp, // => 8
+    js_boolean    // => 1
+} primitive_t;
+const size_t primitive_sizes[] = {8, 8, 8, 4, 4, 2, 2, 1, 1, 1, 8, 4, 2, 8, 1};
+const char* primitive_names[] = {
+    "string", "i64",  "u64",    "i32",   "u32",  "i16",       "u16",    "i8",
+    "u8",     "char", "double", "float", "half", "timestamp", "boolean"};
+// Returns the enum value for `primitive_t` or -1 if not found
+primitive_t primitive_find(const char* typename) {
+    for (size_t i = 0; i < sizeof(primitive_names) / sizeof(char*); i++) {
+        if (!strcmp(typename, primitive_names[i])) {
             return i;
         }
     }
@@ -61,7 +55,7 @@ types_t find_type(const char* type) {
 }
 
 typedef struct field {
-    types_t type;
+    primitive_t type;
     char* type_name;
     bool required;
     bool array;
@@ -74,6 +68,7 @@ VECTOR(field);
 
 typedef struct message {
     char* name;
+    size_t base_size;
     vector_field fields;
 } message;
 
@@ -146,7 +141,8 @@ field parse_field(element e) {
         exit(1);
     }
 
-    return (field){.type_name = strdup(type),
+    return (field){.type = primitive_find(type),
+                   .type_name = strdup(type),
                    .required = strcmp("false", required ? required : ""),
                    .default_value = strdup(default_value ? default_value : "")};
 }
@@ -161,8 +157,9 @@ void schema_print(schema s) {
 
         for (size_t j = 0; j < s.messages.array[i].fields.len; j++) {
             field f = s.messages.array[i].fields.array[j];
-            printf("\t\t\t\t%s: %s, %s, default: %s\n", f.name, f.type_name,
-                   f.required ? "required" : "optional", f.default_value);
+            printf("\t\t\t\t%s: %s(%d), %s, default: %s\n", f.name, f.type_name,
+                   f.type, f.required ? "required" : "optional",
+                   f.default_value);
         }
     }
 
@@ -173,15 +170,17 @@ void schema_print(schema s) {
         printf("\t\t\tParameters:\n");
         for (size_t j = 0; j < s.procedures.array[i].parameters.len; j++) {
             field f = s.procedures.array[i].parameters.array[j];
-            printf("\t\t\t\t%s: %s, %s, default: %s\n", f.name, f.type_name,
-                   f.required ? "required" : "optional", f.default_value);
+            printf("\t\t\t\t%s: %s(%d), %s, default: %s\n", f.name, f.type_name,
+                   f.type, f.required ? "required" : "optional",
+                   f.default_value);
         }
 
         printf("\t\t\tReturn Values:\n");
         for (size_t j = 0; j < s.procedures.array[i].return_values.len; j++) {
             field f = s.procedures.array[i].return_values.array[j];
-            printf("\t\t\t\t%s: %s, %s, default: %s\n", f.name, f.type_name,
-                   f.required ? "required" : "optional", f.default_value);
+            printf("\t\t\t\t%s: %s(%d), %s, default: %s\n", f.name, f.type_name,
+                   f.type, f.required ? "required" : "optional",
+                   f.default_value);
         }
     }
 }
@@ -223,6 +222,16 @@ void schema_free(schema s) {
     }
 
     vector_procedure_free(s.procedures);
+}
+
+bool needs_sizes(schema s) {
+    for (size_t i = 0; i < s.messages.len; i++) {
+        if (s.messages.array[i].base_size == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int main() {
@@ -483,5 +492,51 @@ int main() {
     }
 
     schema_print(schema);
+
+    // We need to make at least one pass over the messages to determine their
+    // sizes, Likely we will have to loop around again once the size of a
+    // messages dependants has been resolved
+    do {
+        for (size_t i = 0; i < schema.messages.len; i++) {
+            message* m = &schema.messages.array[i];
+            // This element already has a size
+            if (m->base_size) {
+                continue;
+            }
+
+            size_t message_size = 0;
+            for (size_t j = 0; j < m->fields.len; j++) {
+                field f = m->fields.array[j];
+                // if we have a `type` look up its size, if we don't have a
+                // `type` try to add one with `type_name` then resolve its size
+                // We need to have some mechanism to differentiate between
+                // primitive values and user-defined values can't simply use
+                // f.type, or maybe we don't set f.type for user-defined values
+                // and always do the lookup through `type_name` and store those
+                // sizes in a cache?
+                if (f.type != -1) {
+                    // Value is primitive
+                    size_t primitive_size = primitive_sizes[f.type];
+                    message_size += primitive_size;
+                } else {
+                    // Value is user defined, but might not be "sized" yet
+                    // Lookup by `type_name`, if not defined skip this entire
+                    // message
+                    // ssize_t user_type_size = user_types_find(f.type_name)
+                    // if (user_type_size == -1) {
+                    //     continue;
+                    // }
+                    // message_size += user_type_size;
+                }
+            }
+
+            // If we get here that means the message has a "true" size now
+            m->base_size = message_size;
+
+            // Now add its size to the user-defined sizes cache
+            // user_type_add(&user_type_cache, m->type_name, message_size);
+        }
+    } while (needs_sizes(schema));
+
     schema_free(schema);
 }

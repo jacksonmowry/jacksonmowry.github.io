@@ -2,12 +2,12 @@
   <messages>
     <message name="reaction">
       <field type="string" required="true">emoji</field>
-      <field type="integer" default="0">count</field>
+      <field type="i32" default="0">count</field>
     </message>
     <message name="chat_message">
       <field type="string" required="true">author</field>
       <field type="timestamp" required="true">message_sent</field>
-      <field type="integer">likes</field>
+      <field type="i32">likes</field>
       <field type="string" required="true">body</field>
       <field type="reaction[]">reactions</field>
     </message>
@@ -31,7 +31,7 @@
         `Count` defaults to 10 messages.
       </description>
       <parameters>
-        <field type="integer">count</field>
+        <field type="i32">count</field>
         <field type="string" required="true">auth_token</field>
       </parameters>
       <returns>

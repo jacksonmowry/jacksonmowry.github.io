@@ -12,3 +12,45 @@ This field ordering generally offers a 1.18x increase in efficiency (non-padding
 Explicit field ordering will adhere to typical C-style struct layouts, where fields are aligned based upon their native alignment size. Generally this means 4-byte fields must be placed at a memory address divisible by 4, or divisible by 8 for an 8-byte field. Characters (and other 1-byte) fields can be placed on any byte in memory.
 
 This results in a more predictible memory model, at the cost of potentially wasted space due to needed padding.
+
+* Type Definitions
+#+begin_src C
+typedef enum primitive_t {
+    js_string,    // => 8
+    js_i64,       // => 8
+    js_u64,       // => 8
+    js_i32,       // => 4
+    js_u32,       // => 4
+    js_i16,       // => 2
+    js_u16,       // => 2
+    js_i8,        // => 1
+    js_u8,        // => 1
+    js_char,      // => 1
+    js_double,    // => 8
+    js_float,     // => 4
+    js_half,      // => 2
+    js_timestamp, // => 8
+    js_boolean    // => 1
+} primitive_t;
+#+end_src
+
+** String
+| offset in bytes | size    | ...                  | data         |
+| 4 bytes         | 4 bytes | other message fields | `size` bytes |
+** Integers
+i = signed
+u = unsigned
+i64, where 64 means 64-bits wide
+** Char
+1 byte ASCII value
+** Double
+64-bit double precision floating point IEEE-754
+** Float
+32-bit single precision floating point IEEE-754
+** Half
+16-bit half precision floating point IEEE-754
+** Timestamp
+UNIX time_t 64-bit timestamp indicating seconds past Epoch (1970-01-01 00:00:00+0000 (UTC))
+** Boolean
+Pessimistic 1 byte per boolean, in reality these will get packed together with other booleans to form bit fields
+- If a boolean is a required field it will add 0 space to the output, as its "optional" bit will be used to indicate its value
