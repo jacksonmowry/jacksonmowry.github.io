@@ -85,3 +85,48 @@ no
 0&0&0&0&1
 \end{array}
 \right ]
+
+** Properties
+in general the variables in a linear ysstem that correspond to the leading 1's in its augmented matrix are called the *leading variables* and the remaining variables are called the *free variables*
+
+** Example 2
+Suppose each of the following augmented matricies for a linear system in the unknowns x,y, and z has been reduced by elementary row operations to the give nreduced row echelon form.
+
+If there are no solutions we say the system is inconsistent
+
+Leading 1 is called *leading variable*
+
+If we have more variables than we have equations we have *infinite* solutions
+- We let all the free variables be = to a letter
+- t = x_{3}
+
+** Definition
+If a linear system has infinitely many solutions, then a set of parametric equations from which all solutions can be obtained by assigning numbreical values to the parameters is called a *general soltuion of the system*
+
+We will usually denote parameters in a general solution by the letter r,s,t,..., but any letters that do not confilict with the names of the unknowns can be used. For systme with more than 3 unknowns you can use subscripts
+
+** Trivial Solution
+Trivial solution every homogenous system of linear equations is consistent because x=y=z=0 is a solution
+- Constant colum is all 0s
+** Nontrivial solution
+If there are other solutions, they are called nontrivial solutions
+** Theorem Free Variable Theorem for Homogenous Systems
+- If a homogenous linear system has n unknowns, and if the reduced row echelon form of its augmented matrix has r nonzero rows ,then the system has n-r free variables
+** Theorem More Free than Equations
+A homogenous linear system with more unknowns than equations has infinitely many solutions
+
+* Gauss-Jordan elimination
+The algo we use for reducing a matrix to RREF is called Gauss-Jordan elimination. It consists of 2 parts, a *forward phase* in which zeros are intoruced below th eleading 1's and a *backward phase* in which zeros are introduced above the leading 1's. If only using forward then it is called a *Gaussian elimination*
+
+How to solve completely: *Backwards substitution*
+- Once you're in RREF, then we go back to the system of equations
+
+** Facts about Echelon Forms
+- Every matrix has a unique reduced row echelon form, the same reduced row echelon form with result no matter the methods used
+- Row echelon forms are not unique; that is, different sequences of elementary row operations can result in different row echelon forms
+- Although row echelon forms are not unique, the reduced row echelon form and all row echelon forms of a matrix A have the same number of zero rows, and the leading 1's always occur in the same positions. Those are called *pivot positions* of a. The columns containing the leading 1's in a row echelon or reduced row echelon form of A are called the *pivot columns* of A, and the rows containing the leading 1's are called the pivot rows of A. A nonzero entry in a pivot position of A is called a *pivot* of ja.
+
+** Example 4
+a. non-unique, inconsistent
+b. non-unique, infinitely many solutions
+c. non-unique, one solution, # of variables == # of non-zero rows

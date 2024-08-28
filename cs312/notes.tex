@@ -1,4 +1,4 @@
-% Created 2024-08-22 Thu 10:50
+% Created 2024-08-27 Tue 10:11
 % Intended LaTeX compiler: pdflatex
 \documentclass[letterpaper, 12pt]{article}
                                 \usepackage{lmodern} % Ensures we have the right font
@@ -55,7 +55,7 @@
 \tableofcontents
 
 \section{Theory Of Computation Introduction}
-\label{sec:orgde07a04}
+\label{sec:orgebf415c}
 The 3 componenets of problem solving\\
 \begin{enumerate}
 \item Unknowns\\
@@ -81,14 +81,14 @@ The traditional areas of the theory of computation (TOC)\\
 \end{itemize}
 \end{itemize}
 \subsection{Automata (Automaton)}
-\label{sec:org96a2e56}
+\label{sec:orgcf64d92}
 \begin{itemize}
 \item Abstration of computing devices\\
 \item How much memory can be used?\\
 \item What operations can be performed?\\
 \end{itemize}
 \subsection{Computability}
-\label{sec:org1aad31c}
+\label{sec:org4356e80}
 \begin{itemize}
 \item Study different computing models and identify the most powerful ones\\
 \item Range of problems\\
@@ -98,7 +98,7 @@ The traditional areas of the theory of computation (TOC)\\
 \end{itemize}
 \end{itemize}
 \subsection{Complexity}
-\label{sec:org872b554}
+\label{sec:orgb36b64e}
 \begin{itemize}
 \item Computing problems range from easy to hard; sorting is easier than scheduling\\
 \item Question\\
@@ -107,7 +107,7 @@ The traditional areas of the theory of computation (TOC)\\
 \end{itemize}
 \end{itemize}
 \subsection{Problem Abstration}
-\label{sec:org78ac5d9}
+\label{sec:orgb21d818}
 Data\\
 \begin{itemize}
 \item Abstracted as a word in a given alphabet\\
@@ -121,7 +121,7 @@ Unknowns\\
 \item A boolean variable: true if a word is in the language or false other wise\\
 \end{itemize}
 \subsubsection{Abstration of Data}
-\label{sec:org2927922}
+\label{sec:org3d21358}
 \begin{itemize}
 \item \(\Sigma\): alphabet, a finite, nonempty set of symbols\\
 \item \(\Sigma\)\textsuperscript{*}: all words of a finite length built up using \(\Sigma\)\\
@@ -131,7 +131,7 @@ Unknowns\\
 Example: If \(\Sigma\) = \{0,1\}, then \(\Sigma\)\textsuperscript{*} = \{\(\epsilon\),0,1,00,01,10,11,000,001,010,011,\ldots{}\}.\\
 \begin{enumerate}
 \item Valid C
-\label{sec:org0f5a396}
+\label{sec:org7da7c65}
 \begin{verbatim}
 int my_func() { return 1; };
 
@@ -143,7 +143,7 @@ int main() {
 }
 \end{verbatim}
 \item Invalid C++
-\label{sec:org81e87b6}
+\label{sec:org459beab}
 \begin{verbatim}
 int my_func() { return 1; };
 
@@ -156,9 +156,9 @@ int main() {
 \end{verbatim}
 \end{enumerate}
 \section{Finite Automata}
-\label{sec:orge0d386c}
+\label{sec:org0c491a9}
 \subsection{Formal Language}
-\label{sec:org2082710}
+\label{sec:org0a76da1}
 \begin{itemize}
 \item Some set of strings over a give alphabet\\
 \item How do you specify a language?\\
@@ -166,7 +166,7 @@ int main() {
 \item How do you translate the language?\\
 \end{itemize}
 \subsection{Abstraction of Problems}
-\label{sec:org418cb97}
+\label{sec:org1bbf900}
 \begin{enumerate}
 \item Data - word in a given alphabet\\
 \begin{itemize}
@@ -183,7 +183,7 @@ int main() {
 \end{itemize}
 \end{enumerate}
 \subsection{Formal Definition}
-\label{sec:orgbc7cf42}
+\label{sec:org969abba}
 \begin{itemize}
 \item Simplest computational model also referred to as a finite-state machine or finite automaton (FA)\\
 \item Representations: graphical, tabular, and mathmatical\\
@@ -191,13 +191,13 @@ int main() {
 \item Used to design embedded systems, or compilers\\
 \end{itemize}
 \subsubsection{Example}
-\label{sec:org78a4af9}
+\label{sec:org843b84e}
 If the machine is in a start state, where the initial state is an accept state, that means that our FA can accept an empty string \(\epsilon\)\\
 \subsection{DFA}
-\label{sec:org7fd7db2}
+\label{sec:orgc87e670}
 Deterministic Finite Automata\\
 \subsection{Applications}
-\label{sec:org875407a}
+\label{sec:org08c81d0}
 \begin{itemize}
 \item Parsers for compilers\\
 \item Pattern recognition\\
@@ -205,14 +205,14 @@ Deterministic Finite Automata\\
 \item Financial planning and market prediction\\
 \end{itemize}
 \subsection{FA Computation}
-\label{sec:org0b51b05}
+\label{sec:org79189b5}
 \begin{itemize}
 \item Automaton M\textsubscript{1} receives input symbols one-by-one (left to right)\\
 \item After reading each symbol, M\textsubscript{1} moves from one state to another along the transition that has that symbol as its label\\
 \item When M\textsubscript{1} reads the last symbol of the input, it produces the output: accept if M\textsubscript{1} is in an accept state, or reject if M\textsubscript{1} is not in an accept state\\
 \end{itemize}
 \subsection{Language Recognition}
-\label{sec:org799b4d2}
+\label{sec:org20372fd}
 \begin{itemize}
 \item If L is the set of all strings that an FA M accepts, we say that L is the language of the machine M and write L(M) = L\\
 \item An automaton may accept several strings, but it always recognizes only one language\\
@@ -221,7 +221,7 @@ Deterministic Finite Automata\\
 The machines are recognizing words in the language\\
 Any given automaton only recognizes specifically one language\\
 \subsection{Formal Definition of Acceptance}
-\label{sec:org62f517c}
+\label{sec:orgf54270f}
 \begin{itemize}
 \item LEt M = (Q,\(\Sigma\),\(\delta\),q\textsubscript{0},F) be an FA and w = a\textsubscript{1}a\textsubscript{2}\ldots{}a\textsubscript{n} be a string over \(\Sigma\). We say M accepts w if a sequence of states r\textsubscript{0}r\textsubscript{1}\ldots{}r\textsubscript{n} exist in Q such that\\
 \begin{itemize}
@@ -231,14 +231,14 @@ Any given automaton only recognizes specifically one language\\
 \end{itemize}
 \end{itemize}
 \subsection{Regular Languages}
-\label{sec:orgd92f395}
+\label{sec:orgaa9529a}
 \begin{itemize}
 \item We say that FA recognizes the language L if L = \{w | M accepts w\}\\
 \item A language is called a \textbf{regular} language, if there exists an FA that recognizes it\\
 \item Q: how do you design/build an FA\\
 \end{itemize}
 \subsection{FA Design Approach}
-\label{sec:orge2b61cb}
+\label{sec:orgce64ab6}
 \begin{enumerate}
 \item Identify finite pieces of information you need, i.e., the states (possibilities)\\
 \item Identify the condition (or alphabet) to change from one state to another\\
@@ -246,7 +246,7 @@ Any given automaton only recognizes specifically one language\\
 \item Add missing transitions\\
 \end{enumerate}
 \subsection{Example}
-\label{sec:org225b040}
+\label{sec:orgdeddde7}
 Let M\textsubscript{1} = (Q,\(\Sigma\),\(\delta\),q\textsubscript{1},F), Q = \{q\textsubscript{1},q\textsubscript{2},q\textsubscript{3}\}, \(\Sigma\) = \{0,1\}, and F = \{q\textsubscript{2}\}. Let's define a transition functoin \(\delta\) for M\textsubscript{1} and then draw the resulting (graph-based) \textbf{state transition diagram} for M\textsubscript{1}\\
 
 DFA, this table is Q X \(\Sigma\) \(\rightarrow\) Q\\
@@ -282,12 +282,12 @@ q\textsubscript{3} & q\textsubscript{2} & q\textsubscript{2}\\
         (q3) edge[bend left, below] node{0, 1} (q2);
 \end{tikzpicture}
 \subsubsection{Notes on Example}
-\label{sec:org4f6627f}
+\label{sec:org908bde5}
 L(M\textsubscript{1}) = ?\\
 L(M\textsubscript{1}) = A\\
 A = \{w | w contains at least one 1 AND an event number of 0's following the last 1\}\\
 \subsection{Example 2}
-\label{sec:orgdcb5187}
+\label{sec:orgf624603}
 \(\delta\)  Q X \(\Sigma\) \(\rightarrow\) Q\\
 
 \begin{center}
@@ -310,7 +310,7 @@ q\textsubscript{2} & q\textsubscript{1} & q\textsubscript{2}\\
 
 L(M\textsubscript{2}) = B = \{ w | w ends in a 1 \}\\
 \subsubsection{Expanstion on Above M\textsubscript{3}}
-\label{sec:org875e3ce}
+\label{sec:orgf35a46a}
 
 \begin{tikzpicture}
         \node[state, initial, accepting] (q1) {$q_1$};
@@ -323,10 +323,10 @@ L(M\textsubscript{2}) = B = \{ w | w ends in a 1 \}\\
 
 Language of M\textsubscript{3} = C = \{ w | w ends in a 0 OR w is empty \}\\
 \subsubsection{What does this give us?}
-\label{sec:orgafbbb08}
+\label{sec:orgc047a26}
 If we flip the accept and initial state, we generate the complement of the machine (flip the meaning)\\
 \subsection{Last DFA Example}
-\label{sec:org9bad656}
+\label{sec:orgab2af2f}
 Q=\{s,q\textsubscript{1},q\textsubscript{2},r\textsubscript{1},r\textsubscript{2}\}\\
 \(\Sigma\)=\{a,b\}\\
 F = \{q\textsubscript{1},r\textsubscript{1}\}\\
@@ -356,4 +356,45 @@ r\textsubscript{2} & r\textsubscript{2} & r\textsubscript{1}\\
 \end{tikzpicture}
 
 \{ w | starts with 'a' AND ends with 'a' \}\\
+\section{Regular Languages}
+\label{sec:orgca64fe1}
+Let A and B be languages\\
+Union: A \union B = \{ x | x \(\in\) A \(\vee\) x \(\in\) B \}\\
+Concatenation: A \^{} B = \{ xy | x \(\in\) A \(\wedge\) y \(\in\) B \}\\
+Star: A\textsuperscript{*} = \{ x\textsubscript{1}x\textsubscript{2}\ldots{}x\textsubscript{k} | k >= 0 \(\wedge\) x\textsubscript{i} \(\in\) A, 0 <= i <= k \}\\
+\subsubsection{Is \(\epsilon\) always a member of A\textsuperscript{*} regarless of the language A?}
+\label{sec:orgf81fd3b}
+Yes\\
+\subsubsection{What is another name for the language of A \^{} A\textsuperscript{*}?}
+\label{sec:org62476f4}
+A\textsuperscript{+}\\
+\subsubsection{Closures of Regular Languages}
+\label{sec:org34fe727}
+Theorem: Class of regular languages is closed under intersection. (Proof: Use cross-product construction of states)\\
+Theorem: Class of regular languages is closed under complementation (Proof: swap accept/non-accept states and show FA recognizes the complement)\\
+\subsection{Nondeterminism}
+\label{sec:orgc7b4b15}
+NFA or nondeterministic finite automata\\
+\begin{itemize}
+\item Every stop of a FA computation follows in a unique way from the proceeding step; a deterministic computation\\
+\item Nondeterministic computation - choices exist for the next state; a nondeterministic FA (NFA)\\
+\item Ways to introduct nondeterminism\\
+\begin{itemize}
+\item more choices for next state (zero, one, many)\\
+\item State may change to another state without reading any symbol\\
+\end{itemize}
+\end{itemize}
+\subsubsection{Formal Definition}
+\label{sec:org5b8c37a}
+a 5-tuple (Q, \(\Sigma\), \(\delta\), q\textsubscript{0}, F), where Q is a finite set of states, \(\Sigma\) is a finite set of symbols (alphabet), the transition function \(\delta\) maps Q x \(\Sigma\) \union \{\(\epsilon\)\} to \mathbb{P}(\mathbb{Q}), q\textsubscript{0} \(\in\) Q is the start (initial) state, and F \(\subseteq{}\) Q is the set of accept (final) states.\\
+
+Notice that the range of the transition function \(\delta\) for an NFA is the power set of Q \mathbb{P}(\mathbb{Q})\\
+\subsubsection{Formal Definition of Acceptance (NFA)}
+\label{sec:orgd6d0388}
+Let N  k (Q, \(\Sigma\), \(\delta\), q\textsubscript{0}, F) be an NFA and w = y\textsubscript{1}y\textsubscript{2}\ldots{}y\textsubscript{n} be a string over \(\Sigma_{\epsilon}=\Sigma{}\union{\epsilon}\). We say N accepts w if a sequence of states r\textsubscript{0},r\textsubscript{1},\ldots{},r\textsubscript{m} exist in Q such that\\
+\begin{enumerate}
+\item r\textsubscript{0} = q\textsubscript{0}\\
+\item \(\delta\)(r\textsubscript{i},y\textsubscript{i+1}) = r\textsubscript{i+1} for i = 0,1,\ldots{},m-1\\
+\item r\textsubscript{m}\(\in\)F\\
+\end{enumerate}
 \end{document}

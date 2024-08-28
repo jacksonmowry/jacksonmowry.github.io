@@ -1,0 +1,89 @@
+#+title: One Four
+* Properties
+1. A+B=B+A
+2. A+(B+C)=(A+B)+C
+3. (km)A=k(mA)
+4. 1A=A
+5. k(A+B)=kA+kB
+6. (k+m)A=Ka+mA
+7. A+0_{m x n} = A
+8. A+(-A) = 0
+9. If kA = 0_{m x n} then k = 0, or A = 0_{m x n}
+
+* Matrix Mul Props
+1. A(BC) = (AB)C
+2. A(B+C) = AB+AC
+3. (A+B)C=AC+BC
+4. k(AB)=(kA)B=A(kB)
+
+AB \neq{} BA in general
+
+#+begin_example
+A_{2x3}B_{3x2} -> 2x2
+B_{3x2}A_{2x3} -> 3x3
+#+end_example
+
+* Matrix Transpost Props
+1. (A^{T})^{T} = A
+2. (A+B)^{T} = A^{T} + B^{T}
+3. (kA)^T = k(A^T)
+4. (AB)^T = B^{T}A^{T}
+
+* The Zero Matrix
+One of every size m x n; every entry is 0
+The zero products property for matricies is not true
+
+\left (
+\begin{array}{cc}
+0 & 2\\
+0 & 3
+\end{array}
+\right )
+\left (
+*
+\begin{array}{cc}
+4 & 5\\
+0 & 0
+\end{array}
+\right )
+=
+\left (
+\begin{array}{cc}
+0(4)+2(0) & 0(5)+2(0)\\
+0(4)+3(0) & 0(5)+3(0)
+\end{array}
+\right )
+
+** The Cancelation Property
+#+begin_src octave
+a = [0,1;0,-1]
+b = [1,2;3,4]
+
+a * b
+#+end_src
+
+#+RESULTS:
+|  3 |  4 |
+| -3 | -4 |
+
+#+begin_src octave
+a = [0,1;0,-1]
+b = [5,6;3,4]
+
+a * b
+#+end_src
+
+#+RESULTS:
+|  3 |  4 |
+| -3 | -4 |
+
+same output without the same inputs
+
+* Identity Matrix
+One of every size n x m; 1's down the main diagonal, and 0s everywhere else
+#+begin_src octave
+[1,0,0;0,1,0;0,0,1]
+
+#+end_src
+
+#+RESULTS:

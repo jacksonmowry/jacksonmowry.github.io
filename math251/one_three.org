@@ -1,0 +1,173 @@
+#+title: One Three
+
+* Objectives
+- Add and subtract matricies
+- Multiply matricies
+- Writing a system of linear equations as a matrix product
+- Write a matrxi product as the linear combination of the columns
+- Compute the tract and transpost of a matrix
+
+* Consistent Factors
+A matrix with /m/ rows and /n/ columns is called an /m/ by /n/ matrix
+Every location in a matrix A is double subscripted
+The a_{i,j}th number is found in the /i/th row and /j/th column
+3 by 4 matrix
+5, 9, 3
+Row matricies have one row for example, column matricies have one column, also called vector
+
+* Matrix Arithmetic
+** Defintion
+Two matricies A and B are equal, if they have the same dimension (m x n), and their corresponding entries are identical. (A)_{ij} = = a_{ij} = b_{ij} = (B)_{ij} for 1 <= /i/ <= m, and 1 <= /j/ <= /n/
+
+** Addition/Subtraction
+Two matricies have a sumer or different if and only if they have the same dimensions (m x n), and their sum is defined to be (A + B)_{ij} = a_{ij} + b_{ij}
+
+| 1 | 2 | 4 |
+| 1 | 3 | 9 |
++
+| 2 | 3 | 6 |
+| 4 | 5 | 20 |
+=
+| 3 | 5 | 10 |
+| 5 | 8 | 29 |
+
+| 1 | 3 |
+| 4 | 7 |
+| 2 | -1 |
+-
+| 4 | 2 |
+| 1 | 3 |
+| 0 | 6 |
+=
+| (-3) |  1 |
+|    3 |  4 |
+|    2 | -7 |
+
+** Definition
+If A is an m x n matrix and c is a scalar, then the *scalar multiple* of A by c is the m x n matric given by cA = (ca_{ij})
+
+1.
+|  7 | 63 |
+| 56 |  -14 |
+2.
+| ka | kb | kc |
+| kd | ke | kf |
+3.
+| 0 | 0 |
+| 0 | 0 |
+| 0 | 0 |
+4.
+| 16 | 5 |
+|  2 | 13 |
+
+** Definition
+Two matricies A and B can be multiplied if and only if the number of columns of A matches the number of rows of B
+
+A_{m x n}B_{n x p} = C_{m x p}
+and (AB)_{ij} = \Sum{k=1}{n}a_{ik}b_{kj} = a_{i1}b_{1j} + a_{i2}b_{2j} + a_{i3}b_{3j} + ... + a_{in}b_{nj}
+
+If A is 3x4 and B is 4x5 => 3x5
+If A is 3x4 and B is 3x4 => invalid multiplication
+
+*** How-to Matrix Multiply
+Row /i/ times column /j/
+
+**** 1
+#+begin_src octave :results none
+a = [1,3]
+b = [a,b;c,d]
+a * b
+#+end_src
+
+row1 = [1,3] & column1 = [a;c]
+turns into
+1(a) + 3(c) = a+3c
+
+row1 = [1,3] & column2 = [b;d]
+turns into
+1(b) + 3(d) = b+3d
+
+| row1*colum1 | row1*column2 |
+|-------------+--------------|
+| a+3c        | b+3d         |
+
+**** 2
+#+begin_src octave
+a = [0,-1;1,0]
+b = [5;1]
+
+a * b
+#+end_src
+
+#+RESULTS:
+| -1 |
+|  5 |
+
+| 0(5)+(-1)1 |
+|  1(5)+0(1) |
+
+| (-1) |
+|    5 |
+|      |
+**** 3
+#+begin_src octave
+a = [1,2;3,4;5,6]
+b = [4,3;5,1]
+
+a * b
+#+end_src
+
+#+RESULTS:
+| 14 |  5 |
+| 32 | 13 |
+| 50 | 21 |
+
+| 1(4)+2(5) | 1(3)+2(1) |
+| 3(4)+4(5) | 3(3)+4(1) |
+| 5(4)+6(5) | 5(3)+6(1) |
+
+| 14 |  5 |
+| 32 | 13 |
+| 50 | 21 |
+**** 4
+| a_{11} | a_{12} |
+| a_{21} | a_{22} |
+and
+| b_{11} | b_{12} |
+| b_{21} | b_{22} |
+
+| a_{11}(b_{11}) + a_{22}(b_{21}) | a_{11}(b_{12}) + a_{12}(b_{22}) |
+| a_{21}(b_{11}) + a_{22}(b_{21}) | a_{21}(b_{12}) + a_{22}(b_{22}) |
+**** 5
+| 1(5)+2(6) | 1(-1)+2(7) |
+| 3(5)+4(6) | 3(-1)+4(7) |
+
+| 17 | 13 |
+| 39 | 25 |
+**** 6
+| 5(1)+-1(3) | 5(2)+-1(4) |
+|  6(1)+7(3) | 6(2)+7(4)  |
+
+|  2 | 6 |
+| 27 | 40 |
+**** 7
+| 1(1)+3(4)+5(6) | 1(6)+3(1)+5-1) |
+
+* Coefficient Matrix
+[A|b] where A are the left hand side, b is the right hand side of the equals sign
+
+* Linear Combination
+Matrix product as linear combination
+
+** Theorem
+If A_{m x n} and x_{n x 1}, then Ax can be expressed as a linear combination of the column vectors of A in which coefficients are the entires of X(vector)
+
+In general: A_{x} = [column 1]x_{1} + [column 2]x_{2} + ... + [column n]x_{n}
+
+* Transpose a Matrix
+If any m x n matrix is transposed then it's dimensions will become n x m, row of A becomes column of A_{T}
+
+\[(A^{T})_{ij} = (A)_{ji}\]
+
+* Trace of a Matrix
+If A is a square matrix, then the tract of A, denoted by *tr(A)* is defined to be the sum of the entries on the main diagonal of *A*. The trace of A is undefined if A is not a square matrix.
