@@ -7,7 +7,7 @@
 #define VECTOR_NULL_CHECK(v)                                                   \
     if (!v) {                                                                  \
         fprintf(stderr, "Attempting to call '%s' on a NULL vector\n",          \
-                __FUNCTION__);                                                 \
+                __func__);                                                     \
         exit(1);                                                               \
     }
 
@@ -17,6 +17,7 @@ typedef struct Vector {
     int64_t* values;
 } Vector;
 
+#if DEBUG
 void vector_dump(Vector* v) {
     printf("[");
     for (int i = 0; i < v->size - 1; i++) {
@@ -28,6 +29,9 @@ void vector_dump(Vector* v) {
         printf("]\n");
     }
 }
+#else
+void vector_dump(Vector* v) {}
+#endif
 
 Vector* vector_new(void) {
     Vector* v = calloc(1, sizeof(Vector));
@@ -227,13 +231,13 @@ void vector_resize(Vector* v, int new_size) {
         exit(1);
     }
 
-    v->size = new_size;
-
     if (new_size <= v->capacity) {
+        v->size = new_size;
         return;
     }
 
-    vector_reserve(v, v->capacity * 2);
+    vector_reserve(v, new_size > v->capacity * 2 ? new_size : v->capacity * 2);
+    v->size = new_size;
 }
 
 void vector_reserve(Vector* v, int new_capacity) {

@@ -14,7 +14,7 @@ int main() {
 
     for (int64_t i = 0; i < 15; i++) {
         vector_push(v, i);
-    vector_dump(v);
+        vector_dump(v);
     }
 
     vector_dump(v);
@@ -24,7 +24,6 @@ int main() {
 
     int64_t value;
     assert(vector_get(v, 14, &value));
-    printf("%ld\n", value);
     assert(value == 14);
 
     int64_t val;
@@ -51,13 +50,13 @@ int main() {
 
     vector_dump(v);
 
-    vector_get(v, vector_size(v)-2, &val);
+    vector_get(v, vector_size(v) - 2, &val);
     assert(val == 42);
 
-    vector_remove(v, vector_size(v)-2);
+    vector_remove(v, vector_size(v) - 2);
     vector_dump(v);
 
-    vector_get(v, vector_size(v)-2, &val);
+    vector_get(v, vector_size(v) - 2, &val);
     assert(val == 14);
 
     vector_dump(v);
@@ -85,7 +84,7 @@ int main() {
     vector_sort_by(v, comp_descending);
     int64_t another_val;
     vector_get(v, 0, &val);
-    vector_get(v, vector_size(v)-1, &another_val);
+    vector_get(v, vector_size(v) - 1, &another_val);
 
     assert(val >= another_val);
 
@@ -93,7 +92,7 @@ int main() {
 
     vector_push(v, 69);
     int index = vector_bsearch(v, 69);
-    assert(index == vector_size(v)-1);
+    assert(index == vector_size(v) - 1);
     vector_dump(v);
 
     vector_clear(v);
@@ -101,4 +100,5 @@ int main() {
     vector_dump(v);
 
     vector_free(v);
+    v = NULL;
 }
