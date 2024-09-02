@@ -55,3 +55,22 @@ int main() {
     char board[size][size];
 }
 #+end_src
+
+* Memory Management
+#+begin_src C
+#include <stdlib.h>
+#include <stdio.h>
+
+int main() {
+    int* i = (int*)malloc(sizeof(int));
+
+    *i = 100;
+
+    printf("%p holds the value %d\n", i, *i);
+
+    free(i);
+}
+#+end_src
+
+#+RESULTS:
+: 0x58e7fd40c2a0 holds the value 100

@@ -34,7 +34,7 @@ void vector_dump(Vector* v) {}
 #endif
 
 Vector* vector_new(void) {
-    Vector* v = calloc(1, sizeof(Vector));
+    Vector* v = (Vector*)calloc(1, sizeof(Vector));
     if (!v) {
         fprintf(stderr, "Attempting to allocate a new vector failed!\n");
         exit(1);
@@ -48,7 +48,7 @@ Vector* vector_new(void) {
 Vector* vector_new_with_capacity(int capacity) {
     Vector* v = vector_new();
     v->capacity = capacity;
-    v->values = calloc(capacity, sizeof(int64_t));
+    v->values = (int64_t*)calloc(capacity, sizeof(int64_t));
 
     return v;
 }
@@ -257,7 +257,7 @@ void vector_reserve(Vector* v, int new_capacity) {
     int64_t* tmp = v->values;
 
     v->capacity = new_capacity;
-    v->values = calloc(v->capacity, sizeof(int64_t));
+    v->values = (int64_t*)calloc(v->capacity, sizeof(int64_t));
     if (!v->values) {
         fprintf(stderr, "Attempt to reallocate vector values failed!\n");
         exit(1);
