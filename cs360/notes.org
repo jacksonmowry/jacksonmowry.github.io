@@ -71,3 +71,16 @@ int main() {
     printf("i and j are %d bytes apart\n", (char*)&i - (char*)j);
 }
 #+end_src
+
+#+begin_src C
+#include <stdio.h>
+
+int main() {
+    int array[5];
+    array = (int*){0, 0, 0, 0, 0};
+
+    printf("%d\n", array[0]);
+}
+#+end_src
+
+#+RESULTS:

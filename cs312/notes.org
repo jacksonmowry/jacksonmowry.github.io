@@ -283,3 +283,23 @@ Let N = (Q, \Sigma, \delta, q_{0}, F) be the NFA that recognizes the language A 
 
 
 E(R) = R \Union {q \in Q | \quantifier{}r_{1} \in R,r_{2},...,r_{k} \in{} Q, r_{i+1} \in \delta(r_{i},\epsilon), r_{k} = q}
+
+* Nonregular Languages
+R is a regular expression if
+1. a for some a \in \Sigma
+2. \epsilon (language contains only the empty string)
+3. 0 (language has no strings)
+4. (R_{1} \union R_{2}), where R_{1}, R_{2} are regular expressions
+5. (R_{1} \circ R_{2}), where R_{1}, R_{2} are regular expressions
+6. R_{1}^{*}, where R_{1} is a regular expression
+
+** Language Example
+Is B = {0^{n}1^{n}|n \geq 0} a regular language?
+- No because one single machine cannot possible match the infinte states
+
+*** Warning
+Just because a language might seem to require unbounded (infinite) memory t orecognize it - it could still be regular
+
+Suppose you have the following two languages: C = {w | w has an equal number of 0s and 1s} and D = {w | w has an equal number of 01 and 10 substrings}
+
+2nd is regular?

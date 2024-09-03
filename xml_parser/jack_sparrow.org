@@ -54,3 +54,100 @@ UNIX time_t 64-bit timestamp indicating seconds past Epoch (1970-01-01 00:00:00+
 ** Boolean
 Pessimistic 1 byte per boolean, in reality these will get packed together with other booleans to form bit fields
 - If a boolean is a required field it will add 0 space to the output, as its "optional" bit will be used to indicate its value
+
+
+#+begin_src C
+typedef struct reaction {
+    string emoji;
+    int32_t count;
+} reaciton;
+
+typedef struct chat_message {
+    string author;
+    time_t message_sent;
+    int32_t likes;
+    string body;
+    reaction* reactions;
+} chat_message;
+#+end_src
+
+#+begin_src js
+class reaction {
+    /**
+    * UTF-8 encoded emoji
+    * @type { string }
+    */
+    emoji;
+    /**
+    * Number of this reaction
+    * @type { number }
+    */
+    count;
+}
+
+class chat_message {
+    /**
+    * Person who sent the message
+    * @type { string }
+    */
+    author;
+    /**
+    * Timestamp of when the message was sent (milliseconds since 1970 epoch)
+    * @type { number }
+    */
+    message_sent;
+    /**
+    * Number of likes
+    * @type { number }
+    */
+    likes;
+    /**
+    * Body of message
+    * @type { string }
+    */
+    body;
+    /**
+    * Array of reactions
+    * @type { reaction[] }
+    */
+    reactions;
+}
+#+end_src
+
+#+begin_src json
+// Example Reaction
+{
+    emoji: '☺️',
+    count: 42
+}
+
+// Example Chat Message
+{
+    author: 'Bob',
+    message_sent: 1725367913,
+    likes: 4,
+    body: 'This is a test message',
+    reactions: [
+        {
+            emoji: '☺️',
+            count: 42
+        },
+        {
+            emoji: '️‍🔥',
+            count: 3
+        }
+    ]
+}
+#+end_src
+
+#+begin_src C
+#include <time.h>
+#include <stdio.h>
+
+int main() {
+    printf("%lu\n", time(0));
+}
+#+end_src
+
+#+RESULTS:
+: 1725367923
