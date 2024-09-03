@@ -33,22 +33,24 @@ void vector_dump(Vector* v) {
 void vector_dump(Vector* v) {}
 #endif
 
-Vector* vector_new(void) {
-    Vector* v = calloc(1, sizeof(Vector));
+Vector* vector_new(void) { return vector_new_with_capacity(0); }
+
+Vector* vector_new_with_capacity(int capacity) {
+    Vector* v = (Vector*)malloc(sizeof(Vector));
+
     if (!v) {
-        fprintf(stderr, "Attempting to allocate a new vector failed!\n");
+        fprintf(stderr, "Failed to allocate memory for a vector!\n");
         exit(1);
     }
 
-    *v = (Vector){.size = 0, .capacity = 0, .values = NULL};
-
-    return v;
-}
-
-Vector* vector_new_with_capacity(int capacity) {
-    Vector* v = vector_new();
+    v->size = 0;
     v->capacity = capacity;
-    v->values = calloc(capacity, sizeof(int64_t));
+    v->values = (int64_t*)calloc(v->capacity, sizeof(int64_t));
+
+    if (!v->values) {
+        fprintf(stderr, "Failed to allocate memory for a vectors elements!\n");
+        exit(1);
+    }
 
     return v;
 }
@@ -257,13 +259,19 @@ void vector_reserve(Vector* v, int new_capacity) {
     int64_t* tmp = v->values;
 
     v->capacity = new_capacity;
-    v->values = calloc(v->capacity, sizeof(int64_t));
+    v->values = malloc(v->capacity * sizeof(int64_t));
     if (!v->values) {
         fprintf(stderr, "Attempt to reallocate vector values failed!\n");
         exit(1);
     }
 
-    memmove(v->values, tmp, v->size * sizeof(int64_t));
+    // Sometimes malloc'ing a larger chunk returns the same underlying spot in
+    // memory so we can skip copying over memory to the same location
+    // Also it would be unsafe to use memcpy in case of the overlapping memory
+    // regions, but Marz says we should use memcpy for speed
+    if (tmp != v->values) {
+        memcpy(v->values, tmp, v->size * sizeof(int64_t));
+    }
 
     free(tmp);
 }

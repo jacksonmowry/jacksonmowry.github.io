@@ -55,3 +55,24 @@ int main() {
     char board[size][size];
 }
 #+end_src
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int i = 0;
+    int* j = malloc(sizeof(int));
+    *j = 1;
+
+    printf("i is at memory address %p\n", &i);
+    printf("j is at memory address %p\n", j);
+
+    printf("i and j are %d bytes apart\n", (char*)&i - (char*)j);
+}
+#+end_src
+
+#+RESULTS:
+: i is at memory address 0x7fff7434496c
+: j is at memory address 0x572d115b0330
+: i and j are 1658406460 bytes apart

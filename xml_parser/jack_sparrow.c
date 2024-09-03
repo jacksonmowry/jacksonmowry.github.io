@@ -1,6 +1,7 @@
 #include "xml_parser.h"
 #include <assert.h>
 #include <fcntl.h>
+#include <stdint.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -23,6 +24,7 @@
     fprintf(stderr, fmt_string, ##__VA_ARGS__)
 
 typedef enum primitive_t {
+    none = -1,
     js_string,    // => 8
     js_i64,       // => 8
     js_u64,       // => 8
@@ -91,6 +93,21 @@ typedef struct schema {
     vector_procedure procedures;
 } schema;
 
+typedef enum state {
+    OUTSIDE,
+    SCHEMA,
+    MESSAGES,
+    MESSAGE,
+    MESSAGE_FIELD,
+    PARAMETER_FIELD,
+    RETURNS_FIELD,
+    PROCEDURES,
+    PROCEDURE,
+    PARAMETERS,
+    RETURNS,
+    DESCRIPTION
+} state;
+
 char* parse_opening_schema(element e) {
     assert(e.type == OPENING_TAG);
 
@@ -141,10 +158,37 @@ field parse_field(element e) {
         exit(1);
     }
 
+    bool array = false;
+    if (!strcmp("[]", &type[strlen(type) - 2])) {
+        array = true;
+        type[strlen(type) - 2] = '\0';
+    }
+
     return (field){.type = primitive_find(type),
                    .type_name = strdup(type),
                    .required = strcmp("false", required ? required : ""),
+                   .array = array,
                    .default_value = strdup(default_value ? default_value : "")};
+}
+
+void element_print(element_t e) {
+    switch (e.tag) {
+    case EMPTY:
+        printf("Empty!\n");
+        break;
+    case TEXT_CONTENT:
+        printf("Text: %.*s\n", (int)e.e.tc.content.len, e.e.tc.content.array);
+        break;
+    case ELEMENT:
+        if (e.e.e.type == OPENING_TAG) {
+            printf("Opening Tag: %s\n", e.e.e.element_type);
+        } else {
+            printf("Closin Tag: %s\n", e.e.e.element_type);
+        }
+        break;
+    case END_OF_FILE:
+        break;
+    }
 }
 
 void schema_print(schema s) {
@@ -157,9 +201,9 @@ void schema_print(schema s) {
 
         for (size_t j = 0; j < s.messages.array[i].fields.len; j++) {
             field f = s.messages.array[i].fields.array[j];
-            printf("\t\t\t\t%s: %s(%d), %s, default: %s\n", f.name, f.type_name,
-                   f.type, f.required ? "required" : "optional",
-                   f.default_value);
+            printf("\t\t\t\t%s: %s(%d), array: %s, %s, default: %s\n", f.name,
+                   f.type_name, f.type, f.array ? "t" : "f",
+                   f.required ? "required" : "optional", f.default_value);
         }
     }
 
@@ -170,17 +214,17 @@ void schema_print(schema s) {
         printf("\t\t\tParameters:\n");
         for (size_t j = 0; j < s.procedures.array[i].parameters.len; j++) {
             field f = s.procedures.array[i].parameters.array[j];
-            printf("\t\t\t\t%s: %s(%d), %s, default: %s\n", f.name, f.type_name,
-                   f.type, f.required ? "required" : "optional",
-                   f.default_value);
+            printf("\t\t\t\t%s: %s(%d), array: %s, %s, default: %s\n", f.name,
+                   f.type_name, f.type, f.array ? "t" : "f",
+                   f.required ? "required" : "optional", f.default_value);
         }
 
         printf("\t\t\tReturn Values:\n");
         for (size_t j = 0; j < s.procedures.array[i].return_values.len; j++) {
             field f = s.procedures.array[i].return_values.array[j];
-            printf("\t\t\t\t%s: %s(%d), %s, default: %s\n", f.name, f.type_name,
-                   f.type, f.required ? "required" : "optional",
-                   f.default_value);
+            printf("\t\t\t\t%s: %s(%d), array: %s, %s, default: %s\n", f.name,
+                   f.type_name, f.type, f.array ? "t" : "f",
+                   f.required ? "required" : "optional", f.default_value);
         }
     }
 }
@@ -234,6 +278,141 @@ bool needs_sizes(schema s) {
     return false;
 }
 
+typedef struct graph_node {
+    char* type_name;
+    uint8_t* edges;
+    size_t num_edges;
+    size_t in_degree;
+} graph_node;
+
+typedef struct queue_int_node {
+    int val;
+    struct queue_int_node* previous;
+} queue_int_node;
+
+typedef struct queue_int {
+    queue_int_node* head;
+    queue_int_node* tail;
+} queue_int;
+
+void queue_int_add(queue_int* q, int element) {
+    queue_int_node* node = malloc(sizeof(queue_int_node));
+    node->val = element;
+
+    if (!q->head) {
+        q->head = q->tail = node;
+        node->previous = NULL;
+        return;
+    }
+
+    q->tail->previous = node;
+    q->tail = node;
+}
+
+int queue_int_take(queue_int* q) {
+    if (!q->head) {
+        fprintf(stderr, "Oops you are atempting to take from a null queue\n");
+        return -1; // ?
+    }
+
+    if (q->head == q->tail) {
+        // Only 1 element
+        int ret_val = q->head->val;
+        free(q->head);
+        q->head = q->tail = NULL;
+        return ret_val;
+    }
+
+    int ret_val = q->head->val;
+    queue_int_node* qin = q->head;
+    q->head = qin->previous;
+    free(qin);
+    return ret_val;
+}
+
+bool has_circular_deps(schema s) {
+    vector_message m = s.messages;
+    graph_node nodes[s.messages.len];
+
+    for (size_t i = 0; i < m.len; i++) {
+        nodes[i].type_name = m.array[i].name;
+        nodes[i].edges = alloca(m.len);
+        nodes[i].num_edges = 0;
+        nodes[i].in_degree = 0;
+
+        vector_field f = m.array[i].fields;
+        for (size_t j = 0; j < f.len; j++) {
+            bool found = false;
+            if (primitive_find(f.array[j].type_name) != none) {
+                continue;
+            }
+            for (size_t k = 0; k < m.len; k++) {
+                if (!strcmp(f.array[j].type_name, m.array[k].name)) {
+                    nodes[i].edges[nodes[i].num_edges++] = k;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                fprintf(stderr,
+                        "Error while resolving dependencies of %s, cannot find "
+                        "type definition for field of type %s\n",
+                        nodes[i].type_name, f.array[j].type_name);
+                exit(1);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < m.len; i++) {
+        for (size_t j = 0; j < nodes[i].num_edges; j++) {
+            nodes[nodes[i].edges[j]].in_degree++;
+        }
+    }
+
+    int32_t visited = 0;
+    queue_int q = {};
+
+    for (size_t i = 0; i < m.len; i++) {
+        if (nodes[i].in_degree == 0) {
+            queue_int_add(&q, i);
+        }
+    }
+
+    while (q.head != NULL) {
+        int val = queue_int_take(&q);
+        visited++;
+
+        for (size_t i = 0; i < nodes[val].num_edges; i++) {
+            nodes[nodes[val].edges[i]].in_degree--;
+
+            if (nodes[nodes[val].edges[i]].in_degree == 0) {
+                queue_int_add(&q, nodes[val].edges[i]);
+            }
+        }
+    }
+
+    if (visited == m.len) {
+        return false;
+    }
+
+DEBUG:
+    for (size_t i = 0; i < m.len; i++) {
+        printf("%s (%lu): [", nodes[i].type_name, nodes[i].in_degree);
+        for (ssize_t j = 0; j < (ssize_t)nodes[i].num_edges - 1; j++) {
+            printf("%d, ", nodes[i].edges[j]);
+        }
+        if (nodes[i].num_edges > 0) {
+            printf("%d", nodes[i].edges[nodes[i].num_edges - 1]);
+        }
+        printf("]\n");
+    }
+
+    printf("%d %d\n", visited, m.len);
+
+    return true;
+}
+
 int main() {
     struct stat sb;
 
@@ -251,15 +430,7 @@ int main() {
     procedure temp_procedure = {};
     field temp_field = {};
 
-    bool inside_schema = false;
-    bool inside_messages = false;
-    bool inside_message = false;
-    bool inside_field = false;
-    bool inside_procedures = false;
-    bool inside_procedure = false;
-    bool inside_parameters = false;
-    bool inside_returns = false;
-    bool inside_description = false;
+    state current_state = OUTSIDE;
 
     while ((e = next_element(&p)).tag != END_OF_FILE) {
         switch (e.tag) {
@@ -273,80 +444,82 @@ int main() {
             switch (element.type) {
             case OPENING_TAG: {
                 // Opening schema tag
-                if (!inside_schema && !strcmp("schema", element.element_type)) {
-                    inside_schema = true;
+                if (current_state == OUTSIDE &&
+                    !strcmp("schema", element.element_type)) {
+                    current_state = SCHEMA;
                     schema.version = parse_opening_schema(element);
                     break;
                 }
 
                 // Opening messages tag
-                if (inside_schema && !inside_messages &&
+                if (current_state == SCHEMA &&
                     !strcmp("messages", element.element_type)) {
-                    inside_messages = true;
+                    current_state = MESSAGES;
                     schema.messages = vector_message_init(1);
                     break;
                 }
 
                 // Opening message tag
-                if (inside_schema && inside_messages && !inside_message &&
+                if (current_state == MESSAGES &&
                     !strcmp("message", element.element_type)) {
-                    inside_message = true;
+                    current_state = MESSAGE;
 
                     temp_message = parse_message(element);
                     break;
                 }
 
                 // Opening procedures tag
-                if (inside_schema && !inside_procedures &&
+                if (current_state == SCHEMA &&
                     !strcmp("procedures", element.element_type)) {
-                    inside_procedures = true;
+                    current_state = PROCEDURES;
 
                     schema.procedures = vector_procedure_init(1);
                     break;
                 }
 
                 // Opening procedure tag
-                if (inside_schema && inside_procedures && !inside_procedure &&
+                if (current_state == PROCEDURES &&
                     !strcmp("procedure", element.element_type)) {
-                    inside_procedure = true;
+                    current_state = PROCEDURE;
 
                     temp_procedure = parse_procedure(element);
                     break;
                 }
 
                 // Opening description tag
-                if (inside_schema && inside_procedures && inside_procedure &&
-                    !inside_description &&
+                if (current_state == PROCEDURE &&
                     !strcmp("description", element.element_type)) {
-                    inside_description = true;
+                    current_state = DESCRIPTION;
                     break;
                 }
 
                 // Opening parameters tag
-                if (inside_schema && inside_procedures && inside_procedure &&
-                    !inside_parameters &&
+                if (current_state == PROCEDURE &&
                     !strcmp("parameters", element.element_type)) {
-                    inside_parameters = true;
+                    current_state = PARAMETERS;
 
                     break;
                 }
 
                 // Opening returns tag
-                if (inside_schema && inside_procedures && inside_procedure &&
-                    !inside_returns &&
+                if (current_state == PROCEDURE &&
                     !strcmp("returns", element.element_type)) {
-                    inside_returns = true;
+                    current_state = RETURNS;
 
                     break;
                 }
 
                 // Opening field tag
-                if (inside_schema &&
-                    ((inside_messages && inside_message) ||
-                     (inside_procedures && inside_procedure &&
-                      (inside_returns || inside_parameters))) &&
-                    !inside_field && !strcmp("field", element.element_type)) {
-                    inside_field = true;
+                if ((current_state == MESSAGE || current_state == PARAMETERS ||
+                     current_state == RETURNS) &&
+                    !strcmp("field", element.element_type)) {
+                    if (current_state == MESSAGE) {
+                        current_state = MESSAGE_FIELD;
+                    } else if (current_state == PARAMETERS) {
+                        current_state = PARAMETER_FIELD;
+                    } else if (current_state == RETURNS) {
+                        current_state = RETURNS_FIELD;
+                    }
 
                     temp_field = parse_field(element);
                     break;
@@ -356,70 +529,71 @@ int main() {
             } break;
             case CLOSING_TAG: {
                 // Closing field tag
-                if (inside_schema && !strcmp("field", element.element_type)) {
-                    if (inside_messages && inside_message) {
+                if ((current_state == MESSAGE_FIELD ||
+                     current_state == PARAMETER_FIELD ||
+                     current_state == RETURNS_FIELD) &&
+                    !strcmp("field", element.element_type)) {
+                    if (current_state == MESSAGE_FIELD) {
                         vector_field_pb(&temp_message.fields, temp_field);
-                    } else if (inside_procedures && inside_procedure) {
-                        if (inside_parameters) {
-                            vector_field_pb(&temp_procedure.parameters,
-                                            temp_field);
-                        } else if (inside_returns) {
-                            vector_field_pb(&temp_procedure.return_values,
-                                            temp_field);
-                        }
-                    }
 
+                        current_state = MESSAGE;
+                    } else if (current_state == PARAMETER_FIELD) {
+                        vector_field_pb(&temp_procedure.parameters, temp_field);
+
+                        current_state = PARAMETERS;
+                    } else if (current_state == RETURNS_FIELD) {
+                        vector_field_pb(&temp_procedure.return_values,
+                                        temp_field);
+
+                        current_state = RETURNS;
+                    }
                     temp_field = (field){};
 
-                    inside_field = false;
                     break;
                 }
 
                 // Closing message tag
-                if (inside_schema && inside_messages && inside_message &&
+                if (current_state == MESSAGE &&
                     !strcmp("message", element.element_type)) {
                     vector_message_pb(&schema.messages, temp_message);
                     temp_message = (message){};
 
-                    inside_message = false;
+                    current_state = MESSAGES;
                     break;
                 }
 
                 // Closing messages tag
-                if (inside_schema && inside_messages &&
+                if (current_state == MESSAGES &&
                     !strcmp("messages", element.element_type)) {
-                    inside_messages = false;
+                    current_state = SCHEMA;
                     break;
                 }
 
                 // Closing description tag
-                if (inside_schema && inside_procedures && inside_procedure &&
-                    inside_description &&
+                if (current_state == DESCRIPTION &&
                     !strcmp("description", element.element_type)) {
-                    inside_description = false;
+                    current_state = PROCEDURE;
                     break;
                 }
 
                 // Closing parameters tag
-                if (inside_schema && inside_procedures && inside_procedure &&
-                    inside_parameters &&
+                if (current_state == PARAMETERS &&
                     !strcmp("parameters", element.element_type)) {
-                    inside_parameters = false;
+                    current_state = PROCEDURE;
                     break;
                 }
 
                 // Closing returns tag
-                if (inside_schema && inside_procedures && inside_procedure &&
-                    inside_returns &&
+                if (current_state == RETURNS &&
                     !strcmp("returns", element.element_type)) {
-                    inside_returns = false;
+                    current_state = PROCEDURE;
                     break;
                 }
 
                 // Closing procedure tag
-                if (inside_schema && inside_procedures && inside_procedure &&
+                if (current_state == PROCEDURE &&
                     !strcmp("procedure", element.element_type)) {
-                    inside_procedure = false;
+                    current_state = PROCEDURES;
 
                     vector_procedure_pb(&schema.procedures, temp_procedure);
                     temp_procedure = (procedure){};
@@ -428,51 +602,40 @@ int main() {
                 }
 
                 // Closing procedures tag
-                if (inside_schema && inside_procedures &&
+                if (current_state == PROCEDURES &&
                     !strcmp("procedures", element.element_type)) {
-                    inside_procedures = false;
+                    current_state = SCHEMA;
 
                     break;
                 }
 
                 // Closing schema tag
-                if (inside_schema && !strcmp("schema", element.element_type)) {
-                    inside_schema = false;
+                if (current_state == SCHEMA &&
+                    !strcmp("schema", element.element_type)) {
+                    current_state = OUTSIDE;
 
                     break;
-                }
-
-                // Closing schema tag error
-                if (!inside_schema && !strcmp("schema", element.element_type)) {
-                    log(ERROR, "Encountered closing schema tag before schema "
-                               "was opened, check for typos\n");
-                    exit(1);
-                }
-
-                // Closing messages tag error
-                if (inside_schema && !inside_messages &&
-                    !strcmp("messages", element.element_type)) {
-                    log(ERROR, "Encounted closing messages tag before messages "
-                               "was opened, check for typos\n");
-                    exit(1);
                 }
 
                 assert("we can't get here" == false);
             } break;
             }
-        } break;
+            break;
+        }
         case TEXT_CONTENT: {
             text_content tc = e.e.tc;
             switch (tc.type) {
             case PLAIN_TEXT: {
                 // Name of a field
-                if (inside_field) {
+                if (current_state == MESSAGE_FIELD ||
+                    current_state == PARAMETER_FIELD ||
+                    current_state == RETURNS_FIELD) {
                     temp_field.name = strndup(tc.content.array, tc.content.len);
                     break;
                 }
 
                 // Description of a procedure
-                if (inside_description) {
+                if (current_state == DESCRIPTION) {
                     temp_procedure.description =
                         strndup(tc.content.array, tc.content.len);
                     break;
@@ -492,6 +655,11 @@ int main() {
     }
 
     schema_print(schema);
+
+    if (has_circular_deps(schema)) {
+        fprintf(stderr, "Circular deps!\n");
+        exit(1);
+    }
 
     // We need to make at least one pass over the messages to determine their
     // sizes, Likely we will have to loop around again once the size of a
