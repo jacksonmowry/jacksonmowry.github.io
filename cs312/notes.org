@@ -282,9 +282,4 @@ Epsilon transitions happen without reading anything, allowing you to go either d
 Let N = (Q, \Sigma, \delta, q_{0}, F) be the NFA that recognizes the language A and construct the DFA M that also recognizes A. Define M = (Q', \Sigma, \delta{}', q_{0}', F').
 
 
-#+begin_src C
-void do_something(char** array, int size) {
-    array[i][j] = 'A';
-}
-
-#+end_src
+E(R) = R \Union {q \in Q | \quantifier{}r_{1} \in R,r_{2},...,r_{k} \in{} Q, r_{i+1} \in \delta(r_{i},\epsilon), r_{k} = q}

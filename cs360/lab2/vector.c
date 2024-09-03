@@ -36,8 +36,7 @@ void vector_dump(Vector* v) {}
 Vector* vector_new(void) { return vector_new_with_capacity(0); }
 
 Vector* vector_new_with_capacity(int capacity) {
-    Vector* v = (Vector*)malloc(sizeof(Vector));
-
+    Vector* v = (Vector*)calloc(1, sizeof(Vector));
     if (!v) {
         fprintf(stderr, "Failed to allocate memory for a vector!\n");
         exit(1);
@@ -265,10 +264,10 @@ void vector_reserve(Vector* v, int new_capacity) {
         exit(1);
     }
 
-    // Sometimes malloc'ing a larger chunk returns the same underlying spot in
-    // memory so we can skip copying over memory to the same location
-    // Also it would be unsafe to use memcpy in case of the overlapping memory
-    // regions, but Marz says we should use memcpy for speed
+    // Sometimes malloc'ing a larger chunk returns the same underlying spot
+    // in memory so we can skip copying over memory to the same location
+    // Also it would be unsafe to use memcpy in case of the overlapping
+    // memory regions, but Marz says we should use memcpy for speed
     if (tmp != v->values) {
         memcpy(v->values, tmp, v->size * sizeof(int64_t));
     }

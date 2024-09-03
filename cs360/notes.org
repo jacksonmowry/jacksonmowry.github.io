@@ -71,8 +71,3 @@ int main() {
     printf("i and j are %d bytes apart\n", (char*)&i - (char*)j);
 }
 #+end_src
-
-#+RESULTS:
-: i is at memory address 0x7fff7434496c
-: j is at memory address 0x572d115b0330
-: i and j are 1658406460 bytes apart
