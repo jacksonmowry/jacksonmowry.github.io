@@ -1,0 +1,117 @@
+#+title: Notes
+* Componenets
+- Neurons and synapses
+- Neurons are notes on a grpah
+  - they hold a value which is their potential
+- Synapse is an edge on a graph, spike travels from pre to post neuron
+- Delay how long it takes for a spike to travel the synapse
+- Weight how much each spike adds to the potential of the post neuron
+  - Weight is added to the post neuron when the spike travels over the synapse
+- Neurons always have a threshold parameter
+  - If exeeded then neuron fires, sends spikes out its outgoing edges
+  - Resets potential
+
+* Computing with SNN
+1. Set up the nerual network, define neurons, synapses, thresholds, weight and delays
+2. Convert input values into spikes applied to input neurons
+3. Let the network run
+4. Record spikes at output neurons, and convert those spikes into values
+
+* Example Calculating a Binary OR Operation
+1. Setup the inputs (A and B with weight/delay of 1)
+2. Convert input, 0 = no spikes, 1 = one spike at time 0
+3. A = B = 0, no input spikes, no output spikes
+   - A = 0, B = 1, 1 spike on B at time 0, travels to A|B, at time 1 we spike the output neuron
+   - A = 1, B = 0, opposite of above, still spikes
+   - A = B = 1, spikes on both, spikes arrive at time = 1, both trigger the output
+4. No spike at time 1 means A|B = 0, A spike at time 1 means A|B = 1
+
+* Example Cart Pull
+
+* Options
+- Plasticity
+  - Weights change if they cause neurons to fire
+- Leak
+  - Action potential will settle down over time
+- Stochasticity
+  - Varying random behavior
+- Accumulation models
+  - Calculus
+
+* TENN Lab Jobs
+- Circuit design
+- Applications
+- Memristor modeling
+- Demonstrations
+- Software support
+- SPICE Simulation
+- Hardware architecture
+
+* Software
+** Neuroprocessors (Simulators)
+Modeling
+- Must implement an interface specified by the framework
+  - =load_network()=, =apply_spikes()=, =run()=
+  - Typicaly written in C++ for speed
+    - RAVENS, RISP, Caspain
+  - May be written in python
+    - BRIAN, Nest, Nengo
+** Applications
+More than just classification, regression, application suites
+*** Option 1
+- Use the processor interface directly
+The =processor_tool= applicaiton gives you a cli to a neuroprocess
+*** Option 2
+Implement an interface specified by the framework
+- =Step()=, =Reset()=
+- Send observations, get actions, like OpenAI gym
+- An =app_agent= can train and run the application on a neuroprocessor
+** Framework
+Specifies the interface for the processors and applications
+Support for training
+Different modules
+SERDE for spikes
+
+- Defines the prcoessor and application intefaces
+- Defines networks & network operations
+  - =add_neuron()=, =add_synapse()=, =prune()=
+- Defines spike encoding and decoding
+  - Population coding, rate coding, and tempolar coding
+- Defines an =app_agent= that trains and runs applications on neuroprocessors
+** Machine-Learning And Other Modules
+- EONS "Evolutionary Optimization of Neuromorphic Systems" - Genertic Algo for training
+- LEAP: Gen algo
+- Whetstone - train in keras using sandia's
+
+* Examples
+** Classification in Python
+1. Make the py environment
+2. Start py
+3. Import neuro, scikit learn, dataset
+4. Select neuroprocessor, dataset, classification or regression
+5. Select spike encoder and spike decoder ( or use defaults )
+6. Train with EONS to create network
+7. Test network and use scikit learn's processing/visualization tools
+
+** Polebalancing in C++
+1. Select application and processor and create exe
+   - make app=polebalance proc=risp
+   - This creates the exe bin/polebalance_risp
+2. Run bin/polebalance_risp in training mode, specifying psike encoder and decoder, unless using defaults. This store the best network in a file
+3. Run bin/polebalance_risp in testing mode, specifiying filename of the network. Can specify files for prcoessor information and sockets for application / network visualizers
+
+** Classification with Whetstone
+1. Use Keras and Whetstone's training module to specify the network topology and train a neural network for the dataset
+2. Use TENNLabs's tool to convert the network from Keras to the framework format (specific to the processor)
+3. Compile Whetstone with the processor to make exe
+   - make app=whetstone proc=gnp
+4. Test using bin/whetstone_gnp on the converted network
+* Code
+- framework_processor.md
+- framework_network.md
+- cpp_apps.md
+- cpp_apps_processor_tool.md
+
+Walkthroughs
+- walkthrough_xor_risp.md
+- cpp_apps_app_agent.md

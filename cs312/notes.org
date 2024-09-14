@@ -303,3 +303,192 @@ Just because a language might seem to require unbounded (infinite) memory t orec
 Suppose you have the following two languages: C = {w | w has an equal number of 0s and 1s} and D = {w | w has an equal number of 01 and 10 substrings}
 
 2nd is regular?
+
+** Example
+Language D = {w|w has an equal number of 01 and 10 substrings}
+
+We can generally create a regular language if the constraints are ordering
+Generally non-regular if we have to do some sort of counting without ordering
+
+* Pumping Lemma
+- All strings in a language can be pumped if they are at least as long as a certain value called the pumping length
+- Another interpretation: every string contains a section that can be repeated any number of itmes with the resulting string remaining in the language
+
+** Example
+sqrt(sqrt(sqrt(...sqrt(x)...)))
+
+** Lemma
+If A is a regular language, then there exists a number p (the pumping length) where, if s is any string in A of length of at least p, then s may be divided into three pices, s = xyz subject too
+
+If you take any string out of the language, at least length p, then I can take that string, cut it into pieces, 3 pieces, prefix x, suffix z,
+
+1. \forall i \geq 0, xy^{i}z \in A
+   - p is an integer
+   - You can also remove all y's, 0 y's
+2. |y| > 0
+   - The actual substring must have some chars
+   - x and z can both be empty strings
+3. |xy| \leq p
+   - the length of x+y cannot be bigger than p
+
+** Pumping Lemma Proof Construction
+- Let M = (Q,\Sigma,\delta,q_{1},F) be a DFA that recognizes the language A. Assign a pumping length p to the number of states of M.
+  - P (pumping length) is the number of states in M, which is finite
+  - If you have finite number of states (p), and it is way bigger than p, then we will have to loop
+- Show that any string s \in A, |s| \geq p may be broken into xyz satisfying the three PL conditions
+  -
+- If there are no strings in A of length at least p, then the PL is true because all three conditions hold for all strings of length at least p (if there are NO such strings)
+
+** Proof
+Recognizes A and let p be the size of Q, let s = s_{1}s_{2}...s_{n} be a string over \Sigma with n \geq p and r = r_{1}r_{2}...r_{n+1} be the sequence of states encountered while processing
+
+*** Example
+We know that n+1 \geq p+1, why?
+- because n \geq p
+
+The among the first p+1 elements in the sequence r..., there must be a repeating state, say r_{j},r_{k} what principle is this based on?
+- Pigeon hole principle
+
+Let r_{k} be the recurring state among the first p+1 states in the sequence starting with r_{1}, so k \leq p+1. Let x = s_{1}s_{2}...s_{j-1}, y = s_{j}s_{j+1}...s_{k-1}, and z = s_{k}s_{k+1}...s_{n}
+
+So X takes M from r_{1} to r_{j}, Y takes M from r_{j} to r_{j} and Z takes M from r_{j} to r_{n+1}; recall that r_{j} == r_{k} and that r_{n+1} is an accept state
+Therefore:
+- M must accept xy^{i}z, for i \geq 0 (*Condition 1*)
+- Since j \neq k then |y| \gt 0 (*Condition 2*)
+- Since k \le p + 1 then |xy| \leq p (*Condition 3*)
+
+** Technique
+- Assume the language is regular, and assume a contradiction
+- PL guarantees existence of a pumping length p such that all strings of length p or greater (in A) can be pumped
+- Find s \in A, |s| \geq p that cannot be pumped; consider all the ways of dividing s int ox,y,z and show that for each division, at least one of the PL conditions fail to hold
+- pumping length = number of states in a minimalist machine
+
+*** Example
+B = {0^{n}1^{n} | n \geq 0} is not regular
+
+Assume B is regular and let p be the pumping length for B. Choose s = 0^{p}1^{p} \in B so that clearly s \ge p. By the PL, we can partition s = xyz such that for all i \geq 0, xy^{i}z \in B. Let's consider three possible cases for the contents of substring y
+
+Think about what the string is, in our case s = 00...011...1, where our length is now 2p, p 0's followed by p 1's.
+
+|   x |    y |   z |
+| 000 | 0011 | 111 |
+
+**** Options
+1. Y consists of only 0's
+   - x   | y  | z
+   - 0000|...0|111.11
+   - Then S' = xyyz
+   - Then S' has more 0's than 1's, therefore it is no longer in the language
+   - Hence, xyyz \notin B, a violation of condition 1 of the PL
+   - Y consists only of 0's. Then S' = xyyz has more 0's than 1's since |y| > 0 by condition 2. Hence, xyyz \notin{} B. This is a violation of condition 1 of the PL.
+2. Y consists of only 0's
+   - Y consists only of 1's. Then S' = xyyz has more 1's than 0's since |y| > 0 by condition 2. Hence, xyyz \notin{} B. This is a violation of condition 1 of the PL.
+3. Y consists of 0's and 1's
+   - Y consists of 0's and 1's. Then s' = xyyz may have the same number of 0's and 1's, but they are out of order (i.e some 1's occur before 0's), and so s' = xyyz \notin{} B. This is a violation of condition 1 of the PL.
+
+** How might the proof above be simplified using condition 3 of the PL to constrain the contents of the substring y?
+According to condition 3, we must have |xy| <= p.
+
+We picked s = 0000000|1111111, both of length p
+xy is already p length, therefore the language only contains 0's.
+y could only contain 0's and we have contradiction in case 1 for all y
+
+*** Example
+i = 2
+New string is xz
+
+
+** Conditions
+- If a language is regular, one should be able to take any string out of that language, partition it into 3 parts XYZ, with the Y componenet having something in it, then you can pump that string
+- \forall{} i \geq 0, XY^{i}Z has to be in the language, if i = 0 we are pumping down, if i \gt 1 we are pumping up
+- We only have to find one i that breaks the conditions, because the condition says \forall{} i's
+
+- if i = 1, then we are not pumping, that is just the same string
+- When i \geq 2 then we are pumping up
+- When i \eq 0 then we are pumping down
+
+** Example Again
+Use the PL to prove that the language E = {0^{i}1^{j} | i > j} is not regular.
+
+Assume E is regular and let p be the pumping length for E. Choose s = 0^{p+1}1^{p} \in E so that clearly s > p. By the PL, we can partition s = xyz such that for all i >= 0, xy^{i}z \in E. By condition 3 of the pumping lemma, we must have |xy| \leq p. Therefore, y must contain only 0's. Is it possible for s' = xyyz to be in the language? Adding an additional copy of y increases the number of 0's which does not violate the constraints of the language. But setting i = 0 does violate the condition since we would now have 0^p and 1^p, or more generally i <= j. Subsequently s' would \notin E, given this contradiction of conditoin 1 of the PL, we can conclude E is not regular.
+
+Start with condition 3 of the PL to determine the contents of substring y and see if you can get a violation of Condition 1 of the PL for any choice of y.
+
+** Another example
+*** Language 1
+L_{1} = {a^{i}ba^{j} | 0 \leq i < j}
+- ba
+- Assume L_{1} is regular with pumping length p
+- Choose s = a^{p}ba^{p+1}
+- State cond 1, s = xyz \forall i \geq 0 xy'z \in L_{1}
+- Use condition 3 (|xy| \leq p), and condition 2 (|y| > 0)
+- y contains only a's
+- Pumping up violates the constraint i < j, because xyyz would result in i is now greater than j, which means j is no longer strictly greater than i
+- Therefore s' \notin L_{1}, a's before b are greater than or equal to those after b
+
+* Context Free Languages
+We have shown that L = {0^{n}1^{n} | n \geq 0} cannot be specified by a FA or regular expression; Context-Free Grammars (or CFGs) provide a more powerful way to specify languages. A CFG is a 4-tuple (V, \Sigma, R, S), where
+- V is a finite set of symbols (variable or nonterminals)
+- \Sigma is a finite set of symbols disjoint from V (terminals)
+- R is a finite set of specification rules of the form /lhs/ \rightarrow{} /rhs/, /lhs/ \in V, /rhs/ \in (V \union \Sigma), and S \in V is the start variable
+
+** Example
+CFG G_{1} has the following specification rules
+\[
+A \rightarrow{} 0A1
+\]
+\[
+A \rightarrow{} B
+\]
+\[
+B \rightarrow{} \#
+\]
+
+The start variable for G_{1} is A.
+What are the nonterminals?
+- A, B
+What are the terminals?
+- 0, 1, #
+
+** Language Specification
+1. Write down start variable; /lhs/ of first spec rule
+2. Find variable that is written down and a rule whose /lhs/ is that variable; replace the written down variable with the /rhs/ of that rule
+3. Repeat Step 2 until no variables remain in string
+
+*** Example
+Use the CFG G_{1} (above) to derive the string 000#111. Show derivation and corresponding parse tree
+
+** Direct Derivation
+If u,v,w \in (V \union \Sigma)^{*}, i.e., are strings of variables and terminals, and A \rightarrow{} w \in R is a grammar rule, then we say that uAv yields uwv or uAv \Rightarrow{} uwv. Alternatively, uwv is directly derived from uAv using the rule A \rightarrow w.
+
+** Derivation
+\[
+S \rightarrow aSb
+\]
+\[
+S \rightarrow SS
+\]
+\[
+S \rightarrow \epsilon
+\]
+
+** Applications
+- Compiler design and implementation
+- Programming language specificatoin
+- Scanner, parsers, and code generators
+
+** Design Techniques
+1. CFG Design Technique
+   - Many CFGs are unions of simpler CFGs
+   - Combination involves putting all the rules together and adding the new rules
+   - s \rightarrow s_{1}|s_{2}|...|s_{k}
+     - where the variables s_{i}, 1 \leq i \leq k, are the start variables of the invidivual grammars and the s is a new variable
+
+#+begin_src C
+int a = 5;
+
+return a + a a;
+#+end_src
+
+#+RESULTS:
+*** Design a Language Example

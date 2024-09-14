@@ -1,0 +1,44 @@
+#+title: Hw2
+#+author: Jackson Mowry
+#+date: <2024-09-08 Sun>
+#+setupfile: ../jake.setup
+
+* Problem 1
+a. {w | w has at least 2 a's and at least 3 b's}
+#+ATTR_LATEX: :width 6cm
+[[file:hw2/simple1-1.png]]
+#+ATTR_LATEX: :width 6cm
+[[file:hw2/1-1.png]]
+simple, then final
+
+b. {w | w has an odd number of a's and no more than 2 b's}
+#+ATTR_LATEX: :width 6cm
+[[file:hw2/simple1-2.png]]
+#+ATTR_LATEX: :width 6cm
+[[file:hw2/1-2.png]]
+simple, then final
+
+c. {w | w starts with the character b and has at most 1 a}
+#+ATTR_LATEX: :width 6cm
+[[file:hw2/simple1-3.png]]
+#+ATTR_LATEX: :width 6cm
+[[file:hw2/1-3.png]]
+simple, then final
+
+* Problem 2
+a. {w | w contains neither the substring aa nor the substring bb}
+#+ATTR_LATEX: :width 4.5cm
+[[file:hw2/simple2-1.png]]
+#+ATTR_LATEX: :width 4.5cm
+[[file:hw2/2-1.png]]
+Simple first, final last
+
+b. {w | w is any string not in b^{*}a^{*}}
+#+ATTR_LATEX: :width 8cm
+[[file:hw2/2-2.png]]
+Simple top, final bottom
+
+c. {w | w is any string not in (ab^{+}a)^{*}}
+#+ATTR_LATEX: :width 8cm
+[[file:hw2/2-3.png]]
+Simple top right, final bottom left

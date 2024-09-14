@@ -1,0 +1,55 @@
+#+title: One Six
+
+* Objectives
+- Expanding the Equivalency Theorem
+- Given a singular matrix A, find all matricies b such that Ax = b is consistent
+
+* Theorem
+If A is an n x n matrix, then the following statements are equivalent
+a. A is invertible
+b. Ax = 0 has only the trivial solution
+c. The reduced row-echelon form of A is I_n
+d. A is expressible as a product of elementary matricies
+e. Ax = b is consistent for each n x 1 matrix b
+f. Ax = b has exactly one solution for each n x 1 matrix b
+
+* Theorem
+For A and B square matricies of the same size, if AB is invertible, then A and B must also be invertible
+
+** Proof
+
+
+* Problem
+If A is either not square or not invertible, find all b such that Ax = b is consistent
+
+If a is invertible then it has 1 solution
+If a is non-invertible then it either has infinite solutions or no solutions
+
+** Examples
+1. Find all b such that $x+3y=b_{1}$ $2x+6y=b_{2}$ has a solution
+$\begin{bmatrix}1&3\\2&6\end{bmatrix}$
+r_2 - 2r_1 \rightarrow{} r_2
+$\begin{bmatrix}1&3\\0&0\end{bmatrix}$
+
+The last row tells us that $0x_1 + 0x_2 = b_2 - 2b_1$, which can only be true if $b_2 = 2b_1$
+
+So, if $b_2 - 2b_1 \neq{} 0$, then we have no solutions. Thus, we would have solutions when $b_2 - 2b_1 = 0$
+
+How to write a single column $b^{\rightarrow{}} = \begin{bmatrix}b_1\\2b_1\end{bmatrix}$
+
+2. Find all b such that $x+3y+2z=b_{1}$ $2x+7y+4z=b_{2}$ $4x+5y+8z=b_{3}$
+$\begin{bmatrix}1&3&2\\2&7&4\\4&5&8\end{bmatrix}$
+$\begin{bmatrix}1&3&2\\2&7&4\\4&5&8\end{bmatrix}$
+
+$\left[\begin{array}{ccc|c}1&3&2&b_1\\0&1&0&b_{2}-2b_{1}\\0&0&0&b_{3}-4b_{1}+7(b_{2}-2b_{1}\end{array}\right]$
+
+No solution unless $b_3-4b_1+7(b_2-2b_1) = 0$
+
+Let $b_1 = t, b_2 = s$
+
+$b_3 - 18t + 7s = 0$
+$b_3 = 18t - 7s$
+
+Thus, $b = \begin{bmatrix}b_1\\b_2\\b_3\end{bmatrix} = \begin{bmatrix}t\\s\\18t-7s\end{bmatrix} = \begin{bmatrix}t\\0\\18t\end{bmatrix} + \begin{bmatrix}0\\s\\-7s\end{bmatrix} = t\begin{bmatrix}1\\0\\18\end{bmatrix} + s\begin{bmatrix}0\\1\\-7\end{bmatrix}$
+
+When you add 2 vectors you add component wise, in the above column vector we have 2 variables, so we write in 2 separate column vectors. First entry we have t, so pull it out

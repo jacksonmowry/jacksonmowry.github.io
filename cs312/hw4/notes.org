@@ -1,0 +1,8 @@
+#+title: Notes
+* 1
+* 2
+F = {ww | w is a string from {0,1}^{*}}
+
+Assume F is a regular and let p be the pumping length of F.
+Choose s = 0^{p}10^{p}1, when w = 0^{p}1. Clearly |0^{p}10^{p}1 \geq p.
+According to the PL s can be partitioned into s = xyz such that for all i \geq 0, we have the following xy^{i}z \in F. By condition 3 of the PL, we must also have |xy| \leq p. Therefore, y must consist only of 0s and subsequenttly xyyz = xy^{2}z \notin F _since the first part of_ the strings (substring w) does not equal the second part of the string s. Hence, S cannot be pumped and that is a violation of our assumption that F is regular. By this contradiction we can conclude that the language F is not regular#

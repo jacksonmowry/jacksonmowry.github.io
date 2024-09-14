@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// A simple helper macro to check for a null vector before performing any
+// operations.
 #define VECTOR_NULL_CHECK(v)                                                   \
     if (!v) {                                                                  \
         fprintf(stderr, "Attempting to call '%s' on a NULL vector\n",          \
@@ -11,32 +13,24 @@
         exit(1);                                                               \
     }
 
+// Define the structure only in our .c file so that its implementation is hidden
+// from users of our library.
 typedef struct Vector {
     int size;
     int capacity;
     int64_t* values;
 } Vector;
 
-#if DEBUG
-void vector_dump(Vector* v) {
-    printf("[");
-    for (int i = 0; i < v->size - 1; i++) {
-        printf("%ld ", v->values[i]);
-    }
-    if (v->size > 1) {
-        printf("%ld]\n", v->values[v->size - 1]);
-    } else {
-        printf("]\n");
-    }
-}
-#else
-void vector_dump(Vector* v) {}
-#endif
-
+// vector_new allocates a vector of size 0, returning a pointer to the newly
+// allocated structure.
 Vector* vector_new(void) { return vector_new_with_capacity(0); }
 
+// vector_new_with_capacity allocates a vector with the specified capacity,
+// returning a pointer to the newly allocated structure.
 Vector* vector_new_with_capacity(int capacity) {
-    Vector* v = (Vector*)calloc(1, sizeof(Vector));
+    Vector* v = (Vector*)malloc(sizeof(Vector));
+    // We have 2 possible points of failure within this function, both resulting
+    // from calls to allocate memory.
     if (!v) {
         fprintf(stderr, "Failed to allocate memory for a vector!\n");
         exit(1);
@@ -44,8 +38,9 @@ Vector* vector_new_with_capacity(int capacity) {
 
     v->size = 0;
     v->capacity = capacity;
-    v->values = (int64_t*)calloc(v->capacity, sizeof(int64_t));
+    v->values = (int64_t*)calloc((size_t)v->capacity, sizeof(int64_t));
 
+    // The second spot where memory allocating can fail.
     if (!v->values) {
         fprintf(stderr, "Failed to allocate memory for a vectors elements!\n");
         exit(1);
@@ -54,6 +49,8 @@ Vector* vector_new_with_capacity(int capacity) {
     return v;
 }
 
+// vector_free first frees the backing array, then the heap allocated structure
+// itself. Vector* v is no longer valid for use after returning.
 void vector_free(Vector* v) {
     if (!v) {
         return;
@@ -64,8 +61,11 @@ void vector_free(Vector* v) {
     free(v);
 }
 
+// vector_push adds a single 64-bit value to the end of the vector.
+// value is passed by value.
+// Each call to vector_push resizes the vector by 'size + 1'
 void vector_push(Vector* v, int64_t value) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     vector_resize(v, v->size + 1);
 
@@ -74,8 +74,11 @@ void vector_push(Vector* v, int64_t value) {
     v->values[v->size - 1] = value;
 }
 
+// vector_insert places the provided value at the specified index, shifting all
+// values to the right down by one. If index is past the end of the array it
+// will be placed at the end.
 void vector_insert(Vector* v, int index, int64_t value) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     if (index < 0) {
         fprintf(stderr, "Attempting to insert with index '%d'\n", index);
@@ -94,13 +97,15 @@ void vector_insert(Vector* v, int index, int64_t value) {
     }
 
     memmove(&v->values[index + 1], &v->values[index],
-            (v->size - index) * sizeof(int64_t));
+            ((size_t)(v->size - index) * sizeof(int64_t)));
     v->values[index] = value;
     v->size += 1;
 }
 
+// vector_removes removes the value at the provided index, shifting all values
+// to the right back one place.
 bool vector_remove(Vector* v, int index) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     if (index < 0) {
         fprintf(stderr, "Attempting to remove with index '%d'\n", index);
@@ -114,14 +119,17 @@ bool vector_remove(Vector* v, int index) {
     assert(index >= 0 && index < v->size - 1);
 
     memmove(&v->values[index], &v->values[index + 1],
-            (v->size - index + 1) * sizeof(int64_t));
+            ((size_t)(v->size - index + 1) * sizeof(int64_t)));
     v->size -= 1;
 
     return true;
 }
 
+// vector_get places the value at the specified index in the out parameter
+// 'value'. If this operation is successful the function returns true, otherwise
+// if the provided index is out of range false will be returned.
 bool vector_get(Vector* v, int index, int64_t* value) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     if (index < 0) {
         fprintf(stderr, "Attempting to get with index '%d'\n", index);
@@ -139,8 +147,10 @@ bool vector_get(Vector* v, int index, int64_t* value) {
     return true;
 }
 
+// vector_set updates the value as the specified index, returning true if that
+// value was successfully updated.
 bool vector_set(Vector* v, int index, int64_t value) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     if (index < 0) {
         fprintf(stderr, "Attempting to set with index '%d'\n", index);
@@ -157,8 +167,10 @@ bool vector_set(Vector* v, int index, int64_t value) {
     return true;
 }
 
+// vector_find performs a linear search returning the index of the first
+// occurance of 'value'.
 int vector_find(Vector* v, int64_t value) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     for (int i = 0; i < v->size; i++) {
         if (value == v->values[i]) {
@@ -169,18 +181,25 @@ int vector_find(Vector* v, int64_t value) {
     return false;
 }
 
+// I am assuming we are intended to include this funciton?
+// comp_ascending takes in 2 int64_t values by value, and returns if they are in
+// ascending order.
 static bool comp_ascending(int64_t left, int64_t right) {
     return left <= right;
 }
 
+// vector_sort sorts a vector in ascending order by int64_t values.
 void vector_sort(Vector* v) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     vector_sort_by(v, comp_ascending);
 }
 
+// vector_sort_by sorts a vector by the provided sorting function.
+// 'comp' should have the function signature bool (*comp)(int64_t, int64_t),
+// returning true if the provided values are already "in order".
 void vector_sort_by(Vector* v, bool (*comp)(int64_t left, int64_t right)) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     int i;
     int j;
@@ -202,8 +221,10 @@ void vector_sort_by(Vector* v, bool (*comp)(int64_t left, int64_t right)) {
     }
 }
 
+// vector_bsearch takes in a sorted vector, returning the index of the provided
+// value, or -1 if it is not found.
 int vector_bsearch(Vector* v, int64_t value) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     int left = 0;
     int right = v->size - 1;
@@ -223,8 +244,10 @@ int vector_bsearch(Vector* v, int64_t value) {
     return -1;
 }
 
+// vector_resize adjusts the size field of a vector, reallocating the backing
+// storage/capacity if needed.
 void vector_resize(Vector* v, int new_size) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     if (new_size < 0) {
         fprintf(stderr, "Attempting to resize vector with size '%d'\n",
@@ -241,8 +264,10 @@ void vector_resize(Vector* v, int new_size) {
     v->size = new_size;
 }
 
+// vector_reserve adjusts the capacity/backing storage of a vector, reallocating
+// if necessary.
 void vector_reserve(Vector* v, int new_capacity) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     if (new_capacity < 0) {
         fprintf(stderr, "Attempting to reserve vector with capacity '%d'\n",
@@ -258,7 +283,7 @@ void vector_reserve(Vector* v, int new_capacity) {
     int64_t* tmp = v->values;
 
     v->capacity = new_capacity;
-    v->values = malloc(v->capacity * sizeof(int64_t));
+    v->values = malloc((size_t)v->capacity * sizeof(int64_t));
     if (!v->values) {
         fprintf(stderr, "Attempt to reallocate vector values failed!\n");
         exit(1);
@@ -269,18 +294,21 @@ void vector_reserve(Vector* v, int new_capacity) {
     // Also it would be unsafe to use memcpy in case of the overlapping
     // memory regions, but Marz says we should use memcpy for speed
     if (tmp != v->values) {
-        memcpy(v->values, tmp, v->size * sizeof(int64_t));
+        memcpy(v->values, tmp, ((size_t)v->size * sizeof(int64_t)));
     }
 
     free(tmp);
 }
 
+// vector_clear sets a vectors size to 0.
 void vector_clear(Vector* v) {
-    VECTOR_NULL_CHECK(v);
+    VECTOR_NULL_CHECK(v)
 
     v->size = 0;
 }
 
+// vector_capacity returns the capacity field of a vector
 int vector_capacity(Vector* vec) { return vec->capacity; }
 
+// vector_size returns the size field of a vector
 int vector_size(Vector* vec) { return vec->size; }

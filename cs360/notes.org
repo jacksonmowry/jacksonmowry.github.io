@@ -84,3 +84,251 @@ int main() {
 #+end_src
 
 #+RESULTS:
+
+* mmap
+#+begin_src C
+void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off);
+#+end_src
+| Param  | What it is                 | General Value                                                |
+|--------+----------------------------+--------------------------------------------------------------|
+| addr   | where to map               | NULL                                                         |
+| len    | How much                   | sizeof(thing)*number                                         |
+| prot   | Protection flags           | PROT_READ or PROT_WRITE or PROT_EXEC (PROT_NONE?)            |
+| flags  | Handling of Mapped Data    | MAP_SHARED or MAP_PRIVATE or MAP_ANONYMOUS(no backing store) |
+| fd     | -1 (no file) or a valid FD |                                                              |
+| offset | How much to offset the ptr | Read +30 bytes into a file                                   |
+
+#+begin_src C
+int munmap(void *addr, size_t len);
+#+end_src
+| Param | What it is                         | General Value                               |
+|-------+------------------------------------+---------------------------------------------|
+| addr  | Address of the original allocation | Whatever you were handed in the first place |
+| size  | The size you allocated             | Whatever it was in the first place          |
+
+#+begin_src C
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+
+typedef struct Page {
+    union {
+        char c[4096];
+        int i[4096/4];
+        long l[4096/8];
+    }u;
+};
+
+int main() {
+
+    void* ptr = (NULL, 4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+    if (ptr == MAP_FAILED) {
+        perror("mmap");
+        return -1;
+    }
+
+    Page *p = (page*)ptr;
+    p->u.i[0] = 100;
+
+    munmap(ptr, 4096);
+}
+#+end_src
+
+#+RESULTS:
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main() {
+    int fd;
+
+    fd = open("main.c", O_RDWR);
+    if (fd < 0) {
+        perror("main.c");
+        return -1;
+    }
+
+    int size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+
+    char* ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == MAP_FAILED) {
+        perror("mmap");
+        return -1;
+    }
+
+    close(fd);
+
+    ptr[0] = 'V';
+    ptr[1] = 'Z';
+    printf("%.*s\n", size, ptr);
+
+    munmap(ptr, size);
+}
+
+#+end_src
+
+#+RESULTS:
+#+begin_example
+VZnclude <stdio.h>
+
+int main() {
+  int a;
+  float b;
+  scanf("%d %f\n", &a, &b);
+
+  printf("%d %f\n", a, b);
+}
+
+#+end_example
+
+#+begin_src C :results verbatim
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int main() {
+    void* ptr = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE | MAP_STACK, -1, 0);
+    if (ptr == MAP_FAILED) {
+        perror("mmap");
+        return -1;
+    }
+
+    int* iptr = (int*)ptr;
+    iptr[0] = 1234;
+    iptr[1] = 5678;
+
+    printf("%d %d\n", iptr[0], iptr[1]);
+    printf("%p\n", iptr);
+
+    munmap(ptr, 4096);
+}
+#+end_src
+
+#+RESULTS:
+: 1234 5678
+: 0x7c0829b36000
+
+* POSIX Files
+** Open
+| Flags    | Description                                |
+|----------+--------------------------------------------|
+| O_APPEND | Open file in the append mode (for writing) |
+| O_CREAT  | Create the file if it doesn't exist        |
+| O_EXCL   | Don't create if the file doesn't exist     |
+| O_TRUNC  | Truncates the file to size 0 when opened   |
+| O_RDONLY | Opens with readonly permissions            |
+| O_WRONLY | Opens with writeonly permissions           |
+| O_RDWR   | Opens with read and write permissions      |
+
+Mode - an octal mode (if creating the file (required only if =O_CREAT= is used))
+
+
+#+begin_src C :results verbatim
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    int fd = open("john.txt", O_RDONLY);
+    if (fd < 0) {
+        perror("john.txt");
+        return -1;
+    }
+
+    lseek(fd, 6, SEEK_SET);
+
+    char buf[256];
+    ssize_t ret = read(fd, buf, 5);
+    if (ret < 0) {
+        perror("read");
+        return-1;
+    }
+    buf[ret] = '\0';
+    printf("%lu: %s\n", ret, buf);
+
+    lseek(fd, 0, SEEK_SET);
+
+    ret = read(fd, buf, 5);
+    if (ret < 0) {
+        perror("read");
+        return-1;
+    }
+    buf[ret] = '\0';
+    printf("%lu: %s\n", ret, buf);
+
+    off_t val = lseek(fd, 0, SEEK_CUR);
+    printf("we are %ld bytes into the file\n", val);
+
+    close(fd);
+}
+#+end_src
+
+#+RESULTS:
+: 5: World
+: 5: Hello
+: we are 5 bytes into the file
+
+** Directories
+#+begin_src C
+DIR* opendir(const char* pathname);
+DIR* fdopendir(int fd);
+struct dirent* readdir(DIR* dirp);
+int closedir(DIR* dirp);
+
+struct dirent {
+    ino_t d_ino;
+    off_t d_off;
+    unsigned short d_reclen;
+    unsigned char d_type;
+    char d_name[256];
+};
+#+end_src
+
+#+begin_src C :results verbatim
+#include <dirent.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main() {
+    struct stat st;
+    DIR* dir;
+    struct dirent* dent;
+
+    dir = opendir(".");
+    if (!dir) {
+        perror("opendir");
+        return 1;
+    }
+
+    while ((dent = readdir(dir)) != NULL) {
+        if (strcmp(dent->d_name, ".") && strcmp(dent->d_name, "..")) {
+            printf("%s\n", dent->d_name);
+        }
+    }
+
+    closedir(dir);
+}
+    #+end_src
+
+    #+RESULTS:
+    #+begin_example
+    main.c
+    lab1
+    lab2
+    lab3
+    notes.org
+    octave-workspace
+    mmap.c
+    a.out
+    john.txt
+    ray_tracer
+    #+end_example

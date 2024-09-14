@@ -1,0 +1,11 @@
+#+title: Applications
+* AYSO
+Compiling, make app=ayso_app proc=risp
+* EONS
+The default encoder may not fit your usecase
+** Binning
+Spike your input into one neuron or the other based on its value
+
+Planks favorite encoder
+- { "spikes": {"flip_flop": 2, "max_spikes": 8, "min": 1 }
+- Maps -/+ values into different input neurons

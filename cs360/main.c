@@ -1,4 +1,4 @@
-#include <stdio.h>
+VZnclude <stdio.h>
 
 int main() {
   int a;

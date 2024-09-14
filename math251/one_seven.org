@@ -1,0 +1,102 @@
+#+title: One Seven
+
+* Diagonal Matricies
+A square matrix in which ale entries off the main diagonal are zero is called a diagonal matrix
+
+$\begin{bmatrix}2&0\\0&-5\end{bmatrix}$
+$\begin{bmatrix}1&0&0\\0&1&0\\0&0&1\end{bmatrix}$
+$\begin{bmatrix}6&0&0&0\\0&-4&0&0\\0&0&0&0\\0&0&0&8\end{bmatrix}$
+$\begin{bmatrix}0&0\\0&0\end{bmatrix}$
+
+A general n x n diagonal matrix D can be written as
+$\begin{bmatrix}d_1&0&...&0\\0&d_2&...&0\\...&...&...&...\\0&0&...&d_n\end{bmatrix}
+
+A diagonal matrix is invertible if and only if all of its diagonal entries are nonzero; in this case the inverse of it is
+$D^{-1} \begin{bmatrix}1/d_1 & 0 & ... & 0\\0 & 1/d_{2} & ... & 0\\...&...&...&...\\0 & 0 & ... & 1/d_{n}\end{bmatrix}$
+
+Powers of a diagonal matrix
+$D^{k} = \begin{bmatrix}d_{1}^{k} & 0 & ... & 0 \\ 0 & d_{2}^{k} & ... & 0 \\ ... & ... & ... & ... \\ 0 & 0 & ... & d_{n}^{k}\end{bmatrix}$
+
+Given A below, find A^{-1}, A^{5} and A^{-5}
+
+$A = \begin{bmatrix}1&0&0\\0&-3&0\\0&0&2\end{bmatrix}$
+
+A inverse and A^{-1} are the same thing if and only if A is a diagonal matrix
+
+$A^{-5} = \begin{bmatrix}1&0&0\\0&\frac{-1}{243}&0\\0&0&\frac{1}{32}\end{bmatrix}$
+
+
+* Triangular Matricies
+A square matrix in which ale entries above the main diagonal are zero is called lower triangluar, and a square matrix in which all the entires below the main diagonal are zero is called upper triangular. A matrix that is either upper or lower triangular is called triangular
+
+- A square matrix in row echelon form is upper triangular since it has zeros below the main diagonal
+
+** Theorem
+a. The transpose of a lower triangluar matrix is upper triangluar, and the transpose of an upper triangular matrix is lower triangular
+b. The product of lower triangular matricies is lower tri, and the product of upper is upper
+c. A triangular matrix is invertible if and only if its diagonal entries are all nonzero
+d. The inverse of an invertible lower triangular matrix is lower triangular, and the inverse of and invertible upper triangular matrix is upper triangular
+
+** Practice
+$A = \begin{bmatrix}1&3&-1\\0&2&4\\0&0&5\end{bmatrix} B = \begin{bmatrix}3&-2&2\\0&0&-2\\0&0&1\end{bmatrix}$
+
+A is invertible, B is not, cell 2,2 is 0
+
+* Symmetric Matricies
+A square matrix A is said to be *symmetric* if A = A^{T}
+
+$\begin{bmatrix}7&-3\\-3&5\end{bmatrix}\begin{bmatrix}1&4&5\\4&-3&0\\5&0&7\end{bmatrix}\begin{bmatrix}d_1&0&0&0\\0&d_2&0&0\\0&0&d_{3}&0\\0&0&0&d_{4}\end{bmatrix}$
+
+Easy to recognize a symmetric matrix by inspection, the entries on the main diagonal have no restrictions, but mirror images of entires across the main diagonal must be equal
+$(A)_{ij} = (A)_{ji}$
+
+** Theorem
+If A and B are symmetric matrcies with the same size, and if k is any scalar, then;
+- A^T is symmetric
+- A+B and A-B are symmetric
+- kA is symmetric
+
+The product of two symmetric matricies is symmetric iff the matricies commute (AB = BA)
+$\begin{bmatrix}1&2\\2&3\end{bmatrix}\begin{bmatrix}-4&1\\1&0\end{bmatrix} = \begin{bmatrix}-2&1\\-5&2\end{bmatrix}$
+$\begin{bmatrix}1&2\\2&3\end{bmatrix}\begin{bmatrix}-4&3\\3&-1\end{bmatrix} = \begin{bmatrix}2&1\\1&3\end{bmatrix}$
+This guy is symmetric, because AB in this case commute, meaning BA would give the same results
+#+begin_src octave
+a = [1,2;2,3]
+b = [-4,3;3,-1]
+
+a * b == b * a
+#+end_src
+
+#+RESULTS:
+| 1 | 1 |
+| 1 | 1 |
+
+*** If A is an invertible symmetric matrix, then A^{-1} is symmetric
+- Assume A is symmetric, then we want to show A^{-1} is symmetric
+- From theorem A = A^{T}
+$(A^{-1})^T = (A^T)^{-1} = A^{-1}$
+So, since (A^{-1})^T = A^{-1}, then A^{-1} is symmetric
+
+*** If A is an invertible matrix, then AA^{T} and A^{T}A are also invertible
+
+
+** AA^{T} and A^{T}A are Symmetric
+If A is an m x n matrix, then A^{T} is an n x m matrix
+$(AA^T)^{T} = (A^T)^{T}A^{T} = AA^T and (A^{T}A)^{T} = A^{T}(A^{T})^{T} = A^{T}A
+
+
+$A = \begin{bmatrix}1&-2&4\\3&0&-5\end{bmatrix}$
+$A^{T} = \begin{bmatrix}1&3\\-2&0\\4&-5\end{bmatrix}$
+$AA^{T}\begin{bmatrix}21&-17\\-17&34\end{bmatrix}$
+
+** Skew Symmetric
+A matrix A is *Skey Symmetric* if A^{T} = -A
+$A = \begin{bmatrix}0&-1\\1&0\end{bmatrix}$
+$A^{T} = \begin{bmatrix}0&1\\-1&0\end{bmatrix} = -A$
+
+*** Square
+If A is an n x n matrix then A - A^{T} is skew symmetric
+
+
+$\begin{bmatrix}\end{bmatrix}$
+$\begin{bmatrix}\end{bmatrix}$

@@ -1,0 +1,61 @@
+#+title: Xor Risp
+* RISP (Simulation, microcontroller)
+Reduced instruction spiking processor
+- Very simple integrate-and fire with very few bells and whistles
+
+** Notes
+- Simple integrate-and-fire neurons
+- Integration cycle, we integrate over a unit time step, then we compare action potential with threshold
+- Integer delays
+- Neurons may be configured to leak their charge at the end of every timestep
+- No plasticity, learning modes, refractory periods, etc
+- Simple and very fast simulator in the framework
+- [[https://arxiv.org/abs/2206.14016]]
+
+** XOR Example
+2 inputs, go to A&~B and B&~A, to produce the output A XOR B, 0&1 are out input, 4 is out output
+- Neurons have weights of -1 or 1, with all neurons given a delay of 1
+- Takes 2 timesteps to spike the output
+
+** JSON
+WEIGHT, DELAY for edges
+
+P for property pack
+FJ to load json file
+
+PRUNE to remove nodes/edges that cannot be reached from the input, or canont reach the output
+
+RNP Randomize values of nodes/edges, RNP [node list (e.g 1 2 3)]
+
+** Processor Tool
+ML make load <network>
+
+AS node_id spike_time spike_value
+
+OC output count
+
+OLF output last fire time
+
+OV all firing times
+
+NC (true/false to see things that fired)  all neurons that spike
+
+NLT T to see last neuron fire times
+
+NV T to see all fire times
+
+GSR Spike raster plot
+
+NCH look at current charge value in all neurons
+
+** Creating a processor
+
+* RAVENS (Simulation, FPGA, chip fabrication)
+Leak, plasticity, design for memristive synapses
+* GNP (Simulation)
+Generaic neuroprocessor
+- Flexible settings for leak, refractory period, plasticity and accumulation methods
+* Caspain (Simulation, FPGA)
+all digital, some plasticity, developed at ORNL
+* Izhikevich (Simulation)
+dynamic neuronal model f

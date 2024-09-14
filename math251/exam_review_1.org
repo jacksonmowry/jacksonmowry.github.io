@@ -1,0 +1,57 @@
+#+title: Exam Review 1
+* 1.1
+- Gauss-Jordan Elimination
+  - Add a multiple of one row to another
+  - Swap 2 rows
+  - Multiply a row by a constant
+
+* 1.2
+- Solve system to get solution with parameters
+  - Use Gauss-Jordan to get rref
+- How do we see if the system has n solutions
+  a. If after doing gauss-jordan elimination, the last row is all 0s, and the rhs is non-zero
+     - No solutions
+  b. All zeros but one of the lhs vars is not
+     - X_{n} = 0
+  c. # of nonzero rows < # variables
+     - Infinite solutions
+     - # of variables - number of non-zero rows
+
+* 1.3
+- Write a matrix product as a linear combination of columns
+  - $ Ax^{\rightarrow{}} => column_{1}x_{1} + column{2}x_2 + ... + column{n}x_{n}
+- Do matrix multiplication
+  - A_{m x *n*}B_{*n* x o} => (AB)_{m x l}
+  - Row of first matrix, times column of second matrix
+- Compute the trace
+
+* 1.4
+- Find inverse of A and solve Ax^{\rightarrow} = b^{\rightarrow}
+- A_{3 x 3} => [A | I] -> gauss-jordan -> [I | A^{-1}], after having A^{-1}, Ax^{\rightarrow} = b^{\rightarrow}
+- Apply inverses to isolate variables
+
+* 1.5
+- Find E so that EA = B, where A&B are given
+  - Realize the change in A to get B, a single row operation
+
+* 1.6
+- Find b for Ax^{\rightarrow{}} = b^{\rightarrow{}} to be consistent
+- Given Ax^{\rightarrow{}} = b^{\rightarrow{}}
+  - [A | b^{\rightarrow}] => gauss-jordan elimination
+  - $\begin{bmatrix}*&(any)&(any)\\0&*&(any)\\0&0&*\end{bmatrix}$
+  - Analize the last row to
+- m = 0, n is an expression of b_{1},b_{2}, and b_{3}
+- then set n = 0, solve for b_{1},b_{2}, and b_{3}
+- Use parameters t, s (if needed) to write the solution
+  - $b^{\rightarrow{}} = t[] + s[]
+
+* 1.7
+- Just memorize things
+  - Diagonal matrix
+  - Triangular matrix
+  - Skew matrix
+  - Symmetric matrix
+- A_{n x n}, B_{n x n}
+  - (AB)^T = B^{T}A^{T}
+  - (AB)^{-1} = B^{-1}A^{-1}
+  - (A^{-1})^{T} = (A^{T})^{-1}

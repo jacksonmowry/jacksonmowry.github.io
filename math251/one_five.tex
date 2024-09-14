@@ -1,0 +1,112 @@
+% Created 2024-09-06 Fri 09:36
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{One Five}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={One Five},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.8)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Recall}
+\label{sec:org78783c5}
+Multiply a row by a nonzero constant c
+Interchange 2 rows
+Add a constant c times one row to another
+\section{Definition 1}
+\label{sec:orge89e306}
+Matricies A and B are said to be row equivalent if either (hence each) can be obtained from the other by a sequence of elementary row operations
+\section{Definition 2}
+\label{sec:org5d8fb5d}
+A matrix E is called an elementary matrix if it can be obtained from an identity matrix by performing a single elementary row operation
+\subsection{Example 1}
+\label{sec:org6542267}
+Listed below are four elementary matricies and the oerations that product them
+
+\begin{bmatrix}1 & 0 \\ 0 & -3\end{bmatrix} \begin{bmatrix}1&0&0&0\\0&0&0&1\\0&0&1&0\\0&1&0&0\end{bmatrix} \begin{bmatrix}1&0&3\\0&1&0\\0&0&1\end{bmatrix} \begin{bmatrix}1&0&0\\0&1&0\\0&0&1\end{bmatrix}
+
+\begin{enumerate}
+\item Multiply the second row of I\textsubscript{2} by -3
+\item Interchange the second and fourth rows of I\textsubscript{4}
+\item Add 3 times the third row of I\textsubscript{3} to the first row
+\item Multiply the first row of I\textsubscript{3} by 1
+\end{enumerate}
+
+
+Every elementary matrix is invertible, and the inverse is also an elementary matrix
+\begin{itemize}
+\item any elementary row operation we want to do on Matrix A, we could do it on the identity matrix, and left multiply it to matrix A to get what we want
+\end{itemize}
+
+For example, given \(\begin{bmatrix}1&2&3\\4&5&6\\7&8&9\end{bmatrix}\)
+
+Find the elementary matrix E, so that
+\begin{enumerate}
+\item EA = \(\begin{bmatrix}3 & 6 & 9 \\ 4 & 5 & 6 \\ 7 & 8 & 9\end{bmatrix}\)
+\item EA = \(\begin{bmatrix}7&8&9\\4&5&6\\1&2&3\end{bmatrix}\)
+\item EA = \(\begin{bmatrix}1&2&3\\4&5&6\\8&9&10\end{bmatrix}\)
+\end{enumerate}
+
+\begin{verbatim}
+a = [1,0,0;0,1,0;1,0,1]
+b = [1,2,3;4,5,6;7,8,9]
+
+a * b
+\end{verbatim}
+\subsection{Theorem}
+\label{sec:org7f5ccfd}
+If a is an n x n matrix, then the following statements are equivlant, that is all true or all false
+\begin{itemize}
+\item A is invertible
+\item Ax = o has only the trivial solution
+\item The reduced row echelon form of A is I\textsubscript{n}
+\item A is expressible as a product of elementary matricies
+\end{itemize}
+\section{A Method for Inverting Matricies}
+\label{sec:org57c8d75}
+To find the inverse of an invertible matrix A, find a sequence of elementary row operations that reduces A to the identity and then perform that same sequence of operations on I\textsubscript{n} to obtain A\textsuperscript{-1}
+\subsection{Procedure}
+\label{sec:orga5baaf9}
+We want to reduce A to the identity matrix by row operations and simultaneously apply these operations to I to produce A\textsuperscript{-1}. To accomplist this we will adjoin the identity matrix to the right side of A, thereby producing a partitioned matrix of the form
+\[
+[A|I]
+\]
+
+Then we will apply row operations to this matrix until the left side is reduced to I; these operations will convert the right side to A\textsuperscript{-1}, so the final matrix will have the form
+\[
+[I|A^{-1}]
+\]
+\subsection{Example 3}
+\label{sec:orgc5e1161}
+Find the inverse of A if it exists
+\begin{enumerate}
+\item A = \(\begin{bmatrix}1&2&3\\2&5&3\\1&0&8 \| 1&2&3\end{bmatrix}\)
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\$\begin{bmatrix}\end{bmatrix}
+\item A = \(\begin{bmatrix}1&6&4\\2&4&-1\\-1&2&5\end{bmatrix}\)
+\end{enumerate}
+\end{document}

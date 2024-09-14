@@ -1,0 +1,77 @@
+#+title: One Five
+* Recall
+Multiply a row by a nonzero constant c
+Interchange 2 rows
+Add a constant c times one row to another
+
+* Definition 1
+Matricies A and B are said to be row equivalent if either (hence each) can be obtained from the other by a sequence of elementary row operations
+* Definition 2
+A matrix E is called an elementary matrix if it can be obtained from an identity matrix by performing a single elementary row operation
+
+** Example 1
+Listed below are four elementary matricies and the oerations that product them
+
+\begin{bmatrix}1 & 0 \\ 0 & -3\end{bmatrix} \begin{bmatrix}1&0&0&0\\0&0&0&1\\0&0&1&0\\0&1&0&0\end{bmatrix} \begin{bmatrix}1&0&3\\0&1&0\\0&0&1\end{bmatrix} \begin{bmatrix}1&0&0\\0&1&0\\0&0&1\end{bmatrix}
+
+1. Multiply the second row of I_{2} by -3
+2. Interchange the second and fourth rows of I_{4}
+3. Add 3 times the third row of I_{3} to the first row
+4. Multiply the first row of I_{3} by 1
+
+
+Every elementary matrix is invertible, and the inverse is also an elementary matrix
+- any elementary row operation we want to do on Matrix A, we could do it on the identity matrix, and left multiply it to matrix A to get what we want
+
+For example, given $\begin{bmatrix}1&2&3\\4&5&6\\7&8&9\end{bmatrix}$
+
+Find the elementary matrix E, so that
+a. EA = $\begin{bmatrix}3 & 6 & 9 \\ 4 & 5 & 6 \\ 7 & 8 & 9\end{bmatrix}$
+b. EA = $\begin{bmatrix}7&8&9\\4&5&6\\1&2&3\end{bmatrix}$
+c. EA = $\begin{bmatrix}1&2&3\\4&5&6\\8&9&10\end{bmatrix}$
+
+#+begin_src octave
+a = [1,0,0;0,1,0;1,0,1]
+b = [1,2,3;4,5,6;7,8,9]
+
+a * b
+#+end_src
+
+#+RESULTS:
+| 1 |  2 |  3 |
+| 4 |  5 |  6 |
+| 8 | 10 | 12 |
+
+** Theorem
+If a is an n x n matrix, then the following statements are equivlant, that is all true or all false
+- A is invertible
+- Ax = o has only the trivial solution
+- The reduced row echelon form of A is I_{n}
+- A is expressible as a product of elementary matricies
+
+* A Method for Inverting Matricies
+To find the inverse of an invertible matrix A, find a sequence of elementary row operations that reduces A to the identity and then perform that same sequence of operations on I_{n} to obtain A^{-1}
+
+** Procedure
+We want to reduce A to the identity matrix by row operations and simultaneously apply these operations to I to produce A^{-1}. To accomplist this we will adjoin the identity matrix to the right side of A, thereby producing a partitioned matrix of the form
+\[
+[A|I]
+\]
+
+Then we will apply row operations to this matrix until the left side is reduced to I; these operations will convert the right side to A^{-1}, so the final matrix will have the form
+\[
+[I|A^{-1}]
+\]
+
+** Example 3
+Find the inverse of A if it exists
+a. A = $\begin{bmatrix}1&2&3\\2&5&3\\1&0&8\end{bmatrix}$
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+   $\begin{bmatrix}\end{bmatrix}
+b. A = $\begin{bmatrix}1&6&4\\2&4&-1\\-1&2&5\end{bmatrix}$
