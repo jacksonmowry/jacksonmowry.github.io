@@ -56,12 +56,18 @@ int write_ppm(const char* file, uint32_t width, uint32_t height,
     size_t bytes_written = 0;
     interval i = (interval){.min = 0.000, .max = 0.999};
 
-    for (int64_t row = height - 1; row >= 0; row--) {
+    for (int64_t row = 0; row < height; row++) {
         /* fprintf(stderr, "Rows remaining: %lu\n", height - row); */
         for (size_t col = 0; col < width; col++) {
-            int r = interval_clamp(i, pixels[(row * width) + col].r) * 255.999;
-            int g = interval_clamp(i, pixels[(row * width) + col].g) * 255.999;
-            int b = interval_clamp(i, pixels[(row * width) + col].b) * 255.999;
+            int r = interval_clamp(
+                        i, linear_to_gamma(pixels[(row * width) + col].r)) *
+                    255.999;
+            int g = interval_clamp(
+                        i, linear_to_gamma(pixels[(row * width) + col].g)) *
+                    255.999;
+            int b = interval_clamp(
+                        i, linear_to_gamma(pixels[(row * width) + col].b)) *
+                    255.999;
             bytes_written += fprintf(fp, "%u %u %u\n", r, g, b);
         }
     }

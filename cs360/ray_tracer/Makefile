@@ -2,7 +2,7 @@
 #raytracer
 #
 
-CFLAGS = -Wall -Wextra -std=c99 -Iinclude -lm
+CFLAGS = -Wall -Wextra -std=c99 -Iinclude -lm -O3
 ANALYZERFLAGS = -g -fanalyzer
 SANITIZERFLAGS = -g -fsanitize=address
 

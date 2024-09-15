@@ -44,6 +44,7 @@ bool hit(hittable hittable, const Ray r, interval i, hit_record* record) {
             vec3_mul_dbl(vec3_sub(record->p, hittable.sphere.center),
                          1 / hittable.sphere.radius);
         set_face_normal(record, r, outward_normal);
+        record->mat = hittable.sphere.mat;
 
         return true;
 
