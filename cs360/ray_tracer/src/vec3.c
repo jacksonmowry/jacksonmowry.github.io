@@ -14,7 +14,10 @@ Vec3 vec3_cross(Vec3 u, Vec3 v) {
                 u.x * v.y - u.y * v.x);
 }
 
-double vec3_len2(Vec3 v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
+inline double vec3_len2(Vec3 v) {
+    return __builtin_fma(
+        v.x, v.x, __builtin_fma(v.y, v.y, __builtin_fma(v.z, v.z, 0.0f)));
+}
 
 double vec3_len(Vec3 v) { return sqrt(vec3_len2(v)); }
 

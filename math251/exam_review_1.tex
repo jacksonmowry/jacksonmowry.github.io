@@ -1,0 +1,126 @@
+% Created 2024-09-16 Mon 08:37
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{Exam Review 1}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={Exam Review 1},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{1.1}
+\label{sec:org8238c1f}
+\begin{itemize}
+\item Gauss-Jordan Elimination
+\begin{itemize}
+\item Add a multiple of one row to another
+\item Swap 2 rows
+\item Multiply a row by a constant
+\end{itemize}
+\end{itemize}
+\section{1.2}
+\label{sec:orgfe1a79a}
+\begin{itemize}
+\item Solve system to get solution with parameters
+\begin{itemize}
+\item Use Gauss-Jordan to get rref
+\end{itemize}
+\item How do we see if the system has n solutions
+\begin{enumerate}
+\item If after doing gauss-jordan elimination, the last row is all 0s, and the rhs is non-zero
+\begin{itemize}
+\item No solutions
+\end{itemize}
+\item All zeros but one of the lhs vars is not
+\begin{itemize}
+\item X\textsubscript{n} = 0
+\end{itemize}
+\item \# of nonzero rows < \# variables
+\begin{itemize}
+\item Infinite solutions
+\item \# of variables - number of non-zero rows
+\end{itemize}
+\end{enumerate}
+\end{itemize}
+\section{1.3}
+\label{sec:org0332a6a}
+\begin{itemize}
+\item Write a matrix product as a linear combination of columns
+\begin{itemize}
+\item \$ Ax\textsuperscript{\(\rightarrow\)} => column\textsubscript{1}x\textsubscript{1} + column\{2\}x\textsubscript{2} + \ldots{} + column\{n\}x\textsubscript{n}
+\end{itemize}
+\item Do matrix multiplication
+\begin{itemize}
+\item A\textsubscript{m x \textbf{n}}B\textsubscript{\textbf{n} x o} => (AB)\textsubscript{m x l}
+\item Row of first matrix, times column of second matrix
+\end{itemize}
+\item Compute the trace
+\end{itemize}
+\section{1.4}
+\label{sec:orgaa1ca78}
+\begin{itemize}
+\item Find inverse of A and solve Ax\textsuperscript{\(\rightarrow\)} = b\textsuperscript{\(\rightarrow\)}
+\item A\textsubscript{3 x 3} => [A | I] -> gauss-jordan -> [I | A\textsuperscript{-1}], after having A\textsuperscript{-1}, Ax\textsuperscript{\(\rightarrow\)} = b\textsuperscript{\(\rightarrow\)}
+\item Apply inverses to isolate variables
+\end{itemize}
+\section{1.5}
+\label{sec:org4f0d2d8}
+\begin{itemize}
+\item Find E so that EA = B, where A\&B are given
+\begin{itemize}
+\item Realize the change in A to get B, a single row operation
+\end{itemize}
+\end{itemize}
+\section{1.6}
+\label{sec:org116edf7}
+\begin{itemize}
+\item Find b for Ax\textsuperscript{\(\rightarrow\)} = b\textsuperscript{\(\rightarrow\)} to be consistent
+\item Given Ax\textsuperscript{\(\rightarrow\)} = b\textsuperscript{\(\rightarrow\)}
+\begin{itemize}
+\item {[}A | b\textsuperscript{\(\rightarrow\)}] => gauss-jordan elimination
+\item \(\begin{bmatrix}*&(any)&(any)\\0&*&(any)\\0&0&*\end{bmatrix}\)
+\item Analize the last row to
+\end{itemize}
+\item m = 0, n is an expression of b\textsubscript{1},b\textsubscript{2}, and b\textsubscript{3}
+\item then set n = 0, solve for b\textsubscript{1},b\textsubscript{2}, and b\textsubscript{3}
+\item Use parameters t, s (if needed) to write the solution
+\begin{itemize}
+\item \$b\textsuperscript{\(\rightarrow\)} = t[] + s[]
+\end{itemize}
+\end{itemize}
+\section{1.7}
+\label{sec:org3b58fac}
+\begin{itemize}
+\item Just memorize things
+\begin{itemize}
+\item Diagonal matrix
+\item Triangular matrix
+\item Skew matrix
+\item Symmetric matrix
+\end{itemize}
+\item A\textsubscript{n x n}, B\textsubscript{n x n}
+\begin{itemize}
+\item (AB)\textsuperscript{T} = B\textsuperscript{T}A\textsuperscript{T}
+\item (AB)\textsuperscript{-1} = B\textsuperscript{-1}A\textsuperscript{-1}
+\item (A\textsuperscript{-1})\textsuperscript{T} = (A\textsuperscript{T})\textsuperscript{-1}
+\end{itemize}
+\end{itemize}
+\end{document}

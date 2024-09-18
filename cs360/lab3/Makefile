@@ -2,7 +2,7 @@
 #rbuf
 #
 
-CFLAGS = -Wall -Wpedantic -Wextra -std=c99 -Iinclude
+CFLAGS = -Wall -Wpedantic -Wextra -std=c99 -Iinclude -g
 ANALYZERFLAGS = -g -fanalyzer
 SANITIZERFLAGS = -g -fsanitize=address
 

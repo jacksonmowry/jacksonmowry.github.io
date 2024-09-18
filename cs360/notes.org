@@ -332,3 +332,87 @@ int main() {
     john.txt
     ray_tracer
     #+end_example
+
+* Buffered Files
+| fopen   |
+| fclose  |
+| fread   |
+| frwite  |
+| fseek   |
+| ftell   |
+| fprintf |
+| fscanf  |
+
+#+begin_src C
+FILE* fopen(const char* path, const char* mode);
+void fclose(FILE* fl);
+#+end_src
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <assert.h>
+
+
+typedef struct ms {
+    int i;
+    int j;
+    float k;
+} ms;
+
+int main(int argc, char* argv[]) {
+    ms m = {111,-222,33.5};
+    FILE* fp;
+
+    fp = fopen("myfile.bin", "wb");
+    if (!fp) {
+        perror("myfile.bin");
+        return -1;
+    }
+
+    size_t bytes_written = fwrite(&m, 1, sizeof(ms), fp);
+    if (bytes_written != sizeof(ms)) {
+        perror("fwrite");
+        return -1;
+    }
+
+    printf("I wrote %lu bytes\n", bytes_written);
+    printf("Should be %x %x %a\n", m.i, m.j, m.k);
+
+    fclose(fp);
+
+    fp = fopen("myfile.bin", "rb");
+    if (!fp) {
+        perror("myfile.bin");
+        return -1;
+    }
+
+    ms s;
+
+    size_t bytes_read = fread(&s, 1, sizeof(ms), fp);
+    if (bytes_written != sizeof(ms)) {
+        perror("fread");
+        return -1;
+    }
+
+    int pos = fseek(fp, -4, SEEK_CUR);
+    int tell_pos = ftell(fp);
+    printf("%d %d\n", pos, tell_pos);
+    assert(pos != tell_pos);
+
+    char data;
+    bytes_read = fread(&data, 1, 1, fp);
+
+    fclose(fp);
+
+    printf("I read %lu bytes\n", bytes_read);
+    printf("s contains %d %d %f", s.i, s.j, s.k);
+
+}
+#+end_src
+
+#+RESULTS:
+: I wrote 12 bytes
+: Should be 6f ffffff22 0x1.0cp+5
+: 0 8
+: I read 12 bytes
+: s contains 111 -222 33.500000

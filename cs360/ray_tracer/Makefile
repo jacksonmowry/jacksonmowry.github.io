@@ -2,9 +2,10 @@
 #raytracer
 #
 
-CFLAGS = -Wall -Wextra -std=c99 -Iinclude -lm -O3
-ANALYZERFLAGS = -g -fanalyzer
-SANITIZERFLAGS = -g -fsanitize=address
+CFLAGS = -Wall -Wextra -std=c99 -Iinclude -lm -O3 -mavx -ffast-math
+ANALYZERFLAGS = -g -fanalyzer -lm
+SANITIZERFLAGS = -g -fsanitize=address -lm
+PERFFLAGS = -g -Iinclude -lm -mavx -ffast-math -O3
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -16,7 +17,7 @@ EXEC = $(BUILD_DIR)/main
 all: $(EXEC)
 
 # Link object files into final executable
-    $(EXEC): $(OBJS)
+$(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $@
 
 # Compile all source files
@@ -31,6 +32,10 @@ analyzer: $(EXEC)
 sanitizer: CC = clang
 sanitizer: CFLAGS += $(SANITIZERFLAGS)
 sanitizer: $(EXEC)
+
+perf: CFLAGS = $(PERFFLAGS)
+perf: $(EXEC)
+	perf record ./$(EXEC) > sweep.ppm
 
 # Build tests
 # NO-OP for now

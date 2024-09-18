@@ -19,7 +19,7 @@ Pixel ray_color(camera c, const Ray* r, int max_depth,
                           &rec)) {
         Ray scattered;
         Pixel attenuation;
-        /* Vec3 direction = vec3_add(rec.normal, vec3_random_unit_vector()); */
+
         if (scatter((material*)rec.mat, r, &rec, &attenuation, &scattered)) {
             return vec3_mul(attenuation,
                             ray_color(c, &scattered, max_depth - 1, world));
@@ -37,17 +37,17 @@ camera camera_initialize(int width, int height) {
     camera c;
     c.width = width;
     c.height = height;
-    c.samples_per_pixel = 100;
+    c.samples_per_pixel = 500;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
     c.max_depth = 50;
     c.vfov = 20;
 
-    c.lookfrom = (Vec3){.x = -2, .y = 2, .z = 1};
-    c.lookat = (Vec3){.x = 0, .y = 0, .z = -1};
+    c.lookfrom = (Vec3){.x = 13, .y = 2, .z = 3};
+    c.lookat = (Vec3){.x = 0, .y = 0, .z = 0};
     c.vup = (Vec3){.x = 0, .y = 1, .z = 0};
 
-    c.defocus_angle = 10.0;
-    c.focus_dist = 3.4;
+    c.defocus_angle = 0.6;
+    c.focus_dist = 10.0;
 
     c.aspect_ratio = (double)width / (double)height;
 
@@ -90,7 +90,7 @@ void camera_render(camera c, const hittable_list* world) {
     Pixel* p = malloc(c.width * c.height * sizeof(Pixel));
 
     for (uint32_t row = 0; row < c.height; row++) {
-        /* fprintf(stderr, "Rows remaining: %d\n", c.height - row); */
+        fprintf(stderr, "Rows remaining: %d\n", c.height - row);
         for (uint32_t col = 0; col < c.width; col++) {
             Vec3 pixel_location =
                 vec3_add(c.pixel00_location,

@@ -1,5 +1,5 @@
 #+title: CS312 Notes
-#+setupfile: ../jake.setup
+# #+setupfile: ../jake.setup
 #+options: \n:t
 
 * Theory Of Computation Introduction
@@ -492,3 +492,78 @@ return a + a a;
 
 #+RESULTS:
 *** Design a Language Example
+CFG G = ({S,B}, {a,b}, {S \rightarrow{} aSB|B|\epsilon{}, B \rightarrow{} bB|b} S)
+
+{a^{n}b^{m} | n <= m}
+
+** Ambiguous Grammar
+Consider the CFG G_{5} that has the rules E \rightarrow{} E + E | E * E | (E) | a.
+
+For this out by parsing left to right
+
+*** Derivation Order
+It is possible for 2 derivations to produce hte same derivation becuase htey differ in the order
+
+Leftmost derivation, replace the leftmost nonterminal first
+Rightmost Derivation, replace the rightmost nonterminal at each step
+
+*** Example
+\Sigma{} = {a,b,c}
+A = {a^{i}b^{j}c^{k} | i = j \vee{} j = k \hat{} (i,j,k \geq 0)}
+
+Rules
+- S \rightarrow{} E_{ab}C | AE_{bc}
+- E_{ab} \rightarrow{} aE_{ab}b | \epsilon{}
+- E_{bc} \rightarrow{} bE_{bc}C | \epsilon{}
+- C \rightarrow{} Cc | \epsilon{}
+- A \rightarrow{} aA|\epsilon{}
+
+Based on the rules defined above:
+S \rightarrow{} E_{ab}C \rightarrow{} C \rightarrow{} \epsilon{}
+S \rightarrow{} AE_{bc} \rightarrow{} A \rightarrow{} \epsilon{}
+
+How can we eliminate the ambiguity?
+
+Remove the epsilons from the RHS
+- C \rightarrow{} Cc | *c*
+- A \rightarrow{} aA| *a*
+
+Leave the intial 2 rules alone, *but we removed the empty string*
+- S \rightarrow{} E_{ab}C | AE_{bc} | *\epsilon{}* | *E_{ab}* | *E_{bc}*
+
+** Real World Example
+#+begin_src
+<s> ::= <v>=<e>
+     | <s>;<s>
+     | if <b> then <s>
+     | if <b> then <s> else <s>
+<v> ::= x|y|z
+<e> ::= <v>|0|1|2|3|4
+<b> ::= <e> === <e>
+
+x=1; y=2; if x === y then y = 3
+#+end_src
+
+*** Parse Tree 1
+if x === 1 then
+        if y === z then
+                z = 2
+                else z = 3
+        else z = 4
+
+** Chomsky Normal Form
+The CNF is a simplification procedure for CFGs. jthe format for rules in CNF has one of two forms
+- A \rightarrow{} BC (or A \rightarrow{} AC)
+  - Variable producing 2 variables on the right
+- A \rightarrow{} a
+  - The rule causes a termination
+  - where a is a terminal and A,B,C are nonterminals and B,C may not be the start variable.
+  - The rule S \rightarrow{} \epsilon{} for the start variable S is not excluded
+
+*** Not in CNF
+- A \rightarrow{} aa
+  - Produce 2 terminals
+- A \rightarrow{} Aa
+  - Produce a nonterminal and a terminal
+- A \rightarrow{} BCD
+  - 3 variables

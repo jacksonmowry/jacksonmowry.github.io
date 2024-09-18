@@ -57,7 +57,7 @@ int write_ppm(const char* file, uint32_t width, uint32_t height,
     interval i = (interval){.min = 0.000, .max = 0.999};
 
     for (int64_t row = 0; row < height; row++) {
-        /* fprintf(stderr, "Rows remaining: %lu\n", height - row); */
+        fprintf(stderr, "Rows remaining: %lu\n", height - row);
         for (size_t col = 0; col < width; col++) {
             int r = interval_clamp(
                         i, linear_to_gamma(pixels[(row * width) + col].r)) *
