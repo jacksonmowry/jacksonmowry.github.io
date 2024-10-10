@@ -26,6 +26,15 @@
 
 #define VECTOR(type)                                                           \
     void vector_##type##_pb(vector_##type* v, type item) {                     \
+        if (!v) {                                                              \
+            fprintf(stderr, "Attempting to call pb on a NULL vector\n");       \
+            exit(1);                                                           \
+        }                                                                      \
+        if (!v->array) {                                                       \
+            fprintf(stderr,                                                    \
+                    "Attempting to call pb on a vector with NULL array\n");    \
+            exit(1);                                                           \
+        }                                                                      \
         if (v->len >= v->cap) {                                                \
             v->cap *= 2;                                                       \
             v->array = (type*)realloc(v->array, v->cap * sizeof(type));        \

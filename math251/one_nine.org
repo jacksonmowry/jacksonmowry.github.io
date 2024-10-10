@@ -1,0 +1,79 @@
+#+title: One Nine
+* Recall
+College algebra
+$f \circ{} g(x) = f(g(x))$
+
+* Objectives
+Compose linear transformations
+Compute the compositions of reflection and rotation transformations
+Compute the inverse of a transformation
+
+* Notes
+Given a linear transofmration $T{A}: \mathbb{R}^{n} \rightarrow{} \mathhbb{m}$ and $T_{B} : \mathbb{R}^{m} \rightarrow{} \mathbb{R}^{k}$  define the composition $(T_{B}\circ{}T_{A})(x)$ to be the function $T_{B}(T{A}(x))$
+- In fact $T_{B}\circ{}T_{A} = T_{BA}$
+
+* Examples
+find the standard matrix for each of the following transformation, and find the standard matrix for the compositie functions $T_{1}\circ{}T_{2}$ and $T_{2}\circ{}T_{1}$
+
+\[
+T_{1}(e_{1}) = T_{1}(1,0) = (1+0,1-0) = (1,1)
+\]
+\[
+T_{1}(e_{2}) = T_{1}(0,1) = (0+1,0-1) = (1,-1)
+\]
+
+$T_{1} \Rightarrow{} A = \begin{bmatrix}T(e_{1})&T(e_{2})\end{bmatrix} = \begin{bmatrix}1&1\\1&-1\end{bmatrix}$
+
+$T_{2}(e_1) = T_{2}(1,0) = (2(1), -3(0)) = (2,0)$
+$T_{2}(e_2) = T_{2}(0,1) = (2(0), -3(1)) = (0, -3)$
+
+$T_{2}\Rightarrow{}B=\begin{bmatrix}T_{2}(e_1)&T_{2}(e_{2}\end{bmatrix}=\begin{bmatrix}2&0\\0&-3\end{bmatrix}$
+
+$T_{1}\circ{}T_{2} \Rightarrow{} AB = \begin{bmatrix}1&1\\1&-1\end{bmatrix}\begin{bmatrix}2&0\\0&-3\end{bmatrix} = \begin{bmatrix}2&-3\\2&3\end{bmatrix}$
+
+$T_{2}\circ{}T_{1} \Rightarrow{} BA = \begin{bmatrix}2&0\\0&-3\end{bmatrix} \begin{bmatrix}1&1\\1&-1\end{bmatrix} = \begin{bmatrix}2&2\\-3&3\end{bmatrix}$
+
+Transpose of each other
+
+* Example
+$T_{1}: \mathbb{R}^{2}\rightarrow{}\mathbb{R}^{3}$ by $T_{1}(x,y) = (-2,2y,y)$
+
+$T_{1}(e_1)=T_{1}(1,0)=(-1,0,0), T_{1}(e_{2})=T_{1}(0,1) = (0,2,1)\Rightarrow{}T_{1}\Rightarrow{}A=\begin{bmatrix}T_{1}(e_1)&T_{1}(e_{2})\end{bmatrix}=\begin{bmatrix}-1&0\\0&2\\0&1\end{bmatrix}$
+$T_{2}(e_{1}) = T_{2}(1,0,0) = (-1,0,0), T_{2}(e_{2}) = T_{2}(0,1,0) = (0,-1,1), T_{2}(e_{3})=T_{2}(0,0,1) = (0,0,1) \Rightarrow{} T_{2} \Rightarrow{} B = \begin{bmatrix}T_{2}(e_1)&T_{2}(e_2)&T_{3}(e_3)\end{bmatrix} = \begin{bmatrix}3&0&0\\0&-1&0\\1&1&1\end{bmatrix}$
+
+
+* Prove that the composition of two rotations in $\mathbb{R}^{2}$ is commutative
+- \alpha{} + \beta{} degrees
+Recall, supposed we rotate the vector \alpha{} & \beta{} ccw
+
+$\alpha = \begin{bmatrix}cos\alpha{}&-sin\alpha{}\\sin\alpha{}&cos\alpha{}\end{bmatrix}$
+$\beta = \begin{bmatrix}cos\beta{}&-sin\beta{}\\sin\beta{}&cos\beta{}\end{bmatrix}$
+
+$\alpha{} + \beta{} \Rightarrow{} \begin{bmatrix}cos(\alpha{}+\beta{})&-sin(\alpha{}+\beta{})\\sin(\alpha{}+\beta{})&cos(\alpha{}+\beta{})\end{bmatrix}$
+
+wts $AB = BA$
+
+# $AB=\begin{bmatrix}cos\alpha{}&-sin\alpha{}\\sin\alpha{}&cos\alpha{}\end{bmatrix}\begin{bmatrix}cos\beta{}&-sin\beta{}\\sin\beta{}&cos\beta{} = \begin{bmatrix}cos\alpha{}cos\beta{}-sin\alpha{}sin\beta{}&-cos^{2}\alpha{}sin\beta{}-sin\alpha{}cos\beta{}\\\sin\alpha{}cos\beta{}+cos^{2}\alpha{}sin\beta{}&\sin\alpha{}sin\beta{} + cos\alpha{}cos\beta{}$
+$ = \begin{bmatrix}cos(\alpha{}+\beta{})&-sin(\alpha{}+\beta{})\\sin(\alpha{}+\beta{})&cos(\alpha{}+\beta{})\end{bmatrix}$
+
+* Reflecting a Vector across the line y=x
+$\begin{bmatrix}0&1\\1&0\end{bmatrix}$
+Transpose if you switch the order of the mat mul
+* If $T_{A}: \mathbb{R}^{n} \rightarrow{} \mathbb{R}^{n}$ is a matrix operator whose standard matrix A is invertible, then we say that T_{A} is invertible, and we define the inverse T_{A} as
+\[
+T_{A}^{-1} = T_{A^{-1}}
+\]
+
+1. Given the operator $T: \mathbb{R}^{2} \rightarrow{} \mathbb{R}^{2}$ defined by
+\[
+w_{1} = 2x_{1} + 5x_{2}
+w_{2} = -x_{1} + 7x_{2}
+\]
+
+compute T^{-1}(w_{1},w_{2})
+
+WTF A^{-1}. So we need to find A first.
+T(1,0)=(2(1)+5(0),-1+7(0) = (2,-1)
+T(0,1) = (5,7)
+$\begin{bmatrix}2&5\\-1&7\end{bmatrix} \Rightarrow{} \frac{1}{19}\begin{bmatrix}7&-5\\1&2\end{bmatrix}$
+$(\frac{7}{19}w_{1}-\frac{5}{19}w_{2}, \frac{1}{19}w_{1} + \frac{2}{19}w_{2})$

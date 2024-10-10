@@ -1,0 +1,57 @@
+#+title: Notes
+* 2a.
+\Sigma = {a,b,c}
+R:      S \rightarrow{} A
+        A \rightarrow{} AaB
+        B \rightarrow{} b | C | \epsilon{}
+        C \rightarrow{} CC | c | \epsilon{}
+
+- Step 2 removing Epsilon Rules
+  - Removing B \rightarrow{} \epsilon{}
+    - S \rightarrow{} A
+    - A \rightarrow{} AaB | Aa
+    - B \rightarrow{} b | C
+    - C \rightarrow{} CC | c | \epsilon{}
+  - Removing C \rightarrow{} \epsilon{}
+    - S \rightarrow{} A
+    - A \rightarrow{} AaB | Aa
+    - B \rightarrow{} b | C
+    - C \rightarrow{} CC | c
+* 3b.
+\Sigma{} = {a,b,c}
+R:
+- S \rightarrow{} A | \epsilon{}
+- A \rightarrow{} BC
+- B \rightarrow{} BD | bb
+- C \rightarrow{} CD | cc
+- D \rightarrow{} B | C
+
+Step 3 Removal of unit rules (remember we can have epsilon because the empty string is in the language)
+- S \rightarrow{} *A* | \epsilon{}
+- A \rightarrow{} BC
+- B \rightarrow{} BD | bb
+- C \rightarrow{} CD | cc
+- *D \rightarrow{} B | C*
+
+Removing S \rightarrow{} A
+- S \rightarrow{} BC | \epsilon{}
+- A \rightarrow{} BC
+- B \rightarrow{} BD | bb
+- C \rightarrow{} CD | cc
+- D \rightarrow{} B | C
+
+Removing B \rightarrow{} D
+- S \rightarrow{} BC | \epsilon{}
+- A \rightarrow{} BC
+- B \rightarrow{} BD | bb
+- C \rightarrow{} CD | cc
+- D \rightarrow{} BD | bb | C
+
+Removing D \rightarrow{} C
+- S \rightarrow{} BC | \epsilon{}
+- A \rightarrow{} BC
+- B \rightarrow{} BD | bb
+- C \rightarrow{} CD | cc
+- D \rightarrow{} BD | bb | CD | cc
+
+A is now redundent

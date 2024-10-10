@@ -1,0 +1,216 @@
+% Created 2024-10-09 Wed 18:46
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{One Eight}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={One Eight},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Key Points}
+\label{sec:org663bddb}
+\begin{itemize}
+\item Determine when a function is a linear transformatoin
+\item Compute the standard matrix for a linear transformation
+\item Create rotation, reflection and projection matrix transformations
+\end{itemize}
+\section{Definition}
+\label{sec:orgf7268b3}
+A \textbf{function} is a rule that associates with each element of a set A exactly one element is a set B.
+\[
+f: A \rightarrow{} B
+\]
+
+The set A is called the \textbf{domain} of f and the set B is the \textbf{codomain} of f. The \textbf{range} of f is the subset of B that consists of all images of elements from the domain.
+
+\[
+f: \mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}
+\]
+
+When n = m, the transformation is called an \textbf{operator} on \(\mathbb{R}^{n}\)
+\section{Definition}
+\label{sec:org3610f1e}
+A tranformation T: \(\mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}\) is a \textbf{linear transformation} if the following 2 properties hold for all vectors \textbf{u} and \textbf{v} in \(\mathbb{R}^{n}\) and for every scalar k:
+
+\begin{enumerate}
+\item \(T(u+v) = T(u) + T(v)\)
+\item \(T(ku) = kT(u)\)
+\end{enumerate}
+
+T can be defined by matrix multiplication
+\subsection{Test 2 Example Problem}
+\label{sec:orgca91516}
+You will be asked to determine if a given transformation is linear or non-linear
+
+Determine if the transformation is linear or non-linear
+\begin{enumerate}
+\item \(T: R \rightarrow{} R\)
+\begin{itemize}
+\item \(x \rightarrow{} 2x^{2}\)
+\end{itemize}
+\item \(T: R \rightarrow{} R\)
+\begin{itemize}
+\item \(x \rightarrow{} x^{2} + 1\)
+\end{itemize}
+\end{enumerate}
+\subsubsection{How to get to Solution}
+\label{sec:orge126a43}
+\begin{enumerate}
+\item WTS (i)(ii). Prove that this holds for any input (proof in general), let u \& v be arbitrary numbers
+\end{enumerate}
+\(T(u) = 2u^{2}\)
+\(T(v) = 2v^{2}\)
+\(T(u+v) = 2(u+v)^{2} = 2u^{2} + 4uv + 2v^{2} \neq 2u^{2} + 2v^{2} = T(u) + T(v)\)
+
+Non-linear
+
+\begin{enumerate}
+\item WTS part b from above
+\end{enumerate}
+\(T(u) = 2u\)
+\(T(v) = 2v\)
+\(T(u+v) = 2(u+v) = 2u + 2v = 2u + 2v = T(u) + T(v)\)
+Property 1 is satisfied
+Let k be any constant
+\(T(ku) = 2(ku) = k(2u) = kT(u)\)
+Property 2 is satisifed
+
+Linear
+\section{Examples}
+\label{sec:org61251d6}
+T can be defined by matrix multiplicaiton
+\begin{enumerate}
+\item Let T: \(\mathbb{R}^{3} \rightarrow{} \mathbb{R}^{3}\) be defined by multiplication \(\begin{bmatrix}1&0&1\\5&1&5\\7&5&6\end{bmatrix}\)
+\end{enumerate}
+
+Find the image, T(X) = A(x) under this transformation for each
+\begin{enumerate}
+\item \(x = \begin{bmatrix}0\\0\\0\end{bmatrix}, T(x) = A(x) = \begin{bmatrix}1&0&1\\5&1&5\\7&5&6\end{bmatrix}\begin{bmatrix}0\\0\\0\end{bmatrix} = \begin{bmatrix}0\\0\\0\end{bmatrix}\)
+\item \(x = \begin{bmatrix}1\\2\\3\end{bmatrix}, T(x) = A(x) = \begin{bmatrix}1&0&1\\5&1&5\\7&5&6\end{bmatrix}\begin{bmatrix}1\\2\\3\end{bmatrix} = \begin{bmatrix}4\\22\\35\end{bmatrix}\)
+\item \(x = \begin{bmatrix}z\\y\\z\end{bmatrix}\)
+
+\item Let \(T: \mathbb{R}^{3} \rightarrow{} \mathbb{R}^{2}\) be defined by the multiplication of A \(\begin{bmatrix}1&2&-1\\3&7&4\end{bmatrix}\)
+\begin{itemize}
+\item \(\begin{bmatrix}1&2&-1\\3&7&4\end{bmatrix}\begin{bmatrix}x\\y\\z\end{bmatrix}=\begin{bmatrix}x+2y-z\\3x+7y+4z\end{bmatrix} = (x+2y-z, 3x+7y+4z) = T(x^{\rightarrow{}} = T(x,y,z)\)
+
+\item \(T(e_{1}) = T(1,0,0) = (1, 3)\)
+\item \(T(e_{2}) = T(0,1,0) = (2, 7)\)
+\item \(T(e_{3}) = T(0,0,1) = (-1, 4)\)
+\item \textbf{Very Important}, we note that, if we collect T(e\textsubscript{1}), T(e\textsubscript{2}), and T(e\textsubscript{3}) and write them in colum form we will have matrix A. Thus, if T(x\textsuperscript{\(\rightarrow\)}) is given (not A(x)), we could find matrix A by the following formula. \(A = \begin{bmatrix}T(e_{1})&T(e_{2})&T(e_{3})\end{bmatrix}\)
+
+\item Note: We define \(e_{1} = \begin{bmatrix}1\\0\\0\\...\\0\end{bmatrix} e_{2} = \begin{bmatrix}0\\1\\0\\...0\end{bmatrix} e_{n} = \begin{bmatrix}0\\0\\1\\0\\0\end{bmatrix}\) Where the 1 is in row n
+\end{itemize}
+
+\item Describe in words the linar transformation given by each matrix
+\begin{enumerate}
+\item \(\begin{bmatrix}1&0\\0&-1\end{bmatrix} \begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}x\\-y\end{bmatrix}\)
+\begin{itemize}
+\item Negates the y, reflecting the vector below the x-axis
+\end{itemize}
+
+\item \(\begin{bmatrix}1&0\\0&0\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}x\\0\end{bmatrix}\)
+\begin{itemize}
+\item Eliminates the y component of the vector, making it parallel to the x axis
+\item Projection of the vector onto the x-axis
+\end{itemize}
+
+\item \(\begin{bmatrix}2&0\\0&2\end{bmatrix}\)
+\begin{itemize}
+\item Increases magnitude of the vector
+\end{itemize}
+
+\item \(\begin{bmatrix}cos\theta{}&-sin\theta{}\\sin\theta{}&cos\theta{}\end{bmatrix}\)
+\begin{itemize}
+\item This rotates the vector counterclockwise by an angle of \(\theta\)
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+\section{Theorem}
+\label{sec:org9164ed3}
+For every matrix A the matrix transformatoin \(T_{A}: \mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}\) is a \textbf{linear transformation} of \(\mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}\) and has the following properties for all vectors v\textsuperscript{\(\rightarrow\)} and v\textsuperscript{\(\rightarrow\)} and for any scalar k \(\in\) \(\mathbb{R}\)
+\begin{enumerate}
+\item T\textsubscript{A}(0) = 0
+\item T\textsubscript{A}(ku) = kT\textsubscript{A}(u)
+\begin{itemize}
+\item Linear transformation of a product
+\end{itemize}
+\item T\textsubscript{A}(u+v) = T\textsubscript{A}(u) + T\textsubscript{A}(v)
+\begin{itemize}
+\item Linear transformation of a sum
+\end{itemize}
+\item T\textsubscript{A}(u-v) = T\textsubscript{A}(u) - T\textsubscript{A}(v)
+\begin{itemize}
+\item Linear transformation of a difference
+\end{itemize}
+\end{enumerate}
+\subsection{Example}
+\label{sec:org367b63b}
+\[
+T_{A}(k_{1}u_{1}+k_{2}u_{2} + ...) = k_{1}T_{A}(u_{1}) + k_{2}T_{A}(u_{2}) + ...
+\]
+
+The linear combination of the images of each vector under the transformation
+
+when doing linear transformation it must be in a row
+
+\begin{enumerate}
+\item Define \(T: \mathbb{R}^{2} \rightarrow{} \mathbb{R}^{3}\) by T(x,y) = (x,3x,2x+y)
+\begin{itemize}
+\item \(e_{1} = \begin{bmatrix}1\\0\end{bmatrix}\)
+\item \(e_{2} = \begin{bmatrix}0\\1\end{bmatrix}\)
+\item T(e\textsubscript{1}) = T(1,0) = (1,3,2)
+\item T(e\textsubscript{2}) = T(0,1) = (0,0,1)
+\item So A, = \(\begin{bmatrix}T(e_{1})&T(e_{2})\end{bmatrix} = \begin{bmatrix}1&0\\3&0\\2&1\end{bmatrix}\)
+\end{itemize}
+
+\item Given that \(T: \mathbb{R}^{3} \rightarrow{} \mathbb{R}^{3}\) is a linear transformation such that T(1,0,0) = (3,2,5), T(0,1,0) = (1,4,7) and T(0,0,1) = (2,0,6). Find T(10,25,21)
+\begin{itemize}
+\item Method 1: \(\begin{bmatrix}T(e_{1})&T(e_{2})&T(e_{3})\end{bmatrix} = \begin{bmatrix}3&1&2\\2&4&0\\5&7&6\end{bmatrix} \Rightarrow{} T(10,25,21) = A\begin{bmatrix}10\\25\\21\end{bmatrix}\)
+\begin{itemize}
+\item find the image of T(10,25,21) so after we find A we just attach A to the vector and do a matrix multiplication
+\item \(\begin{bmatrix}3&1&2\\2&4&0\\5&7&6\end{bmatrix}\begin{bmatrix}10\\25\\21\end{bmatrix}=\begin{bmatrix}97\\120\\351\end{bmatrix}\)
+\end{itemize}
+\item Method 2: \(\begin{bmatrix}10\\25\\21\end{bmatrix} = 10\begin{bmatrix}1\\0\\0\end{bmatrix} + 25\begin{bmatrix}0\\1\\0\end{bmatrix} + 21\begin{bmatrix}0\\0\\1\end{bmatrix} = 10e_{1} + 25e_{2} + 21e_{3}\)
+\begin{itemize}
+\item So T(10,25,21) = 10T(e\textsubscript{1})+25T(e\textsubscript{2})+21T(e\textsubscript{3}) = same as above
+\end{itemize}
+\end{itemize}
+\item Create the standard matrix that represents each transformation
+\begin{itemize}
+\item \(\begin{bmatrix}0&0\\0&1\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}0\\y\end{bmatrix}\)
+
+\item Rotate a vector(x,y) clockwise (-45\(\degree{}\))
+\begin{itemize}
+\item \$\begin{bmatrix}cos45\&sin45$\backslash$\-sin45\&cos45\end{bmatrix} = \begin{bmatrix}
+\item \(\begin{bmatrix}\frac{\sqrt{2}}{2}&\frac{\sqrt{2}}{2}\\\frac{-\sqrt{2}}{2}&\frac{\sqrt{2}}{2}\end{bmatrix}\)
+\end{itemize}
+\item Project a vector(x,y,z) onto the z-axis
+\begin{itemize}
+\item \(\begin{bmatrix}0&0&0\\0&0&0\\0&0&1\end{bmatrix}\)
+\item \(\begin{bmatrix}0&0&0\\0&0&0\\0&0&1\end{bmatrix}\begin{bmatrix}x\\y\\z\end{bmatrix} = \begin{bmatrix}0\\0\\z\end{bmatrix}\)
+\end{itemize}
+\end{itemize}
+\end{enumerate}
+\begin{verbatim}
+[3,1,2;2,4,0;5,7,6] * [10;25;21]
+\end{verbatim}
+\end{document}

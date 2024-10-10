@@ -1,0 +1,139 @@
+#+title: One Eight
+
+* Key Points
+- Determine when a function is a linear transformatoin
+- Compute the standard matrix for a linear transformation
+- Create rotation, reflection and projection matrix transformations
+
+* Definition
+A *function* is a rule that associates with each element of a set A exactly one element is a set B.
+\[
+f: A \rightarrow{} B
+\]
+
+The set A is called the *domain* of f and the set B is the *codomain* of f. The *range* of f is the subset of B that consists of all images of elements from the domain.
+
+\[
+f: \mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}
+\]
+
+When n = m, the transformation is called an *operator* on $\mathbb{R}^{n}$
+
+* Definition
+A tranformation T: $\mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}$ is a *linear transformation* if the following 2 properties hold for all vectors *u* and *v* in $\mathbb{R}^{n}$ and for every scalar k:
+
+a. $T(u+v) = T(u) + T(v)$
+b. $T(ku) = kT(u)$
+
+T can be defined by matrix multiplication
+
+** Test 2 Example Problem
+You will be asked to determine if a given transformation is linear or non-linear
+
+Determine if the transformation is linear or non-linear
+a. $T: R \rightarrow{} R$
+   - $x \rightarrow{} 2x^{2}$
+b. $T: R \rightarrow{} R$
+   - $x \rightarrow{} x^{2} + 1$
+
+*** How to get to Solution
+a. WTS (i)(ii). Prove that this holds for any input (proof in general), let u & v be arbitrary numbers
+$T(u) = 2u^{2}$
+$T(v) = 2v^{2}$
+$T(u+v) = 2(u+v)^{2} = 2u^{2} + 4uv + 2v^{2} \neq 2u^{2} + 2v^{2} = T(u) + T(v)$
+
+Non-linear
+
+b. WTS part b from above
+$T(u) = 2u$
+$T(v) = 2v$
+$T(u+v) = 2(u+v) = 2u + 2v = 2u + 2v = T(u) + T(v)$
+Property 1 is satisfied
+Let k be any constant
+$T(ku) = 2(ku) = k(2u) = kT(u)$
+Property 2 is satisifed
+
+Linear
+
+* Examples
+T can be defined by matrix multiplicaiton
+1. Let T: $\mathbb{R}^{3} \rightarrow{} \mathbb{R}^{3}$ be defined by multiplication $\begin{bmatrix}1&0&1\\5&1&5\\7&5&6\end{bmatrix}$
+
+Find the image, T(X) = A(x) under this transformation for each
+a. $x = \begin{bmatrix}0\\0\\0\end{bmatrix}, T(x) = A(x) = \begin{bmatrix}1&0&1\\5&1&5\\7&5&6\end{bmatrix}\begin{bmatrix}0\\0\\0\end{bmatrix} = \begin{bmatrix}0\\0\\0\end{bmatrix}$
+b. $x = \begin{bmatrix}1\\2\\3\end{bmatrix}, T(x) = A(x) = \begin{bmatrix}1&0&1\\5&1&5\\7&5&6\end{bmatrix}\begin{bmatrix}1\\2\\3\end{bmatrix} = \begin{bmatrix}4\\22\\35\end{bmatrix}$
+c. $x = \begin{bmatrix}z\\y\\z\end{bmatrix}$
+
+d. Let $T: \mathbb{R}^{3} \rightarrow{} \mathbb{R}^{2}$ be defined by the multiplication of A $\begin{bmatrix}1&2&-1\\3&7&4\end{bmatrix}$
+   - $\begin{bmatrix}1&2&-1\\3&7&4\end{bmatrix}\begin{bmatrix}x\\y\\z\end{bmatrix}=\begin{bmatrix}x+2y-z\\3x+7y+4z\end{bmatrix} = (x+2y-z, 3x+7y+4z) = T(x^{\rightarrow{}} = T(x,y,z)$
+
+   - $T(e_{1}) = T(1,0,0) = (1, 3)$
+   - $T(e_{2}) = T(0,1,0) = (2, 7)$
+   - $T(e_{3}) = T(0,0,1) = (-1, 4)$
+   - *Very Important*, we note that, if we collect T(e_{1}), T(e_{2}), and T(e_{3}) and write them in colum form we will have matrix A. Thus, if T(x^{\rightarrow{}}) is given (not A(x)), we could find matrix A by the following formula. $A = \begin{bmatrix}T(e_{1})&T(e_{2})&T(e_{3})\end{bmatrix}$
+
+   - Note: We define $e_{1} = \begin{bmatrix}1\\0\\0\\...\\0\end{bmatrix} e_{2} = \begin{bmatrix}0\\1\\0\\...0\end{bmatrix} e_{n} = \begin{bmatrix}0\\0\\1\\0\\0\end{bmatrix}$ Where the 1 is in row n
+
+e. Describe in words the linar transformation given by each matrix
+   a. $\begin{bmatrix}1&0\\0&-1\end{bmatrix} \begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}x\\-y\end{bmatrix}$
+      - Negates the y, reflecting the vector below the x-axis
+
+   b. $\begin{bmatrix}1&0\\0&0\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}x\\0\end{bmatrix}$
+      - Eliminates the y component of the vector, making it parallel to the x axis
+      - Projection of the vector onto the x-axis
+
+   c. $\begin{bmatrix}2&0\\0&2\end{bmatrix}$
+      - Increases magnitude of the vector
+
+   d. $\begin{bmatrix}cos\theta{}&-sin\theta{}\\sin\theta{}&cos\theta{}\end{bmatrix}$
+      - This rotates the vector counterclockwise by an angle of \theta{}
+
+* Theorem
+For every matrix A the matrix transformatoin $T_{A}: \mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}$ is a *linear transformation* of $\mathbb{R}^{n} \rightarrow{} \mathbb{R}^{m}$ and has the following properties for all vectors v^{\rightarrow{}} and v^{\rightarrow{}} and for any scalar k \in $\mathbb{R}$
+a. T_{A}(0) = 0
+b. T_{A}(ku) = kT_{A}(u)
+   - Linear transformation of a product
+c. T_{A}(u+v) = T_{A}(u) + T_{A}(v)
+   - Linear transformation of a sum
+d. T_{A}(u-v) = T_{A}(u) - T_{A}(v)
+   - Linear transformation of a difference
+
+** Example
+\[
+T_{A}(k_{1}u_{1}+k_{2}u_{2} + ...) = k_{1}T_{A}(u_{1}) + k_{2}T_{A}(u_{2}) + ...
+\]
+
+The linear combination of the images of each vector under the transformation
+
+when doing linear transformation it must be in a row
+
+1. Define $T: \mathbb{R}^{2} \rightarrow{} \mathbb{R}^{3}$ by T(x,y) = (x,3x,2x+y)
+   - $e_{1} = \begin{bmatrix}1\\0\end{bmatrix}$
+   - $e_{2} = \begin{bmatrix}0\\1\end{bmatrix}$
+   - T(e_{1}) = T(1,0) = (1,3,2)
+   - T(e_{2}) = T(0,1) = (0,0,1)
+   - So A, = $\begin{bmatrix}T(e_{1})&T(e_{2})\end{bmatrix} = \begin{bmatrix}1&0\\3&0\\2&1\end{bmatrix}$
+
+2. Given that $T: \mathbb{R}^{3} \rightarrow{} \mathbb{R}^{3}$ is a linear transformation such that T(1,0,0) = (3,2,5), T(0,1,0) = (1,4,7) and T(0,0,1) = (2,0,6). Find T(10,25,21)
+   - Method 1: $\begin{bmatrix}T(e_{1})&T(e_{2})&T(e_{3})\end{bmatrix} = \begin{bmatrix}3&1&2\\2&4&0\\5&7&6\end{bmatrix} \Rightarrow{} T(10,25,21) = A\begin{bmatrix}10\\25\\21\end{bmatrix}$
+     - find the image of T(10,25,21) so after we find A we just attach A to the vector and do a matrix multiplication
+     - $\begin{bmatrix}3&1&2\\2&4&0\\5&7&6\end{bmatrix}\begin{bmatrix}10\\25\\21\end{bmatrix}=\begin{bmatrix}97\\120\\351\end{bmatrix}$
+   - Method 2: $\begin{bmatrix}10\\25\\21\end{bmatrix} = 10\begin{bmatrix}1\\0\\0\end{bmatrix} + 25\begin{bmatrix}0\\1\\0\end{bmatrix} + 21\begin{bmatrix}0\\0\\1\end{bmatrix} = 10e_{1} + 25e_{2} + 21e_{3}$
+     - So T(10,25,21) = 10T(e_{1})+25T(e_{2})+21T(e_{3}) = same as above
+3. Create the standard matrix that represents each transformation
+   - $\begin{bmatrix}0&0\\0&1\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}0\\y\end{bmatrix}$
+
+   - Rotate a vector(x,y) clockwise (-45$\degree{}$)
+     - $\begin{bmatrix}cos45&sin45\\-sin45&cos45\end{bmatrix} = \begin{bmatrix}
+     - $\begin{bmatrix}\frac{\sqrt{2}}{2}&\frac{\sqrt{2}}{2}\\\frac{-\sqrt{2}}{2}&\frac{\sqrt{2}}{2}\end{bmatrix}$
+   - Project a vector(x,y,z) onto the z-axis
+     - $\begin{bmatrix}0&0&0\\0&0&0\\0&0&1\end{bmatrix}$
+     - $\begin{bmatrix}0&0&0\\0&0&0\\0&0&1\end{bmatrix}\begin{bmatrix}x\\y\\z\end{bmatrix} = \begin{bmatrix}0\\0\\z\end{bmatrix}$
+#+begin_src octave
+[3,1,2;2,4,0;5,7,6] * [10;25;21]
+#+end_src
+
+#+RESULTS:
+|  97 |
+| 120 |
+| 351 |

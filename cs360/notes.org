@@ -416,3 +416,400 @@ int main(int argc, char* argv[]) {
 : 0 8
 : I read 12 bytes
 : s contains 111 -222 33.500000
+
+* Text file io
+=scanf= stops at whitespace
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <string.h>
+
+static size_t mystrcspn(const char* line, const char* rejects) {
+    int i = 0;
+    for (; line[i]; i++) {
+        for (int j = 0; rejects[j]; j++) {
+            if (line[i] == rejects[j]) {
+                goto out;
+            }
+        }
+    }
+
+out:
+    return i;
+}
+
+static size_t mystrspn(const char* line, const char* accepts) {
+    int i = 0;
+    for (; line[i]; i++) {
+        for (int j = 0; accepts[j]; j++) {
+            if (line[i] != accepts[j]) {
+                goto out;
+            }
+        }
+    }
+
+out:
+    return i;
+}
+
+int main() {
+    FILE *fl;
+
+    fl = fopen("somefile.txt", "r");
+    int i;
+    char buf[256];
+
+    strcpy(buf, "hello world");
+    printf("%lu\n", mystrcspn(buf, "\n"));
+
+    while (fgets(buf, sizeof(buf), fl)) {
+        size_t pos = mystrcspn(buf, "\r\n");
+        buf[pos] = '\0';
+        fputs(buf, stdout);
+    }
+
+    fclose(fl);
+}
+    #+end_src
+
+#+RESULTS:
+: 11
+: Hello World -1333hihihithis
+
+* Dirs again
+=opendir=, =readdir=, =closedir=
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+int main() {
+    char wd[256];
+
+    getcwd(wd, 255);
+    strcat(wd, "/test.txt");
+    printf("%s\n", wd);
+
+    mkdir("mydir", 0777);
+    if (rmdir("mydir") == -1) {
+        perror("rmdir");
+        return -1;
+    }
+}
+    #+end_src
+
+#+RESULTS:
+: /home/jackson/jacksonmowry.github.io/cs360/test.txt
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+int main() {
+    FILE* fd = fopen("test.txt", "r");
+    fseek(fd, -7, SEEK_END);
+    char buf[256];
+    size_t read = fread(buf, 1, 256, fd);
+    printf("%zu\n", read);
+    buf[read] = '\0';
+    printf("%s\n", buf);
+    fclose(fd);
+}
+#+end_src
+
+#+RESULTS:
+: 7
+: pHDjRK
+:
+
+* Multiprocessing
+** Introduction
+A thread is an execution unit that runs code
+- When we run an exe, it is loaded by the operating system
+- The thread is that instructions that are running
+Nearly all code we've written is single-thread
+- Means one execution unit
+The is each to write, but with multi-core CPUs, not the best if we need performance
+- Multi-core -- run pieces of your code on each core
+** Concurrency Parallelism
+Concurrency
+- Running two or more execution units
+- If you only have one CPU, these only run one at a time
+Parallelism
+- running 2 or more executions at the same time
+- if you only have one CPU, parallelism cannot happen
+- Parallelism is a specific kind of concurrency
+Asynchronous
+- the execution of two or more threads are not synchronized (not serialized or not one-after-the-other)
+- Threads are concurrent
+- Threads may be executed in parallel
+- Threads are asynchronous naturally
+  - threads have ways to serialize (locking)
+** Running a New Program
+#+begin_src C :results verbatim
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/wait.h>
+
+int main(void) {
+    int i = 33;
+    pid_t pid;
+    int pipes[2];
+
+    pipe(pipes);
+    pid = fork();
+
+    if (pid == 0) {
+        i = 22;
+        printf("Child %d %p\n", i, &i);
+        close(pipes[0]);
+        write(pipes[1], "hi dad", strlen("hi dad"));
+    } else if (pid > 0) {
+        close(pipes[1]);
+        wait(NULL);
+        printf("Parent %d %p\n", i, &i);
+        char buf[50];
+        read(pipes[0], buf, 50);
+        printf("%s\n", buf);
+    } else {
+        perror("fork");
+        return 1;
+    }
+
+}
+#+end_src
+
+#+RESULTS:
+: Child 22 0x7ffc26c01cc0
+: Parent 33 0x7ffc26c01cc0
+: hi dad
+
+** System Calls
+*** =fork()=
+Parent gets pid of child
+Child gets 0
+-1 on error
+
+They run at the same time
+
+
+Windows doesn't do this, but UNIX style OSes will copy the entire process into the child
+*** =wait()=
+wait on any child processes
+=wait= and =waitpid=
+- They may wait on a child
+- They are how you must clean up your children
+
+Suspends the parent until at least one child terminates
+Puts the status of the termined child into =*wstatus=
+- If this is NULL, the status is discarded
+
+=wstatus= is a bit field
+- Contains exit status
+  - return value from int main()
+  - or argument supplied to exit
+- Contains the status of the child
+  - Did it actually exit?
+
+**** Macros
+| WIFEXITED    | true if child terminated normally         |
+| WEXITSTATUS  | returns exit status number                |
+| WIFSIGNALED  | true if child was terminated by a signal  |
+| WTERMSIG     | number of signal that terminated child    |
+| WCOREDUMP    | true if child produced a core dump        |
+| WIFSTOPPED   | true if child was stopped due to a signal |
+| WSTOPSIG     | gives what signal stopped the child       |
+| WIFCONTINUED | true if SIGCONT was sent to child         |
+*** =exec()=
+*** =exit()=
+Tell the OS to free all resources, and remove this process from being scheduled
+** Pipes
+*** =stdin/stdout/stderr=
+*** =dup2()=
+
+* Exec
+#+begin_src C
+int execl(const char* path, const char* arg, ..., /*must pass NULL at the end*/);
+int execlp(const char* file, const char* arg, ...);
+int execle(const char* file, const char* arg, ...);
+int execv(const char* path, char* const argv[]);
+int execvp(const char* file, char* const argv[]);
+int execvpe(const char* file, char* const argv[], char* const envp[]);
+#+end_src
+
+#+begin_src C :results verbatim
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+
+int main(int argc, char* argv[]) {
+    int i = 33;
+    pid_t pid;
+    pid = fork();
+
+    if (pid == 0) {
+        int fd;
+        fd = open("out.txt", O_CREAT|O_TRUNC|O_WRONLY,0666);
+        dup2(fd, STDOUT_FILENO);
+        char** args;
+        args = calloc(argc, sizeof(*args));
+        memcpy(args, &argv[1], (argc-1)*sizeof(*argv));
+        execvp(args[0], args);
+        perror(args[0]);
+    } else if (pid > 0) {
+    } else {
+        perror("fork");
+        return 1;
+    }
+}
+    #+end_src
+
+#+RESULTS:
+
+* IPC
+** Shared Memory <sys/mman.h>
+Interprocess & Intraprocess
+- Parent and child can have access to the same location in memory
+- shm, creates a "file" that is linked to memory which we can mmap
+  - Cannot use fork to accomplish the same thing
+*** shm_open
+#+begin_src C
+#include <sys/mman.h>
+int shm_open(const char* name, int oflag, mode_t mode);
+int shm_unlink(const char* name);
+#+end_src
+
+- Must link rt library =-lrt=
+  - =gcc -o shmtest shmtest.c -lrt=
+- shm_open creates a shared memory object on the file system
+  - can mmap this file descriptor
+  - File name starts with a forward slash (e.g./ myshm)
+- shm_unlink decrements the reference to the memory object
+
+**** Server
+#+begin_src C
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+typedef struct Data {
+    int a;
+    int b;
+    int c;
+} Data;
+
+int main() {
+    int exitcode = 0;
+    int fd;
+    Data* data;
+
+    fd = shm_open("/myshared.mem", O_CREAT | O_EXCL | O_RDWR, 0666); // Don't need to specify a path, just use a slash
+    if (fd < 0) {
+        perror("/myshared.mem");
+    }
+
+    int code = ftruncate(fd, sizeof(Data));
+    if (code == -1) {
+        perror("ftruncate");
+        exitcode = -1;
+        goto cleanup;
+    }
+
+    data = (Data*)mmap(NULL, sizeof(Data), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (data == MAP_FAILED) {
+        perror("mmap");
+        exitcode = -1;
+        goto cleanup;
+    }
+
+    close(fd);
+
+    data->a=-1;
+    data->b=22;
+    data->c=1234;
+
+    munmap(data, sizeof(Data));
+
+cleanup:
+    sleep(5);
+    shm_unlink("/myshared.mem");
+    return exitcode;
+}
+#+end_src
+
+#+RESULTS:
+
+**** Client
+#+begin_src C
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+typedef struct Data {
+    int a;
+    int b;
+    int c;
+} Data;
+
+int main() {
+    int fd;
+    Data* data;
+
+    fd = shm_open("/myshared.mem", O_RDONLY, 0); // Don't need to specify a path, just use a slash
+    if (fd < 0) {
+        perror("/myshared.mem");
+        return -1;
+    }
+
+    data = mmap(NULL, sizeof(Data), PROT_READ, MAP_SHARED, fd, 0);
+    if (data == MAP_FAILED) {
+        perror("mmap");
+        return -1;
+    }
+    close(fd);
+
+    printf("%d %d %d\n", data->a, data->b, data->c);
+
+    munmap(data, sizeof(Data));
+}
+#+end_src
+
+#+RESULTS:
+: -1 22 1234
+
+*** shm_unlink
+** Semaphores <semaphore.h>
+- Atomic instructions cannot be preempted
+-
+*** sem_open
+*** sem_close
+** Message Queues <mqueue.h>
+*** mq_open
+*** mq_close
+** Classic Problems
+** Conclusion
+
+* Resource Limits
+#+begin_src C
+typedef unsigned long rlim_t;
+
+struct rlimit {
+    rlim_t rlim_cur;
+    rlim_t rlim_max;
+};
+
+int setrlimit(int resource, const struct rlimit* rlp);
+int getrlimit(int resource, struct rlimit* rlp);
+#+end_src
+
+** Returns
+0 on success, -1 on failure
+** Values
+- =rlim_cur= can be lowered and raised, as long as it does not go above =rlim_max=
+- =rlim_max= can be lowered only, and can never be raised again
+** All the Limits

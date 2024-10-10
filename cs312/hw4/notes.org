@@ -1,8 +1,20 @@
-#+title: Notes
-* 1
-* 2
+#+title: HW4
+#+author: Jackson Mowry
+#+date: Sun Sep 22 13:59:14 2024
+#+setupfile: ../../jake.setup
+* Question 1
+C = {w | w has an equal number of 0s and 1}
+
+Assume C is a regular language, and let p be the pumping length of C. Choose /s/ = 0^{p}1^{p} \in C. Clearly |0^{p}1^{p}| \gt p. According to the pumping lemma, /s/ can be paritioned into /s/ = xyz \in C such that for all i \geq 0, we have the following xy^{i}z \in C. By condition 3 of the pumping lemma, we must also have |xy| \leq p. Therefore y must consist only of 0's and subsequently xyyz = xy^{2}z \notin F since the string /s/ would now contain a greater number of 0s than 1s. Subsequently if we pumped down, resulting in a string of xz, the string would now contain fewer 0s than 1s. Hence, /s/ cannot be pumped and that is a violation of our assumption that C is regular. By this contradiction we can conclude that the language C is not regular.#
+* Question 2
 F = {ww | w is a string from {0,1}^{*}}
 
-Assume F is a regular and let p be the pumping length of F.
-Choose s = 0^{p}10^{p}1, when w = 0^{p}1. Clearly |0^{p}10^{p}1 \geq p.
-According to the PL s can be partitioned into s = xyz such that for all i \geq 0, we have the following xy^{i}z \in F. By condition 3 of the PL, we must also have |xy| \leq p. Therefore, y must consist only of 0s and subsequenttly xyyz = xy^{2}z \notin F _since the first part of_ the strings (substring w) does not equal the second part of the string s. Hence, S cannot be pumped and that is a violation of our assumption that F is regular. By this contradiction we can conclude that the language F is not regular#
+Assume F is a regular language and let p be the pumping length of F. Choose /s/ = 0^{p}10^{p}1 \in F, when w = 0^{p}1. Clearly |0^{p}10^{p}1| \gt p. According to the puming lemma, /s/ can be partitioned into /s/ = xyz \in F such that for all i \geq 0, we have the following xy^{i}z \in F. By condition 3 of the pumping lemma, we must also have |xy| \leq p. Therefore, y must consist only of 0s and subsequenttly xyyz = xy^{2}z \notin F _since the first part of_ the strings (substring w) does not equal the second part of the string /s/. Hence, /S/ cannot be pumped and that is a violation of our assumption that F is regular. By this contradiction we can conclude that the language F is not regular.#
+* Question 3
+A = {www | w is a string from {a,b}^{*}}
+
+Assume A is a regular language and let p by the pumping length of A. Choose /s/ to be = a^{p}ba^{p}ba^{p}b \in A. Clearly |a^{p}ba^{p}ba^{p}b| \gt p. According to the pumping lemma, /s/ can be partitioned into /s/ = xyz \in A such that for all i \geq 0, we have the following xy^{i}z \in A. By condition 3 of the pumping lemma, we must also have |xy| \leq p. Therefore, y must consist only of a's, and subsequently xyyz = xy^{2}z \notin A since the first substring w would now contain more a's than the second and third parts of the string /s/. Hence, /s/ cannot be pumped and that is a violation of our assumption that A is regular. By this contradiction we can conclude that the language A is not regular.#
+* Question 4
+L = {0^{n}1^{m}0^{n} | m,n >= 0}
+
+Assume L is a regular language and let p be the pumping length of L. Choose /s/ to be = 0^{p}10^{p} \in L. Clearly |0^{p}10^{p}| \gt p. According to the pumping lemma, /s/ can be partitioned into /s/ = xyz \in L such that for all i \geq 0, we have the following xy^{i}z \in L. By condition 3 of the pumping lemma, we must also have |xy| \leq p. Therefore y must consist of only 0's and subsequently xyyz = xy^{2}z \notin L since the string /s/ would now contain 0^{p+|y|}10^{p}, which is \notin L. Hence, /s/ cannot be pumped and that is a violation of our assumption that L is regular. By this contradiction we can conclue that the language L is not regular.#

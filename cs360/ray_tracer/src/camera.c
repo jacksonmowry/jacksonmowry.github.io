@@ -37,9 +37,9 @@ camera camera_initialize(int width, int height) {
     camera c;
     c.width = width;
     c.height = height;
-    c.samples_per_pixel = 500;
+    c.samples_per_pixel = 1;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
-    c.max_depth = 50;
+    c.max_depth = 5;
     c.vfov = 20;
 
     c.lookfrom = (Vec3){.x = 13, .y = 2, .z = 3};
@@ -88,18 +88,14 @@ camera camera_initialize(int width, int height) {
 
 void camera_render(camera c, const hittable_list* world) {
     Pixel* p = malloc(c.width * c.height * sizeof(Pixel));
+    if (!p) {
+        perror("malloc");
+        return;
+    }
 
-    for (uint32_t row = 0; row < c.height; row++) {
+    for (int row = 0; row < c.height; row++) {
         fprintf(stderr, "Rows remaining: %d\n", c.height - row);
-        for (uint32_t col = 0; col < c.width; col++) {
-            Vec3 pixel_location =
-                vec3_add(c.pixel00_location,
-                         vec3_add(vec3_mul_dbl(c.pixel_delta_u, col),
-                                  vec3_mul_dbl(c.pixel_delta_v, row)));
-
-            Vec3 direction = vec3_sub(pixel_location, c.camera_center);
-
-            Ray r = (Ray){.origin = c.camera_center, .direction = direction};
+        for (int col = 0; col < c.width; col++) {
             Pixel color = (Pixel){.r = 0, .g = 0, .b = 0};
             for (int sample = 0; sample < c.samples_per_pixel; sample++) {
                 Ray new_ray = camera_get_ray(c, row, col);

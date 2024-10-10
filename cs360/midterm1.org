@@ -1,0 +1,344 @@
+#+title: Midterm1
+
+* IO
+0 - stdin
+1 - stdout (buffered)
+2 - stderr (unbuffered)
+
+** Printf specifiers
+| %d  | i32                |
+| %ld | i64                |
+| %u  | u32                |
+| %lu | u64                |
+| %f  | double (fixed)     |
+| %e  | double (exponent)  |
+| %a  | double (hex no 0x) |
+| %s  | string (\0)        |
+| %x  | u32 (hex)          |
+| %lx | u64 (hex)          |
+| %p  | pointer (adds 0x)  |
+| %%  | % sign directly    |
+
+** Other Formatting
+*** Floating Point
+%X.Yf
+X - field width, negative means left, specifies *total* width, including '.' char
+Y - decimal digits of precision
+
+*** String
+(Also works for strings where %.Ys, means print Y chars of the string)
+
+Can also do ="%.*s"= to specify the size as a parameter
+
+*** Hex
+Default fill char is a ' ', set to '0' by doing "%08x"
+
+** Scanf
+Output params are passed by reference
+
+Use %f for 32-bit and %lf for 64-bit
+
+Returns the numer of values it was able to scan and output
+
+** sprintf, snprintf, sscanf
+=int sprintf(char *str, const char *format, ...);=
+=int snprintf(char *str, size_t size, const char *format, ...);=
+- write a most _size_ bytes (including the terminating null byte)
+- A return value of _size_ or more means that the output was truncated
+- contrast to strncpy which will write up to the end of the buffer without null terminating
+=int sscanf(const char *str, const char *format, ...);=
+
+* Numbers
+int by default, add =L= to make it /long/
+double by default, add =f= to make it /short/
+
+* String Header
+=int memcmp(const void*, const void*, size_t);=
+=void* memcpy(void*, const void*, size_t)=
+- does not handle overlapping
+=void* memmove(void*, const void*, size_t);=
+- does handle overlapping
+=void* memset(void*, int, size_t);=
+- set size_t bytes of void* to 'int'
+=char* strcat(char*, const char*)=
+=char* strchr(const char*, int);=
+=int strcmp(const char*, const char*);=
+- casts to unsigned to ensure consistency across machine and encoding types
+=char* strcpy(char*, const char*);=
+=char* strdup(const char*);=
+=size_t strlen(const char*);=
+=char* strncat(char*, const char*, size_t);=
+=int strncmp(const char*, const char*, size_t);=
+=char* strncpy(char*, const char*, size_t);=
+- if the source has too few non-null bytes to fill the dest the function pads the destination with trailing null bytes
+- If the dest buffer is too small, then the sequence is truncated
+=char* strstr(const char* haystack, const char* needle);=
+- if found return a pointer to the first character in the haystack where needle matched
+=size_t strspn(const char* str, const char* matches);=
+- returns pos of first non matching char
+=size_t strcspn(const char* str, const char* rejects);=
+- returns pos of first matching char
+
+** Checking Chars
+in ctype.h we have
+| isalpha | a-zA-Z           |
+| isalnum | a-zA-Z0-9        |
+| isdigit | 0-9              |
+| islower | a-z              |
+| isupper | A-Z              |
+| isspace | space char       |
+| ispunct | punctuation char |
+
+* Memory Layout
+| stack                    |
+| ---                      |
+| heap                     |
+| uninitialized data (bss) |
+| initialized data         |
+| text                     |
+
+* mmap
+sys/mman.h
+=void* mmap(void* addr, size_t len, int prot, int flags, int fildes, off_t off);=
+
+| Param  | What it is                 | General Value                                                   |
+|--------+----------------------------+-----------------------------------------------------------------|
+| addr   | where to map               | NULL                                                            |
+| len    | How much                   | sizeof(thing)*number                                            |
+| prot   | Protection flags           | PROT_READ or PROT_WRITE or PROT_EXEC (PROT_NONE?)               |
+| flags  | Handling of Mapped Data    | MAP_SHARED or MAP_PRIVATE or MAP_ANONYMOUS(no backing store)    |
+| fd     | -1 (no file) or a valid FD |                                                                 |
+| offset | How much to offset the ptr | Read +4096 bytes into a file, must be a multiple of a page size |
+
+returns MAP_FAILED (void*)-1 on failure
+
+** prot
+| PROT_READ  | read perms                   |
+| PROT_WRITE | write perms                  |
+| PROT_EXEC  | can execute CPU instructions |
+| PROT_NONE  | Can't do anything, canaries  |
+
+** flags
+| MAP_SHARED    | changes are written to backing store           |
+| MAP_PRIVATE   | changes are only made in the copy              |
+| MAP_FIXED     | the address in *addr cannot be moved by mmap() |
+| MAP_ANONYMOUS | not backed by a file                           |
+| MAP_STACK     | mapping is for local data (stack) grows down   |
+
+** How to heap allocate?
+#+begin_src C
+long* longarray = (long*)mmap(NULL, sizeof(long), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+if (longarray == MAP_FAILED) {
+        perror("mmap");
+}
+#+end_src
+
+** How to give memory back?
+#+begin_src C
+int munmap(void* addr, size_t len);
+#+end_src
+
+* POSIX Files
+unistd.h (UNIX standard)
+fcntl.h (File Control)
+
+#+begin_src C
+// file control
+int open(const char* pathname, int flags, mode_t mode);
+int fcntl(int fd, int cmd, ...);
+
+// unistd
+ssize_t read(int fd, void buf[], size_t count);
+ssize_t write(int fd, const void buf[], size_t count);
+off_t lseek(int fd, off_t offset, int whence);
+int close(int fd);
+int ftruncate(int fd, off_t length);
+#+end_src
+
+** Open/Create
+| pathname | absolute or relative         |
+| flags    | O_APPEND                     |
+|          | O_CREAT                      |
+|          | O_TRUNC                      |
+|          | O_RDONLY                     |
+|          | O_WRONLY                     |
+|          | O_RDWR                       |
+| mode     | octal mode (if creating)     |
+| return   | file descriptor (- if error) |
+
+** Close
+-1 on error
+
+** Read/Write
+'-' value on error
+
+** Seek/Tell
+| SEEK_SET | start   |
+| SEEK_CUR | current |
+| SEEK_END | end     |
+'-' value on error
+
+*** Get File Size
+Seek end with 0 offset, this new pos is the number of bytes in the file
+
+** File Control
+Used to configure flags on a given fd
+
+** Modes
+rwx
+
+user - group - other
+
+** File Descriptor to FILE*
+wrap a fd with =fdopen=
+
+Mde must match how the fd was opened
+
+** File Stats
+#+begin_src C
+int stat(const char* path, struct stat* statbuf);
+int fstat(int fd, struct stat* statbuf);
+
+struct stat {
+        st_dev; // device number
+        st_ino; // inode
+        st_mode; // type and perm list
+        st_nlink; // number of hard links
+        st_uid; // user id (owner)
+        st_gid; // group id (owner)
+        st_size; // number of bytes
+}
+#+end_src
+
+** File Creation Mask (umask)
+#+begin_src C
+#include <sys/stat.h>
+mode_t umask(mode_t mask);
+#+end_src
+
+umask will change the file creation mask to mask and then return the old mask
+there is no way to get the mask without setting it. so you might have to do something link
+
+#+begin_src C
+mode_t m = umask(0);
+umask(m);
+printf("Mask = %03o\n", m);
+#+end_src
+
+** POSIX Links
+- Hard
+- Soft (aka symbolic link)
+
+A hard link is a directory entry in a file system
+- In other words, it is just a name pointing to the same file
+- Must be on the same file system/hard drive
+
+A soft link is a separate file whose contents is the path of another file
+- can be on the same or different file system/hard drive
+
+*** Creating a Hard Links
+#+begin_src C
+#include <unistd.h>
+int link(const char* oldp, const char* newp);
+#+end_src
+
+- A hard link is created by the link function in unistd.h
+- Creates a hard link from existing file in path =oldp= to a new file in path =newp=
+- Success: returns 0, Failure: returns -1
+
+*** Creating Symbolic Links
+#+begin_src C
+#include <unistd.h>
+int symlink(const char* oldp, const char* newp);
+#+end_src
+
+- A symbolic link is created by the symblink function in unistd.h
+- Creates a symbolic link from existing file in path oldp to a new file in path newp
+- Success returns 0, Failure returns -1
+
+*** Deleting Links
+#+begin_src C
+#include <unistd.h>
+int unlink(const char* path);
+#+end_src
+
+- Files are not actually "deleted"
+- Instead, we decrement the number of links to a file (called unlinked)
+  - If the number of links is 0, we can reclaim the space from that file
+- The unlink function decrements the link number in the file given by path
+
+** Pipes
+#+begin_src C
+int pipe(int fd[2]);
+#+end_src
+
+- Created 2 fds
+  - fd[0] is read-only
+  - fd[1] is write-only
+- We write stuff to fd[1]
+  - That stuff can be read from fd[0]
+- Pipes are FIFOs
+
+*** FD Duplication
+#+begin_src C
+#include <unistd.h>
+int dup2(int oldfd, int newfd);
+#+end_src
+
+- Connects oldfd to newfd
+  - If newfd already exists, it is closed
+- dup2(pipe[1], STDOUT_FILENO)
+  - Connects the write end of a pipe to the process stdout(1)
+
+*** Pipes in IPC
+- We can use pipes to differentiate IPC
+- A pipe connects a parent to a child
+  - We can use dup2(int oldfd, int newfd) function to connect a pipe
+- We can connect stdout from a child process to the write side of the pipe
+  - The parent can then read from the side of the pipe to get the output
+
+#+begin_src C
+int parent_to_child[2];
+int child_to_parent[2];
+
+pipe(parent_to_child);
+pipe(child_to_parent);
+
+if (fork() != 0) {
+    close(parent_to_child[0]);
+    close(child_to_parent[1]);
+} else {
+    close(parent_to_child[1]);
+    close(child_to_parent[0]);
+    dup2(parent_to_child[0], stdin);
+    dup2(child_to_parent[1], stdout);
+}
+#+end_src
+
+** Blocking
+Blocking stops the program from running
+- For read() when no data is available to read, it waits
+- For write() when the write buffer is full it waits
+Blocking is bad for asynchronous, event-bsed programming
+- blocking stops the program
+- Nothing else can happen even thought we still have work to do
+We call a FD to not block using fcntl()
+- Flag: O_NONBLOCK
+  - true, will not block
+  - false, wil block
+
+#+begin_src C
+void set_nonblock(int fd) {
+    int flags;
+    flags = fcntl(fd, F_GETFL);
+    flags |= O_NONBLOCK;
+    fcntl(fd, F_SETFL, flags);
+}
+void set_block(int fd) {
+    int flags;
+    flags = fcntl(fd, F_GETFL);
+    flags &= ~O_NONBLOCK;
+    fcntl(fd, F_SETFL, flags);
+}
+#+end_src

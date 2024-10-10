@@ -1,0 +1,16 @@
+#+title: two two
+
+* Theorem
+For a square matrix A, if A has a row or column of zeros, then det(A) = 0
+
+* Theorem
+For a square matrix A, det(A) = det(A^{T})
+
+* Theorem
+If B is constructed from A by switching 2 rows of A, then det(B) = -det(A)
+
+* Theorem
+If B is constructed from A by multiplying a row of A by a number k then det(B) = kdet(A)
+
+* Theorem
+If B is constructed from A by replacing a row of A with the sum of itself and a multiple of another row, then det(B) = det(A)

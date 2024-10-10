@@ -1,0 +1,11 @@
+#+title: Research
+core blue
+border yellow
+
+| stdp                  |    0 |
+| max incoming          |    8 |
+| max outgoing          |   11 |
+| max                   |      |
+| neurons               | 2340 |
+| synapses              | 6500 |
+| timesteps to solution |      |

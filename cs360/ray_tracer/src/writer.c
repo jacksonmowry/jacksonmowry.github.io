@@ -11,7 +11,6 @@ int write_prop(const char* file, uint32_t width, uint32_t height,
         fp = fopen(file, "w");
         if (!fp) {
             perror(file);
-            fclose(fp);
             exit(1);
         }
     }
@@ -32,7 +31,7 @@ int write_prop(const char* file, uint32_t width, uint32_t height,
         bytes_written += fwrite(&b, 1, 1, fp);
     }
 
-    if (fp != stdout) {
+    if (file) {
         fclose(fp);
     }
     return bytes_written;
@@ -71,5 +70,10 @@ int write_ppm(const char* file, uint32_t width, uint32_t height,
             bytes_written += fprintf(fp, "%u %u %u\n", r, g, b);
         }
     }
+
+    if (file) {
+        fclose(fp);
+    }
+
     return bytes_written;
 }

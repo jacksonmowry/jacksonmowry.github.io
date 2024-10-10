@@ -1,0 +1,78 @@
+% Created 2024-09-22 Sun 13:59
+% Intended LaTeX compiler: pdflatex
+\documentclass[letterpaper, 12pt]{article}
+                                \usepackage{lmodern} % Ensures we have the right font
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage[table, xcdraw]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+\renewcommand{\thesection}{\Roman{section}}
+\renewcommand{\thesubsection}{}
+\renewcommand{\thesubsubsection}{}
+\definecolor{bblue}{HTML}{0645AD}
+\usepackage[colorlinks]{hyperref}
+\hypersetup{colorlinks, linkcolor=blue, urlcolor=bblue}
+\usepackage{titling}
+\setlength{\droptitle}{-6em}
+\setlength{\parindent}{12pt}
+\setlength{\parskip}{0em}
+\usepackage[stretch=10]{microtype}
+\usepackage{hyphenat}
+\usepackage{ragged2e}
+\usepackage{subfig} % Subfigures (not needed in Org I think)
+\usepackage{hyperref} % Links
+\usepackage{listings} % Code highlighting
+\usepackage[top=1in, bottom=1.00in, left=0.85in, right=0.85in]{geometry}
+\renewcommand{\baselinestretch}{1.00}
+\usepackage[explicit]{titlesec}
+\pretitle{\begin{center}\fontsize{20pt}{20pt}\selectfont}
+\posttitle{\par\end{center}}
+\preauthor{\begin{center}\vspace{-6bp}\fontsize{12pt}{12pt}\selectfont}
+\postauthor{\par\end{center}\vspace{-25bp}}
+\predate{\begin{center}\fontsize{12pt}{12pt}\selectfont\vspace{1em}}
+\postdate{\par\end{center}\vspace{0em}}
+\titlespacing\section{0pt}{5pt}{5pt} % left margin, space before section header, space after section header
+\titlespacing\subsection{0pt}{5pt}{2pt} % left margin, space before subsection header, space after subsection header
+\titlespacing\subsubsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
+\usepackage{enumitem}
+\setlist{itemsep=-2pt} % or \setlist{noitemsep} to leave space around whole list
+\usepackage{listings}
+\author{Jackson Mowry}
+\date{Sun Sep 22 13:59:14 2024}
+\title{HW4}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={HW4},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Question 1}
+\label{sec:orgc7263ff}
+C = \{w | w has an equal number of 0s and 1\}
+
+Assume C is a regular language, and let p be the pumping length of C. Choose \emph{s} = 0\textsuperscript{p}1\textsuperscript{p} \(\in\) C. Clearly |0\textsuperscript{p}1\textsuperscript{p}| \textgreater{} p. According to the pumping lemma, \emph{s} can be paritioned into \emph{s} = xyz \(\in\) C such that for all i \(\ge\) 0, we have the following xy\textsuperscript{i}z \(\in\) C. By condition 3 of the pumping lemma, we must also have |xy| \(\le\) p. Therefore y must consist only of 0's and subsequently xyyz = xy\textsuperscript{2}z \(\notin\) F since the string \emph{s} would now contain a greater number of 0s than 1s. Subsequently if we pumped down, resulting in a string of xz, the string would now contain fewer 0s than 1s. Hence, \emph{s} cannot be pumped and that is a violation of our assumption that C is regular. By this contradiction we can conclude that the language C is not regular.\#
+\section{Question 2}
+\label{sec:org8ace072}
+F = \{ww | w is a string from \{0,1\}\textsuperscript{*}\}
+
+Assume F is a regular language and let p be the pumping length of F. Choose \emph{s} = 0\textsuperscript{p}10\textsuperscript{p}1 \(\in\) F, when w = 0\textsuperscript{p}1. Clearly |0\textsuperscript{p}10\textsuperscript{p}1| \textgreater{} p. According to the puming lemma, \emph{s} can be partitioned into \emph{s} = xyz \(\in\) F such that for all i \(\ge\) 0, we have the following xy\textsuperscript{i}z \(\in\) F. By condition 3 of the pumping lemma, we must also have |xy| \(\le\) p. Therefore, y must consist only of 0s and subsequenttly xyyz = xy\textsuperscript{2}z \(\notin\) F \uline{since the first part of} the strings (substring w) does not equal the second part of the string \emph{s}. Hence, \emph{S} cannot be pumped and that is a violation of our assumption that F is regular. By this contradiction we can conclude that the language F is not regular.\#
+\section{Question 3}
+\label{sec:org7b00a5f}
+A = \{www | w is a string from \{a,b\}\textsuperscript{*}\}
+
+Assume A is a regular language and let p by the pumping length of A. Choose \emph{s} to be = a\textsuperscript{p}ba\textsuperscript{p}ba\textsuperscript{p}b \(\in\) A. Clearly |a\textsuperscript{p}ba\textsuperscript{p}ba\textsuperscript{p}b| \textgreater{} p. According to the pumping lemma, \emph{s} can be partitioned into \emph{s} = xyz \(\in\) A such that for all i \(\ge\) 0, we have the following xy\textsuperscript{i}z \(\in\) A. By condition 3 of the pumping lemma, we must also have |xy| \(\le\) p. Therefore, y must consist only of a's, and subsequently xyyz = xy\textsuperscript{2}z \(\notin\) A since the first substring w would now contain more a's than the second and third parts of the string \emph{s}. Hence, \emph{s} cannot be pumped and that is a violation of our assumption that A is regular. By this contradiction we can conclude that the language A is not regular.\#
+\section{Question 4}
+\label{sec:org506170d}
+L = \{0\textsuperscript{n}1\textsuperscript{m}0\textsuperscript{n} | m,n >= 0\}
+
+Assume L is a regular language and let p be the pumping length of L. Choose \emph{s} to be = 0\textsuperscript{p}10\textsuperscript{p} \(\in\) L. Clearly |0\textsuperscript{p}10\textsuperscript{p}| \textgreater{} p. According to the pumping lemma, \emph{s} can be partitioned into \emph{s} = xyz \(\in\) L such that for all i \(\ge\) 0, we have the following xy\textsuperscript{i}z \(\in\) L. By condition 3 of the pumping lemma, we must also have |xy| \(\le\) p. Therefore y must consist of only 0's and subsequently xyyz = xy\textsuperscript{2}z \(\notin\) L since the string \emph{s} would now contain 0\textsuperscript{p+|y|}10\textsuperscript{p}, which is \(\notin\) L. Hence, \emph{s} cannot be pumped and that is a violation of our assumption that L is regular. By this contradiction we can conclue that the language L is not regular.\#
+\end{document}
