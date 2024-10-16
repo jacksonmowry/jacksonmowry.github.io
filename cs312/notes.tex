@@ -1,4 +1,4 @@
-% Created 2024-10-10 Thu 10:10
+% Created 2024-10-13 Sun 14:20
 % Intended LaTeX compiler: pdflatex
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
@@ -19,14 +19,115 @@
  pdftitle={CS312 Notes},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdfcreator={Emacs 29.3 (Org mode 9.7)}, 
  pdflang={English}}
 \begin{document}
 
 \maketitle
 \tableofcontents
 
+\section{Pushdown Automata}
+\label{sec:orgc551a51}
+A pushdown automata (or PDA) is similar to an NFA but it has a stack. The stack provides additional memory beyond finite memory available in control; it allows the PDA to recognize some nonregular languages.\\
+
+2 options to prove htat a language is context-free\\
+\begin{itemize}
+\item Construct a CFG that generates it\\
+\item Construct a PDA that recognizes it\\
+\end{itemize}
+
+Some CFLs are more easily descibed in terms of their generators, whereas others are more easily described in terms of their recognizers. Let's draw a schematic representation of the difference between an NFA and a PDA.\\
+\subsection{Terminology}
+\label{sec:orgeb4bfe1}
+\begin{itemize}
+\item Writing a symbol on the stack is called pushing the symbol\\
+\item Removing a symbol from the stack is called popping the symbol\\
+\item All access to the stack may be done only at the top (LIFO storage device)\\
+\end{itemize}
+
+The primary benefit of that stack is that it can hold an \textbf{unlimited} amount of data; a PDA can recognize \{0\textsuperscript{n}1\textsuperscript{n} | n \(\ge\) 0\} because it can use the stack to remember that number of 0s it has seen (read)\\
+\subsection{Informal Algorithm for \{0\textsuperscript{n}1\textsuperscript{n} | n \(\ge\) 0\}}
+\label{sec:org4072a82}
 \begin{enumerate}
-\item \(\forall\)i \(\ge\) 0, uv\textsuperscript{i}xy\textsuperscript{i}z \(\in\) A\\
+\item Read symbols from the input, push a 0 for each 0 you see\\
+\item As soon as a 1 is read, pop a 0 off the stack (for each 1 read).\\
+\item If input finishes when the stack become empty, accept; if stack becomes empty while there is still input or input finishes while the stack is not empty, reject.\\
+\end{enumerate}
+
+A PDA may be nondeterminisitic. Languages as the one above do not require nondeterminism. However, the language \{ww\textsuperscript{R} | w \(\in\) \{0,1\}\textsuperscript{*}\} would require nondeterminism. Why?\\
+\subsection{Formalization}
+\label{sec:orgd64be42}
+\begin{itemize}
+\item A PDA may different alphabets for input (\(\Sigma\)) and stack (\(\Gamma\))\\
+\item Nondeterminism allows for the PDA to make transitions on empty input. Define \(\Sigma\)\textsubscript{\(\epsilon\)} = \(\Sigma\) \union \{\(\epsilon\)\} and \(\Gamma\)\textsubscript{\(\epsilon\)} = \(\Gamma\) \union{} \{\(\epsilon\)\}\\
+\item The domain of the PDA transition function is Q x \(\Sigma\)\textsubscript{\(\epsilon\)} x \(\Gamma\)\textsubscript{\(\epsilon\)}, where Q is the set of states\\
+\item The range of the PDA transition funciton is P(Q x \(\Gamma\)\textsubscript{\(\epsilon\)}).\\
+\end{itemize}
+\[
+\delta{}: Q x \Sigma{}_{\epsilon{}} x \Gamma{}_{\epsilon} \rightarrow{} P(Q x \Gamma{}_{\epsilon})
+\]\\
+\subsection{Formal Def}
+\label{sec:orgcf5d17a}
+A PDA is a 6-tuple (Q, \(\Sigma\), \(\Gamma\), \(\delta\), q\textsubscript{0}, F), where Q, \(\Sigma\), \(\Gamma\) are finite sets of states\\
+\subsection{PDA Computation}
+\label{sec:orgd9d14c8}
+A PDA M = (Q,\(\Sigma\),\(\Gamma\),\(\delta\),q\textsubscript{0},F) computes as follows\ldots{}\\
+M inputs w = w\textsubscript{1}w\textsubscript{2}\ldots{}w\textsubscript{m}, where each w\textsubscript{i} \(\in\) \(\Sigma\)\textsubscript{\(\epsilon\)}\\
+\begin{enumerate}
+\item r\textsubscript{0} = q\textsubscript{0},s\textsubscript{0} = \(\epsilon\); begin with state state and empty stack\\
+\item (r\textsubscript{i+1},b) \(\in\) \(\delta\)(r\textsubscript{i},w\textsubscript{i+1},a), i = 0,1,\ldots{}m-1, where s\textsubscript{i} = at and s\textsubscript{i+1} = bt for some a,b \(\in\) \(\Gamma\) and t \(\in\) \(\Gamma\)\textsuperscript{*}\\
+\item r\textsubscript{m} \(\in\) F; accept state encountered at end of input\\
+\end{enumerate}
+\subsection{Stack Notation}
+\label{sec:orgb559536}
+a,b \(\rightarrow\) or simply abc\\
+\begin{itemize}
+\item a = input\\
+\item b = what are you popping\\
+\item c = push onto stack\\
+\end{itemize}
+A is read from the input, b is poppped from the stack, and c is pushed onto the stack\\
+\(\epsilon\)-cases\\
+\begin{itemize}
+\item If a = \(\epsilon\), machine can transition without reading any input\\
+\item if b = \(\epsilon\), machine can transition without popping any symbol from the stack\\
+\item if c = \(\epsilon\), machine can transition without writing any symbol onto the stack\\
+\end{itemize}
+
+read pop push\\
+\subsection{Empty Stack}
+\label{sec:org3f3e88d}
+The PDA does not consider the testing of an empty stack. We can achieve this by initially placing a special char (say \() on the stack. When the PDA encounters that char (\)) again (on the stack), it knows the stack is effectively empty.\\
+
+Both CFGs and PDAs specify context-free languages; we can always convert a CFG into a PDA that recognizes the language of the CFG\\
+\subsection{Theorem}
+\label{sec:orge819a68}
+CFG - specifies a program language\\
+PDA - specifies/implements the compiler\\
+
+A language is context-free \iff{} some PDA recognizes it\\
+\subsection{Difficulties}
+\label{sec:org8a5cbdb}
+How do we decide which substitutions to make for a derivation? (PDA P nondeterminism can help)\\
+\begin{itemize}
+\item At each step of the derivation one of the rules for a particular variable is selected non-deterministically\\
+\item P has to start by writing the start variable on the stack and then continue working the string w\\
+\item If while consuming the string w, P arrives at a string of terminals that equals w\\
+\end{itemize}
+\subsection{Informal Description}
+\label{sec:orgdfe8183}
+Place marker symbol \$ and tart varaible on the stack\\
+Repeat:\\
+\begin{itemize}
+\item If TOS is a variable symbol A, non-deterministically select a rule r such that lhs(r) = A and substitute A by the string rhs(s)\\
+\item If TOS is a terminal symbol, a, read the next input symbol and compare it with a; if they match, pop the stack; if they do not match, reject this branch of nondeterminism\\
+\item If TOS is a \$ and all the text has been read, accept; otherwise reject\\
+\end{itemize}
+\subsection{Generic State Diagram}
+\label{sec:org84812f3}
+\begin{enumerate}
+\item TOS = variable: set \(\delta\)(q\textsubscript{loop}, \(\epsilon\), A) = \{(q\textsubscript{loop}, w) | A \(\rightarrow\) w \(\in\) R\}, where R is the set of CFG rules\\
+\item TOS = terminal: set \(\delta\)(q\textsubscript{loop}, a, a\}) = \{(q\textsubscript{loop}, \(\epsilon\)\})\\
+\item TOS = \$: \(\delta\)(q\textsubscript{loop}, \(\epsilon\), \$) = \{(q\textsubscript{accept}, \(\epsilon\))\}\\
 \end{enumerate}
 \end{document}

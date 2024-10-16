@@ -1,5 +1,20 @@
-#+title: Notes
-* 2a.
+#+title: HW6
+#+author: Jackson Mowry
+#+date: Sun Oct 13 15:05:16 2024
+#+options: toc:nil
+
+* 1
+Starting with
+- A \rightarrow{} BAB | B | 1 | \epsilon{}
+- B \rightarrow{} 00 | \epsilon{}
+
+Add a new start state 'S'
+- S \rightarrow{} A
+- A \rightarrow{} BAB | B | 1 | \epsilon{}
+- B \rightarrow{} 00 | \epsilon{}
+* 2
+Removal of \epsilon{} rules
+** a
 \Sigma = {a,b,c}
 R:      S \rightarrow{} A
         A \rightarrow{} AaB
@@ -17,7 +32,38 @@ R:      S \rightarrow{} A
     - A \rightarrow{} AaB | Aa
     - B \rightarrow{} b | C
     - C \rightarrow{} CC | c
-* 3b.
+** b
+- S \rightarrow{} A
+- A \rightarrow{} AA | AB | B | a
+- B \rightarrow{} BB | b | $\epsilon{}$
+
+The only epsilon rule we see is B \rightarrow{} $\epsilon{}$
+- S \rightarrow{} A
+- A \rightarrow{} AA | A | AB | B | a
+- B \rightarrow{} BB | B | b
+
+* 3
+** a
+- S \rightarrow{} A
+- A \rightarrow{} AA | AB | A | B | aB
+- B \rightarrow{} BB | Bb | b
+
+Start by removing A \rightarrow{} A
+- S \rightarrow{} A
+- A \rightarrow{} AA | AB | B | aB
+- B \rightarrow{} BB | Bb | b
+
+Replace A \rightarrow{} B
+- S \rightarrow{} A
+- A \rightarrow{} AA | AB | BB | Bb | b | aB
+- B \rightarrow{} BB | Bb | b
+
+Replace S \rightarrow{} B
+- S \rightarrow{} AA | AB | BB | Bb | b | aB
+- A \rightarrow{} AA | AB | BB | Bb | b | aB
+- B \rightarrow{} BB | Bb | b
+
+** b
 \Sigma{} = {a,b,c}
 R:
 - S \rightarrow{} A | \epsilon{}
@@ -55,3 +101,47 @@ Removing D \rightarrow{} C
 - D \rightarrow{} BD | bb | CD | cc
 
 A is now redundent
+
+* 4
+- S \rightarrow{} AAB | aBb | ABB | Ab
+- A \rightarrow{} AAB | aBb | ABB | Ab
+- B \rightarrow{} BB | Bb | b
+
+Start by identifying rules not in CNF (bold)
+- S \rightarrow{} *AAB* | *aBb* | *ABB* | *Ab*
+- A \rightarrow{} *AAB* | *aBb* | *ABB* | *Ab*
+- B \rightarrow{} BB | *Bb* | b
+
+Create A_1 which produces AA
+- S \rightarrow{} A_{1}B | *aBb* | *ABB* | *Ab*
+- A \rightarrow{} A_{1}B | *aBb* | *ABB* | *Ab*
+- B \rightarrow{} BB | *Bb* | b
+- A_{1} \rightarrow{} AA
+
+Create B_{1} which produces BB
+- S \rightarrow{} A_{1}B | *aBb* | AB_{1} | *Ab*
+- A \rightarrow{} A_{1}B | *aBb* | AB_{1} | *Ab*
+- B \rightarrow{} BB | *Bb* | b
+- A_{1} \rightarrow{} AA
+- B_{1} \rightarrow{} BB
+
+Create B_{2} which produces b
+- S \rightarrow{} A_{1}B | *aBb* | AB_{1} | AB_{2}
+- A \rightarrow{} A_{1}B | *aBb* | AB_{1} | AB_{2}
+- B \rightarrow{} BB | BB_{2} | b
+- A_{1} \rightarrow{} AA
+- B_{1} \rightarrow{} BB
+- B_{2} \rightarrow{} b
+
+Create A_{2} which produces a && C_{1} which produces A_{2}B
+- S \rightarrow{} A_{1}B | C_{1}B_{2} | AB_{1} | AB_{2}
+- A \rightarrow{} A_{1}B | C_{1}B_{2} | AB_{1} | AB_{2}
+- B \rightarrow{} BB | BB_{2} | b
+- A_{1} \rightarrow{} AA
+- A_{2} \rightarrow{} a
+- B_{1} \rightarrow{} BB
+- B_{2} \rightarrow{} b
+- C_{1} \rightarrow{} A_{2}B
+
+* 5
+[[file:~/Downloads/Scan Oct 13, 2024.pdf]]

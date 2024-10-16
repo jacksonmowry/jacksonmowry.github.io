@@ -1,0 +1,223 @@
+% Created 2024-10-13 Sun 17:04
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Sun Oct 13 15:05:16 2024}
+\title{HW6}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={HW6},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.3 (Org mode 9.7)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section{1}
+\label{sec:org69a8b1e}
+Starting with
+\begin{itemize}
+\item A \(\rightarrow\) BAB | B | 1 | \(\epsilon\)
+\item B \(\rightarrow\) 00 | \(\epsilon\)
+\end{itemize}
+
+Add a new start state 'S'
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) BAB | B | 1 | \(\epsilon\)
+\item B \(\rightarrow\) 00 | \(\epsilon\)
+\end{itemize}
+\section{2}
+\label{sec:org613adb0}
+Removal of \(\epsilon\) rules
+\subsection{a}
+\label{sec:org5143ceb}
+\(\Sigma\) = \{a,b,c\}
+R:      S \(\rightarrow\) A
+        A \(\rightarrow\) AaB
+        B \(\rightarrow\) b | C | \(\epsilon\)
+        C \(\rightarrow\) CC | c | \(\epsilon\)
+
+\begin{itemize}
+\item Step 2 removing Epsilon Rules
+\begin{itemize}
+\item Removing B \(\rightarrow\) \(\epsilon\)
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AaB | Aa
+\item B \(\rightarrow\) b | C
+\item C \(\rightarrow\) CC | c | \(\epsilon\)
+\end{itemize}
+\item Removing C \(\rightarrow\) \(\epsilon\)
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AaB | Aa
+\item B \(\rightarrow\) b | C
+\item C \(\rightarrow\) CC | c
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\subsection{b}
+\label{sec:orgb81e73e}
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AA | AB | B | a
+\item B \(\rightarrow\) BB | b | \(\epsilon{}\)
+\end{itemize}
+
+The only epsilon rule we see is B \(\rightarrow\) \(\epsilon{}\)
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AA | A | AB | B | a
+\item B \(\rightarrow\) BB | B | b
+\end{itemize}
+\section{3}
+\label{sec:org9c8e69a}
+\subsection{a}
+\label{sec:orge55d5e7}
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AA | AB | A | B | aB
+\item B \(\rightarrow\) BB | Bb | b
+\end{itemize}
+
+Start by removing A \(\rightarrow\) A
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AA | AB | B | aB
+\item B \(\rightarrow\) BB | Bb | b
+\end{itemize}
+
+Replace A \(\rightarrow\) B
+\begin{itemize}
+\item S \(\rightarrow\) A
+\item A \(\rightarrow\) AA | AB | BB | Bb | b | aB
+\item B \(\rightarrow\) BB | Bb | b
+\end{itemize}
+
+Replace S \(\rightarrow\) B
+\begin{itemize}
+\item S \(\rightarrow\) AA | AB | BB | Bb | b | aB
+\item A \(\rightarrow\) AA | AB | BB | Bb | b | aB
+\item B \(\rightarrow\) BB | Bb | b
+\end{itemize}
+\subsection{b}
+\label{sec:orgc7ca5dd}
+\(\Sigma\) = \{a,b,c\}
+R:
+\begin{itemize}
+\item S \(\rightarrow\) A | \(\epsilon\)
+\item A \(\rightarrow\) BC
+\item B \(\rightarrow\) BD | bb
+\item C \(\rightarrow\) CD | cc
+\item D \(\rightarrow\) B | C
+\end{itemize}
+
+Step 3 Removal of unit rules (remember we can have epsilon because the empty string is in the language)
+\begin{itemize}
+\item S \(\rightarrow\) \textbf{A} | \(\epsilon\)
+\item A \(\rightarrow\) BC
+\item B \(\rightarrow\) BD | bb
+\item C \(\rightarrow\) CD | cc
+\item \textbf{D \(\rightarrow\) B | C}
+\end{itemize}
+
+Removing S \(\rightarrow\) A
+\begin{itemize}
+\item S \(\rightarrow\) BC | \(\epsilon\)
+\item A \(\rightarrow\) BC
+\item B \(\rightarrow\) BD | bb
+\item C \(\rightarrow\) CD | cc
+\item D \(\rightarrow\) B | C
+\end{itemize}
+
+Removing B \(\rightarrow\) D
+\begin{itemize}
+\item S \(\rightarrow\) BC | \(\epsilon\)
+\item A \(\rightarrow\) BC
+\item B \(\rightarrow\) BD | bb
+\item C \(\rightarrow\) CD | cc
+\item D \(\rightarrow\) BD | bb | C
+\end{itemize}
+
+Removing D \(\rightarrow\) C
+\begin{itemize}
+\item S \(\rightarrow\) BC | \(\epsilon\)
+\item A \(\rightarrow\) BC
+\item B \(\rightarrow\) BD | bb
+\item C \(\rightarrow\) CD | cc
+\item D \(\rightarrow\) BD | bb | CD | cc
+\end{itemize}
+
+A is now redundent
+\section{4}
+\label{sec:org6d10d38}
+\begin{itemize}
+\item S \(\rightarrow\) AAB | aBb | ABB | Ab
+\item A \(\rightarrow\) AAB | aBb | ABB | Ab
+\item B \(\rightarrow\) BB | Bb | b
+\end{itemize}
+
+Start by identifying rules not in CNF (bold)
+\begin{itemize}
+\item S \(\rightarrow\) \textbf{AAB} | \textbf{aBb} | \textbf{ABB} | \textbf{Ab}
+\item A \(\rightarrow\) \textbf{AAB} | \textbf{aBb} | \textbf{ABB} | \textbf{Ab}
+\item B \(\rightarrow\) BB | \textbf{Bb} | b
+\end{itemize}
+
+Create A\textsubscript{1} which produces AA
+\begin{itemize}
+\item S \(\rightarrow\) A\textsubscript{1}B | \textbf{aBb} | \textbf{ABB} | \textbf{Ab}
+\item A \(\rightarrow\) A\textsubscript{1}B | \textbf{aBb} | \textbf{ABB} | \textbf{Ab}
+\item B \(\rightarrow\) BB | \textbf{Bb} | b
+\item A\textsubscript{1} \(\rightarrow\) AA
+\end{itemize}
+
+Create B\textsubscript{1} which produces BB
+\begin{itemize}
+\item S \(\rightarrow\) A\textsubscript{1}B | \textbf{aBb} | AB\textsubscript{1} | \textbf{Ab}
+\item A \(\rightarrow\) A\textsubscript{1}B | \textbf{aBb} | AB\textsubscript{1} | \textbf{Ab}
+\item B \(\rightarrow\) BB | \textbf{Bb} | b
+\item A\textsubscript{1} \(\rightarrow\) AA
+\item B\textsubscript{1} \(\rightarrow\) BB
+\end{itemize}
+
+Create B\textsubscript{2} which produces b
+\begin{itemize}
+\item S \(\rightarrow\) A\textsubscript{1}B | \textbf{aBb} | AB\textsubscript{1} | AB\textsubscript{2}
+\item A \(\rightarrow\) A\textsubscript{1}B | \textbf{aBb} | AB\textsubscript{1} | AB\textsubscript{2}
+\item B \(\rightarrow\) BB | BB\textsubscript{2} | b
+\item A\textsubscript{1} \(\rightarrow\) AA
+\item B\textsubscript{1} \(\rightarrow\) BB
+\item B\textsubscript{2} \(\rightarrow\) b
+\end{itemize}
+
+Create A\textsubscript{2} which produces a \&\& C\textsubscript{1} which produces A\textsubscript{2}B
+\begin{itemize}
+\item S \(\rightarrow\) A\textsubscript{1}B | C\textsubscript{1}B\textsubscript{2} | AB\textsubscript{1} | AB\textsubscript{2}
+\item A \(\rightarrow\) A\textsubscript{1}B | C\textsubscript{1}B\textsubscript{2} | AB\textsubscript{1} | AB\textsubscript{2}
+\item B \(\rightarrow\) BB | BB\textsubscript{2} | b
+\item A\textsubscript{1} \(\rightarrow\) AA
+\item A\textsubscript{2} \(\rightarrow\) a
+\item B\textsubscript{1} \(\rightarrow\) BB
+\item B\textsubscript{2} \(\rightarrow\) b
+\item C\textsubscript{1} \(\rightarrow\) A\textsubscript{2}B
+\end{itemize}
+\section{5}
+\label{sec:org722fcd6}
+\begin{center}
+\includegraphics[width=.9\linewidth]{/home/jackson/Downloads/Scan Oct 13, 2024.pdf}
+\end{center}
+\end{document}

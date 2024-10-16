@@ -40,6 +40,9 @@ void clear_end(uint8_t *book, int page) {
 }
 
 // Allocator functions
+
+// Allocates the entire pool of memory which is given in pages. Pages for
+// bookkeeping are added automatically.
 bool page_init(size_t pages) {
   // Bounds checking
   if (pages < 2 || pages > (1 << 18)) {
@@ -50,7 +53,7 @@ bool page_init(size_t pages) {
   size_t bookkeeping_pages = (pages + 16383) / 16384;
 
   pages_ptr = mmap(NULL, (pages + bookkeeping_pages) * PAGE_SIZE,
-                   PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+                   PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
   // Check for mmap failure
   if (pages_ptr == MAP_FAILED) {
     return false;
@@ -63,6 +66,7 @@ bool page_init(size_t pages) {
   return true;
 }
 
+// Deallocates the entire pool of memory allocated by the above function.
 void page_deinit(void) {
   // Don't do anything if we didn't do anything am I right
   if (!pages_ptr) {
@@ -76,6 +80,9 @@ void page_deinit(void) {
 }
 
 // Allocation functions
+
+// Returns a contiguous allocation of pages. Error checking is in place to not
+// allow an invalid parameter of pages to be passed.
 void *page_alloc(size_t pages) {
   // Our error checking
   if (!pages_ptr) {
@@ -87,6 +94,10 @@ void *page_alloc(size_t pages) {
   }
 
   if (pages_free() < pages) {
+    return NULL;
+  }
+
+  if (pages > without_bk) {
     return NULL;
   }
 
@@ -120,6 +131,9 @@ void *page_alloc(size_t pages) {
   return NULL;
 }
 
+// Takes in the starting memory address of an allocation and frees all
+// associated pages in the allocation.
+// Does not attempt to free an invalid address.
 void page_free(void *addr) {
   // Don't do anything if we haven't initialized
   if (!pages_ptr) {
