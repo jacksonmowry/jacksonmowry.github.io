@@ -813,3 +813,49 @@ int getrlimit(int resource, struct rlimit* rlp);
 - =rlim_cur= can be lowered and raised, as long as it does not go above =rlim_max=
 - =rlim_max= can be lowered only, and can never be raised again
 ** All the Limits
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/resource.h>
+#include <time.h>
+
+static void test(void) {
+    for (int i = 0; i < 1000000000000000000UL; i++);
+}
+
+int main() {
+    struct rlimit rl;
+    getrlimit(RLIMIT_CPU, &rl);
+
+    printf("%zu %zu\n", rl.rlim_cur, rl.rlim_max);
+
+    rl.rlim_cur = 2;
+    setrlimit(RLIMIT_CPU, &rl);
+
+    getrlimit(RLIMIT_CPU, &rl);
+    printf("%zu %zu\n", rl.rlim_cur, rl.rlim_max);
+
+    test();
+    puts("Finish test.\n");
+}
+#+end_src
+
+#+RESULTS:
+
+* Pthread
+** pthread_mutex
+#+begin_src C
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_init(&mutex, NULL);
+#+end_src
+
+** Cond Var
+- When a thread wants to wait to be given work, it waits on the conditional variable
+- Requires a mutex, why?
+  - Signal must be atomic
+  -
+
+- Acquire the mutex for the cond var
+- Wait on the cond var mutex is locked once control is returned to thread
+- Unlock after critial seciton is complete

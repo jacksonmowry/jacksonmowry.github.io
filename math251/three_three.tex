@@ -1,0 +1,151 @@
+% Created 2024-10-18 Fri 09:45
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{Three Three}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={Three Three},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\begin{itemize}
+\item Determine whether 2 vectors are parallel, orthogonal or neither
+\item Compute the projection of one vector onto another
+\item Decompose one vector into a sum of orthogonal and parallel parts
+\item Compute distances between points and lines or points and planes
+\item Compute a unit vector orthogonal to two vectors in R\textsuperscript{3}
+\item Compute a unit vector orthogonal to any number of vectors in R\textsuperscript{n}
+\end{itemize}
+\section{Definition}
+\label{sec:orgc4aa64f}
+Two nonzero vectors u and v in R\textsuperscript{n} are orthogonal (or perpendicular) if u \(\cdot\) v = 0
+\begin{itemize}
+\item \(cos\theta{} = \frac{u \cdot{} v}{||u||| |v||} = 0\)
+\end{itemize}
+The zero vector in R\textsuperscript{n} is orthogonal to every vector in R\textsuperscript{n}
+A nonempty set of vectors is called an orthogonal set if all pairs of distinct vectors in the set are orhtogonal
+An orthogonal set of unit vectors is called an orthogonal set
+\begin{itemize}
+\item \({u_{1}, u_{2}, ..., u_{n}}\) is an orthogonal set
+\begin{itemize}
+\item Then u\textsubscript{i} \(\cdot\) u\textsubscript{j} = 0 \(\forall\) i,j \(\in\) \{1, n\}
+\end{itemize}
+\end{itemize}
+R\textsuperscript{3} = i, j, k \(\Rightarrow\) \{i, j, k\}
+\subsection{Example}
+\label{sec:org8e562e0}
+The standard unit vectors in any space
+\begin{itemize}
+\item \(R^{n} = \{e_{1}, e_{2}, ..., e_{n}\}\) = orthogonal set
+\item \(R^{2} = \{(1,0), (0,1)\}\)
+\item \(R^{3} = \{(1,0,0), (0,1,0), (0,0,1)\}\)
+\end{itemize}
+\subsection{Make it Orthogonal}
+\label{sec:orga23a464}
+\begin{itemize}
+\item \((1,2,3) \cdot (-3,0,1) = 0\)
+\item \((1,2,3) \cdot (1,-5,3) = 0\)
+\item \((-3,0,1) \cdot (1,-5,3) = 0\)
+\end{itemize}
+It is already orthogonal
+\section{Point-Normal Equations of Lines and Planes}
+\label{sec:org6ea0865}
+One application of orthogonality is to define a line or place by using a nonzero vector n, called a normal, that is orthogonal to the line or plane
+
+For example \(n \cdot P_{0}P_{1} = 0\), where \(P_{0}P_{1} = (x-x_{0}, y-y_{0})\) or \(P_{0}P_{1} = (x-x_{0}, y-y_{0}, z-z_{0})\)
+
+Find the equation of the plane the goes through the origin and has normal (10, 3, 13)
+\begin{itemize}
+\item Equation of a plane through a point \((x_{0}, y_{0}, z_{0})\) and has normal \((a,b,c)\)
+\item \(a(x-x_{0}) + b(y-y_{0}) + c(z-z_{0}) = 0\)
+\item \(10x + 3y + 13z = 0\)
+\end{itemize}
+
+Find the equation of the plane that goes through the point (1,2,3) and has normal (10,3,13)
+\begin{itemize}
+\item \(10(x-1) + 3(y-2) + 13(z-3) = 0\)
+\end{itemize}
+\section{Orthogonal Projections}
+\label{sec:org1fce40f}
+If u and a are vectors in R\textsuperscript{n} and if a \(\neq\) 0, then u = w\textsubscript{1} + w\textsubscript{2}, hwere w\textsubscript{1} is a scalar multiple of a and w\textsubscript{2} is orthogonal to a
+
+\begin{itemize}
+\item w\textsubscript{1} is the vector component of u along a
+\begin{itemize}
+\item \(w_{1} = proj_{u}(u) = \frac{u\cdot{}a}{a\cdot{}a}a\)
+\end{itemize}
+\item and w\textsubscript{2} is the vector component of u orthogonal to a
+\begin{itemize}
+\item \(w_{2} = u - proj_{a}(u) = u - \frac{u\cdot{}a}{a\cdot{}a}a\)
+\end{itemize}
+\end{itemize}
+\subsection{Example}
+\label{sec:org89458b6}
+u = (1,9,0,5), a = (3,-2,4,1)
+\begin{itemize}
+\item \(w_{1} = proj_{a}u = \frac{u\cdot{}a}{a\cdot{}a}a = \frac{1(3)+9(-2)+0(-4)+5(1)}{3^{2}+-2^{2}+4^{2}-1^{2}} \times{} (3,-2,4,1) = \frac{-10}{30}(3,-2,4,1) = (-1, \frac{2}{3}, \frac{-4}{3}, \frac{-1}{3})\)
+\item \(w_{2} = u - proj_{a}u = (1,9,0,5) - (-1, \frac{2}{3}, \frac{-4}{3}, \frac{-1}{3}) = (2, \frac{25}{3}, \frac{4}{3}, \frac{16}{3})\)
+\end{itemize}
+\subsection{Another one}
+\label{sec:org9aed090}
+u=(2,1,-4,6) and a=(1,-2,2,1)
+\begin{itemize}
+\item \(w_{1} = \frac{2(1)+1(-2)+(-4)(2)+6(1)}{1^{2}+(-2)^{2}+2^{2}+1^{2}} \times{} (1,-2,2,1) = \frac{-2}{10}(1,-2,2,1) = (\frac{-1}{5},\frac{2}{5},\frac{-2}{5},\frac{-1}{5})\)
+\item \(w_{2} = (2,1,-4,6) - (\frac{-1}{5},\frac{2}{5},\frac{-2}{5},\frac{-1}{5}) = (\frac{11}{5}, \frac{3}{5}, \frac{-18}{5}, \frac{31}{5})\)
+\end{itemize}
+\subsection{Checks}
+\label{sec:org357124f}
+\subsubsection{Problem 1}
+\label{sec:org5aadb64}
+w\textsubscript{2} \(\cdot\) a = ?
+This should be orthogonal component
+\subsubsection{Problem 2}
+\label{sec:org6a78856}
+w\textsubscript{2} \(\cdot\) a = ?
+This should be orthogonal component
+\subsection{Finding the Norm}
+\label{sec:org13c5902}
+\begin{itemize}
+\item \(\sqrt{1^2 + \frac{2}{3}^{2} + }\)
+\end{itemize}
+\section{Pythag}
+\label{sec:org76a3e9b}
+in R\textsuperscript{n}: If u and v are orthogonal vectors in R\textsuperscript{n} with the Euclidean inner product, then ||u+v||\textsuperscript{2} = ||u||\textsuperscript{2} + ||v||\textsuperscript{2}
+
+We know that ||a||\textsuperscript{2} = a \(\cdot\) a
+
+\begin{itemize}
+\item ||u + v||\textsuperscript{2} = (v + v) \(\cdot\) (u + u) = u\(\cdot\)u + u\(\cdot\)v + v\(\cdot\)v + v\(\cdot\)u
+\end{itemize}
+\subsection{find the distance between a point (x\textsubscript{0},y\textsubscript{0}) and a line ax+by+c = 0 in R\textsuperscript{2}}
+\label{sec:org51fba3b}
+\begin{itemize}
+\item \(D = \frac{|ax_{0}+by_{0}+c|}{\sqrt{a^2 + b^2}}\)
+
+\item \(D = \frac{|5(2)-11-9|}{\sqrt{5^2 + (-1)^{2}}} = \frac{10}{\sqrt{26}}\)
+\end{itemize}
+\subsection{find a distance between a point and a plane in R\textsuperscript{3}}
+\label{sec:org64239d3}
+\begin{itemize}
+\item \(D = \frac{|ax_{0}+by_{0}+cz_{0}+d|}{\sqrt{a^{2} + b^{2} + c^{2}}}\)
+\item \(D = \frac{|2(3)+3(5)-10+4|}{\sqrt{2^{2} + 3^{2} + (-1}^{2})}} = \frac{15}{\sqrt{14}}\)
+\end{itemize}
+\end{document}

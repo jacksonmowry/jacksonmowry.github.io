@@ -6,14 +6,15 @@
 #include "vec3.h"
 #include <ctype.h>
 #include <getopt.h>
-#include <math.h>
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <unistd.h>
-/* int  (*write)(const char *file, u32 width, u32 height, const Pixel pixels[]);
- */
+
 VECTOR_PROTOTYPE(material)
 VECTOR(material)
 
@@ -21,8 +22,9 @@ int main(int argc, char* argv[]) {
     char* file_format = ".XX";
     uint32_t width = 320;
     uint32_t height = 240;
-    uint32_t seed = 0;
+    uint32_t seed = time(NULL);
     uint32_t threads = 1;
+    char* file_name = argv[argc - 1];
 
     // Parse CLI opts
     opterr = 0;
@@ -59,6 +61,22 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Error while parsing arguments. %d\n", c);
             return 1;
         }
+    }
+
+    char* file_extension = strrchr(file_name, '.');
+    if (file_extension && (strcmp("rto", file_extension + 1) ||
+                           strcmp("bmp", file_extension + 1) ||
+                           strcmp("ppm", file_extension + 1))) {
+        file_extension++;
+    } else {
+        // Grab file output type from switches
+        if (!file_format) {
+            fprintf(stderr,
+                    "The -d switch must be given when outputting to stdout\n");
+            return 1;
+        }
+        file_extension = file_format;
+        file_name = NULL;
     }
 
     srand(seed);
@@ -167,7 +185,7 @@ int main(int argc, char* argv[]) {
                    .sphere.mat = (struct material*)sphere_material_fixed3});
 
     camera cam = camera_initialize(width, height);
-    camera_render(cam, &hl);
+    camera_render(cam, &hl, file_name);
 
     for (size_t i = 0; i < hl.objects.len; i++) {
         free(hl.objects.array[i].sphere.mat);

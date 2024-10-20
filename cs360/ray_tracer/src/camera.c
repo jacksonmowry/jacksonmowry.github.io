@@ -37,7 +37,7 @@ camera camera_initialize(int width, int height) {
     camera c;
     c.width = width;
     c.height = height;
-    c.samples_per_pixel = 1;
+    c.samples_per_pixel = 1000;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
     c.max_depth = 5;
     c.vfov = 20;
@@ -86,7 +86,8 @@ camera camera_initialize(int width, int height) {
     return c;
 }
 
-void camera_render(camera c, const hittable_list* world) {
+void camera_render(camera c, const hittable_list* world,
+                   const char* file_name) {
     Pixel* p = malloc(c.width * c.height * sizeof(Pixel));
     if (!p) {
         perror("malloc");
@@ -94,7 +95,6 @@ void camera_render(camera c, const hittable_list* world) {
     }
 
     for (int row = 0; row < c.height; row++) {
-        fprintf(stderr, "Rows remaining: %d\n", c.height - row);
         for (int col = 0; col < c.width; col++) {
             Pixel color = (Pixel){.r = 0, .g = 0, .b = 0};
             for (int sample = 0; sample < c.samples_per_pixel; sample++) {
@@ -107,10 +107,8 @@ void camera_render(camera c, const hittable_list* world) {
                 vec3_mul_dbl(color, c.pixel_samples_scale);
         }
     }
-    /* fprintf(stderr, "Done generating pixels!\n"); */
 
-    /* write_prop(NULL, 16, 16, p); */
-    write_ppm(NULL, c.width, c.height, p);
+    write_prop(file_name, c.width, c.height, p);
     free(p);
 }
 

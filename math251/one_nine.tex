@@ -1,4 +1,4 @@
-% Created 2024-09-27 Fri 09:16
+% Created 2024-10-18 Fri 09:17
 % Intended LaTeX compiler: pdflatex
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
@@ -27,22 +27,22 @@
 \tableofcontents
 
 \section{Recall}
-\label{sec:org8f72dbf}
+\label{sec:orgf90b711}
 College algebra
 \(f \circ{} g(x) = f(g(x))\)
 \section{Objectives}
-\label{sec:orgad03797}
+\label{sec:orgc3c7e9f}
 Compose linear transformations
 Compute the compositions of reflection and rotation transformations
 Compute the inverse of a transformation
 \section{Notes}
-\label{sec:org103b354}
+\label{sec:orgb683e36}
 Given a linear transofmration \(T{A}: \mathbb{R}^{n} \rightarrow{} \mathhbb{m}\) and \(T_{B} : \mathbb{R}^{m} \rightarrow{} \mathbb{R}^{k}\)  define the composition \((T_{B}\circ{}T_{A})(x)\) to be the function \(T_{B}(T{A}(x))\)
 \begin{itemize}
 \item In fact \(T_{B}\circ{}T_{A} = T_{BA}\)
 \end{itemize}
 \section{Examples}
-\label{sec:orgcf60b38}
+\label{sec:orgbfbb7d1}
 find the standard matrix for each of the following transformation, and find the standard matrix for the compositie functions \(T_{1}\circ{}T_{2}\) and \(T_{2}\circ{}T_{1}\)
 
 \[
@@ -65,13 +65,13 @@ T_{1}(e_{2}) = T_{1}(0,1) = (0+1,0-1) = (1,-1)
 
 Transpose of each other
 \section{Example}
-\label{sec:org02d1f66}
+\label{sec:org36f55d8}
 \(T_{1}: \mathbb{R}^{2}\rightarrow{}\mathbb{R}^{3}\) by \(T_{1}(x,y) = (-2,2y,y)\)
 
 \(T_{1}(e_1)=T_{1}(1,0)=(-1,0,0), T_{1}(e_{2})=T_{1}(0,1) = (0,2,1)\Rightarrow{}T_{1}\Rightarrow{}A=\begin{bmatrix}T_{1}(e_1)&T_{1}(e_{2})\end{bmatrix}=\begin{bmatrix}-1&0\\0&2\\0&1\end{bmatrix}\)
 \(T_{2}(e_{1}) = T_{2}(1,0,0) = (-1,0,0), T_{2}(e_{2}) = T_{2}(0,1,0) = (0,-1,1), T_{2}(e_{3})=T_{2}(0,0,1) = (0,0,1) \Rightarrow{} T_{2} \Rightarrow{} B = \begin{bmatrix}T_{2}(e_1)&T_{2}(e_2)&T_{3}(e_3)\end{bmatrix} = \begin{bmatrix}3&0&0\\0&-1&0\\1&1&1\end{bmatrix}\)
 \section{Prove that the composition of two rotations in \(\mathbb{R}^{2}\) is commutative}
-\label{sec:org0d37675}
+\label{sec:org132fcea}
 \begin{itemize}
 \item \(\alpha\) + \(\beta\) degrees
 \end{itemize}
@@ -86,11 +86,11 @@ wts \(AB = BA\)
 
 \$ = \begin{bmatrix}cos(\(\alpha\)+\(\beta\))\&-sin(\(\alpha\)+\(\beta\))$\backslash$\(\sin\)(\(\alpha\)+\(\beta\))\&cos(\(\alpha\)+\(\beta\))\end{bmatrix}\$
 \section{Reflecting a Vector across the line y=x}
-\label{sec:orgd8e6337}
+\label{sec:orgbcf7952}
 \(\begin{bmatrix}0&1\\1&0\end{bmatrix}\)
 Transpose if you switch the order of the mat mul
 \section{If \(T_{A}: \mathbb{R}^{n} \rightarrow{} \mathbb{R}^{n}\) is a matrix operator whose standard matrix A is invertible, then we say that T\textsubscript{A} is invertible, and we define the inverse T\textsubscript{A} as}
-\label{sec:org416d415}
+\label{sec:org4974ce9}
 \[
 T_{A}^{-1} = T_{A^{-1}}
 \]

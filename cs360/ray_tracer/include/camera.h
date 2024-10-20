@@ -33,7 +33,8 @@ typedef struct {
     Vec3 w;
 } camera;
 
-void camera_render(camera cam, const hittable_list* world);
+void camera_render(camera cam, const hittable_list* world,
+                   const char* file_name);
 camera camera_initialize(int width, int height);
 Pixel ray_color(camera c, const Ray* r, int max_depth,
                 const hittable_list* world);

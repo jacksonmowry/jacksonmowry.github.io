@@ -1,0 +1,80 @@
+#+title: Exam Review 2
+#+setupfile: ../jake.setup
+#+options: toc:nil \n:t
+* 1.8
+a. Determine if a given transformation is linear/non-linear
+   - Given T: R \rightarrow{} R^{n}, want to determine if T is linear or non-linear
+     - or x \rightarrow{} *
+   - Calculate T(u), T(v), and T(u + v)
+   - Calculate T(ku) and kT(u)
+   - Examples at the very bottom of completed lecture notes for 1.8
+b. Given a linear transformation T, find the associated matrix A such that T = T_{A}
+   - $\begin{bmatrix}T(e_1)&T(e_2)&...&T(e_n)\end{bmatrix}$
+   - Example at the very bottom of page 2
+   - Practice HW problem similar to this
+
+* 1.9
+a. Find a standard matrix given T_{1}, T_{2} to find standard matrix for the transformation
+   - Given a linear transformation TA: R^{n} \rightarrow{} m and T_{B}: R^{m} \rightarrow{} R^{k} define the composition (T_{B} \cdot{} T_{A})(x) to be the function T_{B}(T_{A}(x))
+     - T_{B} \cdot{} T_{A} = T_{BA}
+   - Do the mat mul for T_{1} \cdot{} T_{2} = T_{A}T_{B} and T_{2} \cdot{} T_{1} = T_{B}T_{A}
+     - Example 1 and 2
+b. Construct the standard matrix for a linear transformation to
+   - Reflect across the line y=x
+     - $\begin{bmatrix}0&1\\1&0\end{bmatrix}$ $\begin{bmatrix}a\\b\end{bmatrix}$ = $\begin{bmatrix}b\\a\end{bmatrix}$
+   - Reflect across the x axis
+     - $\begin{bmatrix}1&0\\0&-1\end{bmatrix}$ $\begin{bmatrix}a\\b\end{bmatrix}$ = $\begin{bmatrix}a\\-b\end{bmatrix}$
+   - Reflect across the y axis
+     - $\begin{bmatrix}-1&0\\0&1\end{bmatrix}$ $\begin{bmatrix}a\\b\end{bmatrix}$ = $\begin{bmatrix}-a\\b\end{bmatrix}$
+
+* 2.1
+a. Cofactor Expansion across any row or column (ONLY 3x3!) to find determinant
+   - $det(\begin{bmatrix}a_{11}&a_{12}&a_{13}\\a_{21}&a_{22}&a_{23}\\a_{31}&a_{32}&a_{33}\end{bmatrix})$
+   - Choose a row or col that has the most 0 entries
+   - Remember $(-1)^{i+j}$
+
+* 2.2
+a. Using elementary row operations to compute the determinant
+   - For a square matrix A, if A has a row or column of zeros, then det(A) = 0
+   - For a square matrix A, det(A) = det(A^{T})
+   - Swapping 2 rows of A to make B, then det(B) = -det(A)
+   - Multiplying a row by a number to make B, then det(B) = kdet(a)
+   - Adding a multiple of another row to make B, then det(B) = det(A)
+
+* 2.3
+a. Prove det(A^{-1}) = \frac{1}{det(A)}
+   - We'll need to work this out from start to finish
+   - "Just a couple of lines" - Dr. Le
+b. Prove det(ABC) = det(A)det(B)det(C)
+   - det(ABC) = det[(AB)C]
+   - = det(AB)det(C)
+   - = det(A)det(B)det(C)
+c. Use a determinant to determine if a matrix is singular or non-singular (singular meaning non)
+   - \neq{} 0 means invertible or non-singular
+   - = 0 means singular or non-invertible
+
+* 3.1
+a. draw vectors (a,b)
+   - Basically just graph them from the origin
+b. Write vector as a linear combination of other vectors
+   - Given u^{\rightarrow{}} and v^{\rightarrow{}} find w^{\rightarrow{}} such that w^{\rightarrow{}} can be written as a linear combination of u^{\rightarrow{}} and v^{\rightarrow{}}
+   - w^{\rightarrow{}} = au^{\rightarrow{}} + bv^{\rightarrow{}}
+   - Then solve the corresponding linear system for a & b
+   - Example 3
+   - $\begin{bmatrix}\end{bmatrix}$
+
+* 3.2
+a. Find the distance between 2 vectors u^{\rightarrow{}} = (u_{1}, u_{2}, u_{3}) and v^{\rightarrow{}} = (v_{1}, v_{2}, v_{3})
+   - d(u^{\rightarrow{}}, v^{\rightarrow{}})
+   - $\sqrt{(v_{1}-u_{1})^{2} + (v_{2}-u_{2})^{2} + (v_{3}-u_{3})^{2}}$
+b. Angle between 2 vectors
+   - $cos\theta{} = \frac{u \cdot{} v}{||u||||v||}$
+     - Norm (|| ||) is $\sqrt{u_{1}^{2} + u_{2}^{2} + ... + u_{n}^{2}}$
+   - $\theta{} = cos^{-1}( \text{see above} )$
+
+* 3.3
+a. Equation of a plane given a point (x_{0}, y_{0}, z_{0}) and normal vector (a, b, c)
+   - $a(x - x_{0}) + b(y - y_{0}) + c(z - z_{0}) = 0$
+b. Given u and a Vector component of u along a
+   - $w_{1} = proj_{a}(u) = \frac{u \cdot{} a}{a \cdot{} a} \times{} a$
+   - $w{_2} = proj_{a}(u) = u - w_{1}$

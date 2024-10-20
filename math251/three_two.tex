@@ -1,0 +1,93 @@
+% Created 2024-10-18 Fri 09:40
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{Three Two}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={Three Two},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Norm}
+\label{sec:org550a3c9}
+For a vector in R\textsuperscript{n}, the length (or magnitude) of a vector is called the norm (magnitude | length) of u and is denoted ||u|| and defined by
+\begin{itemize}
+\item \(||u|| = \sqrt{u_{1}^{2} + u_{2}^{2} + ... + u_{n}^{2}}\)
+\end{itemize}
+\subsection{Examples}
+\label{sec:org6e8548c}
+\begin{itemize}
+\item ||v|| \(\ge\) 0
+\begin{itemize}
+\item let \(v = (v_{1}, ..., v_{n}) \Rightarrow{} ||v|| = \sqrt{v_{1}^{2}+...+v_{n}^{2}} \geq 0\)
+\end{itemize}
+\item ||v|| = 0 iff v = 0
+\begin{itemize}
+\item \$||v|| = \sqrt\{v\textsubscript{1}\textsuperscript{2}+\ldots{}+v\textsubscript{n}\textsuperscript{2}\} = 0 \iff v\textsubscript{1}\textsuperscript{2}+\ldots{}+v\textsubscript{n}\textsuperscript{2} \(\Rightarrow\) v\textsubscript{1}=v\textsubscript{2}=v\textsubscript{n}\$\$
+\end{itemize}
+\item ||kv|| = |k|||v||
+\begin{itemize}
+\item \(kv = (kv_{1}, kv_{2}, ..., kv_{n})\)
+\item \(||kv|| = \sqrt{(kv_{1})^{2} + ... + (kv_{n})^{2}}\)
+\item \(vk^{2}v_{1}^{2} + ... + k^{2}v_{n}^{2}\)
+\item \(\sqrt{k^{2}(v_{1}^{2}+...+v_{n}^{2})} = \sqrt{k^{2}} \sqrt{v_{1}^{2}+...+v_{n}^{2}\)
+\end{itemize}
+\end{itemize}
+\section{Unit Vector}
+\label{sec:orge3bda62}
+\begin{itemize}
+\item A vector of norm 1 is called a unit vector. To construct a unit vector from any nonzero vector v, in the same direction multiply v by the reciprocal of its length.
+
+\item \(v \Rightarrow{} unit vector u = \frac{v}{||v||}\)
+\item \(u = \frac{(1,2,3,4)}{\sqrt{1^2 + 2^2 + 3^2 + 4^2}} = (\frac{1}{\sqrt{30}},\frac{2}{\sqrt{30}},\frac{3}{\sqrt{30}},\frac{4}{\sqrt{30}})\)
+
+\item \(R^{2} \Rightarrow{} e_{1} = (1,0), e_{2} = (0,1)\)
+
+\item \(v = (v_{1},v_{2},...v_{n})\)
+\item \(v = v_{1}\times{}e_{1} + v_{2}\times{}e_{2} + ... + v_{n}\times{}e_{n}\)
+\end{itemize}
+\section{Distance}
+\label{sec:org0910b36}
+\(d(u,v)\)
+\begin{itemize}
+\item \(\sqrt{(v_{1}-u_{1})^{2} + ... + (u_{n} - u_{n})^{2}}\)
+\item The distance between the 2 tips
+\end{itemize}
+\section{Dot Product}
+\label{sec:orgc14cd66}
+For u and v two nonzero vectors in R\textsuperscript{2}, or R\textsuperscript{3}, position the vectors so that their initial points coincide. The angle \(\theta\) between u and v is the angle that satisfies 0 \(\le\) \(\theta\) \(\pi\)
+\subsection{Definition}
+\label{sec:org2102741}
+If u and v are vectors in R\textsuperscript{2}, or R\textsuperscript{3}, and if \(\theta\) is the angle between u and v, then the dot product or Euclidean inner product.
+\begin{itemize}
+\item \(u * v = ||u||||v||cos\theta{}\)
+\begin{itemize}
+\item Only use this definition to find the angle \(\theta\)
+\end{itemize}
+\item If u = 0, or v = 0, then define u*v = 0
+\end{itemize}
+\subsection{Easy}
+\label{sec:org315c60a}
+\begin{itemize}
+\item \(u*v = u_{1}v_{1} + ... + u_{n}v_{n}\)
+\end{itemize}
+This is really a mat mul of u * v\textsuperscript{T}
+\end{document}

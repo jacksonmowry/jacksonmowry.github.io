@@ -1,0 +1,44 @@
+#+title: Three Two
+* Norm
+For a vector in R^{n}, the length (or magnitude) of a vector is called the norm (magnitude | length) of u and is denoted ||u|| and defined by
+- $||u|| = \sqrt{u_{1}^{2} + u_{2}^{2} + ... + u_{n}^{2}}$
+
+** Examples
+- ||v|| \geq{} 0
+  - let $v = (v_{1}, ..., v_{n}) \Rightarrow{} ||v|| = \sqrt{v_{1}^{2}+...+v_{n}^{2}} \geq 0$
+- ||v|| = 0 iff v = 0
+  - $||v|| = \sqrt{v_{1}^{2}+...+v_{n}^{2}} = 0 \iff v_{1}^{2}+...+v_{n}^{2} \Rightarrow{} v_{1}=v_{2}=v_{n}$$
+- ||kv|| = |k|||v||
+  - $kv = (kv_{1}, kv_{2}, ..., kv_{n})$
+  - $||kv|| = \sqrt{(kv_{1})^{2} + ... + (kv_{n})^{2}}$
+  - $vk^{2}v_{1}^{2} + ... + k^{2}v_{n}^{2}$
+  - $\sqrt{k^{2}(v_{1}^{2}+...+v_{n}^{2})} = \sqrt{k^{2}} \sqrt{v_{1}^{2}+...+v_{n}^{2}$
+
+* Unit Vector
+- A vector of norm 1 is called a unit vector. To construct a unit vector from any nonzero vector v, in the same direction multiply v by the reciprocal of its length.
+
+- $v \Rightarrow{} unit vector u = \frac{v}{||v||}$
+- $u = \frac{(1,2,3,4)}{\sqrt{1^2 + 2^2 + 3^2 + 4^2}} = (\frac{1}{\sqrt{30}},\frac{2}{\sqrt{30}},\frac{3}{\sqrt{30}},\frac{4}{\sqrt{30}})$
+
+- $R^{2} \Rightarrow{} e_{1} = (1,0), e_{2} = (0,1)$
+
+- $v = (v_{1},v_{2},...v_{n})$
+- $v = v_{1}\times{}e_{1} + v_{2}\times{}e_{2} + ... + v_{n}\times{}e_{n}$
+
+* Distance
+$d(u,v)$
+- $\sqrt{(v_{1}-u_{1})^{2} + ... + (u_{n} - u_{n})^{2}}$
+- The distance between the 2 tips
+
+* Dot Product
+For u and v two nonzero vectors in R^{2}, or R^{3}, position the vectors so that their initial points coincide. The angle \theta{} between u and v is the angle that satisfies 0 \leq \theta{} \pi{}
+
+** Definition
+If u and v are vectors in R^{2}, or R^{3}, and if \theta{} is the angle between u and v, then the dot product or Euclidean inner product.
+- $u * v = ||u||||v||cos\theta{}$
+  - Only use this definition to find the angle \theta{}
+- If u = 0, or v = 0, then define u*v = 0
+
+** Easy
+- $u*v = u_{1}v_{1} + ... + u_{n}v_{n}$
+This is really a mat mul of u * v^{T}

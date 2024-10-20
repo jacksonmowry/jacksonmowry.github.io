@@ -44,3 +44,9 @@ $w_{3}+16w_{1}-4w_{2} = 0$
 let y = w_{2}, x = w_{1}
 $w_{3} = 4y - 16x$
 So, w^{\rightarrow{}} = any vector such that (x,y,4y-16x) where x,y \in{} \mathbb{R}
+
+* Notes
+Cannot do u*v
+- $\begin{bmatrix}1&3&4\end{bmatrix} \begin{bmatrix}2&4&6\end{bmatrix}$
+Can do u * v^{T}
+- $\begin{bmatrix}1&3&4\end{bmatrix} \begin{bmatrix}2\\4\\6\end{bmatrix}$
