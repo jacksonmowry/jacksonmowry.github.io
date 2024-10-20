@@ -22,7 +22,7 @@ all: $(EXEC)
 
 # Link object files into final executable
 $(EXEC): $(OBJS) #$(MATH_OBJ)
-	$(CC) $(CFLAGS) $(OBJS) -o $@ -lm
+	$(CC) $(CFLAGS) $(OBJS) -o $@ -lm -lpthread -ldl
 
 # Compile all source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
