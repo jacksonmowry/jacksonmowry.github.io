@@ -30,11 +30,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Build with gcc's -fanalyzer
-analyzer: CC = gcc
 analyzer: CFLAGS += $(ANALYZERFLAGS)
 analyzer: $(EXEC)
 
 # Build with address sanitizer
+sanitizer: CC = clang
 sanitizer: CFLAGS += $(SANITIZERFLAGS)
 sanitizer: $(EXEC)
 

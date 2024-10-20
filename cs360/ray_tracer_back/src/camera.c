@@ -7,8 +7,6 @@
 #include <math.h>
 #include <stdint.h>
 
-// `ray_color` returns the RGB Pixels describing the color at the closest
-// collision point
 Pixel ray_color(camera c, const Ray* r, int max_depth,
                 const hittable_list* world) {
     if (max_depth <= 0) {
@@ -35,13 +33,10 @@ Pixel ray_color(camera c, const Ray* r, int max_depth,
                     vec3_mul_val(vec3(0.5, 0.7, 1.0), a));
 }
 
-// `camera_initialize` sets up some defaults, and sets the scenes width and
-// height
 camera camera_initialize(int width, int height) {
     camera c;
     c.width = width;
     c.height = height;
-    // NOTE You can change the image "quality" with the following line
     c.samples_per_pixel = 100;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
     c.max_depth = 5;
@@ -91,8 +86,6 @@ camera camera_initialize(int width, int height) {
     return c;
 }
 
-// `camera_render` takes in an entire scene `world`, the camera `c`, and an
-// output file to render to
 void camera_render(camera c, const hittable_list* world,
                    const char* file_name) {
     Pixel* p = malloc(c.width * c.height * sizeof(Pixel));

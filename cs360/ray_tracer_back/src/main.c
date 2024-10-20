@@ -84,10 +84,6 @@ int main(int argc, char* argv[]) {
     hittable_list hl = {.objects = vector_hittable_init(5)};
 
     material* material_ground = malloc(sizeof(material));
-    if (!material_ground) {
-        perror("malloc");
-        return 1;
-    }
     *material_ground =
         (material){.type = LAMBERTIAN,
                    .albedo = (Pixel){.r = 0.5, .g = 0.5, .b = 0.5},
@@ -112,10 +108,6 @@ int main(int argc, char* argv[]) {
                     // Diffuse
                     Pixel albedo = vec3_mul(vec3_random(), vec3_random());
                     material* sphere_material = malloc(sizeof(material));
-                    if (!sphere_material) {
-                        perror("malloc");
-                        return 1;
-                    }
                     *sphere_material =
                         (material){.albedo = albedo, .type = LAMBERTIAN};
 
@@ -130,10 +122,6 @@ int main(int argc, char* argv[]) {
                     Pixel albedo = vec3_random_params(0.5, 1);
                     double fuzz = random_double_min_max(0, 0.5);
                     material* sphere_material = malloc(sizeof(material));
-                    if (!sphere_material) {
-                        perror("malloc");
-                        return 1;
-                    }
                     *sphere_material = (material){
                         .albedo = albedo, .fuzz = fuzz, .type = METAL};
 
@@ -147,10 +135,6 @@ int main(int argc, char* argv[]) {
                     // Glass
                     double refraction_index = 1.5;
                     material* sphere_material = malloc(sizeof(material));
-                    if (!sphere_material) {
-                        perror("malloc");
-                        return 1;
-                    }
                     *sphere_material =
                         (material){.refraction_index = refraction_index,
                                    .type = DIELECTRIC};
@@ -168,10 +152,6 @@ int main(int argc, char* argv[]) {
 
     // Fixed 1
     material* sphere_material_fixed1 = malloc(sizeof(material));
-    if (!sphere_material_fixed1) {
-        perror("malloc");
-        return 1;
-    }
     *sphere_material_fixed1 =
         (material){.refraction_index = 1.5, .type = DIELECTRIC};
     hittable_list_add(
