@@ -2,7 +2,7 @@
 #include "hittable.h"
 #include "interval.h"
 
-VECTOR(hittable);
+VECTOR(hittable)
 
 void hittable_list_clear(hittable_list* hl) { hl->objects.len = 0; }
 

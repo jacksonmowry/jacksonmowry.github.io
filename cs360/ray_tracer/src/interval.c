@@ -22,6 +22,7 @@ double interval_clamp(interval i, double x) {
     return x;
 }
 
-const interval interval_empty = (interval){.min = +INFINITY, .max = -INFINITY};
-const interval interval_universe =
-    (interval){.min = -INFINITY, .max = +INFINITY};
+#define INTERVAL_EMPTY                                                         \
+    (interval) { .min = +INFINITY, .max = -INFINITY }
+#define INTERVAL_UNIVERSE                                                      \
+    (interval) { .min = -INFINITY, .max = +INFINITY }

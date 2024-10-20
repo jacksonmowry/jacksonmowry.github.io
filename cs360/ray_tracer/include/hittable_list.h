@@ -6,7 +6,7 @@
 #include "ray.h"
 #include "vector.h"
 
-VECTOR_PROTOTYPE(hittable);
+VECTOR_PROTOTYPE(hittable)
 
 typedef struct {
     vector_hittable objects;

@@ -56,7 +56,7 @@ Vec3 vec3_mul_val(Vec3 left, double val) {
     return (Vec3){.x = left.x * val, .y = left.y * val, .z = left.z * val};
 }
 
-Vec3 vec3_random() {
+Vec3 vec3_random(void) {
     return (Vec3){
         .x = random_double(), .y = random_double(), .z = random_double()};
 }
@@ -67,7 +67,7 @@ Vec3 vec3_random_params(double min, double max) {
                   .z = random_double_min_max(min, max)};
 }
 
-Vec3 vec3_random_unit_vector() {
+Vec3 vec3_random_unit_vector(void) {
     while (true) {
         Vec3 p = vec3_random_params(-1, 1);
         double lensq = vec3_len2(p);
@@ -109,7 +109,7 @@ Vec3 vec3_refract(Vec3 v, Vec3 n, double etai_over_etat) {
     return vec3_add(r_out_perp, r_out_parallel);
 }
 
-Vec3 vec3_random_in_unit_disk() {
+Vec3 vec3_random_in_unit_disk(void) {
     while (true) {
         Vec3 p = (Vec3){.x = random_double_min_max(-1, 1),
                         .y = random_double_min_max(-1, 1),

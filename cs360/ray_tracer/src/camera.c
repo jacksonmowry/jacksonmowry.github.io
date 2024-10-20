@@ -10,7 +10,7 @@
 Pixel ray_color(camera c, const Ray* r, int max_depth,
                 const hittable_list* world) {
     if (max_depth <= 0) {
-        return (Vec3){};
+        return (Vec3){0};
     }
 
     hit_record rec;
@@ -24,7 +24,7 @@ Pixel ray_color(camera c, const Ray* r, int max_depth,
             return vec3_mul(attenuation,
                             ray_color(c, &scattered, max_depth - 1, world));
         }
-        return (Pixel){};
+        return (Pixel){0};
     }
 
     Vec3 unit_direction = vec3_unit_vector(r->direction);
@@ -112,7 +112,7 @@ void camera_render(camera c, const hittable_list* world,
     free(p);
 }
 
-Vec3 sample_square() {
+Vec3 sample_square(void) {
     return (Vec3){
         .x = random_double() - 0.5, .y = random_double() - 0.5, .z = 0};
 }

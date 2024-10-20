@@ -17,11 +17,10 @@ void set_face_normal(hit_record* record, const Ray r,
 bool hit(hittable hittable, const Ray r, interval i, hit_record* record) {
     switch (hittable.type) {
     case SPHERE: {
-        Vec3 oc = vec3_sub(hittable.sphere.center, r.origin);
+        Vec3 oc = vec3_sub(hittable.center, r.origin);
         double a = vec3_len2(r.direction);
         double h = vec3_dot(r.direction, oc);
-        double c =
-            vec3_len2(oc) - (hittable.sphere.radius * hittable.sphere.radius);
+        double c = vec3_len2(oc) - (hittable.radius * hittable.radius);
         double discriminant = h * h - a * c;
         if (discriminant < 0) {
             return false;
@@ -40,11 +39,10 @@ bool hit(hittable hittable, const Ray r, interval i, hit_record* record) {
 
         record->t = root;
         record->p = ray_at(r, record->t);
-        Vec3 outward_normal =
-            vec3_mul_dbl(vec3_sub(record->p, hittable.sphere.center),
-                         1 / hittable.sphere.radius);
+        Vec3 outward_normal = vec3_mul_dbl(vec3_sub(record->p, hittable.center),
+                                           1 / hittable.radius);
         set_face_normal(record, r, outward_normal);
-        record->mat = hittable.sphere.mat;
+        record->mat = hittable.mat;
 
         return true;
 

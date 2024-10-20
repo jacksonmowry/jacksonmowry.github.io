@@ -2,7 +2,8 @@
 #raytracer
 #
 
-CFLAGS = -Wall -Wextra -std=c99 -Iinclude -lm -O3 -mavx -ffast-math
+CC = gcc
+CFLAGS = -Wall -Wextra -Iinclude -lm -O3 -mavx -Wmissing-field-initializers -Wpedantic
 ANALYZERFLAGS = -g -fanalyzer -lm
 SANITIZERFLAGS = -g -fsanitize=address -lm
 PERFFLAGS = -g -Iinclude -lm -mavx -ffast-math -O3

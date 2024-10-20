@@ -27,7 +27,7 @@ typedef struct {
             Vec3 center;
             double radius;
             struct material* mat;
-        } sphere;
+        };
     };
     enum { SPHERE } type;
 } hittable;
