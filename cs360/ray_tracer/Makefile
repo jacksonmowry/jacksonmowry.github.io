@@ -2,7 +2,7 @@
 #raytracer
 #
 
-CC = gcc
+CC = clang
 CFLAGS = -Wall -Wextra -Iinclude -lm -O3 -mavx -Wmissing-field-initializers -Wpedantic
 ANALYZERFLAGS = -g -fanalyzer -lm
 SANITIZERFLAGS = -g -fsanitize=address -lm
