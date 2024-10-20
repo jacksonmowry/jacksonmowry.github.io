@@ -37,7 +37,7 @@ camera camera_initialize(int width, int height) {
     camera c;
     c.width = width;
     c.height = height;
-    c.samples_per_pixel = 1000;
+    c.samples_per_pixel = 1;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
     c.max_depth = 5;
     c.vfov = 20;

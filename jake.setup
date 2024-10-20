@@ -1,5 +1,5 @@
 #+LaTeX_CLASS: org-plain-latex
-#+LaTeX_CLASS_OPTIONS: [letterpaper, 12pt]
+#+LaTeX_CLASS_OPTIONS: [conference]{IEEEtran}
 #+LATEX_HEADER: \usepackage{lmodern} % Ensures we have the right font
 
 #+LATEX_HEADER: \usepackage[T1]{fontenc}
@@ -7,8 +7,6 @@
 #+LATEX_HEADER: \usepackage{graphicx}
 #+LATEX_HEADER: \usepackage{amsmath, amsthm, amssymb}
 #+LATEX_HEADER: \usepackage[table, xcdraw]{xcolor}
-#+LATEX_HEADER: \usepackage{tikz}
-#+LATEX_HEADER: \usetikzlibrary{automata, positioning, arrows}
 
 #+LATEX_HEADER: \renewcommand{\thesection}{\Roman{section}}
 #+LATEX_HEADER: \renewcommand{\thesubsection}{}

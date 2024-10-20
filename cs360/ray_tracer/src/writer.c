@@ -21,8 +21,6 @@ int write_prop(const char* file, uint32_t width, uint32_t height,
     size_t bytes_written = 0;
     interval inter_val = (interval){.min = 0.000, .max = 0.999};
 
-    /* return fwrite(pixels, 3, width * height, fp); */
-
     for (size_t i = 0; i < width * height; i++) {
         int r =
             interval_clamp(inter_val, linear_to_gamma(pixels[i].r)) * 255.999;
