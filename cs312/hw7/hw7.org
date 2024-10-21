@@ -1,0 +1,32 @@
+#+title: Hw7
+#+author: Jackson Mowry
+#+data: Sun Oct 20 15:56:16 2024
+#+options: toc:nil \n:t
+
+* 1
+A = {0^{n}#0^{2n}#0^{3n} | n \geq{} 0}. Hint: consider s = 0^{p}#0^{2p}#0^{3p}.
+
+Assume that A is a context free language and let p be the pumping length for the language. Choose the string s = 0^{p}#0^{2p}#0^{3p} \in A so that clearly |s| > p. By condition 1 of the PL for CFLs, we can partition s = uvxyz such that for all i \geq{} 0, uv^{i}xy^{i}z \in A. In order to show that s cannot be pumped, let's consider the ramifications of Condition 1 of the PL for CFLs for the contents of v and y.
+
+If either v or y contain the '#' symbol. S' = uv^{2}xy^{2}z \notin A as the resulting string would now contain greater than 2 '#' symbols, therefore s' condition 1 of the PL for CFLs is violated.
+
+By condition 3 of the PL for CFLs we know that |vxy| \leq{} p, therefore we can choose vxy to consist of entirely 0's in the second segment (0^{2p}). This means that both v and y also consist entirely of 0's. If we then pump up uv^{2}xy^{2}z, the resulting string s' \notin A, as the second segment would now contain more than 2n 0's, while the other sections (including '#' symbols would remain the same), violating the constraint originally laid out (0^{n}#0^{2n}#0^{3n}). We can also consider the case where either v or y contains the '#' symbol, keeping the same s' = uv^{2}xy^{2}z we now violate the strict ordering of 0's and #'s by introducing additional # symbols between 0's. Therefore s' \notin{} A and condition 1 of the PL for CFLs is violated, and we can conclude that A is not a CFL.#
+
+* 2
+C = {w | the number of 1s equals the number of 2s and the number of 3s equals the number of 4s} and \Sigma{} = {1,2,3,4}. Hint: consider s = 1^{p}3^{p}2^{p}4^{p}.
+
+Assume that C is a context free language and let p be the pumping length for the language. Choose the string s = 1^{p}3^{p}2^{p}4^{p} \in C so that clearly |s| > p. By condition 1 of the PL for CFLs, we can partition s = uvxyz such that for all i \geq{} 0, uv^{i}xy^{i}z \in A. In order to show that s cannot be pumped, let's consider the ramifications of Condition 1 of the PL for CFLs for the contents of v and y.
+
+When both v and y contain only one type of symbol (terminal), then s' = uv^{2}xy^{2}z cannot contain equal numbers of 1's and 2's, or 3's and 4's, because one symbol would be present more times than the other in its pairing. Therefore s' \notin{} C and condition 1 of the PL for CFLs is violated, and we can conclude that C is not a CFL.#
+
+
+* 3
+B = {w#t | w is a substring of t, where w, t \in {a, b}∗}. Hint: consider s = a^{p}b^{p}#a^{p}b^{p}.
+
+Assume that B is a context free language and let p be the pumping length for the languge. Choose the string s = a^{p}b^{p}#a^{p}b^{p} \in B so that clearly |s| > p. By condition 1 of the PL for CFLs, we can partition s = uvxyz such that for all i \geq{} 0, uv^{i}xy^{i}z \in B. In order to show that s cannot be pumped, let's consider the ramifications for Condition 1 of the PL for CFLs for the contents of v and y.
+
+When v and y contain ony one type of symbol (not '#'), and v/y occupy the begining of the string (substring w), then s' = uv^{2}xy^{2}z \notin B because the w would no longer be a substring of t as it contains either more a's or b's and t. Therefore s' \notin B and condition 1 of the PL for CFLs is violated.
+
+When either v or y contain the '#' symbol (terminal). S' = uv^{2}xy^{2}z \notin B due to the fact that the '#' symbol is now repeated more than once. Hence s' \notin B, because condition 1 of the PL for CFLs is violated.
+
+Since one of the above case must apply for any s \in B, we can conclude that B is not a CFL.#

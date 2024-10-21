@@ -42,7 +42,7 @@ camera camera_initialize(int width, int height) {
     c.width = width;
     c.height = height;
     // NOTE You can change the image "quality" with the following line
-    c.samples_per_pixel = 100;
+    c.samples_per_pixel = 1;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
     c.max_depth = 5;
     c.vfov = 20;

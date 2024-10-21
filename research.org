@@ -50,17 +50,19 @@ For networks with few synapses this would increase memory usage, as each neuron 
 In addition to reducing memory usage, this change further improves spatial locality, which improves the speed of the network further. The final outcome is 10.234 FPS, a full 34.4% improvement over our baseline implementation.
 
 * Benchmarking
-** Epsilon = 1
-| System Description |   Mean | Max. FPS | % Gain |
-|--------------------+--------+----------+--------|
-| /                  |      < |        < |      < |
-| RISP Processor     | 10.512 |    7.610 |     -- |
-| No Error Checking  | 10.434 |    7.667 |   0.7% |
-| Ring Buffer        |  7.973 |   10.034 |  31.9% |
-| Embedded Synapses  |  7.817 |   10.234 |  34.4% |
+** Small
+Epsilon 1, Min. Pts. 4
+| System Description |   Mean | Max. FPS | % Gain | Observed FPS | % Gain | Approx. Size |
+|--------------------+--------+----------+--------+--------------+--------+--------------|
+| /                  |      < |        < |      < |            < |      < |              |
+| RISP Processor     | 10.512 |    7.610 |     -- |        5.103 |     -- | 150Kb        |
+| No Error Checking  | 10.434 |    7.667 |   0.7% |        5.161 |   1.1% | 150Kb        |
+| Ring Buffer        |  7.973 |   10.034 |  31.9% |        6.057 |  18.7% | 68Kb         |
+| Embedded Synapses  |  7.817 |   10.234 |  34.4% |        6.132 |  20.2% | 60Kb         |
 
-** Epsilon = 2
-| System Description | Mean   | Median | Max. FPS |
-|--------------------+--------+--------+----------|
-| /                  | <      | <      | <        |
-| Embedded Synapses  | 13.930 | 13.930 | 5.743    |
+** Medium
+Epsilon 2, Min. Pts. 4
+| System Description | Mean   | Median | Max. FPS | Observed FPS | Approx. Size |
+|--------------------+--------+--------+----------+--------------+--------------|
+| /                  | <      | <      | <        |              |              |
+| Embedded Synapses  | 13.930 | 13.930 | 5.743    |        5.187 | 122Kb        |

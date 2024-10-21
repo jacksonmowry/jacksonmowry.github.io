@@ -1,4 +1,4 @@
-% Created 2024-10-19 Sat 16:56
+% Created 2024-10-20 Sun 18:45
 % Intended LaTeX compiler: pdflatex
 \documentclass[conference]{IEEEtran}{}
                       \usepackage{lmodern} % Ensures we have the right font
@@ -51,7 +51,7 @@
 
 \maketitle
 \section{Why}
-\label{sec:org972728a}
+\label{sec:orgc00807b}
 Our original goal was to run a systolic DBScan on the embedded neuromorphic kit, with an epsilon of 1, and min. points of 4.\\
 
 After spending 2–3 weeks optimizing the embedded neuromorphic code to run DBScan at a reasonable framerate we came to the conclusion that the hardware was simply not powerful enough to run the model. We were eventually able to get the model to run at a theoretical max of 1 FPS, at a quarter of the DAVIS 346's resolution. This model was nearing the limits of the Pi Pico 2040 (585 neurons, 1613 synapses), so increasing the resolution was likely not a possibility. Running a model for the full camera resolution would require 2345 neurons and 6488 synapses (3380 neurons and 15800 synapses for an epsilon of 2). Not satisfied with these results, We wanted to see other options that were available.\\
@@ -60,10 +60,10 @@ Our attention shifted from the kit to a more performant yet still embedded platf
 
 The next step was to begin porting the embedded neuromorphic kit code to a single monolithic application which we can run on the Duo.\\
 \section{Architecture}
-\label{sec:orgf528c97}
+\label{sec:orgc2bf5e4}
 The Duo features a similar SDK to the Pico, providing its own toolchain to allow cross compilation of RISC-V binaries (\url{https://github.com/milkv-duo/duo-examples?tab=readme-ov-file}).\\
 \subsection{Porting the RISP Processor}
-\label{sec:org4a3642d}
+\label{sec:org4f5232d}
 Embedded neuromorphic (and by extension the app-compile tool) create three separate binaries that the user can flash to the respective pico. The first step was to combine the functionality of each component into a single executable.\\
 
 We decided to dedicate a simple function for both observations and actions, keeping a similar API to the kit code. The user-defined \texttt{observations} function is called for each input neuron at the start of a time step. Similarily, the \texttt{actions} function is called at the end of each timestep, with an array indicating which of the output neurons spiked given to \texttt{actions}.\\
@@ -72,14 +72,14 @@ Any setup code that was previously split across the two files can simply be brou
 
 This simple port allowed us to run the full scale model, and we were able to achieve a theoretical max of 7.6 FPS.\\
 \subsection{Encoding Limits in the Processor}
-\label{sec:org6f20aee}
+\label{sec:orgfecf745}
 Similar to the original Embedded Neuromorphic Kit, our port avoids dynamic allocation of memory. This means that the limits (or maximums) of the network must be known at compile time. For instance the number of neurons and synapses is statically defined, which requires the user to extract these values from their network ahead of time.\\
 
 If we can count on the user to define these values correctly we can remove error checking from our code that enforces these limits. Future work is needed to extract these parameters from the network to eliminate a potential for user error.\\
 
 Removing error checking does not net much a benefit (0.7\%), but if the network is sized properly it will never be needed.\\
 \subsection{Reworking RISP for Better Spatial Locality}
-\label{sec:org08b9a10}
+\label{sec:orgedd4f43}
 On the Duo 256M we have 32Kb of L1, and 128Kb of L2 data cache. Of course, running Linux we have almost no garuntee that our process will be able to occupy the cache entirely on its own, so it is a good idea to minimze our application's footprint.\\
 
 The smallest footprint we were able to achieve on the ported kit code was \textasciitilde{}150Kb (which includes neurons, synapses, and charge\textsubscript{changes}). After considering different methods to improve memory usage we found a solution that both decreases memory usage, and greatly simplifies the processor. Instead of storing ``events'' separatly from the entity that they act upon, then applying their effects later, we can simply apply the changes directly to a neuron.\\
@@ -88,7 +88,7 @@ To accomplish this, each neuron now contains a ring buffer who's size is equal t
 
 This change nets the greatest improvement in performance, running the full model at theoretical 10.034 FPS, 31.9\% faster than the originally ported code.\\
 \subsection{Embedding Synapses Within Neurons}
-\label{sec:org8e0a807}
+\label{sec:org17ce0e7}
 On the same line of thought from above, we can further reduce memory usage by embedded synapses within their associated neurons. Because we want to support more than 255 synapses in a network each synapse has to have a 16-bit integer dedicated to its index. We can eliminate these indexes by places synapses within neurons.\\
 
 \begin{quote}
@@ -97,21 +97,21 @@ For networks with few synapses this would increase memory usage, as each neuron 
 
 In addition to reducing memory usage, this change further improves spatial locality, which improves the speed of the network further. The final outcome is 10.234 FPS, a full 34.4\% improvement over our baseline implementation.\\
 \section{Benchmarking}
-\label{sec:org63689c5}
+\label{sec:org2bf42ea}
 \subsection{Epsilon = 1}
-\label{sec:orgf3d96ec}
+\label{sec:orgc9b428d}
 \begin{center}
-\begin{tabular}{l|r|r|l}
-System Description & Mean & Max. FPS & \% Gain\\
+\begin{tabular}{l|r|r|l|r|l}
+System Description & Mean & Max. FPS & \% Gain & Observed FPS & \% Gain\\
 \hline
-RISP Processor & 10.512 & 7.610 & --\\
-No Error Checking & 10.434 & 7.667 & 0.7\%\\
-Ring Buffer & 7.973 & 10.034 & 31.9\%\\
-Embedded Synapses & 7.817 & 10.234 & 34.4\%\\
+RISP Processor & 10.512 & 7.610 & -- & 5.103 & --\\
+No Error Checking & 10.434 & 7.667 & 0.7\% & 5.161 & 1.1\%\\
+Ring Buffer & 7.973 & 10.034 & 31.9\% & 6.057 & 18.7\%\\
+Embedded Synapses & 7.817 & 10.234 & 34.4\% & 6.132 & 20.2\%\\
 \end{tabular}
 \end{center}
 \subsection{Epsilon = 2}
-\label{sec:orgc6e7fe0}
+\label{sec:org2d2732a}
 \begin{center}
 \begin{tabular}{l|r|r|r}
 System Description & Mean & Median & Max. FPS\\
