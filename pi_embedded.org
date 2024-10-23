@@ -1,0 +1,4 @@
+#+title: Pi Embedded
+
+- Parallelizing on the pi5
+-

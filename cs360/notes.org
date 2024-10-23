@@ -859,3 +859,8 @@ pthread_mutex_init(&mutex, NULL);
 - Acquire the mutex for the cond var
 - Wait on the cond var mutex is locked once control is returned to thread
 - Unlock after critial seciton is complete
+
+* Producers&Consumers
+- Multiple threads and produce data and store into a ringbuffer
+- Consumer pops off the ring buffer and does something with it
+- Mutex to lock out critial section, cond var

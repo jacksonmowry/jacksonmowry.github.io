@@ -1,0 +1,30 @@
+#+title: Four One
+* Objectives
+- Vector space and subspace
+
+* Vector Space
+A vector space is a set V of objects called vectors with a field of scalars, we will use the field of real numbers, and operation denoted by + that combines vectors, and an operation denoted * that combines a scalar and a vector, such that for u,v,w, objects in V and k,l, and m scalars in R
+1. u+v \in V
+2. u+v = v+u
+3. u+(v+w) = (u+v) + w
+4. There exists a zero 0, vector such that 0+u = u+0 = u
+5. For each u in V, there exists -u such that u + -u = 0
+6. ku \in V
+7. k(u+v) = ku + kv
+8. (k+m)u = ku + mu
+9. (km)u = k(mu)
+10. 1 * u = u
+
+** Examples
+*** The zero vector space
+Nothing
+R = {0}
+R^{2} = {(0,0)}
+*** R^{n} with componentwise addition and scalar multiplication
+v + u = (v_{1} + u_{1} + ... + v_{n} + u_{n})
+ku = (kv_{1}, kv_{2}, ..., kv_{n})
+*** M_{m\times{}n} with matrix addition and scalar multiplication
+*** P_{n} the set of all polynomials of degree n or less with regular polynomial addition and scalar multiplication
+*** C(-\inf{},\inf{}): all functions continuous on R
+
+** Determine if this is a Vector Space

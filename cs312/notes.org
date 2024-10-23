@@ -777,3 +777,60 @@ In htis case either the a's and c's cannot appear in V & y:w
 
 because both cannot be the empty string due to cond 2
 If a's appear in S' = uv^{2}xy^{2}z, the s' has more a's than b's and so S' \notin C. Similarily if c's appear in s' = uv'{0}xy^{y}z
+
+* Turing Machines
+
+- similar to a FA with a supply of unlimited memory, can do everything a modern computing device can do
+- Memory is modeled by a tape of symbols
+- Initially tape contains only the input string and blanks everywhere else
+- A TM can store informatio nby writing symbols on the tape
+- The tae can move its head left and right to read symbols
+- TM continues to move until it enters a state in which the next move is not defined
+
+** TM -vs- FA, PDA
+Write
+- A TM tape allows both write and read ops, DFA and NFA only have an input tape, and the tape moves form left to right. A PDA has both an input tape and statck tape, we can read/write on the stack tape, right = write, left = erase
+Size
+- The TM tape is infinite; the input of FA/PDA is finite, the stck of a PDA is infinite
+Accept
+- Fa/PDA accept a string when it has scanned all the input symbols and enters a final state, a TM accepts a string as long as it enters a final state (one suffices)
+
+** Example
+Construct a TM M_{1} that tests the membership of the language L_{1} = {w#w | w \in {0,1}^{*}}. In other works design a M_{1} such that M_{1}(w) = accept \iff w \in L_{1}. Position of the tape head is underlined
+ | S_{0},a = 0 | _0_10#010 |
+ | s_{1}       | x10_#_010 |
+ | s_{2}       | x10#_x_10 |
+ | s_{3}       | x10_#_x10 |
+ | s_{4}       | _x_10#x10 |
+ | s_{0},a = 1 | x_x_0#x10 |
+
+*** Definition for Above
+| S_{0}    | If symbol read is a 0 or 1, replace with x and remember the symbol as a               |
+|          | if the symbol is a # go to S_{5}, else reject                                         |
+|          | \delta{}(S_{0},0}) = (S_{1}(0),x,R), \delta{}(S_{0},1) = (S_{1}(1),x,R)               |
+|          | \delta{}(S_{0},#) = (S_{5},#,R)                                                       |
+| S_{1}(a) | Move right until a # is found, if not # is found before blank, reject                 |
+| S_{2}(a) | Move right until a 0 or 1 is found; if current symbol == a, replace by x, else reject |
+| S_{3}    | Move right until a # is found                                                         |
+| S_{4}    | Move right until a x is found and go to S_{0}                                         |
+| S_{5}    | Move right until a 0, 1, or blank is found; accept if current symbol is blank         |
+|          | Reject if current symbol is a 0 or 1                                                  |
+
+** Formal Definition
+1. Q is a set of states
+2. \Sigma is the input alphabet and a blank \notin \Sigma
+3. \Gamma{} is the tap ealphabet, blank \in \Gamma, \Sigma{} \subset \Gamma
+4. \delta{}: Q \times{} \Gamma{} \rightarrow{} Q \times{} \Gamma{} \times{} {L, R} is the transition function
+5. q_{0} \in Q is the start state
+6. q_{accept} is the accept state (q_{a}), and q_{reject} is the reject state q_{r}
+
+** How does it compute?
+- M receives as input w=a_{1}a_{2},...a_{n} \in \Sigma^{*} written on the leftmost squares of the tape (rest of tape contains blanks)
+- The head starts on the leftmost square of the tape and the first blank encountered signals the end of input
+- Once M starts it proceeds according to \delta{}, M stays on the leftmost square (of input) even if \delta{} indicates a left move (L) from that square
+- Computation continues until M cannot move; w is accepts if M enters q_{accept}
+
+** Formalizing TM Computation
+- A configuration C of the TM is a 3-tuple C = <u,q,v>, where q \in Q, u,v \in \Gamma{}^{*} is the tape content and the head is pointing to the first symbol of v
+- A configuation C_{1} yields a configuation C_{2} if the TM can (legally) go from C_{1} to C_{2} in a single computation (step). Suppose a,b,c \in \Sigma{}; u,v \in \Gamma{}^{*} and q_i, q_j \in Q
+-
