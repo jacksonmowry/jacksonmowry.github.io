@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     queue.capacity = queue_size;
     queue.size = 0;
     queue.at = 0;
-    queue.buffer = calloc(queue.size, sizeof(Task*));
+    queue.buffer = calloc(queue_size, sizeof(Task*));
     queue.die = false;
 
     pthread_cond_init(&queue.not_empty, NULL);

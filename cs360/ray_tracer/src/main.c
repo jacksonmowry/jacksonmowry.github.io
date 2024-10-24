@@ -181,6 +181,10 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed1});
     // Fixed 2
     material* sphere_material_fixed2 = malloc(sizeof(material));
+    if (!sphere_material_fixed2) {
+        perror("malloc");
+        return 1;
+    }
     *sphere_material_fixed2 =
         (material){.albedo = (Pixel){.r = 0.4, .g = 0.2, .b = 0.1},
                    .type = LAMBERTIAN,
@@ -192,6 +196,10 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed2});
     // Fixed 3
     material* sphere_material_fixed3 = malloc(sizeof(material));
+    if (!sphere_material_fixed3) {
+        perror("malloc");
+        return 1;
+    }
     *sphere_material_fixed3 =
         (material){.albedo = (Pixel){.r = 0.7, .g = 0.6, .b = 0.5},
                    .fuzz = 0,
