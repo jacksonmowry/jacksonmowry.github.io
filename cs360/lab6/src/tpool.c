@@ -16,8 +16,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#define QUEUE_SIZE 10
-
 /*********************************/
 /* generic vector implementation */
 /*********************************/
@@ -242,12 +240,12 @@ void* thread_pool_init(int num_threads) {
     tp->num_tids = num_threads;
 
     tp->size = 0;
-    tp->capacity = QUEUE_SIZE;
+    tp->capacity = num_threads;
     tp->at = 0;
-    tp->buf = calloc(QUEUE_SIZE, sizeof(Work*));
+    tp->buf = calloc(num_threads, sizeof(Work*));
     tp->die = false;
 
-    tp->vhr = vector_hash_result_init(QUEUE_SIZE);
+    tp->vhr = vector_hash_result_init(num_threads);
 
     pthread_cond_init(&tp->not_empty, NULL);
     pthread_cond_init(&tp->not_full, NULL);

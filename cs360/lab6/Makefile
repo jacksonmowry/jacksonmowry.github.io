@@ -4,7 +4,7 @@
 
 CFLAGS = -Wall -Wpedantic -Wextra -Iinclude
 ANALYZERFLAGS = -g -fanalyzer
-SANITIZERFLAGS = -g -fsanitize=hwaddress
+SANITIZERFLAGS = -g -fsanitize=address
 
 SRC_DIR = src
 BUILD_DIR = build
