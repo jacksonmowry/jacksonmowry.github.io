@@ -833,4 +833,13 @@ Construct a TM M_{1} that tests the membership of the language L_{1} = {w#w | w 
 ** Formalizing TM Computation
 - A configuration C of the TM is a 3-tuple C = <u,q,v>, where q \in Q, u,v \in \Gamma{}^{*} is the tape content and the head is pointing to the first symbol of v
 - A configuation C_{1} yields a configuation C_{2} if the TM can (legally) go from C_{1} to C_{2} in a single computation (step). Suppose a,b,c \in \Sigma{}; u,v \in \Gamma{}^{*} and q_i, q_j \in Q
--
+
+* Add 1 to a binary number
+0b111 => 0b1000
+0b1 => 0b10
+0b1010 => 0b1011
+
+[[file:add1_tm.png]]
+
+* Compare unary numbers 11#111
+[[file:compare_unary.png]]

@@ -25,6 +25,14 @@ v + u = (v_{1} + u_{1} + ... + v_{n} + u_{n})
 ku = (kv_{1}, kv_{2}, ..., kv_{n})
 *** M_{m\times{}n} with matrix addition and scalar multiplication
 *** P_{n} the set of all polynomials of degree n or less with regular polynomial addition and scalar multiplication
+Any polynomial of degree n or less
 *** C(-\inf{},\inf{}): all functions continuous on R
 
 ** Determine if this is a Vector Space
+1. The set V of all 2 \times{} 2 matricies, and the vector operation to be matrix multiplication
+   - Vector operation in this case A + B = AB
+   - Not a vector space
+2. Determine if the set of positive Real numbers: R^{+} with the operations of u+v = uv real number multiplication and ku = u^{k} is a vector space
+   - A + B = AB
+   - kA = A^{k}
+   - Not a vector space

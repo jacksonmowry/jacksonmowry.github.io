@@ -1,8 +1,11 @@
+// Jackson Mowry
+// Thu Oct 24 11:24:42 2024
+// A program to hash a directory
+
 #include "tpool.h"
 
 #include <assert.h>
 #include <dirent.h>
-#include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -131,6 +134,7 @@ typedef struct TPool {
     pthread_mutex_t mutex;
 } TPool;
 
+// `hash32` creates a 32-bit digest of the file provded by `fl`
 uint32_t hash32(FILE* fl) {
     uint32_t digest = 2166136261;
 
@@ -142,6 +146,7 @@ uint32_t hash32(FILE* fl) {
     return digest;
 }
 
+// `hash64` creates a 64-bit digest of the file provded by `fl`
 uint64_t hash64(FILE* fl) {
     uint64_t digest = 14695981039346656037UL;
 
@@ -153,10 +158,14 @@ uint64_t hash64(FILE* fl) {
     return digest;
 }
 
+// `worker` is a pthread worker function, it is provided a TPool* via `arg`
+// which contains all of the shared memory needed
 void* worker(void* arg) {
     TPool* tp = (TPool*)arg;
 
     while (true) {
+        // Only lock to mutex to grab work, then unlock once the buffer has
+        // moved
         pthread_mutex_lock(&tp->mutex);
 
         while (tp->size == 0 && !tp->die) {
@@ -175,11 +184,11 @@ void* worker(void* arg) {
         pthread_cond_signal(&tp->not_full);
         pthread_mutex_unlock(&tp->mutex);
 
-        // Hash
+        // Perform hashing outside of locked sections
         FILE* fp = fopen(w->file_name, "r");
         if (!fp) {
-            perror("fopen");
-            return NULL;
+            free(w);
+            continue;
         }
         uint32_t digest_small;
         uint64_t digest_big;
@@ -191,6 +200,7 @@ void* worker(void* arg) {
 
         fclose(fp);
 
+        // Relock the shared structure to write out result
         pthread_mutex_lock(&tp->mutex);
         // Insert in vec
         if (w->hash_type == SMALL) {
@@ -199,16 +209,21 @@ void* worker(void* arg) {
             tp->vhr.array[w->result_index].hash.big_hash = digest_big;
         }
 
+        // Decrement outstanding work counter by one
         tp->outstanding_work -= 1;
         pthread_mutex_unlock(&tp->mutex);
 
         free(w);
     }
 
+    // Just in case the look somehow ends
     pthread_mutex_unlock(&tp->mutex);
     return NULL;
 }
 
+// `thread_pool_init` sets up an opaque data structure to hold all threads, and
+// their associated work queue.
+// Threads are created within this function
 void* thread_pool_init(int num_threads) {
     if (num_threads < 1 || num_threads > 32) {
         return NULL;
@@ -216,13 +231,11 @@ void* thread_pool_init(int num_threads) {
 
     TPool* tp = calloc(1, sizeof(TPool));
     if (!tp) {
-        perror("calloc");
         return NULL;
     }
 
     tp->tids = calloc(num_threads, sizeof(pthread_t));
     if (!tp->tids) {
-        perror("calloc");
         free(tp);
         return NULL;
     }
@@ -247,10 +260,14 @@ void* thread_pool_init(int num_threads) {
     return tp;
 }
 
+// `thread_pool_hash` takes in an opaque structure (TPool*), a `directory` to
+// hash, and the size of each hash as `hash_size`
+// Results are printed to `stdout` in directory order, and threads are kept
+// alive once they complete work
 bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
     TPool* tp = (TPool*)handle;
     if (!tp) {
-        assert(false);
+        // We cannot continue, return false
         return false;
     }
 
@@ -261,15 +278,14 @@ bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
     // not [32, 64], then this function will return false.
     if (!handle || !directory || !strlen(directory) ||
         (hash_size != 32 && hash_size != 64)) {
-        fprintf(stderr, "    // If the handle is NULL, if the directory is "
-                        "invalid, or the hash_size is\n");
+        // We cannot continue, return false
         return false;
     }
 
     DIR* d;
     if ((d = opendir(directory)) == NULL) {
-        perror("opendir");
-        fprintf(stderr, "Invalid dir\n");
+        // We were unable to open the provided directory
+        // We cannot continue, return false
         return false;
     }
 
@@ -278,11 +294,12 @@ bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
     while ((de = readdir(d)) != NULL) {
         char* full_path = calloc(strlen(directory) + strlen(de->d_name) + 2, 1);
         if (!full_path) {
-            perror("calloc");
             closedir(d);
+            // We cannot continue, return false
             return false;
         }
 
+        // Construct the full path to make our lives easier later on
         strcat(full_path, directory);
         strcat(full_path, "/");
         strcat(full_path, de->d_name);
@@ -290,29 +307,34 @@ bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
         struct stat st;
         stat(full_path, &st);
 
+        // Skip over all non-regular files
         if (!S_ISREG(st.st_mode)) {
             free(full_path);
             continue;
         }
 
+        // Enter our critial section to wait for our queue to have space
         pthread_mutex_lock(&tp->mutex);
 
         while (tp->size == tp->capacity) {
             pthread_cond_wait(&tp->not_full, &tp->mutex);
         }
 
+        // Give this piece of work a "landing zone" to place its result
         vector_hash_result_pb(&tp->vhr, (hash_result){.hash.big_hash = 0,
                                                       .file_name = full_path});
 
         Work* w = malloc(sizeof(Work));
         if (!w) {
-            perror("malloc");
             free(full_path);
             closedir(d);
+            // We cannot continue, return false
             return false;
         }
         w->file_name = full_path;
         w->hash_type = hash_size == 32 ? SMALL : LARGE;
+        // We use indexes and not pointers here to avoid referencing memory that
+        // has been reallocated by vector push_back
         w->result_index = tp->vhr.len - 1;
 
         tp->buf[(tp->size + tp->at) % tp->capacity] = w;
@@ -322,25 +344,28 @@ bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
 
         pthread_cond_signal(&tp->not_empty);
         pthread_mutex_unlock(&tp->mutex);
-        errno = 0;
     }
 
+    // close the directory to free up dynamically allocated resources as soon as
+    // we're done
     closedir(d);
 
     while (true) {
+        // Wait until all threads are finished working
+        // Lock here to avoid contention between this producer and any consumers
         pthread_mutex_lock(&tp->mutex);
         bool cond = tp->outstanding_work > 0;
         pthread_mutex_unlock(&tp->mutex);
         if (cond) {
-            /* nanosleep(&(struct timespec){.tv_nsec = 50000000, .tv_sec = 0},
-             */
-            /*           NULL); */
+            // Sleep to not explode our running time
             usleep(100);
         } else {
+            // All threads are done
             break;
         }
     }
 
+    // Print results
     for (size_t i = 0; i < tp->vhr.len; i++) {
         if (hash_size == 32) {
             printf("%08x: %s\n", tp->vhr.array[i].hash.small_hash,
@@ -353,13 +378,17 @@ bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
         free(tp->vhr.array[i].file_name);
     }
 
+    // We're finished
     return true;
 }
 
+// `thread_pool_shutdown` frees up all dynamically allocated resources, and
+// destroys all pthreads and their associated locking primitives
 void thread_pool_shutdown(void* handle) {
     TPool* tp = (TPool*)handle;
 
     if (!tp) {
+        // early exit
         return;
     }
 
@@ -380,13 +409,4 @@ void thread_pool_shutdown(void* handle) {
     vector_hash_result_free(tp->vhr);
 
     return;
-}
-
-int main(void) {
-    void* tp = thread_pool_init(11);
-
-    thread_pool_hash(tp, "/home/jackson/jacksonmowry.github.io", 64);
-    thread_pool_hash(tp, ".", 64);
-
-    thread_pool_shutdown(tp);
 }

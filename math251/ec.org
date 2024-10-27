@@ -1,0 +1,44 @@
+#+title: Ec Vector Spaces
+#+author: Jackson Mowry
+#+date: Sun Oct 27 10:38:59 2024
+#+options: \n:t toc:nil
+
+* 6
+The set V = {(x,y,z) | x,y,z are integers}, with regular component addition and scalar multiplication as the operations
+1. ku \in V (Axiom 6)
+   - Scalar multiples do not have to be integers \therefore{} ku \notin{} V
+   - $u = (1,1,1), k = 4.5 \therefore ku = (4.5,4.5,4.5) \notin{} V$
+
+* 7
+The set V of all continuous functions that are differentiable on (-\inf(), \inf{})
+1. u + v \in V
+   - Both u and v are continuous and differentiable, u+v must also be continuous and differentiable (as the sum of continuous and differentiable functions respectively)
+   - u + v \in V
+2. u + v = v + u
+   - Function addition is known to be commutative
+   - Therefore u + v = v + u
+3. u + (v + w) = (u + v) + w
+   - Function addition is known to be associative
+   - Therefore u + (v + w) = (u + v) + w
+4. There exists a zero 0 \overrightarrow{0} such that 0 + u = u + 0 = u
+   - The zero function f(x) = 0 for all x is continuous and differentiable, thus the zero vector is in V
+5. For each u in V, there exists -u such that u + -u = 0
+   - If a function f is continuous and differentiable, then -f must also be continuous and differentiable, thus -f \in V
+6. ku \in V
+   - If u is continuous and differentiable, then ku is continuous (since scalar multiples of continuous functions are continuous) and differentiable (since scalar multiples of differentiable functions are differentiable)
+   - \therefore{} ku \in V
+7. k(u + v) = ku + kv
+   - This follows the basic properties of scalar multiplication and function addition
+   - \therefore{} this property holds for our vector space
+8. (k+m)u = ku + mu
+   - This is the same property as scalar multiplication
+   - $(k+m)u$
+   - $uk + um$
+   - $ku + mu$
+9. (km)u = k(mu)
+   - This follows the same properties as scalar multiplication as proven above
+10. 1 \times{} u = u
+    - We can simply substitute the value 0 in for '1' in the original axiom
+      - Or the zero function
+    - This is treated as an addition of the identity
+    - $f(x) + 0 = f(x)$

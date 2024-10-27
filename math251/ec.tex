@@ -1,0 +1,96 @@
+% Created 2024-10-27 Sun 11:46
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Sun Oct 27 10:38:59 2024}
+\title{Ec Vector Spaces}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={Ec Vector Spaces},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section{6}
+\label{sec:orgc00514a}
+The set V = \{(x,y,z) | x,y,z are integers\}, with regular component addition and scalar multiplication as the operations\\
+\begin{enumerate}
+\item ku \(\in\) V (Axiom 6)\\
+\begin{itemize}
+\item Scalar multiples do not have to be integers \(\therefore\) ku \(\notin\) V\\
+\item \(u = (1,1,1), k = 4.5 \therefore ku = (4.5,4.5,4.5) \notin{} V\)\\
+\end{itemize}
+\end{enumerate}
+\section{7}
+\label{sec:org34c2579}
+The set V of all continuous functions that are differentiable on (-\(\inf\)(), \(\inf\))\\
+\begin{enumerate}
+\item u + v \(\in\) V\\
+\begin{itemize}
+\item Both u and v are continuous and differentiable, u+v must also be continuous and differentiable (as the sum of continuous and differentiable functions respectively)\\
+\item u + v \(\in\) V\\
+\end{itemize}
+\item u + v = v + u\\
+\begin{itemize}
+\item Function addition is known to be commutative\\
+\item Therefore u + v = v + u\\
+\end{itemize}
+\item u + (v + w) = (u + v) + w\\
+\begin{itemize}
+\item Function addition is known to be associative\\
+\item Therefore u + (v + w) = (u + v) + w\\
+\end{itemize}
+\item There exists a zero 0 \overrightarrow{0} such that 0 + u = u + 0 = u\\
+\begin{itemize}
+\item The zero function f(x) = 0 for all x is continuous and differentiable, thus the zero vector is in V\\
+\end{itemize}
+\item For each u in V, there exists -u such that u + -u = 0\\
+\begin{itemize}
+\item If a function f is continuous and differentiable, then -f must also be continuous and differentiable, thus -f \(\in\) V\\
+\end{itemize}
+\item ku \(\in\) V\\
+\begin{itemize}
+\item If u is continuous and differentiable, then ku is continuous (since scalar multiples of continuous functions are continuous) and differentiable (since scalar multiples of differentiable functions are differentiable)\\
+\item \(\therefore\) ku \(\in\) V\\
+\end{itemize}
+\item k(u + v) = ku + kv\\
+\begin{itemize}
+\item This follows the basic properties of scalar multiplication and function addition\\
+\item \(\therefore\) this property holds for our vector space\\
+\end{itemize}
+\item (k+m)u = ku + mu\\
+\begin{itemize}
+\item This is the same property as scalar multiplication\\
+\item \((k+m)u\)\\
+\item \(uk + um\)\\
+\item \(ku + mu\)\\
+\end{itemize}
+\item (km)u = k(mu)\\
+\begin{itemize}
+\item This follows the same properties as scalar multiplication as proven above\\
+\end{itemize}
+\item 1 \texttimes{} u = u\\
+\begin{itemize}
+\item We can simply substitute the value 0 in for '1' in the original axiom\\
+\begin{itemize}
+\item Or the zero function\\
+\end{itemize}
+\item This is treated as an addition of the identity\\
+\item \(f(x) + 0 = f(x)\)\\
+\end{itemize}
+\end{enumerate}
+\end{document}
