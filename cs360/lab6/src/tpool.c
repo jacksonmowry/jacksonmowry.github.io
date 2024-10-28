@@ -129,6 +129,7 @@ typedef struct TPool {
 
     pthread_cond_t not_full;
     pthread_cond_t not_empty;
+    pthread_cond_t all_done;
     pthread_mutex_t mutex;
 } TPool;
 
@@ -179,12 +180,16 @@ void* worker(void* arg) {
         tp->at = (tp->at + 1) % tp->capacity;
         tp->size -= 1;
 
-        pthread_cond_signal(&tp->not_full);
         pthread_mutex_unlock(&tp->mutex);
+        pthread_cond_signal(&tp->not_full);
 
         // Perform hashing outside of locked sections
         FILE* fp = fopen(w->file_name, "r");
         if (!fp) {
+            pthread_mutex_lock(&tp->mutex);
+            tp->outstanding_work--;
+            pthread_mutex_unlock(&tp->mutex);
+            pthread_cond_signal(&tp->all_done);
             free(w);
             continue;
         }
@@ -209,6 +214,7 @@ void* worker(void* arg) {
 
         // Decrement outstanding work counter by one
         tp->outstanding_work -= 1;
+        pthread_cond_signal(&tp->all_done);
         pthread_mutex_unlock(&tp->mutex);
 
         free(w);
@@ -249,6 +255,7 @@ void* thread_pool_init(int num_threads) {
 
     pthread_cond_init(&tp->not_empty, NULL);
     pthread_cond_init(&tp->not_full, NULL);
+    pthread_cond_init(&tp->all_done, NULL);
     pthread_mutex_init(&tp->mutex, NULL);
 
     for (int i = 0; i < num_threads; i++) {
@@ -340,28 +347,21 @@ bool thread_pool_hash(void* handle, const char* directory, int hash_size) {
 
         tp->outstanding_work += 1;
 
-        pthread_cond_signal(&tp->not_empty);
         pthread_mutex_unlock(&tp->mutex);
+        pthread_cond_signal(&tp->not_empty);
     }
 
     // close the directory to free up dynamically allocated resources as soon as
     // we're done
     closedir(d);
 
-    while (true) {
-        // Wait until all threads are finished working
-        // Lock here to avoid contention between this producer and any consumers
-        pthread_mutex_lock(&tp->mutex);
-        bool cond = tp->outstanding_work > 0;
-        pthread_mutex_unlock(&tp->mutex);
-        if (cond) {
-            // Sleep to not explode our running time
-            usleep(100);
-        } else {
-            // All threads are done
-            break;
-        }
+    // Wait until all threads are finished working
+    // Lock here to avoid contention between this producer and any consumers
+    pthread_mutex_lock(&tp->mutex);
+    while (tp->outstanding_work > 0) {
+        pthread_cond_wait(&tp->all_done, &tp->mutex);
     }
+    pthread_mutex_unlock(&tp->mutex);
 
     // Print results
     for (size_t i = 0; i < tp->vhr.len; i++) {
@@ -401,6 +401,7 @@ void thread_pool_shutdown(void* handle) {
 
     pthread_cond_destroy(&tp->not_full);
     pthread_cond_destroy(&tp->not_empty);
+    pthread_cond_destroy(&tp->all_done);
     pthread_mutex_destroy(&tp->mutex);
 
     free(tp->buf);
