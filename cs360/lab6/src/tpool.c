@@ -139,7 +139,7 @@ uint32_t hash32(FILE* fl) {
 
     int byte;
     while ((byte = fgetc_unlocked(fl)) != EOF) {
-        digest = (digest ^ (uint8_t)byte) * 1677619;
+        digest = (digest ^ (uint8_t)byte) * 16777619;
     }
 
     return digest;
