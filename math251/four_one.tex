@@ -1,0 +1,91 @@
+% Created 2024-10-28 Mon 09:15
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{Four One}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={Four One},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Objectives}
+\label{sec:org3b5020d}
+\begin{itemize}
+\item Vector space and subspace
+\end{itemize}
+\section{Vector Space}
+\label{sec:orga7460d0}
+A vector space is a set V of objects called vectors with a field of scalars, we will use the field of real numbers, and operation denoted by + that combines vectors, and an operation denoted * that combines a scalar and a vector, such that for u,v,w, objects in V and k,l, and m scalars in R
+\begin{enumerate}
+\item u+v \(\in\) V
+\item u+v = v+u
+\item u+(v+w) = (u+v) + w
+\item There exists a zero 0, vector such that 0+u = u+0 = u
+\item For each u in V, there exists -u such that u + -u = 0
+\item ku \(\in\) V
+\item k(u+v) = ku + kv
+\item (k+m)u = ku + mu
+\item (km)u = k(mu)
+\item 1 * u = u
+\end{enumerate}
+\subsection{Examples}
+\label{sec:orgca4e6ac}
+\subsubsection{The zero vector space}
+\label{sec:org08613bd}
+Nothing
+R = \{0\}
+R\textsuperscript{2} = \{(0,0)\}
+\subsubsection{R\textsuperscript{n} with componentwise addition and scalar multiplication}
+\label{sec:org386c9fe}
+v + u = (v\textsubscript{1} + u\textsubscript{1} + \ldots{} + v\textsubscript{n} + u\textsubscript{n})
+ku = (kv\textsubscript{1}, kv\textsubscript{2}, \ldots{}, kv\textsubscript{n})
+\subsubsection{M\textsubscript{m\texttimes{}n} with matrix addition and scalar multiplication}
+\label{sec:orga19dfeb}
+\subsubsection{P\textsubscript{n} the set of all polynomials of degree n or less with regular polynomial addition and scalar multiplication}
+\label{sec:org11c4218}
+Any polynomial of degree n or less
+\subsubsection{C(-\(\inf\),\(\inf\)): all functions continuous on R}
+\label{sec:orgad89204}
+\subsection{Determine if this is a Vector Space}
+\label{sec:orgf337ab3}
+\begin{enumerate}
+\item The set V of all 2 \texttimes{} 2 matricies, and the vector operation to be matrix multiplication
+\begin{itemize}
+\item Vector operation in this case A + B = AB
+\item Not a vector space
+\end{itemize}
+\item Determine if the set of positive Real numbers: R\textsuperscript{+} with the operations of u+v = uv real number multiplication and ku = u\textsuperscript{k} is a vector space
+\begin{itemize}
+\item A + B = AB
+\item kA = A\textsuperscript{k}
+\item Not a vector space
+\end{itemize}
+\end{enumerate}
+\section{Theorem}
+\label{sec:org10dc73b}
+Let V be a vector space, u a vector in V and k a scalar;
+\begin{itemize}
+\item 0u = 0
+\item k\overrightarrow{0} = 0
+\item (-1)u = -u
+\item If ku = 0 then k = 0 or u = 0
+\end{itemize}
+\end{document}

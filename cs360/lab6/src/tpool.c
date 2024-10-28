@@ -137,9 +137,9 @@ typedef struct TPool {
 uint32_t hash32(FILE* fl) {
     uint32_t digest = 2166136261;
 
-    uint8_t byte;
-    while (fread(&byte, 1, 1, fl)) {
-        digest = (digest ^ byte) * 16777619;
+    int byte;
+    while ((byte = fgetc_unlocked(fl)) != EOF) {
+        digest = (digest ^ (uint8_t)byte) * 16777619;
     }
 
     return digest;
@@ -149,9 +149,9 @@ uint32_t hash32(FILE* fl) {
 uint64_t hash64(FILE* fl) {
     uint64_t digest = 14695981039346656037UL;
 
-    uint8_t byte;
-    while (fread(&byte, 1, 1, fl)) {
-        digest = (digest ^ byte) * 1099511628211;
+    int byte;
+    while ((byte = fgetc_unlocked(fl)) != EOF) {
+        digest = (digest ^ (uint8_t)byte) * 1099511628211;
     }
 
     return digest;

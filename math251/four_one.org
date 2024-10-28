@@ -36,3 +36,10 @@ Any polynomial of degree n or less
    - A + B = AB
    - kA = A^{k}
    - Not a vector space
+
+* Theorem
+Let V be a vector space, u a vector in V and k a scalar;
+- 0u = 0
+- k\overrightarrow{0} = 0
+- (-1)u = -u
+- If ku = 0 then k = 0 or u = 0

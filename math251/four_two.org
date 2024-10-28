@@ -1,0 +1,39 @@
+#+title: Four Two
+* Definition
+- A subspace of a vector space V is a non-empty subset S of V that with the same operations from V is a vector space itself
+  - What is a subset? What is a subspace?
+    - any non-empty collection of vectors from V such that the 10 axioms of vector space V holds
+    - Any collection of vectors from the set is a subset
+
+* Theorem
+S is a subspace of a vector space V, (with the operations from V), if
+- S is a non-empty subset of V
+- for any elements s_{1} and s_{2} in S, s_{1}+s_{2} \in S
+- For any real number k and s \in S, ks \in S
+
+If w_{1},w_{2},...,w_{r} are subspaces of a vector space V, then the intersection of these subspaces is also a subspace of V
+
+For any vector space V, {0} and V are alway subspaces
+
+* Is This a Subspace?
+1. Prove or Disprove that the set S = {(a,b) | a,b are integers} with the standard operations, is a subspace of R^{2}
+   - Violates original axiom 6
+   - Violates property 3 for subspaces
+2. Prove of Disprove that the set S = {(a,b) | b = 3a+1, a,b \in R} is a subspace of R^{2}
+   - Doesn't belong
+   - u+v \notin S, \therefore{} S is not a subspace
+3. Prove or Disprove that the set S = {(a,b) | b = 3a, a,b \in R} is a subspace of R^{2}
+   - (1,3) \in S
+   - u+v
+     - (1, 3) + (2, 6) = (3, 9)
+     - (4, 12) + (100, 300) = (104, 312)
+   - ku
+     - 42(1,3) = (42, 126)
+4. List all subspaces of R^{2} and R^{3}
+   - {(0,0), R^{2}, any line through the origin of R^{2} (because the sum of any 2 lines passing through the origin is a line passing through the origin as well)}
+5. Prove or Disprove that the set S = {$\begin{bmatrix}a\\3a\\7a\end{bmatrix}$ | a \in R} with the standard operations, is a subspace of M_{3\times{}1}
+   - [a;3a;7a] + [7a; 21a; 49a] = [8a; 24a; 56a;]
+   - 3[a;3a;7a] = [3a;9a;21a]
+6. Prove or Disprove that the set S = {$\begin{bmatrix}a\\3a\\7\end{bmatrix}$ | a \in R} with the standard operations, is a subspace of M_{3\times{}1}
+   - non empty [1;3;7]
+   - [1a;3a;7] + [1b;3b;7] = [a+b;3a+3b;14] = [a+b;3(a+b);14] \notin S

@@ -864,3 +864,189 @@ pthread_mutex_init(&mutex, NULL);
 - Multiple threads and produce data and store into a ringbuffer
 - Consumer pops off the ring buffer and does something with it
 - Mutex to lock out critial section, cond var
+
+* Signals
+- signal.h
+** signals
+- SIGTERM, terinate
+- SIGKILL, force OS to terminate
+- SIGSTOP, stop from being scheduled, can result with SIGCONT
+
+These are problems
+Primitve form of communication, it /traps/ your program
+
+** Handling Signals
+#+begin_src C
+#include <signal.h>
+signal(int signal, void (*handle)(int signum));
+#+end_src
+
+Create a signal handler, a callback function
+
+Just numbers
+
+** Using Constants
+use the =#defines=
+
+Mapped to the number =SIGHUP=
+
+#+begin_example
+SIGKILL and SIGSTOP canont be captured or redirected by a program
+#+end_example
+
+** Default Signals
+| SIG_IGN | Ignore a signal          |
+| SIG_DFL | Default action (reverts) |
+| SIG_ERR | Throw an error for a sig |
+
+** Sending Signals
+#+begin_src C
+#include <signal.h.>
+int raise(int signum);
+int kill(int pid, int signum);
+#+end_src
+
+Raise a signal on current thread
+- Returns 0 on success
+Kill raises a signal on a pid
+- returns 0 on success
+
+** OS Signals
+Most signals are raised by the OS to "signal" errors on conditions
+- We only raise() or kill() when necessary
+SIGCHLD
+- raised by OS with a child process terminates
+
+** Waiting for Signals
+#+begin_src C
+#include <signal.h>
+
+int pause(void);
+#+end_src
+
+We can wait for a signal by pausing the currently executing thread
+
+Does not unpause for ignored signals or unhandled signals
+
+** Scheduling Signals
+#+begin_src C
+#include <unistd.h>
+unsigned int alarm(unsigned int seconds);
+#+end_src
+
+Raises SIGALRM within seconds
+- if seconds == 0, kills any pending alarms
+
+Returns the number of seconds remaining until any previously scheduled alarm was due to be delivered
+
+** Signal Actions (new(er) signal handlers)
+#+begin_src C
+#include <signal.h>
+int sigactions(int sig, struct sigactions* act, struct sigaction* oact);
+struct sigaction {
+    __sighandler_t sa_handler;
+    __sigset_t sa_mask;
+    int sa_flags;
+    void (*sa_restorer)(void);
+}
+#+end_src
+
+*** Notes
+- Gives us finer grained control over a signal
+- Gives the OS an idea of how to recover after a signal
+  - If we get a SIGSEGV, how do we continue (or can we continue)
+- sa_flags
+  - SA_NOMASK
+    - does not add the signal to the process' signal mask of pending signals
+  - SA_ONESHOT
+    - resets the signal handler to SIG_DFL after receiving a signal
+  - SA_STACK
+    - stores signal information on an alternative stack
+
+** POSIX Signal Functions
+| sigalstack  | creates an alternative stack for signal handling       |
+| sigemptyset | creates a new set with all signals excluded (empty)    |
+| sigfullset  | creates a new set with all signals included (full)     |
+| sigaddset   | adds a signal to a signal set                          |
+| sigdelset   | deletes a signal from a signal set                     |
+| sigismember | checks to see if a signal is part of the signal set    |
+| sigpending  | stores the pending signals that haven't been delivered |
+| sigpause    | waits for a specified signal                           |
+
+*** sigalstack
+#+begin_src C
+#include <signal.h>
+//              alt stack          old stack
+int sigalstack(const stack_t* ss, stack_t* oss);
+
+if ((sigstk.ss_sp = malloc(SIGSTKSZ)) == NULL)
+    // error return
+sigstk.ss_size = SIGSTKSZ;
+sigstk.ss_flags = 0;
+if (sigaltstack(&sigstk, (stack_t*)0) < 0)
+    perror("sigaltstack");
+#+end_src
+
+** Signal Sets (masks)
+#+begin_src C
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+int main() {
+    struct sigaction sact;
+
+    sigemptyset(&sact.sa_mask);
+    sact.sa_flags = 0;
+    sact.sa_handler = SIG_IGN;
+
+    sigaction(SIGUSR2, &sact, NULL);
+
+    puts("before kill");
+    kill(getpid(), SIGUSR2);
+    puts("after kill");
+}
+#+end_src
+
+#+RESULTS:
+| before | kill |
+| after  | kill |
+
+#+begin_src C
+#include <signal.h>
+
+sigset_t new_set, old_set;
+sigemptyset(&new_set);
+sigaddset(&new_set, SIGALRM);
+sigprocmask(SIG_BLOCK, &new_set, &old_set);
+sigprocmask(SIG_SETMASK, &old_set, NULL);
+#+end_src
+
+- A masked signal is not heard
+- An unmasked signal is heard
+  - Empty set hears all signals
+
+** Cleanup Routines
+There can be many ways a program exits
+- return from main
+- exit() call
+
+What if no matter what, we need to clean up?
+- atexit()
+
+The atexit function registers a cleanup handler
+- void handler(void);
+
+#+begin_src C
+#inlucde <stdlib.h>
+
+int atexit(void (*function)(void));
+
+void cleanup() {
+    fprintf(stderr, "bye\n");
+}
+
+int main() {
+    atexit(cleanup);
+}
+#+end_src
