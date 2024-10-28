@@ -1,0 +1,7 @@
+build
+compile_flags.txt
+c_proj_makefile.sh
+include
+ls_output.txt
+Makefile
+src
