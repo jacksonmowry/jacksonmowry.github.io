@@ -843,3 +843,35 @@ Construct a TM M_{1} that tests the membership of the language L_{1} = {w#w | w 
 
 * Compare unary numbers 11#111
 [[file:compare_unary.png]]
+
+* Exam 2 Prep
+1. TM
+   - not a context free language
+2. T
+   -
+3. eS1, eeA, ee0 (read, pop, push)
+   -
+4. F
+   - turing recognizable, can loop or reject
+5. s
+   - q0xA, read a 0 move to state s, read an A move to the right
+   - AsxA
+   - q0xA
+     - q = state
+     - 0xA = tape
+   - Therefore the new configuration after the rule \delta(q,0) = <s,A,R> is
+     - AsxA
+6. t
+   - 1t0x <new state, write, move>
+   - \delta(q,x) = <t,x,L>
+   - 10qx
+   - 1t0x
+7. 4
+   - No unit rules,
+8. 1
+   -
+9. F
+10. Not in the language, reject
+11. S -> Aa | a | ABA | BA | AB | B
+12. No changes to s
+    - Change occurs to A, A -> b|a

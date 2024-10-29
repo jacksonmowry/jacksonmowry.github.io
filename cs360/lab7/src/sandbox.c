@@ -363,6 +363,8 @@ int main(int argc, char* argv[]) {
             if (tokens[0] && num_tokens > 0) {
                 execvp(tokens[0], tokens);
                 perror(tokens[0]);
+                free(tokens);
+                free(command);
                 return 1;
             }
         } else if (pid == -1) {
