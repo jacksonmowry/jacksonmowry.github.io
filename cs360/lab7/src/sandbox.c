@@ -122,7 +122,7 @@ const char* builtins[] = {"exit", "cd", "jobs"};
 const size_t num_builtins = 3;
 
 static int is_builtin(const char* token) {
-    for (size_t i = 0; i < num_builtins; i++) {
+    for (size_t i = 0; i < num_builtins && token; i++) {
         if (!strcmp(builtins[i], token)) {
             return i;
         }
@@ -231,6 +231,10 @@ int main(int argc, char* argv[]) {
         command[strlen(command) - 1] = '\0';
 
         char** tokens = calloc(10, sizeof(char*));
+        if (!tokens) {
+            perror("calloc");
+            exit(1);
+        }
         size_t max_tokens = 10;
         size_t num_tokens = 0;
 
@@ -282,7 +286,7 @@ int main(int argc, char* argv[]) {
             // child
             // Find redirection symbols
             for (size_t i = 0; i < num_tokens; i++) {
-                if (tokens[i][0] == '$') {
+                if (tokens[i] && tokens[i][0] == '$') {
                     tokens[i] = getenv(tokens[i] + 1);
                     continue;
                 }
@@ -291,18 +295,30 @@ int main(int argc, char* argv[]) {
                     // append redirection
                     int fd = open(tokens[i] + 2, O_WRONLY | O_APPEND | O_CREAT,
                                   0666);
+                    if (!fd) {
+                        perror(tokens[i] + 2);
+                        return 1;
+                    }
                     tokens[i] += 2;
                     dup2(fd, 1);
                 } else if (!strncmp(">", tokens[i], 1) &&
                            strlen(tokens[i]) > 1) {
                     // overwrite redirection
                     int fd = open(tokens[i] + 1, O_WRONLY | O_CREAT, 0666);
+                    if (!fd) {
+                        perror(tokens[i] + 1);
+                        return 1;
+                    }
                     tokens[i] += 1;
                     dup2(fd, 1);
                 } else if (!strncmp("<", tokens[i], 1) &&
                            strlen(tokens[i]) > 1) {
                     // input redirection
                     int fd = open(tokens[i] + 1, O_RDONLY);
+                    if (!fd) {
+                        perror(tokens[i] + 1);
+                        return 1;
+                    }
                     tokens[i] += 1;
                     dup2(fd, 0);
                 } else {
@@ -336,6 +352,7 @@ int main(int argc, char* argv[]) {
             perror(tokens[0]);
         } else if (pid == -1) {
             // error
+            exit(1);
             perror("fork");
         } else {
             // parent
