@@ -199,12 +199,14 @@ int main(int argc, char* argv[]) {
     }
 
     while (true) {
-        reap_jobs();
-
         char cwd[512] = {0};
         if (!getcwd(cwd, sizeof(cwd))) {
             perror("getcwd");
             exit(1);
+        }
+
+        if (feof(stdin)) {
+            shell_exit();
         }
 
         replace_home(cwd);
@@ -212,8 +214,7 @@ int main(int argc, char* argv[]) {
 
         char line[1024] = {0};
         if (!fgets(line, sizeof(line), stdin)) {
-            /* shell_exit(); */
-            break;
+            shell_exit();
         }
 
         line[strcspn(line, "\n")] = '\0';
@@ -265,6 +266,7 @@ int main(int argc, char* argv[]) {
             free(command);
             continue;
         case 2:
+            reap_jobs();
             shell_jobs();
             free(tokens);
             free(command);
@@ -281,11 +283,21 @@ int main(int argc, char* argv[]) {
             num_tokens--;
         }
 
+        if (num_tokens <= 0) {
+            free(tokens);
+            free(command);
+            continue;
+        }
+
         int pid;
         if ((pid = fork()) == 0) {
             // child
             // Find redirection symbols
             for (size_t i = 0; i < num_tokens; i++) {
+                if (!tokens[i]) {
+                    continue;
+                }
+
                 if (tokens[i] && tokens[i][0] == '$') {
                     tokens[i] = getenv(tokens[i] + 1);
                     continue;
@@ -295,32 +307,32 @@ int main(int argc, char* argv[]) {
                     // append redirection
                     int fd = open(tokens[i] + 2, O_WRONLY | O_APPEND | O_CREAT,
                                   0666);
-                    if (!fd) {
+                    if (fd == -1) {
                         perror(tokens[i] + 2);
                         return 1;
                     }
                     tokens[i] += 2;
-                    dup2(fd, 1);
+                    dup2(fd, STDOUT_FILENO);
                 } else if (!strncmp(">", tokens[i], 1) &&
                            strlen(tokens[i]) > 1) {
                     // overwrite redirection
                     int fd = open(tokens[i] + 1, O_WRONLY | O_CREAT, 0666);
-                    if (!fd) {
+                    if (fd == -1) {
                         perror(tokens[i] + 1);
                         return 1;
                     }
                     tokens[i] += 1;
-                    dup2(fd, 1);
+                    dup2(fd, STDOUT_FILENO);
                 } else if (!strncmp("<", tokens[i], 1) &&
                            strlen(tokens[i]) > 1) {
                     // input redirection
                     int fd = open(tokens[i] + 1, O_RDONLY);
-                    if (!fd) {
+                    if (fd == -1) {
                         perror(tokens[i] + 1);
                         return 1;
                     }
                     tokens[i] += 1;
-                    dup2(fd, 0);
+                    dup2(fd, STDIN_FILENO);
                 } else {
                     continue;
                 }
@@ -348,8 +360,11 @@ int main(int argc, char* argv[]) {
             setrlimit(RLIMIT_CPU, &(struct rlimit){.rlim_cur = max_cpu_time,
                                                    .rlim_max = max_cpu_time});
 
-            execvp(tokens[0], tokens);
-            perror(tokens[0]);
+            if (tokens[0] && num_tokens > 0) {
+                execvp(tokens[0], tokens);
+                perror(tokens[0]);
+                return 1;
+            }
         } else if (pid == -1) {
             // error
             exit(1);
