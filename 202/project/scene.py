@@ -407,6 +407,6 @@ class BinaryTree(MovingCameraScene):
         circ_group = VGroup(circ,circ_text)
         circ_group.scale(0.5)
 
-        self.play(Write(t.animate.opacity(0)))
+        self.play(t.animate.set_opacity(0))
         self.play(Transform(full_array, circ_group))
         self.wait(1)
