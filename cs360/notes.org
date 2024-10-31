@@ -963,6 +963,31 @@ struct sigaction {
   - SA_STACK
     - stores signal information on an alternative stack
 
+*** Uses
+#+begin_src C
+#include <signal.h>
+#include <stdio.h>
+
+static void handleaction(int sig, siginfo_t* info, void* context) {
+    printf("signal %s caught, context %p\n", sig, context);
+}
+
+int main() {
+    struct sigaction sa;
+    int i = 0;
+    int j = 22;
+
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = handleaction;
+
+    sigaction(SIGFPE, &sa, NULL);
+    printf("%d\n", j/i);
+}
+#+end_src
+
+#+RESULTS:
+
 ** POSIX Signal Functions
 | sigalstack  | creates an alternative stack for signal handling       |
 | sigemptyset | creates a new set with all signals excluded (empty)    |
@@ -971,6 +996,7 @@ struct sigaction {
 | sigdelset   | deletes a signal from a signal set                     |
 | sigismember | checks to see if a signal is part of the signal set    |
 | sigpending  | stores the pending signals that haven't been delivered |
+| sigprocmask | sets/changes                                           |
 | sigpause    | waits for a specified signal                           |
 
 *** sigalstack
