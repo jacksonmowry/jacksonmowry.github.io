@@ -1,0 +1,55 @@
+// Save File for STEM
+// Version 1.10
+
+// State Format: name x y start accept
+STATES:
+	0 546.123159 459.207623 true false 0.980392 0.980392 0.823529 1.000000
+	1 753.715179 281.564863 false false 0.980392 0.980392 0.823529 1.000000
+	2 962.498503 279.490151 false false 0.980392 0.980392 0.823529 1.000000
+	3 1169.099951 282.160770 false false 0.980392 0.980392 0.823529 1.000000
+	4 1371.384325 272.824568 false false 0.980392 0.980392 0.823529 1.000000
+	5 1585.079613 390.045770 false false 0.980392 0.980392 0.823529 1.000000
+	6 1429.476248 498.968125 false false 0.980392 0.980392 0.823529 1.000000
+	7 946.068461 471.996875 false false 0.980392 0.980392 0.823529 1.000000
+	8 794.614519 567.433606 false false 0.980392 0.980392 0.823529 1.000000
+	9 647.310000 702.289856 false false 0.980392 0.980392 0.823529 1.000000
+	10 809.137500 698.140433 false true 0.980392 0.980392 0.823529 1.000000
+
+// Transition format: fromStateId toStateId readCHar writeChar moveDirection
+// The Character '~' is the catchall character
+TRANSITION:
+	0 1 1 x RIGHT
+	1 1 1 1 RIGHT
+	1 2     RIGHT
+	2 3 1 x RIGHT
+	3 3 1 1 RIGHT
+	3 4     RIGHT
+	4 4 1 1 RIGHT
+	4 5   1 STAY
+	5 5 1 1 LEFT
+	5 6     LEFT
+	6 6 1 1 LEFT
+	6 6 x x LEFT
+	2 2 x x RIGHT
+	6 2     RIGHT
+	2 7     LEFT
+	7 7 x 1 LEFT
+	7 8     LEFT
+	8 8 1 1 LEFT
+	8 0 x x RIGHT
+	0 9     RIGHT
+	9 9 1 1 RIGHT
+	9 10     RIGHT
+
+// Tape format: tapeChar(0) tapeChar(1) ... tapeChar(n)
+TAPE:
+	11
+	xxxxxx 111 111111111111111111
+// Comment format: text:x:y
+COMMENTS:
+// Comments End
+// Comment box format: x:y:width:height:color
+COMMENT BOXES:
+// Comment Box End
+
+Start Triangle Position:0
