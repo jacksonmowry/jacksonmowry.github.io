@@ -1,0 +1,329 @@
+module network
+
+import datatypes
+import arrays
+
+pub struct Synapse {
+pub:
+	value int
+	delay u32
+	from  u32
+}
+
+pub struct Neuron {
+pub:
+	threshold int
+pub mut:
+	pre_synapses []Synapse
+	charges      []int @[skip] // Do not JSON encode/decode this field
+	fired        bool  @[skip]
+}
+
+fn (mut n Neuron) charge_to_threshold(pos int) {
+	n.charges[pos] = n.threshold
+	n.fired = true
+}
+
+fn (n Neuron) spiked(current_timestep int) bool {
+	return n.fired
+}
+
+pub fn (mut n Neuron) add_synapse(s Synapse) {
+	n.pre_synapses << s
+}
+
+pub enum InputType {
+	buckets
+	timescale
+	pwm
+	spike
+}
+
+pub struct Input_Unit {
+pub:
+	min_value  int
+	max_value  int
+	input_type InputType
+	input_prop int
+pub mut:
+	neurons []int
+}
+
+pub enum OutputType {
+	largest_count
+	last_to_spike
+	spike
+}
+
+pub struct Output_Unit {
+pub:
+	output_neurons u32
+	output_type    OutputType
+	neurons        []int
+pub mut:
+	firing_tracker []int @[skip]
+}
+
+pub struct Network {
+pub:
+	min_synapse_value   int
+	max_synapse_value   int
+	min_threshold_value int
+	max_threshold_value int
+	max_synapse_count   u32
+	max_neuron_count    u32
+	max_delay           u32
+	end_to_end_time     u32
+pub mut:
+	input_domain     []Input_Unit
+	output_range     []Output_Unit
+	neurons          []Neuron
+	current_timestep u32 @[skip]
+}
+
+pub fn (mut n Network) add_neuron(neuron Neuron) {
+	n.neurons << neuron
+}
+
+pub fn (mut n Network) spikes_snapshot() []bool {
+	return n.neurons.map(it.spiked(n.modded_timestep()))
+}
+
+fn (n Network) modded_timestep() u32 {
+	return n.current_timestep % (n.max_delay + 1)
+}
+
+fn (mut n Network) bucket_input(input_value int, input_device Input_Unit) {
+	bucket := (input_value - input_device.min_value) / ((
+		input_device.max_value - input_device.min_value + 1) / input_device.input_prop)
+	println('Spiking into bucket ${bucket}')
+	n.neurons[input_device.neurons[bucket]].charge_to_threshold(n.modded_timestep())
+}
+
+fn (mut n Network) timescale_input(input_value int, input_device Input_Unit) {
+	normalize := input_value / ((input_device.max_value - input_device.min_value) / input_device.input_prop)
+	for i in 0 .. normalize {
+		n.neurons[input_device.neurons[0]].charge_to_threshold((n.modded_timestep() + i) % n.max_delay)
+	}
+}
+
+fn (mut n Network) pwm_input(input_value int, input_device Input_Unit) {
+	step := (input_device.max_value - input_device.min_value) / input_value
+	for i := 0; i < input_device.input_prop; i += step {
+		n.neurons[input_device.neurons[0]].charge_to_threshold((n.modded_timestep() + i) % n.max_delay)
+	}
+}
+
+fn (mut n Network) spike_input(input_value int, input_device Input_Unit) {
+	if input_value != 0 {
+		n.neurons[input_device.neurons[0]].charge_to_threshold(n.modded_timestep())
+	}
+}
+
+pub fn (mut n Network) input(input_values []int) ! {
+	if input_values.len == 0 {
+		return
+	}
+
+	if input_values.len != n.input_domain.len {
+		return error('Network.input: given too many values, expected ${n.input_domain.len}, received ${input_values.len}')
+	}
+	for i, input_value in input_values {
+		if n.input_domain[i].input_type != .spike {
+			if input_value < n.input_domain[i].min_value {
+				return error('Network.input: attempting to apply value that it too low for input_domain[${i}], ${input_value} < min (${n.input_domain[i].min_value})')
+			}
+			if input_value > n.input_domain[i].max_value {
+				return error('Network.input: attempting to apply value that it too high for input_domain[${i}], ${input_value} > max (${n.input_domain[i].max_value})')
+			}
+		}
+
+		match n.input_domain[i].input_type {
+			.buckets { n.bucket_input(input_value, n.input_domain[i]) }
+			.timescale { n.timescale_input(input_value, n.input_domain[i]) }
+			.pwm { n.pwm_input(input_value, n.input_domain[i]) }
+			.spike { n.spike_input(input_value, n.input_domain[i]) }
+		}
+	}
+}
+
+pub fn (mut n Network) output() ! {
+	for mut output_device in n.output_range {
+		for j, neuron in output_device.neurons {
+			if n.neurons[neuron].charges[n.current_timestep] > n.neurons[neuron].threshold {
+				match output_device.output_type {
+					.largest_count {
+						output_device.firing_tracker[j]++
+					}
+					.last_to_spike {
+						output_device.firing_tracker[0] = j
+					}
+					.spike {
+						output_device.firing_tracker[0] = 0
+					}
+				}
+			}
+		}
+	}
+}
+
+pub fn (mut n Network) initialize() ! {
+	// Init neurons
+	for mut neuron in n.neurons {
+		for _ in 0 .. n.max_delay + 1 {
+			neuron.charges << 0
+		}
+	}
+
+	// Init output devices
+	for mut output_device in n.output_range {
+		match output_device.output_type {
+			.largest_count {
+				for _ in 0 .. output_device.neurons.len {
+					output_device.firing_tracker << 0
+				}
+			}
+			.last_to_spike {
+				output_device.firing_tracker << -1
+			}
+			.spike {
+				output_device.firing_tracker << 0
+			}
+		}
+	}
+}
+
+pub fn (mut n Network) run() ! {
+	for mut neuron in n.neurons {
+		neuron.fired = false
+	}
+
+	for mut neuron in n.neurons {
+		if neuron.charges[n.modded_timestep()] >= neuron.threshold {
+			neuron.fired = true
+		}
+
+		for synapse in neuron.pre_synapses {
+			if n.neurons[synapse.from].charges[n.modded_timestep()] >= n.neurons[synapse.from].threshold {
+				neuron.charges[(n.modded_timestep() + synapse.delay) % (n.max_delay + 1)] += synapse.value
+			}
+		}
+	}
+
+	for mut neuron in n.neurons {
+		neuron.charges[n.modded_timestep()] = 0
+	}
+}
+
+pub fn (n Network) verify_graph() ! {
+	// Check min/max are in the correct order
+	if n.min_synapse_value > n.max_synapse_value {
+		return error('min_synapse_value is greater and max_synapse_value, ${n.min_synapse_value} > ${n.max_synapse_value}')
+	}
+	if n.min_threshold_value > n.max_threshold_value {
+		return error('min_threshold_value is greater and max_threshold_value, ${n.min_threshold_value} > ${n.max_threshold_value}')
+	}
+
+	if n.max_synapse_count == 0 {
+		return error('max_synapse_count is 0')
+	}
+
+	if n.max_neuron_count == 0 {
+		return error('max_neuron_count is 0')
+	}
+
+	if n.end_to_end_time < n.max_delay {
+		return error('end_to_end_time is less than the networks max_delay, ${n.end_to_end_time} < ${n.max_delay}')
+	}
+
+	// Sanity check each neuron and it's pre-synapses
+	for i, neuron in n.neurons {
+		if neuron.threshold > n.max_threshold_value || neuron.threshold < n.min_threshold_value {
+			return error('Neuron ${i} threshold out of range should be between ${n.min_threshold_value} and ${n.max_threshold_value}, is ${neuron.threshold}')
+		}
+
+		for j, synapse in neuron.pre_synapses {
+			if synapse.value > n.max_synapse_value || synapse.value < n.min_synapse_value {
+				return error('Synapse ${j} on neuron ${i} value out of range should be between ${n.min_synapse_value} and ${n.max_synapse_value}, is ${synapse.value}')
+			}
+			if synapse.delay > n.max_delay {
+				return error('Synapse ${j} on neuron ${i} delay out of should be less or equal to ${n.max_delay}, is ${synapse.delay}')
+			}
+			if synapse.from > n.neurons.len - 1 {
+				return error('Synapse ${j} on neuron ${i} out of range ${n.neurons.len} exist in the network, yet synapse is referencing ${synapse.from}')
+			}
+		}
+	}
+
+	if n.input_domain.len == 0 {
+		return error('Networks set of inputs is empty')
+	}
+
+	if n.output_range.len == 0 {
+		return error('Networks set of outputs is empty')
+	}
+
+	// Check if individual input devices overlap
+	all_input_neurons := arrays.flatten(n.input_domain.map(it.neurons))
+	if all_input_neurons != arrays.distinct(all_input_neurons) {
+		return error('Input domain devices contain overlapping neurons: ${n.input_domain.map(it.neurons)}')
+	}
+	// Check if individual output devices overlap
+	all_output_neurons := arrays.flatten(n.output_range.map(it.neurons))
+	if all_output_neurons != arrays.distinct(all_output_neurons) {
+		return error('Output range devices contain overlapping neurons: ${n.output_range.map(it.neurons)}')
+	}
+
+	// Check if inputs/output overlap
+	mut input_set := datatypes.Set[int]{}
+	input_set.add_all(arrays.flatten(n.input_domain.map(it.neurons)))
+	mut output_set := datatypes.Set[int]{}
+	output_set.add_all(arrays.flatten(n.output_range.map(it.neurons)))
+
+	intersection_set := input_set.intersection(output_set)
+
+	if intersection_set.size() != 0 {
+		return error('Inputs and Outputs overlap, ${intersection_set.elements.keys()}')
+	}
+
+	mut needed_input_neurons := 0
+	for i, input_device in n.input_domain {
+		if input_device.min_value > input_device.max_value {
+			return error('Element ${i} in input_domain has a min_value greater than its max_value, ${input_device.min_value} > ${input_device.max_value}')
+		}
+		if input_device.input_type == .buckets {
+			if input_device.input_prop == 0 {
+				return error('Element ${i} in input_domain has a bucket count of 0')
+			}
+			if input_device.input_prop != (input_device.max_value - input_device.min_value + 1) {
+				return error('Element ${i} in input_domain has more buckets than its specified range allows, ${input_device.input_prop} buckets with a range of ${
+					input_device.max_value - input_device.min_value + 1}')
+			}
+			needed_input_neurons += input_device.input_prop
+		} else {
+			if input_device.input_prop == 0 {
+				return error('Element ${i} in input_domain has a timescale value of 0')
+			}
+			if input_device.input_prop > n.max_delay {
+				return error('Element ${i} in input_domain has a timescale value greater than the max delay, ${input_device.input_prop} > ${n.max_delay}')
+			}
+			needed_input_neurons++
+		}
+	}
+
+	if needed_input_neurons != input_set.size() {
+		return error('Mismatched size of inputs and input_domain, inputs=${input_set.size()} and input_domain=${needed_input_neurons}')
+	}
+
+	mut needed_output_neurons := 0
+	for i, output_device in n.output_range {
+		if output_device.output_neurons == 0 {
+			return error('Element ${i} in output_range has a output_neurons count of 0')
+		}
+		needed_output_neurons += output_device.output_neurons
+	}
+
+	if needed_output_neurons != output_set.size() {
+		return error('Mismatched size of outputs and output_range, outputs=${output_set.size()} and output_range=${needed_output_neurons}')
+	}
+}

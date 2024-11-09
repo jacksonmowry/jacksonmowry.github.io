@@ -1,0 +1,90 @@
+{
+  "min_synapse_value": -1,
+  "max_synapse_value": 2,
+  "min_threshold_value": -1,
+  "max_threshold_value": 1,
+  "max_synapse_count": 5,
+  "max_neuron_count": 5,
+  "max_delay": 1,
+  "end_to_end_time": 3,
+
+  "input_domain": [
+    {
+      "min_value": 1,
+      "max_value": 1,
+      "input_type": "spike",
+      "input_prop": 1,
+      "neurons": [0]
+    },
+    {
+      "min_value": 1,
+      "max_value": 1,
+      "input_type": "spike",
+      "input_prop": 1,
+      "neurons": [1]
+    }
+  ],
+  "output_range": [
+    {
+      "output_neurons": 1,
+      "output_type": "spike",
+      "neurons": [4]
+    }
+  ],
+
+  "neurons": [
+    {
+      "threshold": 1,
+      "pre_synapses": []
+    },
+    {
+      "threshold": 1,
+      "pre_synapses": []
+    },
+    {
+      "threshold": 1,
+      "pre_synapses": [
+        {
+          "value": 1,
+          "delay": 1,
+          "from": 0
+        },
+        {
+          "value": -1,
+          "delay": 1,
+          "from": 1
+        }
+      ]
+    },
+    {
+      "threshold": 1,
+      "pre_synapses": [
+        {
+          "value": 1,
+          "delay": 1,
+          "from": 1
+        },
+        {
+          "value": -1,
+          "delay": 1,
+          "from": 0
+        }
+      ]
+    },
+    {
+      "threshold": 1,
+      "pre_synapses": [
+        {
+          "value": 2,
+          "delay": 1,
+          "from": 2
+        },
+        {
+          "value": 1,
+          "delay": 1,
+          "from": 3
+        }
+      ]
+    }
+  ]
+}
