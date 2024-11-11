@@ -1,0 +1,23 @@
+{
+  "input_dimension": 2,
+  "output_dimension": 1,
+  "expected_outputs": [["BL", "BR", "TL", "TR"]],
+  "data": [
+    {
+      "input": [-1, -1],
+      "output": ["BL"]
+    },
+    {
+      "input": [-1, 1],
+      "output": ["TL"]
+    },
+    {
+      "input": [1, -1],
+      "output": ["BR"]
+    },
+    {
+      "input": [1, 1],
+      "output": ["TR"]
+    }
+  ]
+}

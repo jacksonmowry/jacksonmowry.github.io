@@ -6,6 +6,7 @@ import cli
 import viz
 import network
 import strconv
+import dataset
 
 fn main() {
 	mut app := cli.Command{
@@ -49,6 +50,50 @@ fn main() {
 
 	app.add_command(run_cmd)
 
+	mut train_classification_cmd := cli.Command{
+		name:          'train_classification'
+		description:   'Train a network based upon a given dataset'
+		usage:         '<dataset json>'
+		required_args: 0
+		execute:       train_classification_func
+	}
+
+	train_classification_cmd.add_flag(cli.Flag{
+		flag:        .string
+		required:    true
+		name:        'dataset'
+		abbrev:      'd'
+		description: 'Dataset json file'
+	})
+
+	app.add_command(train_classification_cmd)
+
+	mut test_classification_cmd := cli.Command{
+		name:          'test_classification'
+		description:   'Test a network based upon a given dataset'
+		usage:         '<dataset json>'
+		required_args: 0
+		execute:       test_classification_func
+	}
+
+	test_classification_cmd.add_flag(cli.Flag{
+		flag:        .string
+		required:    true
+		name:        'network'
+		abbrev:      'n'
+		description: 'Network json file'
+	})
+
+	test_classification_cmd.add_flag(cli.Flag{
+		flag:        .string
+		required:    true
+		name:        'dataset'
+		abbrev:      'd'
+		description: 'Dataset json file'
+	})
+
+	app.add_command(test_classification_cmd)
+
 	app.setup()
 	app.parse(os.args)
 }
@@ -87,10 +132,14 @@ fn visualize_func(cmd cli.Command) ! {
 fn run_func(cmd cli.Command) ! {
 	filename := cmd.flags.get_string('json') or { panic('Failed to get network json file: ${err}') }
 
-	network_json := os.read_file(filename) or { panic('Failed to read_file ${filename}, ${err}') }
+	network_json := os.read_file(filename) or {
+		eprintln('Failed to read_file ${filename}, ${err}')
+		exit(1)
+	}
 
 	mut n := json.decode(network.Network, network_json) or {
-		panic('Failed to decode json for ${filename}, ${err}')
+		eprintln('Failed to decode json for ${filename}, ${err}')
+		exit(1)
 	}
 
 	n.verify_graph() or {
@@ -104,7 +153,7 @@ fn run_func(cmd cli.Command) ! {
 	}
 
 	main_loop: for {
-		input_line := os.input('Inputs (${n.input_domain.len}): ')
+		input_line := os.input('Inputs  (${n.input_domain.len}): ')
 		if input_line == '<EOF>' {
 			println('\n\nGoodbye!')
 			exit(0)
@@ -129,13 +178,109 @@ fn run_func(cmd cli.Command) ! {
 			continue
 		}
 
-		n.run() or {
-			eprintln(err.msg())
-			exit(1)
+		for _ in 0 .. n.end_to_end_time {
+			n.run() or {
+				eprintln(err.msg())
+				exit(1)
+			}
+			n.current_timestep++
+			n.output()!
 		}
 
-		// println(n)
-		println(n.spikes_snapshot())
-		n.current_timestep++
+		println('Outputs (${n.output_range.len}): ${n.format_output()!}')
+		n.reset_output()
 	}
+}
+
+fn train_classification_func(cmd cli.Command) ! {
+	filename := cmd.flags.get_string('dataset') or {
+		panic('Failed to get dataset json file: ${err}')
+	}
+
+	dataset_json := os.read_file(filename) or {
+		eprintln('Failed to read_file ${filename}, ${err}')
+		exit(1)
+	}
+
+	mut d := json.decode(dataset.Dataset, dataset_json) or {
+		eprintln('Failed to decode json for ${filename}, ${err}')
+		exit(1)
+	}
+
+	d.validate_dataset()!
+
+	initial_network := d.create_skeleton_network()!
+	initial_network.verify_graph()!
+	println(initial_network)
+}
+
+fn test_classification_func(cmd cli.Command) ! {
+	filename := cmd.flags.get_string('dataset') or {
+		panic('Failed to get dataset json file: ${err}')
+	}
+
+	dataset_json := os.read_file(filename) or {
+		eprintln('Failed to read_file ${filename}, ${err}')
+		exit(1)
+	}
+
+	mut d := json.decode(dataset.Dataset, dataset_json) or {
+		eprintln('Failed to decode json for ${filename}, ${err}')
+		exit(1)
+	}
+
+	d.validate_dataset()!
+
+	network_filename := cmd.flags.get_string('network') or {
+		panic('Failed to get network json file: ${err}')
+	}
+
+	network_json := os.read_file(network_filename) or {
+		eprintln('Failed to read_file ${filename}, ${err}')
+		exit(1)
+	}
+
+	mut n := json.decode(network.Network, network_json) or {
+		eprintln('Failed to decode json for ${filename}, ${err}')
+		exit(1)
+	}
+
+	n.verify_graph() or {
+		eprintln(err)
+		exit(1)
+	}
+
+	n.initialize() or {
+		eprintln(err)
+		exit(1)
+	}
+
+	mut correct_runs := 0
+	main_loop: for data in d.data {
+		if data.input.len != n.input_domain.len && data.input.len != 0 {
+			eprintln('Mismatched number of inputs, expected ${n.input_domain.len} got ${data.input.len}')
+			continue
+		}
+
+		n.input(data.input) or {
+			eprintln(err.msg())
+			continue
+		}
+
+		for _ in 0 .. n.end_to_end_time {
+			n.run() or {
+				eprintln(err.msg())
+				exit(1)
+			}
+			n.current_timestep++
+			n.output()!
+		}
+
+		if n.format_output()! == data.output {
+			correct_runs++
+		}
+		n.reset_output()
+	}
+
+	println('Network passed ${correct_runs}/${d.data.len} tests')
 }

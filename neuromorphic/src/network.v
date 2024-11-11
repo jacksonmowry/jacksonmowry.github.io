@@ -16,16 +16,14 @@ pub:
 pub mut:
 	pre_synapses []Synapse
 	charges      []int @[skip] // Do not JSON encode/decode this field
-	fired        bool  @[skip]
 }
 
 fn (mut n Neuron) charge_to_threshold(pos int) {
 	n.charges[pos] = n.threshold
-	n.fired = true
 }
 
 fn (n Neuron) spiked(current_timestep int) bool {
-	return n.fired
+	return n.charges[current_timestep] >= n.threshold
 }
 
 pub fn (mut n Neuron) add_synapse(s Synapse) {
@@ -59,21 +57,22 @@ pub struct Output_Unit {
 pub:
 	output_neurons u32
 	output_type    OutputType
-	neurons        []int
+	neuron_names   ?[]string @[optional]
 pub mut:
+	neurons        []int
 	firing_tracker []int @[skip]
 }
 
 pub struct Network {
 pub:
-	min_synapse_value   int
-	max_synapse_value   int
-	min_threshold_value int
-	max_threshold_value int
-	max_synapse_count   u32
-	max_neuron_count    u32
-	max_delay           u32
-	end_to_end_time     u32
+	min_synapse_value   int = -10
+	max_synapse_value   int = 10
+	min_threshold_value int = -10
+	max_threshold_value int = 10
+	max_synapse_count   u32 = 100
+	max_neuron_count    u32 = 100
+	max_delay           u32 = 5
+	end_to_end_time     u32 = 50
 pub mut:
 	input_domain     []Input_Unit
 	output_range     []Output_Unit
@@ -86,7 +85,7 @@ pub fn (mut n Network) add_neuron(neuron Neuron) {
 }
 
 pub fn (mut n Network) spikes_snapshot() []bool {
-	return n.neurons.map(it.spiked(n.modded_timestep()))
+	return n.neurons.map(it.charges[n.modded_timestep()] >= it.threshold)
 }
 
 fn (n Network) modded_timestep() u32 {
@@ -96,7 +95,6 @@ fn (n Network) modded_timestep() u32 {
 fn (mut n Network) bucket_input(input_value int, input_device Input_Unit) {
 	bucket := (input_value - input_device.min_value) / ((
 		input_device.max_value - input_device.min_value + 1) / input_device.input_prop)
-	println('Spiking into bucket ${bucket}')
 	n.neurons[input_device.neurons[bucket]].charge_to_threshold(n.modded_timestep())
 }
 
@@ -150,7 +148,7 @@ pub fn (mut n Network) input(input_values []int) ! {
 pub fn (mut n Network) output() ! {
 	for mut output_device in n.output_range {
 		for j, neuron in output_device.neurons {
-			if n.neurons[neuron].charges[n.current_timestep] > n.neurons[neuron].threshold {
+			if n.neurons[neuron].charges[n.modded_timestep()] >= n.neurons[neuron].threshold {
 				match output_device.output_type {
 					.largest_count {
 						output_device.firing_tracker[j]++
@@ -159,9 +157,65 @@ pub fn (mut n Network) output() ! {
 						output_device.firing_tracker[0] = j
 					}
 					.spike {
-						output_device.firing_tracker[0] = 0
+						output_device.firing_tracker[0] = 1
 					}
 				}
+			} else {
+				if output_device.output_type == .spike {
+					output_device.firing_tracker[0] = 0
+				}
+			}
+		}
+	}
+}
+
+pub fn (n Network) format_output() ![]string {
+	return n.output_range.map(fn (output_device Output_Unit) string {
+		match output_device.output_type {
+			.largest_count {
+				if output_device.neuron_names != none {
+					return output_device.neuron_names?[arrays.idx_max(output_device.firing_tracker) or {
+						0
+					}]
+				} else {
+					return output_device.neurons[arrays.idx_max(output_device.firing_tracker) or {
+						0
+					}].str()
+				}
+			}
+			.last_to_spike {
+				if output_device.neuron_names != none {
+					return output_device.neuron_names?[output_device.firing_tracker[0]]
+				} else {
+					return output_device.neurons[output_device.firing_tracker[0]].str()
+				}
+			}
+			.spike {
+				if output_device.firing_tracker[0] != 0 {
+					if output_device.neuron_names != none {
+						return output_device.neuron_names?[0]
+					} else {
+						return '1'
+					}
+				}
+			}
+		}
+	}).filter(it != '')
+}
+
+pub fn (mut n Network) reset_output() {
+	for mut output_device in n.output_range {
+		match output_device.output_type {
+			.largest_count {
+				for i in 0 .. output_device.neurons.len {
+					output_device.firing_tracker[i] = 0
+				}
+			}
+			.last_to_spike {
+				output_device.firing_tracker[0] = -1
+			}
+			.spike {
+				output_device.firing_tracker[0] = 0
 			}
 		}
 	}
@@ -195,14 +249,6 @@ pub fn (mut n Network) initialize() ! {
 
 pub fn (mut n Network) run() ! {
 	for mut neuron in n.neurons {
-		neuron.fired = false
-	}
-
-	for mut neuron in n.neurons {
-		if neuron.charges[n.modded_timestep()] >= neuron.threshold {
-			neuron.fired = true
-		}
-
 		for synapse in neuron.pre_synapses {
 			if n.neurons[synapse.from].charges[n.modded_timestep()] >= n.neurons[synapse.from].threshold {
 				neuron.charges[(n.modded_timestep() + synapse.delay) % (n.max_delay + 1)] += synapse.value
@@ -265,7 +311,7 @@ pub fn (n Network) verify_graph() ! {
 
 	// Check if individual input devices overlap
 	all_input_neurons := arrays.flatten(n.input_domain.map(it.neurons))
-	if all_input_neurons != arrays.distinct(all_input_neurons) {
+	if all_input_neurons.sorted() != arrays.distinct(all_input_neurons) {
 		return error('Input domain devices contain overlapping neurons: ${n.input_domain.map(it.neurons)}')
 	}
 	// Check if individual output devices overlap
