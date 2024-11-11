@@ -212,6 +212,22 @@ fn train_classification_func(cmd cli.Command) ! {
 	initial_network := d.create_skeleton_network()!
 	initial_network.verify_graph()!
 	println(initial_network)
+
+	mut graph := viz.new('n_viz', 'Network', 'blue')
+	for i, neuron in initial_network.neurons {
+		graph.new_node('${i} (${neuron.threshold})', '${i}')
+	}
+
+	for i, neuron in initial_network.neurons {
+		for s in neuron.pre_synapses {
+			graph.new_edge('${s.from}', '${i}')
+		}
+	}
+
+	sixel_graph := os.system("echo 'digraph G {\n${graph.sb.str()}}\n}'| dot -Tpng | img2sixel")
+	if sixel_graph != 0 {
+		panic('Viz not supported on this platform, please try installing `graphviz (dot)` and `img2sixel`')
+	}
 }
 
 fn test_classification_func(cmd cli.Command) ! {
