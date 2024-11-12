@@ -1076,3 +1076,299 @@ int main() {
     atexit(cleanup);
 }
 #+end_src
+
+* Reentrant
+Can be interrupted without side effects
+
+* Timing
+#+begin_src C
+#include <time.h>
+time_t time(time_t *tloc)
+
+struct tm {
+    int tm_sec;
+    int tm_min;
+    int tm_hour;
+    int tm_mday;
+    int tm_mon;
+    int tm_year;
+    int tm_wday;
+    int tm_yday;
+    int tm_isdst;
+};
+
+struct tm* gmtime(const time_t *timep);
+struct tm* gmtime_r(const time_t *timep, struct tm* result);
+
+struct tm* localtime(const time_t *timep);
+struct tm* localtime_r(const time_t *timep, struct tm* result);
+
+time_t mktime(struct tm* tm);
+#+end_src
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <time.h>
+int main() {
+    struct tm mytime;
+    time_t t;
+
+    t = time(NULL);
+    printf("%lu\n", t);
+
+    localtime_r(&t, &mytime);
+    printf("%d-%d-%d\n", 1+mytime.tm_mon, mytime.tm_mday, 1900 + mytime.tm_year);
+
+    mytime.tm_year = 1970 - 1900;
+    mytime.tm_mon = 0;
+    mytime.tm_mday = 1;
+
+    printf("%lu\n", mktime(&mytime));
+}
+#+end_src
+
+#+RESULTS:
+: 1730476295
+: 11-1-2024
+: 57095
+
+#+begin_src C
+#include <time.h>
+
+struct tm tmr;
+
+#+end_src
+
+#+begin_src C
+#include <time.h>
+char* asctime(const struct tm* tm);
+char* asctime_r(const struct tm* tm, char* buf);
+
+char* ctime(const time_t* timep);
+char* ctime_r(const struct time_t* timep, char* buf);
+#+end_src
+
+#+begin_src C :results verbatim
+#include <stdio.h>
+#include <time.h>
+
+int main() {
+    struct tm mytime;
+    time_t t;
+    char buf[26];
+
+    t = time(NULL);
+    localtime_r(&t, &mytime);
+
+    asctime_r(&mytime, buf);
+    printf(buf);
+
+    ctime_r(&t, buf);
+    printf(buf);
+}
+#+end_src
+
+#+RESULTS:
+: Fri Nov  1 12:13:34 2024
+: Fri Nov  1 12:13:34 2024
+
+** strftime
+| Specifier | Description  |
+|-----------+--------------|
+| %H        | 24 Hour      |
+| %l        | 12 Hour      |
+| %M        | minutes      |
+| %S        | seconds      |
+| %P        | AMPM         |
+| %p        | ampm         |
+| %d        | day of month |
+| %m        | month        |
+| %y        | 2 digit year |
+|           |              |
+
+#+begin_src C
+#include <time.h>
+#include <stdio.h>
+
+/* size_t strftime(char s[restrict .max], size_t max, */
+/*                 const char* restrict format, */
+/*                 const struct tm* restrict tm); */
+
+int main() {
+    struct tm mytime;
+    time_t current;
+
+    current = time(NULL);
+
+    localtime_r(&current,&mytime);
+    char output[32];
+    strftime(output, 32, "%H %l %d", &mytime);
+
+    printf("%s\n", output);
+}
+#+end_src
+
+#+RESULTS:
+: 11 11 04
+
+* Clock
+#+begin_src C :results verbatim
+#include <time.h>
+#include <stdio.h>
+
+/* clock_t clock(void); */
+
+clock_t st;
+clock_t ed;
+
+st = clock();
+for (volatile long i = 0; i < 999000000L; i++);
+ed = clock();
+
+printf("1 mil for loop took %f ticks.\n", (float)(ed-st)/CLOCKS_PER_SEC);
+printf("%lu\n", CLOCKS_PER_SEC);
+#+end_src
+
+#+RESULTS:
+: 1 mil for loop took 2.772897 ticks.
+: 1000000
+
+* Higher-Res Process Times
+#+begin_src C
+#include <sys/times.h>
+
+struct tms {
+    clock_t tms_utime; // user time
+    clock_t tms_stime; // system time
+    clock_t tms_cutime; // child user time
+    clock_t tms_cstime; // child system time
+};
+
+clock_t times(struct tms* buf)
+#+end_src
+Calculates BogoMIPS
+#+begin_src C
+#include <sys/times.h>
+#include <time.h>
+
+
+#+end_src
+
+#+begin_src C
+#include <sys/times.h>
+
+int getitimer(int which, struct itimerval* value);
+
+int setitimer(int which, const struct itimerval* restrict value,
+              struct itimerval* restrict ovalue);
+
+strutstruct itimerval {
+    struct timerval it_interval; // periodic interval
+    struct timeval it_value; // time to count down from
+}
+#+end_src
+
+* DSOs
+#+begin_src C
+void* dlsym(void* handle, const char* sym_name);
+#+end_src
+- Load a specific symbol by name
+  - Returns a void*
+- Returns NULL if the symbol can't be found
+
+#+begin_src C
+void dlclose(void* handle);
+#+end_src
+
+- Close the DSO
+  - Dose NOT necessarily remove all loaded symbols;
+
+#+begin_src C
+char* dlerror(void);
+#+end_src
+
+- Returns an error message based on the last dl function called
+
+#+begin_src C
+#include <stdio.h>
+
+int funky_func(int i, int j, int k) {
+    printf("%d %d %d\n", i, j, k);
+    return i * j + k;
+}
+
+int (*myfunctorun)(int i, int j, int k) = funky_func;
+#+end_src
+gcc -shared -o libmylib.so <above.c>
+gcc mymain.c -ldl
+
+#+begin_src C
+#include <dlfcn.h>
+#include <stdio.h>
+
+int main() {
+    int (*funky)(int i, int j, int k);
+    void* handle;
+
+    handle = dlopen("./libmylib.so", RTLD_LAZY);
+    if (!handle) {
+        printf("%s\n", dlerror());
+        return -1;
+    }
+
+    funky = dlsym(handle, "myfunctorun");
+    if (!funky) {
+        printf("%s\n", dlerror());
+        return -1;
+    }
+
+    int ret = funky(10, 20, 30);
+
+    printf("Funk returned %d\n", ret);
+
+    printf("funky is at: %p\n", funky);
+
+    dlclose(handle);
+}
+#+end_src
+
+* Sockets
+#+begin_src C
+#include <sys/socket.h>
+int socket(int af, int type, int protocol);
+#+end_src
+
+** af
+- AF_UNIX
+  - Essentially a named pipe
+- AF_INET
+- AF_INET6
+** type
+- sock_stream
+- sock_dgram
+** protocol
+- 0, let the OS figure it out
+  - If we choose stream it will choose tcp
+  - If we choose dgram it will choose udp
+
+#+begin_src C
+#include <stdio.h>
+#include <sys/socket.h>
+
+int main() {
+    int socket = socket(AF_UNIX, )
+}
+#+end_src
+
+** Steps
+*** Server
+1. Create socket
+2. Binding
+   - TCP/UDP Port
+   - UNIX filename
+3. Set socket into listen mode
+4. Accept
+*** Client
+1. Create a =socket()=
+2. Make a connection =connect()=
+3. close
