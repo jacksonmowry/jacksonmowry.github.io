@@ -2,6 +2,7 @@ module network
 
 import datatypes
 import arrays
+import maps
 
 pub struct Synapse {
 pub:
@@ -84,8 +85,10 @@ pub mut:
 // 	n.neurons << neuron
 // }
 
-pub fn (mut n Network) spikes_snapshot() []bool {
-	return n.neurons.map(it.charges[n.modded_timestep()] >= it.threshold)
+pub fn (mut n Network) spikes_snapshot() []string {
+	return maps.filter(n.neurons, fn [n] (k string, v Neuron) bool {
+		return v.charges[n.modded_timestep()] >= v.threshold
+	}).keys()
 }
 
 fn (n Network) modded_timestep() u32 {
@@ -223,7 +226,7 @@ pub fn (mut n Network) reset_output() {
 
 pub fn (mut n Network) initialize() ! {
 	// Init neurons
-	for mut neuron in n.neurons {
+	for _, mut neuron in n.neurons {
 		for _ in 0 .. n.max_delay + 1 {
 			neuron.charges << 0
 		}
@@ -248,7 +251,7 @@ pub fn (mut n Network) initialize() ! {
 }
 
 pub fn (mut n Network) run() ! {
-	for mut neuron in n.neurons {
+	for _, mut neuron in n.neurons {
 		for synapse in neuron.pre_synapses {
 			if n.neurons[synapse.from].charges[n.modded_timestep()] >= n.neurons[synapse.from].threshold {
 				neuron.charges[(n.modded_timestep() + synapse.delay) % (n.max_delay + 1)] += synapse.value
@@ -256,7 +259,7 @@ pub fn (mut n Network) run() ! {
 		}
 	}
 
-	for mut neuron in n.neurons {
+	for _, mut neuron in n.neurons {
 		neuron.charges[n.modded_timestep()] = 0
 	}
 }
@@ -295,7 +298,7 @@ pub fn (n Network) verify_graph() ! {
 			if synapse.delay > n.max_delay {
 				return error('Synapse ${j} on neuron ${i} delay out of should be less or equal to ${n.max_delay}, is ${synapse.delay}')
 			}
-			if synapse.from > n.neurons.len - 1 {
+			if synapse.from !in n.neurons {
 				return error('Synapse ${j} on neuron ${i} out of range ${n.neurons.len} exist in the network, yet synapse is referencing ${synapse.from}')
 			}
 		}
@@ -321,9 +324,9 @@ pub fn (n Network) verify_graph() ! {
 	}
 
 	// Check if inputs/output overlap
-	mut input_set := datatypes.Set[int]{}
+	mut input_set := datatypes.Set[string]{}
 	input_set.add_all(arrays.flatten(n.input_domain.map(it.neurons)))
-	mut output_set := datatypes.Set[int]{}
+	mut output_set := datatypes.Set[string]{}
 	output_set.add_all(arrays.flatten(n.output_range.map(it.neurons)))
 
 	intersection_set := input_set.intersection(output_set)

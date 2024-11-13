@@ -46,7 +46,7 @@ pub fn (d Dataset) create_skeleton_network() !network.Network {
 			input_prop: (max - min) + 1
 		}
 		for _ in 0 .. (max - min) + 1 {
-			input_devices.last().neurons << neuron_count++
+			input_devices.last().neurons << '${neuron_count++}'
 		}
 	}
 
@@ -59,7 +59,7 @@ pub fn (d Dataset) create_skeleton_network() !network.Network {
 		}
 
 		for _ in 0 .. d.expected_outputs[i].len {
-			output_devices.last().neurons << neuron_count++
+			output_devices.last().neurons << '${neuron_count++}'
 		}
 	}
 
