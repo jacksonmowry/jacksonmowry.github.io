@@ -1,3 +1,7 @@
+// Jackson Mowry
+// Tue Nov 12 19:23:50 2024
+// sandbox shell lab with resource limits, and no piping :(
+
 #include <ctype.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -7,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -17,9 +20,11 @@ typedef struct node {
     struct node* next;
 } node;
 
+// A single list to rule them all
 static node* head = NULL;
 static size_t num_jobs = 0;
 
+// Adds a job node to the list
 static void add_pid(pid_t new_pid, char* command) {
     if (!head) {
         head = calloc(1, sizeof(node));
@@ -39,12 +44,13 @@ static void add_pid(pid_t new_pid, char* command) {
         exit(1);
     }
     new_node->pid = new_pid;
-    head->command = command;
+    new_node->command = command;
     new_node->next = head;
     head = new_node;
     num_jobs++;
 }
 
+// Removes a job node from the list
 static void remove_pid(pid_t pid) {
     if (!head) {
         return;
@@ -76,6 +82,7 @@ static void remove_pid(pid_t pid) {
     }
 }
 
+// Calls waitpid with WNOHANG on each pid, removing it if it has died
 static void reap_jobs(void) {
     node* cursor = head;
 
@@ -92,9 +99,11 @@ static void reap_jobs(void) {
     }
 }
 
+// I just wanted this to look like a function and Marz said no exit(0) call
 #define shell_exit() return 0;
 
-bool shell_cd(const char* new_dir) {
+// Changes the current directory, it handles it's own errors
+static bool shell_cd(const char* new_dir) {
     if (!new_dir || (strlen(new_dir) == 1 && new_dir[0] == '~')) {
         new_dir = getenv("HOME");
     }
@@ -108,7 +117,8 @@ bool shell_cd(const char* new_dir) {
     return true;
 }
 
-void shell_jobs(void) {
+// Prints all current jobs
+static void shell_jobs(void) {
     node* cursor = head;
 
     printf("%zu jobs.\n", num_jobs);
@@ -118,9 +128,10 @@ void shell_jobs(void) {
     }
 }
 
-const char* builtins[] = {"exit", "cd", "jobs"};
-const size_t num_builtins = 3;
+static const char* builtins[] = {"exit", "cd", "jobs"};
+static const size_t num_builtins = 3;
 
+// Does a simple string comparison on the token
 static int is_builtin(const char* token) {
     for (size_t i = 0; i < num_builtins && token; i++) {
         if (!strcmp(builtins[i], token)) {
@@ -131,6 +142,7 @@ static int is_builtin(const char* token) {
     return -1;
 }
 
+// Specific function to replace `~` in a token
 static void replace_home(char* path) {
     const char* home = getenv("HOME");
     if (!home) {
@@ -151,6 +163,57 @@ static void replace_home(char* path) {
     return;
 }
 
+// Replaces all env vars in a token
+static char* replace_env(const char* token) {
+    if (!token) {
+        return NULL;
+    }
+
+    // Starts with $ and a-zA-Z
+    // Allowed chars a-z, A-Z, 0-9, _
+    char scratch[1024] = {0};
+    size_t scratch_idx = 0;
+
+    for (size_t i = 0; i < strlen(token); i++) {
+        if (token[i] == '$' && ((token[i + 1] >= 'a' && token[i + 1] <= 'z') ||
+                                (token[i + 1] >= 'A' && token[i + 1] <= 'Z'))) {
+            // parse env
+            char env[1024] = {token[i + 1]};
+            size_t env_idx = 1;
+            while (token[i + 1 + env_idx] == '_' ||
+                   (token[i + 1 + env_idx] >= 'a' &&
+                    token[i + 1 + env_idx] <= 'z') ||
+                   (token[i + 1 + env_idx] >= 'A' &&
+                    token[i + 1 + env_idx] <= 'Z') ||
+                   (token[i + 1 + env_idx] >= '0' &&
+                    token[i + 1 + env_idx] <= '9')) {
+                env[env_idx] = token[i + 1 + env_idx];
+                env_idx++;
+            }
+
+            char* env_var = getenv(env);
+            if (env_var) {
+                char* ret = stpcpy(scratch + scratch_idx, env_var);
+                scratch_idx = ret - scratch;
+            }
+
+            i += env_idx;
+        } else {
+            scratch[scratch_idx++] = token[i];
+        }
+    }
+
+    char* ret_buf = malloc(strlen(scratch) + 1);
+    if (!ret_buf) {
+        perror("malloc");
+        return NULL;
+    }
+
+    strcpy(ret_buf, scratch);
+
+    return ret_buf;
+}
+
 int main(int argc, char* argv[]) {
     size_t max_processes = 256;
     size_t max_data_size = 1 << 30;
@@ -162,6 +225,7 @@ int main(int argc, char* argv[]) {
     opterr = 0;
     int c = 0;
 
+    // Parse all provided options
     while ((c = getopt(argc, argv, "p:d:s:n:f:t:")) != -1) {
         switch (c) {
         case 'p':
@@ -198,7 +262,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Main loop!
     while (true) {
+        // Check for completed jobs at the start of each iteration
+        reap_jobs();
+
+        // Build prompt
         char cwd[512] = {0};
         if (!getcwd(cwd, sizeof(cwd))) {
             perror("getcwd");
@@ -217,12 +286,15 @@ int main(int argc, char* argv[]) {
             shell_exit();
         }
 
+        // Ensure it ends with a null byte
         line[strcspn(line, "\n")] = '\0';
 
+        // They just hit enter
         if (strlen(line) == 0) {
             continue;
         }
 
+        // Command string for possible async job
         char* command = malloc(strlen(line) + 1);
         if (!command) {
             perror("malloc");
@@ -231,6 +303,7 @@ int main(int argc, char* argv[]) {
         strcpy(command, line);
         command[strlen(command) - 1] = '\0';
 
+        // Parse all tokens on whitespace
         char** tokens = calloc(10, sizeof(char*));
         if (!tokens) {
             perror("calloc");
@@ -239,9 +312,12 @@ int main(int argc, char* argv[]) {
         size_t max_tokens = 10;
         size_t num_tokens = 0;
 
+        // Check each token for env vars
         tokens[num_tokens++] = strtok(line, " ");
+        tokens[num_tokens - 1] = replace_env(tokens[num_tokens - 1]);
 
         while ((tokens[num_tokens++] = strtok(NULL, " "))) {
+            tokens[num_tokens - 1] = replace_env(tokens[num_tokens - 1]);
             if (num_tokens == max_tokens) {
                 max_tokens *= 2;
                 tokens = realloc(tokens, sizeof(char*) * max_tokens);
@@ -250,56 +326,53 @@ int main(int argc, char* argv[]) {
 
         num_tokens--;
 
+        // Handle builtin functions
         switch (is_builtin(tokens[0])) {
         case 0:
+            for (size_t i = 0; i < num_tokens; i++) {
+                free(tokens[i]);
+            }
             free(tokens);
             free(command);
             shell_exit() break;
         case 1:
-            if (!shell_cd(tokens[1])) {
-                perror(tokens[1]);
-                free(tokens);
-                free(command);
-                return 1;
-            }
-            free(tokens);
+            shell_cd(tokens[1]);
             free(command);
-            continue;
+            goto cleanup;
         case 2:
+            // Check for completed jobs just before calling `shell_jobs()`
             reap_jobs();
             shell_jobs();
-            free(tokens);
             free(command);
-            continue;
+            goto cleanup;
         default:
             break;
         }
 
+        // Check if the task needs to be performed in the background
         bool background = false;
         if (tokens[num_tokens - 1] && tokens[num_tokens - 1][0] == '&') {
             background = true;
+            free(tokens[num_tokens - 1]);
             tokens[num_tokens - 1] = NULL;
 
             num_tokens--;
         }
 
+        // Somehow we were empty and made it all the way down here
         if (num_tokens <= 0) {
-            free(tokens);
             free(command);
-            continue;
+            goto cleanup;
         }
 
+        // Forking!
         int pid;
         if ((pid = fork()) == 0) {
             // child
             // Find redirection symbols
+            // Final pass to create the command vector
             for (size_t i = 0; i < num_tokens; i++) {
                 if (!tokens[i]) {
-                    continue;
-                }
-
-                if (tokens[i] && tokens[i][0] == '$') {
-                    tokens[i] = getenv(tokens[i] + 1);
                     continue;
                 }
 
@@ -343,6 +416,8 @@ int main(int argc, char* argv[]) {
                 tokens[num_tokens] = NULL;
                 i--;
             }
+
+            // Set resource limits
             setrlimit(RLIMIT_NPROC,
                       &(struct rlimit){.rlim_cur = max_processes,
                                        .rlim_max = max_processes});
@@ -360,19 +435,23 @@ int main(int argc, char* argv[]) {
             setrlimit(RLIMIT_CPU, &(struct rlimit){.rlim_cur = max_cpu_time,
                                                    .rlim_max = max_cpu_time});
 
+            // Only execute if we have tokens
             if (tokens[0] && num_tokens > 0) {
                 execvp(tokens[0], tokens);
+                // If we make it here that means execvp failed to exec
                 perror(tokens[0]);
                 free(tokens);
                 free(command);
+                // Return 1 from child to "kill" it
                 return 1;
             }
         } else if (pid == -1) {
-            // error
-            exit(1);
+            // error, we don't ever want to be here, this means forking/clone
+            // failed
             perror("fork");
+            return 1;
         } else {
-            // parent
+            // parent, must wait for child or continue if async
             if (!background) {
                 waitpid(pid, NULL, 0);
                 free(command);
@@ -381,6 +460,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
+    cleanup:
+        // Standard cleanup section for most pathways
+        for (size_t i = 0; i < num_tokens; i++) {
+            free(tokens[i]);
+        }
         free(tokens);
     }
 }
