@@ -179,7 +179,6 @@ fn run_func(cmd cli.Command) ! {
 		}
 
 		for _ in 0 .. n.end_to_end_time {
-			println(n)
 			n.run() or {
 				eprintln(err.msg())
 				exit(1)
@@ -293,6 +292,7 @@ fn test_classification_func(cmd cli.Command) ! {
 			n.output()!
 		}
 
+		println(n.format_output()!)
 		if n.format_output()! == data.output {
 			correct_runs++
 		}

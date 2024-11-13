@@ -203,7 +203,7 @@ pub fn (n Network) format_output() ![]string {
 				}
 			}
 		}
-	}).filter(it != '')
+	})
 }
 
 pub fn (mut n Network) reset_output() {

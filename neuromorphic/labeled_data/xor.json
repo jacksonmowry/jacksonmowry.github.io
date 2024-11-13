@@ -1,0 +1,23 @@
+{
+    "input_dimension": 2,
+    "output_dimension": 1,
+    "expected_outputs": [["output"]],
+    "data": [
+        {
+            "input": [0, 0],
+            "output": [""]
+        },
+        {
+            "input": [0, 1],
+            "output": ["output"]
+        },
+        {
+            "input": [1, 0],
+            "output": ["output"]
+        },
+        {
+            "input": [1, 1],
+            "output": [""]
+        }
+    ]
+}

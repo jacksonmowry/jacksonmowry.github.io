@@ -6,7 +6,7 @@
     "max_synapse_count": 5,
     "max_neuron_count": 5,
     "max_delay": 1,
-    "end_to_end_time": 3,
+    "end_to_end_time": 2,
 
     "input_domain": [
         {
@@ -28,7 +28,8 @@
         {
             "output_neurons": 1,
             "output_type": "spike",
-            "neurons": ["4"]
+            "neurons": ["4"],
+            "neuron_names": ["output"]
         }
     ],
 
