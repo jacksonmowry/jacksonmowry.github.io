@@ -63,9 +63,9 @@ pub fn (d Dataset) create_skeleton_network() !network.Network {
 		}
 	}
 
-	mut neurons := []network.Neuron{}
-	for _ in 0 .. neuron_count {
-		neurons << network.Neuron{}
+	mut neurons := map[string]network.Neuron{}
+	for i in 0 .. neuron_count {
+		neurons['${i}'] = network.Neuron{}
 	}
 
 	return network.Network{

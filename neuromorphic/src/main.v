@@ -179,6 +179,7 @@ fn run_func(cmd cli.Command) ! {
 		}
 
 		for _ in 0 .. n.end_to_end_time {
+			println(n)
 			n.run() or {
 				eprintln(err.msg())
 				exit(1)
