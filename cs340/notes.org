@@ -1,4 +1,0 @@
-#+title: CS340 Software Engineering
-
-* Syllabus Day
-* Project Ideas

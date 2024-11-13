@@ -875,3 +875,158 @@ Construct a TM M_{1} that tests the membership of the language L_{1} = {w#w | w 
 11. S -> Aa | a | ABA | BA | AB | B
 12. No changes to s
     - Change occurs to A, A -> b|a
+
+* Decidability
+Decidable \iff there is a TM that can be built that will decide (halt) on all inputs
+
+** Membership for DFA
+Test whether a particular FA accepts a given string (denoted by A_{DFA}). A_{DFA} contains encodings of all DFA's together with the strings that the DFA's accept
+- A_{DFA} = {<B,w> | B is a DFA that accepts w}
+
+Testing whether DFA B accepts w is the same as testing whether <B,w> \in A_{DFA}. To show that computational problem is decidable is to show that the encoding of the problem is decidable
+
+*** Theorem
+A_{DFA} is a decidable language
+
+Proof
+- Construct a TM M that decides A_{DFA}
+- M = "On input <B,w>, where B is a DFA and w is a string"
+  - Simulate B on w
+  - In simulation ends in accepts state, M accepts; if simulation ends in a non-accept state, M rejects. Note: w is finite and the simulation always ends
+
+** Acceptance for NFA
+Convert NFA to DFA then use above
+
+** Emptiness Problem
+Test if the language of a DFA is empty
+- E_{DFA} = {<A> | A is a DFA and L(A) = 0}
+
+*** Theorem
+E_{DFA} is a decidable language
+
+Proof
+- DFA A accepts some string \iff it reaches a final state from the start state and travelling along the edges of the DFA. Construct a TM say T that marks the states of the DFA A using the \delta function of A. We then use T to solve the emptiness problem.
+
+- Run and run then ensure that no final state was ever marked
+
+** Language Equality
+Are 2 DFAs equal?
+- Every string accepted by A is also accepted by B
+- Recall that the symmetric difference L(C) = [L(a) \intersection{} \bar{L(B)}] \union{} [\bar{L(A)} \intersection{} L(B)] defines what is unique to each of the languages L(A) and L(B). If L(C) = \empty{}, then L(A) = L(B).
+
+- construct DFA C that recognizes L(C), the symmetric difference of L(A) and L(B)
+- Run TM from previous example
+- If T accepts, then F accepts; otherwise F rejects
+
+** Given any DFA A on \Sigma{}, can we decide if L(A) = \Sigma{}^{*}
+We can build a DFA for the complement of a language
+Then run the above emptiness problem on it again
+
+** Can we describe algorithms to test whether a CFG generates a particular string
+A_{CFG} = {<G,w> | G is a CFG that generates the string w}
+
+*** Theorem
+- Go through all derivations generates by G checking wheter one of them is a derivation of w. But there are infinitely-many derivations?
+
+- If G does not generate w, the algorithm does not halt; so we could only produce a recognizer not a deicder
+- How can we redesign the recognizer into a decider and only process a finite number of derivations?
+  - If G is a CFG in CNF the nfor any w \in L(G), where |w| = n, exactly 2n-1 steps are required for any derivation of w
+- A_{CFG} is a decidable language
+- Construct the TM S that decides A_{CFG}. S="On input <G,w>, where G is a CFG and w is a string
+  - Convert G to an equivalent grammar in CNF
+  - List all derivations using 2n-1 steps, where n = len(w); if n = 0, list all derivations in 1 step
+  - If any derivations produce w, S accepts; otherwise S rejects
+
+** Emptiness Problem for CFGs
+E_{CFG} = {<G> | G is a CFG and L(G) = 0}
+
+*** Theorem
+E_{CFG} is a decidable language
+
+- To test whether L(G) is empty, we need to test whether the G can generate a string of termainals. Moreover, can each variable generate a string of terminals
+- We need to have an algorithm to cross off terminals and the variables whose grammar rules have right hand sides comprised of those terminals
+
+- Proof
+
+*Every CFL is decidable*
+
+** Lemma: Class of CF languages is *NOT* closed under *\intersect{}$
+$A = \{a^{m}b^{n}c^{n} | m,n \geq{} 0\}$
+$B = \{a^{n}b^{n}c^{m}|m,n\geq{}0\}$
+$C = \{a^{n}b^{n}c^{n} | n \geq{} 0\}$ not a cfl
+
+$S \rightarrow{} RT, R \rightarrow{} aR | \epsilon{}, T \rightarrow{} bTc | \epsilon{}$
+$S \rightarrow{} TR, T \rightarrow{} aTb|\epsilon{}, R \rightarrow{} cR|\epislon{}$
+
+** Lemma: Class of CF lanuages is *NOT* closed under complementation
+Assume class of CFLs is closed under complementation
+
+If G_{1} and G_{2} are CFG's, then \bar{L(G_{1})} and \bar{L(G_{2})} are CFLs
+
+DeMorgan's Law: \bar{L(G_{1})} \union{} \bar{L(G_{2})} = L(G_{1}) \intersect{} L(G_{2}) but that language is not CFL by the previous lemma
+
+** CFL Equality Problem
+EQ_{CFG} = {<G,H> | G,H are CFGs and L(G) = L(H)}
+
+Can't une symmetric difference now since CFLs are NOT closed under intersection and complementation
+
+*** Theorem
+EQ_{CFG} is not a decidable language
+
+Proof by contradiction
+- Construct a CFG H such that L(H) = \Sigma{}^{*}
+- Run the decider for EQ_{CFG} on <G,H>
+- If the decider accepts, then M accepts; otherwise M rejects
+
+So, M decides ALL_{CFG} assuming a decider for EQ_{CFG} exists. But ALL_{CFG} can be shown to be undecidable. This is a reducibility argument that we will revisit later
+
+** Overall Methodology (for proving the a language is decidable)
+- Understand relationship between languages
+- Transform relationship into an expression using closure operators on decidable languages
+- Design a TM that constructs language expressed
+- Run TM that decides the language
+
+* Halting Problem
+Membership problem, does a TM accept a given input string?
+- A_{TM} = {<M,w> | M is a TM and M accepts w}
+
+The language A_{TM} is *not* decidable but A_{TM} is Turing-recognizable
+Let's construct a recognizer for A_{TM}
+U = "On input <M, w>, where M is a TM and w is a string"
+
+1. Simulate M on the input w
+2. If M ever enters its accept state, U accepts; if M ever enters its reject state, U rejets
+   1. U loops on the input <M, w> if M loops on w and this is why U does not decide A_{TM}
+
+If the algorithm has some way to determine that M was not halting on w, it could reject, this is known as the halting problem
+
+The TM U (named for "universal TM") was proposed by Alan Turing and played an important role in the development of future stored-program copmuters
+
+** Undecidability
+How can we prove a language is undecidable?
+
+For TM membership, we can explpoit George Cantor's diagonalization technique (1873); he wanted to measure the size of infinite sets (i.e., count the number of elements in the set)
+
+However such a counting approach would not halt
+
+*** Infite Sets
+- Set of strings over {0,1}
+- N, set of natural numbers
+- E, set of all even natural numbers
+
+Cantor's solution for comparing infinite sets; two infinite sets have the same size if their elements can be paired
+
+Two sets A and B have the same size if there is a correspondence f: A \rightarrow{} B.
+We say f is 1-to-1 if it never maps two different elements of A into hte same elements of B, i.e., f(a) \neq{} f(b) whenever a \neq{} b.
+We say f is onto if it hits every elements of B, i.e., for all b \in B, there exists a \in A such that f(a) = b.
+We conclude that f is a correspondence if it is both 1-to-1 and onto
+
+*** Rational Numbers are Countable
+1. Consider the cross produce of N \times{} N on a cartisian graph (2D Array)
+2. Row i contains the following $\{i / j \in Q | i \in N, \forall{} j \in N \}$
+3. Col j contains the following $\{i/j \in Q | j \in N, \forall{} i \in N\}$
+4. Number i/j occurs i nthe i'th row and j'th column
+
+These are countable (infinite) sets: N\times{}N, N^{k} for any k, \Sigma{}^{*} and any subset of a countable set
+
+Example of an uncountable set: R-the set of real numbers
