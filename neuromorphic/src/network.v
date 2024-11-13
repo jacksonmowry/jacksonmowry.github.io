@@ -7,7 +7,7 @@ pub struct Synapse {
 pub:
 	value int
 	delay u32
-	from  u32
+	from  string
 }
 
 pub struct Neuron {
@@ -18,8 +18,8 @@ pub mut:
 	charges      []int @[skip] // Do not JSON encode/decode this field
 }
 
-fn (mut n Neuron) charge_to_threshold(pos int) {
-	n.charges[pos] = n.threshold
+fn (mut n Neuron) charge_to_threshold(timestep int) {
+	n.charges[timestep] = n.threshold
 }
 
 fn (n Neuron) spiked(current_timestep int) bool {
@@ -44,7 +44,7 @@ pub:
 	input_type InputType
 	input_prop int
 pub mut:
-	neurons []int
+	neurons []string
 }
 
 pub enum OutputType {
@@ -59,7 +59,7 @@ pub:
 	output_type    OutputType
 	neuron_names   ?[]string @[optional]
 pub mut:
-	neurons        []int
+	neurons        []string
 	firing_tracker []int @[skip]
 }
 
@@ -76,13 +76,13 @@ pub:
 pub mut:
 	input_domain     []Input_Unit
 	output_range     []Output_Unit
-	neurons          []Neuron
+	neurons          map[string]Neuron
 	current_timestep u32 @[skip]
 }
 
-pub fn (mut n Network) add_neuron(neuron Neuron) {
-	n.neurons << neuron
-}
+// pub fn (mut n Network) add_neuron(neuron Neuron) {
+// 	n.neurons << neuron
+// }
 
 pub fn (mut n Network) spikes_snapshot() []bool {
 	return n.neurons.map(it.charges[n.modded_timestep()] >= it.threshold)

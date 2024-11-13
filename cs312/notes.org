@@ -1030,3 +1030,134 @@ We conclude that f is a correspondence if it is both 1-to-1 and onto
 These are countable (infinite) sets: N\times{}N, N^{k} for any k, \Sigma{}^{*} and any subset of a countable set
 
 Example of an uncountable set: R-the set of real numbers
+
+** Proving that the real numbers are uncountable
+Proof: suppose a corespondence f: N \rightarrow{} R exists and deduce a contradiction that f cannot be a correspondence, i.e., construct x \in R that cannot be the image of any n \in N. Assuming the correspondence f exists, we can list all real numbers. Now, construct x \in (0,1) as follows
+
+1. Let x = 0.d_{1}d_{2}d_{3}d_{4}... with an infinite number of decimals constructed by the following rule: for all i \in N choose d_{i} to be different from ith digit of f(i)
+2. Then, for all i \in N, x \neq{} f(i). So x does not belong to our list of all real numbers and f is not a correspondence (contradiction).
+
+Some languages are not decidable or event Turing-recognizable
+
+There are countable many TMs but an uncountable number of languages; each TM can recognize a single language and there are many more languages than TMs so what can we conclude?
+
+That there will be languages that are *NOT* recognized by a TM (these are not T-recognizable)
+
+Set of all formal languages L = \{L|L \subset{} \Sigma^{*}\} is uncountable
+
+** Can we construct a Turing-unrecognizable language?
+Recall that A_{TM} is a Turing undecidable language but it is Turing-recognizable(TR). Construcitng a TR languages relies on the fact that if both a language and its complement are TR, then the langugage is decidable. Hence, for any undecidable language, either the language or its ocmplement is not TR
+
+*** Theorem
+$A_{TM} = \{<M,w> | \text{M is a TM and M accepts w}\}$ is undecidable
+
+*** Proof
+Assume A_{TM} is decidable and suppose H is a decider of A_{TM}. On input <M,w>, where M is a TM and w is a string, H halts and accepts if M accepts w. SImilarly, H halts and rejects if M fails to accept w.
+
+Now construct a new TM D that uses H as a subroutine. That is, D calls H to determine what M does when its input is w = <M>.
+
+So if M accepts <M>, then D(<M>) rejects and if M rejects <M> then D(<M>) accepts (opposite of what H outputs). Now run D on <D>, then D(<D>) returns accepts if D doesn't accept <D> and D(<D>) returns reject if D doesn't reject <D>. The problem is that this will never finish executing
+
+|       | <M_{1}> | <M_{2}> | <M_{3}> | <M_{4}> |
+| M_{1} | accept  |         | accept  |         |
+| M_{2} | accept  | accept  | accept  | accept  |
+| M_{3} |         |         |         |         |
+| M_{4} | accept  | accept  |         |         |
+
+Now run H..
+|       | <M_{1}> | <M_{2}> | <M_{3}> | <M_{4}> |
+| M_{1} | accept  | reject  | accept  | reject  |
+| M_{2} | accept  | accept  | accept  | accept  |
+| M_{3} | reject  | reject  | reject  | reject  |
+| M_{4} | accept  | accept  | reject  | reject  |
+
+Now create D
+Now run H..
+|       | <M_{1}> | <M_{2}> | <M_{3}> | <M_{4}> | <D>    |
+| M_{1} | accept  | reject  | accept  | reject  | accept |
+| M_{2} | accept  | accept  | accept  | accept  | accept |
+| M_{3} | reject  | reject  | reject  | reject  | reject |
+| M_{4} | accept  | accept  | reject  | reject  | accept |
+| D     | reject  | reject  | accept  | accept  | ?      |
+
+D returns the opposite of <M_{i} <M_{i}>>
+
+[[file:venn.png]]
+
+* Reducibility
+- Reduction is a terminating process
+- When A is reduced to B, solving problem a cannot be harder than the sum of reduction and solving B. Solution to B should solve A
+- A is reduced to B that is decidable, than A is decidable
+- A is undecidable and is reducible to B, then B is undecidable
+
+** Example
+A reduces to B (measuring R, the radius)
+
+** Strategy
+1. Find a problem Q known to be undecidable
+2. Assume P is decidable by a TM M_{p}
+3. Use TM M_{p} to construct a TM M_{Q} that solves Q: encode every instance q of problem Q as an instance q_{p} of problem P. Use M_{p} to solve q_{p}
+
+Since it is known that Q is undecidable, M_{Q} cannot exist so M_{p} cannot exist and P is undecidable.
+
+$A_{TM} = \{<M,w> | \text{M is a TM and M accepts w\}$
+
+HALT_{TM} is undecidable
+
+** Does a TM have an equivalent automaton
+$REGULAR_{TM} = \{<M> | \text{M is a TM and L(M) is regular}\}$
+
+The above is undecidable
+
+* Decidability Proofs
+Prove that L_{X} = $\{<M> | \text{M is a TM that writes an x on some cell of the tape when started on a blank}\}$ is undecidable
+
+** Proof
+Assume L_{X} is decidable and let R be a TM that decides it.
+S = "On input <M,w>, where M is a TM and w is an input string do:"
+1. Construct a new TM M_{w} such that on an input y, we substitue X for x everywhere in <M> and w yieling <M',w'>
+2. Run M' on the input w' so that if M' rejects, then M_{w} wil lreject also'; similarly, if M' accepts w' then print x on the tape and have M_{w} accept
+3. Now, run R on <M_{w}> so that if R accepts, then S will accpet and similarly, if R rejects then S will reject
+
+If M accepts w then M_{w} will print x on any input (including a blank) and if M rejects w or loops on w (i.e., does not halt) then M_{w} is guaranteed to never print an x on the tape. Therefore, the TM S decides A_{TM} since for any input w and TM M would halt and either accept or reject w. Hence L_{X} has been reduced to A_{TM} and we already know that A_{TM} is undecidable. We can conclude that L_{x} must also be undecidable
+
+
+* 3x+1
+function, 3x+1 for odd x, x/2 for even x
+
+If you start with an integer x and iterate f, you obtain a sequence $x, f(x), f(f(x))
+
+and stop if you ever hit 1. for example if x = 17, you would get the sequence
+
+Extensive computations have shown that every starting point between 1 and a large positive integer yields a sequence that ends in 1. But, the question of whether all positive starting integers yields a sequence terminating at 1 is unsolved
+
+** Why
+On input <n>, where n is a natural number, run the 3x+1 procedure starting at n and accept if and when a 1 is reached. If one is never reached then S will not halt
+
+Now define another TM T with input <n> that uses TM H to determine whethere or not S accepts <n>. If S accepts then T will accept and if S does not accept, T will halt and reject.
+
+Define the TM P on any input htat runs the TM T on inputs 1,2,3,... and accept if T is found to reject any of hte inputs; otherwise P will not halt
+
+Finally define the TM Q on any input that uses TM H to determine whethere or not the TM P accepts <0> and outputs "conjecture is false" if P accepts <0>, and outputs "conjecture is true" if P does not accept <0>. jthis TM Q would therefore answer the 3x+1 problem and decide A_{TM}
+
+* Complexity
+In analyzing TM_{A}, the time to decide the language A depends on the number of steps that TM_{A} moves -- normally depends on several parameters.
+1. The running time of an algo is a function of the length of the string that represents the input
+2. Worst-case-analysis is the longest running time of all inputs of the same length
+3. Average-case-analysis is the average of all running itmes of inputs of the same lenth
+
+** Example
+Let M be a deterministic TM that halts on all inputs. The running time or time complexity of M is a function f: N \rightarrow{} N, where f(n) is the maxiumum number of steps that M uses on any input of length n.
+
+If f(n) is the running time of M we say that M runs in time f(n) and that M is a f(n) time TM, where n is the length of the input
+
+Usually we estimate running time of an algorithm (exact time may be too complicated to determine)
+
+** Asymptotic Analysis
+determine running time of algo on large inputs; consider only the highest order term of running time expression (dominates values of other terms on large inputs)
+- $f(n) = 6n^{3}+2n^{2}+10n+100$
+- We say that f is asymptotically at most n^{3}, and write f(n) = O(n^{3})
+
+Let f and g be functions, f,g: N \rightarrow{} R. We say that f(n) = O(g(n)), if positive integers c and n_{0} exist such that for all n \geq{} n_{0}, f(n) \leq{} cg(n). We say tht g(n) is an asymptotic upper bound for f(n) with the suppression of constant factors
+
+In practice most functions f will have an obvious highest order term h(n) so that
