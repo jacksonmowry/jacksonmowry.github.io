@@ -3,6 +3,9 @@ module network
 import datatypes
 import arrays
 import maps
+import viz
+import os
+import rand
 
 pub struct Synapse {
 pub:
@@ -13,7 +16,7 @@ pub:
 
 pub struct Neuron {
 pub:
-	threshold int
+	threshold int = 1
 pub mut:
 	pre_synapses []Synapse
 	charges      []int @[skip] // Do not JSON encode/decode this field
@@ -374,5 +377,177 @@ pub fn (n Network) verify_graph() ! {
 
 	if needed_output_neurons != output_set.size() {
 		return error('Mismatched size of outputs and output_range, outputs=${output_set.size()} and output_range=${needed_output_neurons}')
+	}
+}
+
+pub fn (n Network) visualize() ! {
+	mut d := viz.new('n_viz', 'Network', 'blue')
+	// for i, neuron in n.neurons {
+	// 	d.new_node('${i} (${neuron.threshold})', '${i}')
+	// }
+
+	// Input cluster
+	d.writeln('subgraph cluster_input {')
+	d.writeln('label = "Input Domain";')
+	for i, input_group in n.input_domain {
+		d.writeln('subgraph cluster_${i}_in {')
+		d.writeln('label = "Input Block ${i}";')
+		for neuron in input_group.neurons {
+			d.new_node('${neuron} (${n.neurons[neuron].threshold})', neuron)
+		}
+		d.writeln('}')
+	}
+	d.writeln('}')
+	// Hidden cluster
+	d.writeln('subgraph cluster_hidden {')
+	d.writeln('label = "Hidden Neurons";')
+	hidden_neurons := n.neurons.keys().filter(it !in arrays.flatten(n.input_domain.map(it.neurons))
+		&& it !in arrays.flatten(n.output_range.map(it.neurons)))
+
+	for neuron in hidden_neurons {
+		d.new_node('${neuron} (${n.neurons[neuron].threshold})', neuron)
+	}
+
+	d.writeln('}')
+	// Output cluster
+	d.writeln('subgraph cluster_output {')
+	d.writeln('label = "Output Range";')
+	for i, output_group in n.output_range {
+		d.writeln('subgraph cluster_${i}_out {')
+		d.writeln('label = "Output Block ${i}";')
+		for neuron in output_group.neurons {
+			d.new_node('${neuron} (${n.neurons[neuron].threshold})', neuron)
+		}
+		d.writeln('}')
+	}
+	d.writeln('}')
+
+	for i, neuron in n.neurons {
+		for s in neuron.pre_synapses {
+			d.new_edge('${s.from}', '${i}', if s.value > 0 { 'black' } else { 'red' })
+		}
+	}
+
+	sixel_graph := os.system("echo 'digraph G {\n${d.sb.str()}\n}'| dot -Tpng | img2sixel")
+	if sixel_graph != 0 {
+		return error('Viz not supported on this platform, please try installing `graphviz (dot)` and `img2sixel`')
+	}
+	println('')
+}
+
+pub fn (n Network) make_fully_connected() Network {
+	mut new_network := n.clone()
+	input_neurons := arrays.flatten(new_network.input_domain.map(it.neurons))
+	output_neurons := arrays.flatten(new_network.output_range.map(it.neurons))
+
+	for output_neuron in output_neurons {
+		for input_neuron in input_neurons {
+			new_network.neurons[output_neuron].pre_synapses << Synapse{
+				value: 1
+				delay: 1
+				from:  input_neuron
+			}
+		}
+	}
+
+	return new_network
+}
+
+@[params]
+pub struct Sparse_Params {
+pub:
+	synapse_value_lower_bound i32 = 1
+	synapse_value_upper_bound i32 = 1
+	num_synapse_upper_bound   u32 = 1
+	delay_upper_bound         u32 = 1
+}
+
+pub fn (n Network) make_sparsly_connected(params Sparse_Params) Network {
+	mut new_network := n.clone()
+	input_neurons := arrays.flatten(new_network.input_domain.map(it.neurons))
+	output_neurons := arrays.flatten(new_network.output_range.map(it.neurons))
+	mut values_wo_zero := []int{}
+	for i in params.synapse_value_lower_bound .. params.synapse_value_upper_bound + 1 {
+		if i != 0 {
+			values_wo_zero << i
+		}
+	}
+
+	for output_neuron in output_neurons {
+		for _ in 0 .. rand.u32_in_range(1, params.num_synapse_upper_bound) or { 1 } {
+			new_network.neurons[output_neuron].pre_synapses << Synapse{
+				value: rand.element(values_wo_zero) or { 1 }
+				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
+				from:  rand.element(input_neurons) or { input_neurons[0] }
+			}
+		}
+	}
+
+	return new_network
+}
+
+@[params]
+pub struct Hidden_Params {
+pub:
+	synapse_value_lower_bound           i32 = 1
+	synapse_value_upper_bound           i32 = 1
+	num_synapse_upper_bound             u32 = 1
+	delay_upper_bound                   u32 = 1
+	hidden_neurons_lower_bound          u32 = 1
+	hidden_neurons_upper_bound          u32 = 1
+	hidden_neuron_threshold_lower_bound u32 = 1
+	hidden_neuron_threshold_upper_bound u32 = 1
+}
+
+pub fn (n Network) make_w_hidden_layer(params Hidden_Params) Network {
+	mut new_network := n.clone()
+	mut values_wo_zero := []int{}
+	for i in params.synapse_value_lower_bound .. params.synapse_value_upper_bound + 1 {
+		if i != 0 {
+			values_wo_zero << i
+		}
+	}
+	input_neurons := arrays.flatten(new_network.input_domain.map(it.neurons))
+	output_neurons := arrays.flatten(new_network.output_range.map(it.neurons))
+	mut hidden_neurons := []string{}
+	mut highest_neuron := arrays.max(new_network.neurons.keys().map(it.int())) or { 10 } + 1
+
+	for _ in 0 .. rand.u32_in_range(params.hidden_neurons_lower_bound,
+		params.hidden_neurons_upper_bound + 1) or { 1 } {
+		hidden_neurons << '${highest_neuron}'
+		new_network.neurons['${highest_neuron++}'] = Neuron{
+			threshold: rand.u32_in_range(params.hidden_neuron_threshold_lower_bound,
+				params.hidden_neuron_threshold_upper_bound + 1) or { 1 }
+		}
+	}
+
+	for neuron in hidden_neurons {
+		for from in input_neurons {
+			new_network.neurons[neuron].pre_synapses << Synapse{
+				value: rand.element(values_wo_zero) or { 1 }
+				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
+				from:  from
+			}
+		}
+	}
+
+	for neuron in output_neurons {
+		for from in hidden_neurons {
+			new_network.neurons[neuron].pre_synapses << Synapse{
+				value: rand.element(values_wo_zero) or { 1 }
+				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
+				from:  from
+			}
+		}
+	}
+
+	return new_network
+}
+
+pub fn (n Network) clone() Network {
+	return Network{
+		input_domain: n.input_domain.clone()
+		output_range: n.output_range.clone()
+		neurons:      n.neurons.clone()
 	}
 }

@@ -1,9 +1,9 @@
 module main
 
 import json
+import arrays.parallel
 import os
 import cli
-import viz
 import network
 import strconv
 import dataset
@@ -99,12 +99,19 @@ fn main() {
 }
 
 fn visualize_func(cmd cli.Command) ! {
-	filename := cmd.flags.get_string('json') or { panic('Failed to get network json file: ${err}') }
+	filename := cmd.flags.get_string('json') or {
+		eprintln('Failed to get network json file: ${err.msg()}')
+		exit(1)
+	}
 
-	network_json := os.read_file(filename) or { panic('Failed to read_file ${filename}, ${err}') }
+	network_json := os.read_file(filename) or {
+		eprintln(err.msg())
+		exit(1)
+	}
 
 	n := json.decode(network.Network, network_json) or {
-		panic('Failed to decode json for ${filename}, ${err}')
+		eprintln('Failed to decode json for ${filename}, ${err.msg()}')
+		exit(1)
 	}
 
 	n.verify_graph() or {
@@ -112,21 +119,7 @@ fn visualize_func(cmd cli.Command) ! {
 		exit(1)
 	}
 
-	mut d := viz.new('n_viz', 'Network', 'blue')
-	for i, neuron in n.neurons {
-		d.new_node('${i} (${neuron.threshold})', '${i}')
-	}
-
-	for i, neuron in n.neurons {
-		for s in neuron.pre_synapses {
-			d.new_edge('${s.from}', '${i}')
-		}
-	}
-
-	sixel_graph := os.system("echo 'digraph G {\n${d.sb.str()}}\n}'| dot -Tpng | img2sixel")
-	if sixel_graph != 0 {
-		panic('Viz not supported on this platform, please try installing `graphviz (dot)` and `img2sixel`')
-	}
+	n.visualize()!
 }
 
 fn run_func(cmd cli.Command) ! {
@@ -211,22 +204,22 @@ fn train_classification_func(cmd cli.Command) ! {
 
 	initial_network := d.create_skeleton_network()!
 	initial_network.verify_graph()!
-	println(initial_network)
 
-	mut graph := viz.new('n_viz', 'Network', 'blue')
-	for i, neuron in initial_network.neurons {
-		graph.new_node('${i} (${neuron.threshold})', '${i}')
-	}
+	initial_network.visualize()!
 
-	for i, neuron in initial_network.neurons {
-		for s in neuron.pre_synapses {
-			graph.new_edge('${s.from}', '${i}')
+	mut population := d.generate_initial_population(initial_network)
+	test_results := parallel.amap(population, fn [d] (network_to_test network.Network) dataset.Test_Result {
+		return dataset.Test_Result{
+			score:   d.test_network(mut network_to_test.clone()) or { 0 }
+			network: network_to_test
 		}
-	}
+	},
+		workers: 1000
+	).sorted(a.score < b.score)
 
-	sixel_graph := os.system("echo 'digraph G {\n${graph.sb.str()}}\n}'| dot -Tpng | img2sixel")
-	if sixel_graph != 0 {
-		panic('Viz not supported on this platform, please try installing `graphviz (dot)` and `img2sixel`')
+	for result in test_results {
+		result.network.visualize()!
+		println('${result.score}/${d.data.len}')
 	}
 }
 
