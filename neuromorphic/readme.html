@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2024-11-16 Sat 07:13 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Readme</title>
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Readme</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgcf8355d">1. IONS</a>
+<ul>
+<li><a href="#orga312615">1.1. Building IONS</a></li>
+<li><a href="#orgdf3d575">1.2. Using IONS</a>
+<ul>
+<li><a href="#org485934e">1.2.1. Visualize</a></li>
+<li><a href="#org9e460dd">1.2.2. Run</a></li>
+<li><a href="#org2150b8e">1.2.3. Train Classification</a></li>
+<li><a href="#org5fcaf7c">1.2.4. Test Classification</a></li>
+</ul>
+</li>
+<li><a href="#orgd97a90d">1.3. Network Architecture</a>
+<ul>
+<li><a href="#orgf478783">1.3.1. Meta-information</a></li>
+<li><a href="#org76eda49">1.3.2. Input Domain</a></li>
+<li><a href="#orgf042494">1.3.3. Output Range</a></li>
+</ul>
+</li>
+<li><a href="#org39f47e4">1.4. Labeled Data Overview</a></li>
+</ul>
+</li>
+<li><a href="#org5bf316d">2. Graham Idea</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgcf8355d" class="outline-2">
+<h2 id="orgcf8355d"><span class="section-number-2">1.</span> IONS</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+IONS is an Integer Only Neuromorphic System. It is being built as a toy example to learn both neuromorphic system simulation and evolutionary optimization techniques.
+</p>
+
+<p>
+Though IONS is currently written in V there is no requirement that simulators/runtimes be written in V. As you will see the network definitions are fairly simple and should port will to any language. Up next on the roadmap is a lightweight single binary simulator written in C to support development of applications with a neuromorphic core.
+</p>
+</div>
+<div id="outline-container-orga312615" class="outline-3">
+<h3 id="orga312615"><span class="section-number-3">1.1.</span> Building IONS</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+The networks that IONS produces are simulator agnostic, but there currently exists only one simulator. That simulator is written in <a href="https://github.com/vlang/v">V</a>, and is bundled together with visualization, training, and testing tools.
+</p>
+
+<p>
+To build and run IONS we must first install V
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #ECBE7B;">sudo</span> apt install <span style="color: #ECBE7B;">git</span> build-essential <span style="color: #ECBE7B;">make</span>
+
+<span style="color: #ECBE7B;">git</span> clone https://github.com/vlang/v
+<span style="color: #ECBE7B;">cd</span> v
+<span style="color: #ECBE7B;">make</span>
+<span style="color: #ECBE7B;">sudo</span> ./v symlink
+
+v up
+</pre>
+</div>
+
+<p>
+Then we can build the project from the root directory
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">v .
+</pre>
+</div>
+
+<p>
+As long as the above command executes successfully you&rsquo;re ready to go!
+</p>
+</div>
+</div>
+<div id="outline-container-orgdf3d575" class="outline-3">
+<h3 id="orgdf3d575"><span class="section-number-3">1.2.</span> Using IONS</h3>
+<div class="outline-text-3" id="text-1-2">
+<div class="org-src-container">
+<pre class="src src-nil">Usage: neuromorphic [flags] [commands]
+
+neuromorphic runtime
+
+Flags:
+  -help                 Prints help information.
+  -man                  Prints the auto-generated manpage.
+
+Commands:
+  visualize             Pretty Print the Network
+  run                   Run the network using stdin/stdout
+  train_classification  Train a network based upon a given dataset
+  test_classification   Test a network based upon a given dataset
+  help                  Prints help information.
+  man                   Prints the auto-generated manpage.
+</pre>
+</div>
+
+<p>
+Running with no arguments shows us the help message. As we can see there are currently 4 supported functions of IONS.
+</p>
+</div>
+<div id="outline-container-org485934e" class="outline-4">
+<h4 id="org485934e"><span class="section-number-4">1.2.1.</span> Visualize</h4>
+<div class="outline-text-4" id="text-1-2-1">
+<p>
+Visualize takes in a network <code>json</code> file and prints a representation of it directly to the terminal. This requires <code>libsixel</code> and by extension the program <code>img2sixel</code>, make sure both are installed on your system, and that your terminal supports sixel graphics if you want to see the output.
+</p>
+
+<p>
+<a href="https://github.com/saitoha/libsixel%20">libsixel</a>
+</p>
+
+
+<div id="org75c61d7" class="figure">
+<p><img src="assets/xor_viz.png" alt="xor_viz.png" />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org9e460dd" class="outline-4">
+<h4 id="org9e460dd"><span class="section-number-4">1.2.2.</span> Run</h4>
+<div class="outline-text-4" id="text-1-2-2">
+<p>
+Run allows a user to test a network manually through the same interface as the network was trained on.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">$ ./neuromorphic run -json networks/xor.json
+<span style="color: #c678dd;">Inputs</span>  <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #51afef;">)</span>: <span style="color: #da8548; font-weight: bold;">0</span> 0&#9166;
+<span style="color: #c678dd;">Outputs</span> <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>: <span style="color: #51afef;">[</span><span style="color: #98be65;">''</span><span style="color: #51afef;">]</span>
+<span style="color: #c678dd;">Inputs</span>  <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #51afef;">)</span>: <span style="color: #da8548; font-weight: bold;">0</span> 1&#9166;
+<span style="color: #c678dd;">Outputs</span> <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>: <span style="color: #51afef;">[</span><span style="color: #98be65;">'output'</span><span style="color: #51afef;">]</span>
+<span style="color: #c678dd;">Inputs</span>  <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #51afef;">)</span>: <span style="color: #da8548; font-weight: bold;">1</span> 0&#9166;
+<span style="color: #c678dd;">Outputs</span> <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>: <span style="color: #51afef;">[</span><span style="color: #98be65;">'output'</span><span style="color: #51afef;">]</span>
+<span style="color: #c678dd;">Inputs</span>  <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #51afef;">)</span>: <span style="color: #da8548; font-weight: bold;">1</span> 1&#9166;
+<span style="color: #c678dd;">Outputs</span> <span style="color: #51afef;">(</span><span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>: <span style="color: #51afef;">[</span><span style="color: #98be65;">''</span><span style="color: #51afef;">]</span>
+</pre>
+</div>
+
+<p>
+The user provides one input for each dimension in the input space, the network is run for its full <code>end_to_end_time</code> (described later), and each output is displayed.
+</p>
+</div>
+</div>
+<div id="outline-container-org2150b8e" class="outline-4">
+<h4 id="org2150b8e"><span class="section-number-4">1.2.3.</span> Train Classification</h4>
+<div class="outline-text-4" id="text-1-2-3">
+<p>
+IONS provides the ability to easily train a network for classification tasks. The user provides a labeled dataset, the number of input and output dimensions, and IONS does the rest.
+</p>
+
+<p>
+&gt; [!NOTE]
+&gt; This feature is under active development, currently IONS can generate an initial population of 100 randomly generated networks, ranging from sparsly connected input to output networks, densly connect input to output networks, and networks with added hidden neurons.
+</p>
+
+<p>
+After testing an initial population of 100 networks the top 5 will be chosen to move on to the next round. These 5 networks will reproduce with each other, producing children, and they can also be passed along unchange (or with mutations) into the next generation. To keep diversity up 5 randomly generated networks will be included in each subsequent population.
+</p>
+
+<p>
+The final output of training will be the top 5 networks from the last generation that ran.
+</p>
+</div>
+</div>
+<div id="outline-container-org5fcaf7c" class="outline-4">
+<h4 id="org5fcaf7c"><span class="section-number-4">1.2.4.</span> Test Classification</h4>
+<div class="outline-text-4" id="text-1-2-4">
+<p>
+Once a network has been trained (or written by hand) it can be tested by either providing the same datset that was given in training, or by provided a different subset of the same data to test the performance on data the network has never seen.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">$ ./neuromorphic test_classification -n networks/quadrents_zero.json -d labeled_data/quadrents.json&#9166;
+Network passed 4/4 tests
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgd97a90d" class="outline-3">
+<h3 id="orgd97a90d"><span class="section-number-3">1.3.</span> Network Architecture</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+Networks are defined in <code>json</code> files which describe some basic meta-information about the network, along with each neuron and synapse.
+</p>
+</div>
+<div id="outline-container-orgf478783" class="outline-4">
+<h4 id="orgf478783"><span class="section-number-4">1.3.1.</span> Meta-information</h4>
+<div class="outline-text-4" id="text-1-3-1">
+<p>
+<a href="networks/xor.json">networks/xor.json</a>
+</p>
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #98be65;">"min_synapse_value"</span>: -<span style="color: #da8548; font-weight: bold;">1</span>,
+<span style="color: #98be65;">"max_synapse_value"</span>: <span style="color: #da8548; font-weight: bold;">2</span>,
+<span style="color: #98be65;">"min_threshold_value"</span>: -<span style="color: #da8548; font-weight: bold;">1</span>,
+<span style="color: #98be65;">"max_threshold_value"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+<span style="color: #98be65;">"max_synapse_count"</span>: <span style="color: #da8548; font-weight: bold;">5</span>,
+<span style="color: #98be65;">"max_neuron_count"</span>: <span style="color: #da8548; font-weight: bold;">5</span>,
+<span style="color: #98be65;">"max_synapse_delay"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+<span style="color: #98be65;">"end_to_end_time"</span>: <span style="color: #da8548; font-weight: bold;">2</span>,
+</pre>
+</div>
+
+<p>
+Most of the values are self-explanatory, the only new concept here is <code>end_to_end_time</code> which just states how long a network should be run to process one set of input.
+</p>
+</div>
+</div>
+<div id="outline-container-org76eda49" class="outline-4">
+<h4 id="org76eda49"><span class="section-number-4">1.3.2.</span> Input Domain</h4>
+<div class="outline-text-4" id="text-1-3-2">
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #98be65;">"input_domain"</span>: [
+  {
+    <span style="color: #98be65;">"min_value"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"max_value"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"input_type"</span>: <span style="color: #98be65;">"spike"</span>,
+    <span style="color: #98be65;">"input_prop"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"neurons"</span>: [<span style="color: #98be65;">"0"</span>]
+  },
+  {
+    <span style="color: #98be65;">"min_value"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"max_value"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"input_type"</span>: <span style="color: #98be65;">"spike"</span>,
+    <span style="color: #98be65;">"input_prop"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"neurons"</span>: [<span style="color: #98be65;">"1"</span>]
+  }
+]
+</pre>
+</div>
+
+<p>
+A networks Input Domain describes its interactions with the outside world. Each object in the input domain represent one &ldquo;block&rdquo; of input, though that one block may contain &gt;= 1 neuron.
+</p>
+
+<p>
+Currently each <code>input_type</code> has an <code>input_prop</code> but these will likely be broken out into distinct object types in the future.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Input Type</th>
+<th scope="col" class="org-left">Characteristics</th>
+<th scope="col" class="org-right"># Neurons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Buckets</td>
+<td class="org-left">The provided input range is divided into n buckets, each of size range/n</td>
+<td class="org-right">&gt;= 1</td>
+</tr>
+
+<tr>
+<td class="org-left">Timescale</td>
+<td class="org-left">The provided input range is scaled linearly over the total <code>end_to_end_time</code>, with larger values spiking later</td>
+<td class="org-right">1</td>
+</tr>
+
+<tr>
+<td class="org-left">PWM</td>
+<td class="org-left">Each input is converted to a percentage, which specifies how many spikes will occur over the given time range</td>
+<td class="org-right">1</td>
+</tr>
+
+<tr>
+<td class="org-left">Spike</td>
+<td class="org-left">The simplest input type, a single neuron either spikes or does not spike</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+&gt; [!WARNING]
+&gt; The process for adding new input types is fairly involved. It requires source code changes (granted they are all contained within one file), so I&rsquo;d like for this process to be stuck behind an interface in the future, which would also allow different properties to be specified along with an individual input unit.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js">{
+    <span style="color: #98be65;">"min_value"</span>: -<span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"max_value"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+    <span style="color: #98be65;">"input_type"</span>: <span style="color: #98be65;">"buckets"</span>,
+    <span style="color: #98be65;">"input_prop"</span>: <span style="color: #da8548; font-weight: bold;">3</span>,
+    <span style="color: #98be65;">"neurons"</span>: [<span style="color: #98be65;">"negative x"</span>, <span style="color: #98be65;">"zero"</span>, <span style="color: #98be65;">"positive x"</span>]
+},
+</pre>
+</div>
+
+<p>
+Each input unit also specifies which neurons should be associated with it, allowing for each neuron to have a descriptive name.
+</p>
+</div>
+<ol class="org-ol">
+<li><a id="org33a2a55"></a>Future Input Types<br />
+<div class="outline-text-5" id="text-1-3-2-1">
+<ul class="org-ul">
+<li>Non-linear buckets (To accomodate datasets where 0 is less meaningful than +/- values)</li>
+<li>Support more than one neuron for both timescale/pwm</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div id="outline-container-orgf042494" class="outline-4">
+<h4 id="orgf042494"><span class="section-number-4">1.3.3.</span> Output Range</h4>
+<div class="outline-text-4" id="text-1-3-3">
+<p>
+<a href="networks/quadrents_zero.json">networks/quadrents<sub>zero.json</sub></a>
+</p>
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #98be65;">"output_range"</span>: [
+    {
+        <span style="color: #98be65;">"output_neurons"</span>: <span style="color: #da8548; font-weight: bold;">4</span>,
+        <span style="color: #98be65;">"output_type"</span>: <span style="color: #98be65;">"largest_count"</span>,
+        <span style="color: #98be65;">"neurons"</span>: [<span style="color: #98be65;">"4"</span>, <span style="color: #98be65;">"5"</span>, <span style="color: #98be65;">"6"</span>, <span style="color: #98be65;">"7"</span>],
+        <span style="color: #98be65;">"neuron_names"</span>: [<span style="color: #98be65;">"BL"</span>, <span style="color: #98be65;">"BR"</span>, <span style="color: #98be65;">"TR"</span>, <span style="color: #98be65;">"TL"</span>]
+    }
+],
+</pre>
+</div>
+
+<p>
+Similarly to inputs, the output range describes the results of the network. Each network can have 1 or more output units, each representing a specific dimension of the output space.
+</p>
+
+<p>
+&gt; [!NOTE]
+&gt; In the future the <code>neuron_names</code> field will be removed, instead the network will utilize the name of the neuron directly. These names can also be gathered from any labeled data that is provided while training a network to perform classification.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Output Type</th>
+<th scope="col" class="org-left">Characteristics</th>
+<th scope="col" class="org-left"># Neurons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Largest Count</td>
+<td class="org-left">A simple voting scheme where the neuron that spikes the most wins, ties are broken &ldquo;left to right&rdquo;</td>
+<td class="org-left">&gt;= 2</td>
+</tr>
+
+<tr>
+<td class="org-left">Last to Spike</td>
+<td class="org-left">A temporal output scheme, where neurons are tracked for t timesteps, and the last to fire wins, ties are broken &ldquo;right to left&rdquo;</td>
+<td class="org-left">&gt;= 2</td>
+</tr>
+
+<tr>
+<td class="org-left">Spike</td>
+<td class="org-left">The most straight forward output unit, a single neuron is tracked once per timestep, if it spikes it will be included in the output</td>
+<td class="org-left">1</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+&gt; [!WARNING]
+&gt; As stated above the process to add new output types is also fairly involved, through this will likely change in the future.
+</p>
+</div>
+<ol class="org-ol">
+<li><a id="org63ab8a9"></a>Future Ouptut Types<br />
+<div class="outline-text-5" id="text-1-3-3-1">
+<ul class="org-ul">
+<li>PWM Decoding</li>
+<li>Weighted voting</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org39f47e4" class="outline-3">
+<h3 id="org39f47e4"><span class="section-number-3">1.4.</span> Labeled Data Overview</h3>
+<div class="outline-text-3" id="text-1-4">
+<p>
+<a href="labeled_data/quadrents.json">labeled<sub>data</sub>/quadrents.json</a>
+</p>
+<div class="org-src-container">
+<pre class="src src-js">{
+  <span style="color: #98be65;">"input_dimension"</span>: <span style="color: #da8548; font-weight: bold;">2</span>,
+  <span style="color: #98be65;">"output_dimension"</span>: <span style="color: #da8548; font-weight: bold;">1</span>,
+  <span style="color: #98be65;">"expected_outputs"</span>: [[<span style="color: #98be65;">"BL"</span>, <span style="color: #98be65;">"BR"</span>, <span style="color: #98be65;">"TL"</span>, <span style="color: #98be65;">"TR"</span>]],
+  <span style="color: #98be65;">"data"</span>: [
+    {
+      <span style="color: #98be65;">"input"</span>: [-<span style="color: #da8548; font-weight: bold;">1</span>, -<span style="color: #da8548; font-weight: bold;">1</span>],
+      <span style="color: #98be65;">"output"</span>: [<span style="color: #98be65;">"BL"</span>]
+    },
+    {
+      <span style="color: #98be65;">"input"</span>: [-<span style="color: #da8548; font-weight: bold;">1</span>, <span style="color: #da8548; font-weight: bold;">1</span>],
+      <span style="color: #98be65;">"output"</span>: [<span style="color: #98be65;">"TL"</span>]
+    },
+    {
+      <span style="color: #98be65;">"input"</span>: [<span style="color: #da8548; font-weight: bold;">1</span>, -<span style="color: #da8548; font-weight: bold;">1</span>],
+      <span style="color: #98be65;">"output"</span>: [<span style="color: #98be65;">"BR"</span>]
+    },
+    {
+      <span style="color: #98be65;">"input"</span>: [<span style="color: #da8548; font-weight: bold;">1</span>, <span style="color: #da8548; font-weight: bold;">1</span>],
+      <span style="color: #98be65;">"output"</span>: [<span style="color: #98be65;">"TR"</span>]
+    }
+  ]
+}
+</pre>
+</div>
+
+<p>
+For the purposes of training a classification network it is beneficial to have an easy format to provided labeled data. Builtin to IONS is the ability to handle files of the above format.
+</p>
+
+<p>
+We start by specifying the dimension of both the input and output space, along with what those outputs mean to a human.
+</p>
+
+<p>
+Each input is then provided, along with the expected output. IONS is then able to parse this while training a classification network to produce fitness scores for a given network.
+</p>
+
+<p>
+&gt; [!NOTE]
+&gt; All classification networks are currently trained using <code>buckets</code> for input and <code>largest_count</code> for output. In the future any combination of input and output types will be supported.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org5bf316d" class="outline-2">
+<h2 id="org5bf316d"><span class="section-number-2">2.</span> Graham Idea</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li>Negative feeback from RHS to LHS, from a subsequent layer</li>
+<li>Specifiy number of &ldquo;layers&rdquo; of hidden neurons</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Created: 2024-11-16 Sat 07:13</p>
+</div>
+</body>
+</html>

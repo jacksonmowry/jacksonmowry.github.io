@@ -285,7 +285,7 @@ fn test_classification_func(cmd cli.Command) ! {
 			n.output()!
 		}
 
-		println(n.format_output()!)
+		// println(n.format_output()!)
 		if n.format_output()! == data.output {
 			correct_runs++
 		}

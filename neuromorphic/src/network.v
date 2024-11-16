@@ -75,7 +75,7 @@ pub:
 	max_threshold_value int = 10
 	max_synapse_count   u32 = 100
 	max_neuron_count    u32 = 100
-	max_delay           u32 = 5
+	max_synapse_delay   u32 = 5
 	end_to_end_time     u32 = 50
 pub mut:
 	input_domain     []Input_Unit
@@ -95,7 +95,7 @@ pub fn (mut n Network) spikes_snapshot() []string {
 }
 
 fn (n Network) modded_timestep() u32 {
-	return n.current_timestep % (n.max_delay + 1)
+	return n.current_timestep % (n.max_synapse_delay + 1)
 }
 
 fn (mut n Network) bucket_input(input_value int, input_device Input_Unit) {
@@ -107,14 +107,14 @@ fn (mut n Network) bucket_input(input_value int, input_device Input_Unit) {
 fn (mut n Network) timescale_input(input_value int, input_device Input_Unit) {
 	normalize := input_value / ((input_device.max_value - input_device.min_value) / input_device.input_prop)
 	for i in 0 .. normalize {
-		n.neurons[input_device.neurons[0]].charge_to_threshold((n.modded_timestep() + i) % n.max_delay)
+		n.neurons[input_device.neurons[0]].charge_to_threshold((n.modded_timestep() + i) % n.max_synapse_delay)
 	}
 }
 
 fn (mut n Network) pwm_input(input_value int, input_device Input_Unit) {
 	step := (input_device.max_value - input_device.min_value) / input_value
 	for i := 0; i < input_device.input_prop; i += step {
-		n.neurons[input_device.neurons[0]].charge_to_threshold((n.modded_timestep() + i) % n.max_delay)
+		n.neurons[input_device.neurons[0]].charge_to_threshold((n.modded_timestep() + i) % n.max_synapse_delay)
 	}
 }
 
@@ -230,7 +230,7 @@ pub fn (mut n Network) reset_output() {
 pub fn (mut n Network) initialize() ! {
 	// Init neurons
 	for _, mut neuron in n.neurons {
-		for _ in 0 .. n.max_delay + 1 {
+		for _ in 0 .. n.max_synapse_delay + 1 {
 			neuron.charges << 0
 		}
 	}
@@ -257,7 +257,7 @@ pub fn (mut n Network) run() ! {
 	for _, mut neuron in n.neurons {
 		for synapse in neuron.pre_synapses {
 			if n.neurons[synapse.from].charges[n.modded_timestep()] >= n.neurons[synapse.from].threshold {
-				neuron.charges[(n.modded_timestep() + synapse.delay) % (n.max_delay + 1)] += synapse.value
+				neuron.charges[(n.modded_timestep() + synapse.delay) % (n.max_synapse_delay + 1)] += synapse.value
 			}
 		}
 	}
@@ -284,8 +284,8 @@ pub fn (n Network) verify_graph() ! {
 		return error('max_neuron_count is 0')
 	}
 
-	if n.end_to_end_time < n.max_delay {
-		return error('end_to_end_time is less than the networks max_delay, ${n.end_to_end_time} < ${n.max_delay}')
+	if n.end_to_end_time < n.max_synapse_delay {
+		return error('end_to_end_time is less than the networks max_synapse_delay, ${n.end_to_end_time} < ${n.max_synapse_delay}')
 	}
 
 	// Sanity check each neuron and it's pre-synapses
@@ -298,8 +298,8 @@ pub fn (n Network) verify_graph() ! {
 			if synapse.value > n.max_synapse_value || synapse.value < n.min_synapse_value {
 				return error('Synapse ${j} on neuron ${i} value out of range should be between ${n.min_synapse_value} and ${n.max_synapse_value}, is ${synapse.value}')
 			}
-			if synapse.delay > n.max_delay {
-				return error('Synapse ${j} on neuron ${i} delay out of should be less or equal to ${n.max_delay}, is ${synapse.delay}')
+			if synapse.delay > n.max_synapse_delay {
+				return error('Synapse ${j} on neuron ${i} delay out of should be less or equal to ${n.max_synapse_delay}, is ${synapse.delay}')
 			}
 			if synapse.from !in n.neurons {
 				return error('Synapse ${j} on neuron ${i} out of range ${n.neurons.len} exist in the network, yet synapse is referencing ${synapse.from}')
@@ -356,8 +356,8 @@ pub fn (n Network) verify_graph() ! {
 			if input_device.input_prop == 0 {
 				return error('Element ${i} in input_domain has a timescale value of 0')
 			}
-			if input_device.input_prop > n.max_delay {
-				return error('Element ${i} in input_domain has a timescale value greater than the max delay, ${input_device.input_prop} > ${n.max_delay}')
+			if input_device.input_prop > n.max_synapse_delay {
+				return error('Element ${i} in input_domain has a timescale value greater than the max delay, ${input_device.input_prop} > ${n.max_synapse_delay}')
 			}
 			needed_input_neurons++
 		}
