@@ -51,8 +51,7 @@ Running with no arguments shows us the help message. As we can see there are cur
 *** Visualize
 Visualize takes in a network =json= file and prints a representation of it directly to the terminal. This requires =libsixel= and by extension the program =img2sixel=, make sure both are installed on your system, and that your terminal supports sixel graphics if you want to see the output.
 
-[[https://github.com/saitoha/libsixel
-][libsixel]]
+[[https://github.com/saitoha/libsixel][libsixel]]
 
 [[file:assets/xor_viz.png]]
 
