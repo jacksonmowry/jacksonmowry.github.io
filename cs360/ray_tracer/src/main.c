@@ -2,11 +2,15 @@
 #include "hittable.h"
 #include "hittable_list.h"
 #include "material.h"
+#include "plugin.h"
 #include "rtweekend.h"
 #include "vec3.h"
+#include "writer.h"
 #include <ctype.h>
+#include <dlfcn.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -19,12 +23,15 @@ VECTOR_PROTOTYPE(material)
 VECTOR(material)
 
 int main(int argc, char* argv[]) {
-    char* file_format = ".XX";
+    char* file_format = NULL;
     uint32_t width = 320;
     uint32_t height = 240;
     uint32_t seed = time(NULL);
     uint32_t threads = 1;
     char* file_name = argv[argc - 1];
+    void* dl_handle = NULL;
+    int (*write)(const char* file, uint32_t width, uint32_t height,
+                 const Pixel pixels[]) = write_prop;
 
     // Parse CLI opts
     opterr = 0;
@@ -79,6 +86,23 @@ int main(int argc, char* argv[]) {
         file_name = NULL;
     }
 
+    if (strncmp("rto", file_extension, 3)) {
+        char pathname[PATH_MAX] = {0};
+        snprintf(pathname, sizeof(pathname), "./lib%s.so", file_extension);
+        dl_handle = dlopen(pathname, RTLD_LAZY);
+        if (!dl_handle) {
+            fprintf(stderr, "%s\n", dlerror());
+            return 1;
+        }
+
+        struct Export* e = (struct Export*)dlsym(dl_handle, "export");
+
+        write = e->write;
+
+        if (!write) {
+            fprintf(stderr, "%s\n", dlerror());
+        }
+    }
     srand(seed);
 
     hittable_list hl = {.objects = vector_hittable_init(5)};
@@ -211,11 +235,15 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed3});
 
     camera cam = camera_initialize(width, height);
-    camera_render(cam, &hl, file_name);
+    camera_render(cam, &hl, file_name, write);
 
     for (size_t i = 0; i < hl.objects.len; i++) {
         free(hl.objects.array[i].mat);
     }
 
     vector_hittable_free(hl.objects);
+
+    if (dl_handle) {
+        dlclose(dl_handle);
+    }
 }

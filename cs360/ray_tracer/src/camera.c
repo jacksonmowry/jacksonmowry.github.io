@@ -93,8 +93,9 @@ camera camera_initialize(int width, int height) {
 
 // `camera_render` takes in an entire scene `world`, the camera `c`, and an
 // output file to render to
-void camera_render(camera c, const hittable_list* world,
-                   const char* file_name) {
+void camera_render(camera c, const hittable_list* world, const char* file_name,
+                   int (*write)(const char* file, uint32_t width,
+                                uint32_t height, const Pixel pixels[])) {
     Pixel* p = malloc(c.width * c.height * sizeof(Pixel));
     if (!p) {
         perror("malloc");
@@ -115,7 +116,7 @@ void camera_render(camera c, const hittable_list* world,
         }
     }
 
-    write_prop(file_name, c.width, c.height, p);
+    write(file_name, c.width, c.height, p);
     free(p);
 }
 

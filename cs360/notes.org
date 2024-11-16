@@ -1435,3 +1435,12 @@ void freeaddrinfo(struct addrinfo* res);
 
 const char* gai_strerror(int errcode);
 #+end_src
+
+*** family
+AF_UNSPEC ipv4/6
+AF_INET ipv4
+AF_INET6 ivp6
+*** flags
+AI_PASSIVef
+*** Error checking
+gai_strerror(errcode)
