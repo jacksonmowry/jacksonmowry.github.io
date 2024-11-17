@@ -106,10 +106,26 @@ pub fn (d Dataset) generate_initial_population(n network.Network) []network.Netw
 		})
 	}
 	for _ in 0 .. 10 {
+		population << n.make_sparsly_connected(network.Sparse_Params{
+			synapse_value_lower_bound: -1
+			synapse_value_upper_bound: 2
+			num_synapse_upper_bound:   2
+			recurrence_denominator:    5
+		})
+	}
+	for _ in 0 .. 10 {
 		population << n.make_w_hidden_layer(network.Hidden_Params{
 			synapse_value_lower_bound:           -1
 			num_synapse_upper_bound:             4
 			hidden_neuron_threshold_upper_bound: 3
+		})
+	}
+	for _ in 0 .. 10 {
+		population << n.make_w_hidden_layer(network.Hidden_Params{
+			synapse_value_lower_bound:           -1
+			num_synapse_upper_bound:             2
+			hidden_neuron_threshold_upper_bound: 3
+			recurrence_denominator:              5
 		})
 	}
 	for _ in 0 .. 10 {
@@ -125,6 +141,11 @@ pub fn (d Dataset) generate_initial_population(n network.Network) []network.Netw
 	}
 
 	return population
+}
+
+pub fn (d Dataset) generate_next_population(networks []network.Network) []network.Network {
+	println(networks.len)
+	return networks.clone()
 }
 
 pub fn (d Dataset) test_network(mut n network.Network) !int {

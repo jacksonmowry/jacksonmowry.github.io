@@ -87,6 +87,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (strncmp("rto", file_extension, 3)) {
+        // file extension is not equal to rto
+        // We look in the cwd for a shared object called lib%file_extension%.so
         char pathname[PATH_MAX] = {0};
         snprintf(pathname, sizeof(pathname), "./lib%s.so", file_extension);
         dl_handle = dlopen(pathname, RTLD_LAZY);

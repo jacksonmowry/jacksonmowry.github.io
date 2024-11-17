@@ -66,6 +66,15 @@ fn main() {
 		description: 'Dataset json file'
 	})
 
+	train_classification_cmd.add_flag(cli.Flag{
+		flag:          .int
+		required:      false
+		name:          'generations'
+		abbrev:        'g'
+		description:   'Number of generations to train'
+		default_value: ['10']
+	})
+
 	app.add_command(train_classification_cmd)
 
 	mut test_classification_cmd := cli.Command{
@@ -190,6 +199,8 @@ fn train_classification_func(cmd cli.Command) ! {
 		panic('Failed to get dataset json file: ${err}')
 	}
 
+	generations := cmd.flags.get_int('generations') or { 10 }
+
 	dataset_json := os.read_file(filename) or {
 		eprintln('Failed to read_file ${filename}, ${err}')
 		exit(1)
@@ -205,19 +216,25 @@ fn train_classification_func(cmd cli.Command) ! {
 	initial_network := d.create_skeleton_network()!
 	initial_network.verify_graph()!
 
-	initial_network.visualize()!
-
 	mut population := d.generate_initial_population(initial_network)
-	test_results := parallel.amap(population, fn [d] (network_to_test network.Network) dataset.Test_Result {
-		return dataset.Test_Result{
-			score:   d.test_network(mut network_to_test.clone()) or { 0 }
-			network: network_to_test
-		}
-	},
-		workers: 1000
-	).sorted(a.score < b.score)
+	mut test_results := []dataset.Test_Result{}
 
-	for result in test_results {
+	for i in 0 .. generations {
+		if i != 0 {
+			population = d.generate_next_population(test_results#[-5..].map(it.network))
+		}
+
+		test_results = parallel.amap(population, fn [d] (network_to_test network.Network) dataset.Test_Result {
+			return dataset.Test_Result{
+				score:   d.test_network(mut network_to_test.clone()) or { 0 }
+				network: network_to_test
+			}
+		},
+			workers: 1000
+		).sorted(a.score < b.score)
+	}
+
+	for result in test_results#[-5..] {
 		result.network.visualize()!
 		println('${result.score}/${d.data.len}')
 	}

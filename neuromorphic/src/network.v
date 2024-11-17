@@ -435,7 +435,13 @@ pub fn (n Network) visualize() ! {
 	println('')
 }
 
-pub fn (n Network) make_fully_connected() Network {
+@[params]
+pub struct Fully_Connected_Params {
+pub:
+	recurrence_denominator u32 = max_u32
+}
+
+pub fn (n Network) make_fully_connected(params Fully_Connected_Params) Network {
 	mut new_network := n.clone()
 	input_neurons := arrays.flatten(new_network.input_domain.map(it.neurons))
 	output_neurons := arrays.flatten(new_network.output_range.map(it.neurons))
@@ -450,6 +456,16 @@ pub fn (n Network) make_fully_connected() Network {
 		}
 	}
 
+	for neuron, _ in new_network.neurons {
+		if (rand.u32() % params.recurrence_denominator) == 0 {
+			new_network.neurons[neuron].pre_synapses << Synapse{
+				value: rand.element([-1, 1]) or { 1 }
+				delay: 1
+				from:  neuron
+			}
+		}
+	}
+
 	return new_network
 }
 
@@ -460,6 +476,7 @@ pub:
 	synapse_value_upper_bound i32 = 1
 	num_synapse_upper_bound   u32 = 1
 	delay_upper_bound         u32 = 1
+	recurrence_denominator    u32 = max_u32
 }
 
 pub fn (n Network) make_sparsly_connected(params Sparse_Params) Network {
@@ -483,6 +500,16 @@ pub fn (n Network) make_sparsly_connected(params Sparse_Params) Network {
 		}
 	}
 
+	for neuron, _ in new_network.neurons {
+		if (rand.u32() % params.recurrence_denominator) == 0 {
+			new_network.neurons[neuron].pre_synapses << Synapse{
+				value: rand.element(values_wo_zero) or { 1 }
+				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
+				from:  neuron
+			}
+		}
+	}
+
 	return new_network
 }
 
@@ -493,6 +520,7 @@ pub:
 	synapse_value_upper_bound           i32 = 1
 	num_synapse_upper_bound             u32 = 1
 	delay_upper_bound                   u32 = 1
+	recurrence_denominator              u32 = max_u32
 	hidden_neurons_lower_bound          u32 = 1
 	hidden_neurons_upper_bound          u32 = 1
 	hidden_neuron_threshold_lower_bound u32 = 1
@@ -529,6 +557,13 @@ pub fn (n Network) make_w_hidden_layer(params Hidden_Params) Network {
 				from:  from
 			}
 		}
+		if (rand.u32() % params.recurrence_denominator) == 0 {
+			new_network.neurons[neuron].pre_synapses << Synapse{
+				value: rand.element(values_wo_zero) or { 1 }
+				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
+				from:  neuron
+			}
+		}
 	}
 
 	for neuron in output_neurons {
@@ -537,6 +572,16 @@ pub fn (n Network) make_w_hidden_layer(params Hidden_Params) Network {
 				value: rand.element(values_wo_zero) or { 1 }
 				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
 				from:  from
+			}
+		}
+	}
+
+	for neuron, _ in new_network.neurons {
+		if (rand.u32() % params.recurrence_denominator) == 0 {
+			new_network.neurons[neuron].pre_synapses << Synapse{
+				value: rand.element(values_wo_zero) or { 1 }
+				delay: rand.u32_in_range(1, params.delay_upper_bound + 1) or { 1 }
+				from:  neuron
 			}
 		}
 	}

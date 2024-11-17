@@ -74,18 +74,18 @@ int write_bmp(const char* file, uint32_t width, uint32_t height,
         for (size_t col = 0; col < width; col++) {
             uint8_t r =
                 interval_clamp(
-                    i,
-                    linear_to_gamma(pixels[((height - row) * width) + col].r)) *
+                    i, linear_to_gamma(
+                           pixels[((height - row - 1) * width) + col].r)) *
                 255.999;
             uint8_t g =
                 interval_clamp(
-                    i,
-                    linear_to_gamma(pixels[((height - row) * width) + col].g)) *
+                    i, linear_to_gamma(
+                           pixels[((height - row - 1) * width) + col].g)) *
                 255.999;
             uint8_t b =
                 interval_clamp(
-                    i,
-                    linear_to_gamma(pixels[((height - row) * width) + col].b)) *
+                    i, linear_to_gamma(
+                           pixels[((height - row - 1) * width) + col].b)) *
                 255.999;
             fwrite(&b, sizeof(b), 1, fp);
             fwrite(&g, sizeof(g), 1, fp);
