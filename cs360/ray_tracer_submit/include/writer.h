@@ -6,7 +6,5 @@
 
 int write_prop(const char* file, uint32_t width, uint32_t height,
                const Pixel pixels[]);
-int write_ppm(const char* file, uint32_t width, uint32_t height,
-              const Pixel pixels[]);
 
 #endif // WRITER_H_

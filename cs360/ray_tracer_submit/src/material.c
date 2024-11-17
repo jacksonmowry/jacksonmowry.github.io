@@ -17,6 +17,8 @@ static double reflectance(double cosine, double refraction_index) {
     return r0 + (1 - r0) * pow((1 - cosine), 5);
 }
 
+// `scatter` takes a material `m` and ray `r` then calculates the ray bounce
+// properties depending on hit angle
 bool scatter(material* m, const Ray* r, const hit_record* rec,
              Pixel* attenuation, Ray* scattered) {
     if (m) {

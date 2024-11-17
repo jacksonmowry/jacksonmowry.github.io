@@ -3,6 +3,7 @@
 
 #include "hittable_list.h"
 #include "vec3.h"
+#include <stdint.h>
 
 typedef struct {
     double aspect_ratio;
@@ -33,8 +34,9 @@ typedef struct {
     Vec3 w;
 } camera;
 
-void camera_render(camera cam, const hittable_list* world,
-                   const char* file_name);
+void camera_render(camera c, const hittable_list* world, const char* file_name,
+                   int (*write)(const char* file, uint32_t width,
+                                uint32_t height, const Pixel pixels[]));
 camera camera_initialize(int width, int height);
 Pixel ray_color(camera c, const Ray* r, int max_depth,
                 const hittable_list* world);

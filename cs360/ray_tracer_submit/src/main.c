@@ -2,11 +2,15 @@
 #include "hittable.h"
 #include "hittable_list.h"
 #include "material.h"
+#include "plugin.h"
 #include "rtweekend.h"
 #include "vec3.h"
+#include "writer.h"
 #include <ctype.h>
+#include <dlfcn.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -19,12 +23,15 @@ VECTOR_PROTOTYPE(material)
 VECTOR(material)
 
 int main(int argc, char* argv[]) {
-    char* file_format = ".XX";
+    char* file_format = NULL;
     uint32_t width = 320;
     uint32_t height = 240;
     uint32_t seed = time(NULL);
     uint32_t threads = 1;
     char* file_name = argv[argc - 1];
+    void* dl_handle = NULL;
+    int (*write)(const char* file, uint32_t width, uint32_t height,
+                 const Pixel pixels[]) = write_prop;
 
     // Parse CLI opts
     opterr = 0;
@@ -79,11 +86,34 @@ int main(int argc, char* argv[]) {
         file_name = NULL;
     }
 
+    if (strncmp("rto", file_extension, 3)) {
+        // file extension is not equal to rto
+        // We look in the cwd for a shared object called lib%file_extension%.so
+        char pathname[PATH_MAX] = {0};
+        snprintf(pathname, sizeof(pathname), "./lib%s.so", file_extension);
+        dl_handle = dlopen(pathname, RTLD_LAZY);
+        if (!dl_handle) {
+            fprintf(stderr, "%s\n", dlerror());
+            return 1;
+        }
+
+        struct Export* e = (struct Export*)dlsym(dl_handle, "export");
+
+        write = e->write;
+
+        if (!write) {
+            fprintf(stderr, "%s\n", dlerror());
+        }
+    }
     srand(seed);
 
     hittable_list hl = {.objects = vector_hittable_init(5)};
 
     material* material_ground = malloc(sizeof(material));
+    if (!material_ground) {
+        perror("malloc");
+        return 1;
+    }
     *material_ground =
         (material){.type = LAMBERTIAN,
                    .albedo = (Pixel){.r = 0.5, .g = 0.5, .b = 0.5},
@@ -108,6 +138,10 @@ int main(int argc, char* argv[]) {
                     // Diffuse
                     Pixel albedo = vec3_mul(vec3_random(), vec3_random());
                     material* sphere_material = malloc(sizeof(material));
+                    if (!sphere_material) {
+                        perror("malloc");
+                        return 1;
+                    }
                     *sphere_material =
                         (material){.albedo = albedo, .type = LAMBERTIAN};
 
@@ -122,6 +156,10 @@ int main(int argc, char* argv[]) {
                     Pixel albedo = vec3_random_params(0.5, 1);
                     double fuzz = random_double_min_max(0, 0.5);
                     material* sphere_material = malloc(sizeof(material));
+                    if (!sphere_material) {
+                        perror("malloc");
+                        return 1;
+                    }
                     *sphere_material = (material){
                         .albedo = albedo, .fuzz = fuzz, .type = METAL};
 
@@ -135,6 +173,10 @@ int main(int argc, char* argv[]) {
                     // Glass
                     double refraction_index = 1.5;
                     material* sphere_material = malloc(sizeof(material));
+                    if (!sphere_material) {
+                        perror("malloc");
+                        return 1;
+                    }
                     *sphere_material =
                         (material){.refraction_index = refraction_index,
                                    .type = DIELECTRIC};
@@ -152,6 +194,10 @@ int main(int argc, char* argv[]) {
 
     // Fixed 1
     material* sphere_material_fixed1 = malloc(sizeof(material));
+    if (!sphere_material_fixed1) {
+        perror("malloc");
+        return 1;
+    }
     *sphere_material_fixed1 =
         (material){.refraction_index = 1.5, .type = DIELECTRIC};
     hittable_list_add(
@@ -161,6 +207,10 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed1});
     // Fixed 2
     material* sphere_material_fixed2 = malloc(sizeof(material));
+    if (!sphere_material_fixed2) {
+        perror("malloc");
+        return 1;
+    }
     *sphere_material_fixed2 =
         (material){.albedo = (Pixel){.r = 0.4, .g = 0.2, .b = 0.1},
                    .type = LAMBERTIAN,
@@ -172,6 +222,10 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed2});
     // Fixed 3
     material* sphere_material_fixed3 = malloc(sizeof(material));
+    if (!sphere_material_fixed3) {
+        perror("malloc");
+        return 1;
+    }
     *sphere_material_fixed3 =
         (material){.albedo = (Pixel){.r = 0.7, .g = 0.6, .b = 0.5},
                    .fuzz = 0,
@@ -183,11 +237,15 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed3});
 
     camera cam = camera_initialize(width, height);
-    camera_render(cam, &hl, file_name);
+    camera_render(cam, &hl, file_name, write);
 
     for (size_t i = 0; i < hl.objects.len; i++) {
         free(hl.objects.array[i].mat);
     }
 
     vector_hittable_free(hl.objects);
+
+    if (dl_handle) {
+        dlclose(dl_handle);
+    }
 }

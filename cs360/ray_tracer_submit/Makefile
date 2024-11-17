@@ -18,7 +18,7 @@ MATH_OBJ = $(BUILD_DIR)/vec3.o
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 EXEC = $(BUILD_DIR)/raytrace
-all: $(EXEC)
+all: $(EXEC) ppm_plugin bmp_plugin
 
 # Link object files into final executable
 $(EXEC): $(OBJS) #$(MATH_OBJ)
@@ -30,11 +30,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Build with gcc's -fanalyzer
+analyzer: CC = gcc
 analyzer: CFLAGS += $(ANALYZERFLAGS)
 analyzer: $(EXEC)
 
 # Build with address sanitizer
-sanitizer: CC = clang
 sanitizer: CFLAGS += $(SANITIZERFLAGS)
 sanitizer: $(EXEC)
 
@@ -43,8 +43,14 @@ perf: CFLAGS = $(PERFFLAGS)
 perf: $(EXEC)
 	perf record ./$(EXEC) > sweep.ppm
 
+ppm_plugin: plugins/ppm.c src/interval.c src/vec3.c
+	$(CC) -fPIC -shared plugins/ppm.c -o $(BUILD_DIR)/libppm.so src/interval.c src/vec3.c -Iinclude
+
+bmp_plugin: plugins/bmp.c src/interval.c src/vec3.c
+	$(CC) -fPIC -shared plugins/bmp.c -o $(BUILD_DIR)/libbmp.so src/interval.c src/vec3.c -Iinclude
+
 clean:
-	rm -f $(BUILD_DIR)/*.o $(EXEC) $(BUILD_DIR)/tests
+	rm -f $(BUILD_DIR)/*.o $(EXEC) $(BUILD_DIR)/tests $(BUILD_DIR)/*.so
 
 .PHONY: all clean analyzer sanitizer tests
 # end

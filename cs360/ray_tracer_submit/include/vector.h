@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+// I originally wrote this to learn about macros and it made my life easier for
+// this project, so it is included here
+
 /*********************************/
 /* generic vector implementation */
 /*********************************/

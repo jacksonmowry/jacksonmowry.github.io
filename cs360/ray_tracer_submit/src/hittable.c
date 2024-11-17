@@ -4,16 +4,17 @@
 #include "vec3.h"
 #include <math.h>
 
+// sets the hit record normal vector
+// NOTE: the parameter 'outward_normal' is assumed to have unit length
 void set_face_normal(hit_record* record, const Ray r,
                      const Vec3 outward_normal) {
-    // sets the hit record normal vector
-    // NOTE: the parameter 'outward_normal' is assumed to have unit length
-
     record->front_face = vec3_dot(r.direction, outward_normal) < 0;
     record->normal =
         record->front_face ? outward_normal : vec3_negate(outward_normal);
 }
 
+// `hit` checks if a provded ray collides with the object within the given
+// interval `i`
 bool hit(hittable hittable, const Ray r, interval i, hit_record* record) {
     switch (hittable.type) {
     case SPHERE: {
