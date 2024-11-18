@@ -1,0 +1,62 @@
+#+title: Exam Review 3
+* 4.2
+To prove a set S = {v_1, ..., v_n} is a subspace
+1. v_1, v_2 \in{} S \Rightarrow{} v_1 + v_2 \in{} S (must use general v_1 and v_2, not particualr)
+2. kv_1 \in{} S (must use "k" cannot use a particular number)
+
+* 4.3
+** To determine whether a set S = {v_1, v_2, ... v_n} is a spannaing set for vector space V
+
+1. $\begin{bmatrix}v_1&v_2&...&v_n\end{bmatrix}$$\begin{bmatrix}x_1\\x_2\\...\\x_n\end{bmatrix}$
+   - Write v_1,v_2,...v_n in column form
+2. Solve the system
+   - If the system is consistent it is a spanning set
+*** Method 1
+det(A) \neq{} 0
+*** Method 2
+G-J \Rightarrow{} pivot in each row
+
+** Let b = (b_1, ..., b_n) To determine if b is in the span of the set
+We solve the system $\begin{bmatrix}v_1&...&v_n&|&b\end{bmatrix}$ (all in column form), and check if there is a solution
+
+* 4.4
+** To determine if a given set is linearly independent
+S = {v_1, v_2, ..., v_n} is L.I., we solve $\begin{bmatrix}v_1&...&v_n&|&0\end{bmatrix}$, and check if it has a pivot in each row
+Or just find the det(A) \neq{} 0
+
+** To prove if {f_1, f_2} if LI by using Wronskian
+Find the det of $\begin{bmatrix}f_1&f_2\\f'_1&f'_2\end{bmatrix}$ \neq{} 0 \Rightarrow{} LI
+
+* 4.5
+** Finding Basis
+R^{n} \Rightarrow{} {e_1, ..., e_{n}}
+P_n \Rightarrow{} {1, x, x^{2}, ..., x^{n}}
+3\times{}3 Symmetric Matrix \Rightarrow{} $\begin{bmatrix}a&d&e\\d&b&f\\e&f&c\end{bmatrix}$
+3\times{}3 Skew Symmetric Matrix \Rightarrow{}
+
+** Coordinate Vector in relation to a basis
+S={v_1,..., v_n}
+b = x_1v_1 + x_2v_2 + ... + x_nv_n
+\Rightarrow{} coordinate vector v related to basis S is (x_1, x_2, ..., x_n)
+
+** Determine whether or not the given set is a basis
+det($\begin{bmatrix}v_1&...&v_n\end{bmatrix}$) \neq{} 0
+
+* 4.6
+** Same as 4.5 Part A (Example 9)
+and dimension of a basis is the number of vectors in the basis
+
+* 4.7
+Old basis B_1, new basis B_2
+
+P_{B_1 \rightarrow{} B_2} is found from $\begin{bmatrix}B_{2}&|&B_{1}\end{bmatrix}$ \Rightarrow{} $\begin{bmatrix}I&|&P_{B_1 \rightarrow{} B_2}\end{bmatrix}$
+
+* 4.8
+** Find the basis for each of the 4 fundamental spaces
+Just read the lecture notes, he made it very super clear
+** Solve matrix equation and write solution as sum
+Given Ax = b \rightarrow{} G-J elimination to solve for x = $\begin{bmatrix} \\ \\\end{bmatrix}$ + t$\begin{bmatrix} \\ \\\end{bmatrix}$ + s$\begin{bmatrix} \\ \\\end{bmatrix}$
+x = $\begin{bmatrix}\text{constant}\\\text{vector}\end{bmatrix}$ + t$\begin{bmatrix}\text{constant}\\\text{vector}\end{bmatrix}$ + s$\begin{bmatrix}\text{constant}\\\text{vector}\end{bmatrix}$
+First vector = x_p (a particular solution to Ax=b)
+Everything else = x_h (the general solution to the homogeneous equation Ax=0)
+Pick the variable that appears the most in the system of equations

@@ -8,18 +8,24 @@ import os
 import rand
 
 pub struct Synapse {
-pub:
+pub mut:
 	value int
 	delay u32
 	from  string
 }
 
 pub struct Neuron {
-pub:
-	threshold int = 1
 pub mut:
+	threshold    int = 1
 	pre_synapses []Synapse
 	charges      []int @[skip] // Do not JSON encode/decode this field
+}
+
+pub fn (n Neuron) clone() Neuron {
+	return Neuron{
+		threshold:    n.threshold
+		pre_synapses: n.pre_synapses.clone()
+	}
 }
 
 fn (mut n Neuron) charge_to_threshold(timestep int) {

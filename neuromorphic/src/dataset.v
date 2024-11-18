@@ -2,6 +2,7 @@ module dataset
 
 import network
 import arrays
+import rand
 
 pub struct Test_Result {
 pub:
@@ -144,8 +145,45 @@ pub fn (d Dataset) generate_initial_population(n network.Network) []network.Netw
 }
 
 pub fn (d Dataset) generate_next_population(networks []network.Network) []network.Network {
-	println(networks.len)
-	return networks.clone()
+	mut new_population := networks.map(it.clone())
+	for network in networks {
+		mut new_network := network.clone()
+		for _, mut neuron in new_network.neurons {
+			for mut synapse in neuron.pre_synapses {
+				// Value Flip
+				if rand.u32n(25) or { 25 } == 0 {
+					synapse.value *= -1
+				}
+				// Value Bump
+				if rand.u32n(25) or { 25 } == 0 {
+					synapse.value += rand.element([-1, 1]) or { 1 }
+					if synapse.value == 0 {
+						synapse.value = 1
+					}
+				}
+				// Delay Bump
+				if rand.u32n(25) or { 25 } == 0 {
+					synapse.delay += rand.element([u32(1), 1]) or { 1 }
+					if synapse.delay == 0 {
+						synapse.delay = 1
+					}
+				}
+				// Synapse Deletion
+				if rand.u32n(25) or { 25 } == 0 {
+					synapse.value = 0
+				}
+			}
+			// Synapse Addition
+			// if rand.u32n(25) or { 25 } == 0 {
+			// }
+
+			// neuron.pre_synapses = neuron.pre_synapses.filter(it.value != 0)
+		}
+
+		new_population << new_network.clone()
+	}
+
+	return new_population.clone()
 }
 
 pub fn (d Dataset) test_network(mut n network.Network) !int {

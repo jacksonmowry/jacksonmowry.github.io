@@ -1444,3 +1444,16 @@ AF_INET6 ivp6
 AI_PASSIVef
 *** Error checking
 gai_strerror(errcode)
+
+* Select
+pselect - nanosecond
+select - microsecond
+#+begin_src C
+int select(int nfds, fd_set readable, fd_set writeable, fd_set execption, const timeval* restrict timeout)
+#+end_src
+
+select checks over the whole time period, not right away not at the end
+
+* Windows Video Games Async example
+Messages are provided on IO from the OS
+If there are no messages we can do other internal game things

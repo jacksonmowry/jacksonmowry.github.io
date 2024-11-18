@@ -220,21 +220,28 @@ fn train_classification_func(cmd cli.Command) ! {
 	mut test_results := []dataset.Test_Result{}
 
 	for i in 0 .. generations {
+		println('Generation ${i + 1}, testing ${population.len} networks')
 		if i != 0 {
-			population = d.generate_next_population(test_results#[-5..].map(it.network))
+			println('I am passing the last 5 networks of ${test_results.map(it.score)} to generate')
+			population = d.generate_next_population(test_results#[-5..].clone().map(it.network.clone()))
 		}
 
 		test_results = parallel.amap(population, fn [d] (network_to_test network.Network) dataset.Test_Result {
-			return dataset.Test_Result{
+			res := dataset.Test_Result{
 				score:   d.test_network(mut network_to_test.clone()) or { 0 }
-				network: network_to_test
+				network: network_to_test.clone()
 			}
+			println(res.score)
+			return res
 		},
-			workers: 1000
+			workers: 8
 		).sorted(a.score < b.score)
+		println(test_results.map(it.score))
+
+		population = test_results#[-5..].clone().map(it.network.clone())
 	}
 
-	for result in test_results#[-5..] {
+	for result in test_results#[-5..].clone() {
 		result.network.visualize()!
 		println('${result.score}/${d.data.len}')
 	}
