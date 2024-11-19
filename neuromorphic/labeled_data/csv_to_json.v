@@ -23,7 +23,7 @@ fn main() {
 	// for row in entries {
 	// 	println(row)
 	// }
-	for i in 0 .. input_dimension - 1 {
+	for i in 0 .. input_dimension {
 		column_vec := entries.map(it[i])
 		lower << arrays.min(column_vec)!
 		upper << arrays.max(column_vec)!
@@ -38,7 +38,7 @@ fn main() {
 	println(buckets)
 
 	for mut line in entries {
-		for i in 0 .. input_dimension - 1 {
+		for i in 0 .. input_dimension {
 			bucket_size := (upper[i] - lower[i]) / buckets[i]
 			line[i] = int(math.floor(f64(line[i] - lower[i]) / f64(bucket_size)))
 		}
