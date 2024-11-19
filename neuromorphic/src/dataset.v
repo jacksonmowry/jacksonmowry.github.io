@@ -137,7 +137,8 @@ pub fn (d Dataset) generate_initial_population(n network.Network) []network.Netw
 		})
 	}
 
-	for mut network in population {
+	for i, mut network in population {
+		network.name = 'Initial ${i}'
 		network.initialize() or { panic(err) }
 	}
 
@@ -145,9 +146,9 @@ pub fn (d Dataset) generate_initial_population(n network.Network) []network.Netw
 }
 
 pub fn (d Dataset) generate_next_population(networks []network.Network) []network.Network {
-	mut new_population := networks.map(it.clone())
-	for network in networks {
-		mut new_network := network.clone()
+	mut new_population := []network.Network{}
+	for i, n in networks {
+		mut new_network := n.clone()
 		for _, mut neuron in new_network.neurons {
 			for mut synapse in neuron.pre_synapses {
 				// Value Flip
@@ -164,29 +165,67 @@ pub fn (d Dataset) generate_next_population(networks []network.Network) []networ
 				// Delay Bump
 				if rand.u32n(25) or { 25 } == 0 {
 					synapse.delay += rand.element([u32(1), 1]) or { 1 }
-					if synapse.delay == 0 {
-						synapse.delay = 1
-					}
 				}
 				// Synapse Deletion
 				if rand.u32n(25) or { 25 } == 0 {
 					synapse.value = 0
 				}
 			}
-			// Synapse Addition
-			// if rand.u32n(25) or { 25 } == 0 {
-			// }
 
-			// neuron.pre_synapses = neuron.pre_synapses.filter(it.value != 0)
+			// Synapse Addition
+			if rand.u32n(10) or { 10 } == 0 {
+				from := rand.element(new_network.neurons.keys()) or { '0' }
+				to := rand.element(new_network.neurons.keys()) or { '0' }
+
+				new_network.neurons[to].pre_synapses << network.Synapse{
+					value: 1
+					delay: 1
+					from:  from
+				}
+			}
+
+			neuron.pre_synapses = neuron.pre_synapses.filter(it.value != 0)
 		}
 
-		new_population << new_network.clone()
+		new_network.name = 'Next ${i}'
+		new_population << new_network
 	}
 
 	return new_population.clone()
 }
 
+pub fn (d Dataset) generate_random_batch() []network.Network {
+	n := d.create_skeleton_network() or { panic(err) }
+	// Create a fully connected input and output layer with simple delay 1 value 1 synapses
+	mut population := []network.Network{}
+	population << n.make_fully_connected()
+	for _ in 0 .. 10 {
+		population << n.make_sparsly_connected(network.Sparse_Params{
+			synapse_value_lower_bound: -1
+			num_synapse_upper_bound:   3
+			delay_upper_bound:         3
+			recurrence_denominator:    5
+		})
+	}
+	for _ in 0 .. 10 {
+		population << n.make_w_hidden_layer(network.Hidden_Params{
+			synapse_value_lower_bound:           -1
+			num_synapse_upper_bound:             4
+			hidden_neuron_threshold_upper_bound: 3
+			recurrence_denominator:              5
+		})
+	}
+
+	for i, mut network in population {
+		network.name = 'Random Batch ${i}'
+		network.initialize() or { panic(err) }
+	}
+
+	return population
+}
+
 pub fn (d Dataset) test_network(mut n network.Network) !int {
+	n.initialize()!
 	mut correct_runs := 0
 	main_loop: for data in d.data {
 		if data.input.len != n.input_domain.len && data.input.len != 0 {

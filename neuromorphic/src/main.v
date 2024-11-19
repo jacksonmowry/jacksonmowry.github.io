@@ -1,6 +1,7 @@
 module main
 
 import json
+import arrays
 import arrays.parallel
 import os
 import cli
@@ -220,31 +221,33 @@ fn train_classification_func(cmd cli.Command) ! {
 	mut test_results := []dataset.Test_Result{}
 
 	for i in 0 .. generations {
-		println('Generation ${i + 1}, testing ${population.len} networks')
 		if i != 0 {
-			println('I am passing the last 5 networks of ${test_results.map(it.score)} to generate')
-			population = d.generate_next_population(test_results#[-5..].clone().map(it.network.clone()))
+			population << d.generate_next_population(test_results[test_results.len - 10..].map(it.network.clone()))
+			population << d.generate_random_batch()
 		}
 
 		test_results = parallel.amap(population, fn [d] (network_to_test network.Network) dataset.Test_Result {
 			res := dataset.Test_Result{
 				score:   d.test_network(mut network_to_test.clone()) or { 0 }
-				network: network_to_test.clone()
+				network: network_to_test
 			}
-			println(res.score)
 			return res
 		},
-			workers: 8
+			workers: 12
 		).sorted(a.score < b.score)
-		println(test_results.map(it.score))
 
-		population = test_results#[-5..].clone().map(it.network.clone())
+		population = test_results[test_results.len - 10..].map(it.network.clone())
+		println('Generation ${i + 1:4d} Score: ${arrays.sum(test_results#[-10..].map(it.score)) or {
+			0
+		} / f32(10):6f}')
 	}
 
 	for result in test_results#[-5..].clone() {
-		result.network.visualize()!
+		// result.network.visualize()!
 		println('${result.score}/${d.data.len}')
 	}
+
+	println(json.encode(test_results.last().network))
 }
 
 fn test_classification_func(cmd cli.Command) ! {

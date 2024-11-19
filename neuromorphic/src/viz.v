@@ -13,6 +13,7 @@ pub fn new(name string, label string, color string) DotGraph {
 	}
 	res.writeln('\tedge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10",style="solid",color="black"];')
 	res.writeln('\tnode [fontname="Helvetica",fontsize="10",style="filled",fontcolor="black",fillcolor="white",color="black",shape="box"];')
+	res.writeln('\tratio=0.66;')
 	res.writeln('\trankdir="TB";')
 	res.writeln('\tcolor="${color}";')
 	return res

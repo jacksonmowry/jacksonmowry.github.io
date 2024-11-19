@@ -6,6 +6,7 @@ import maps
 import viz
 import os
 import rand
+import json
 
 pub struct Synapse {
 pub mut:
@@ -25,6 +26,7 @@ pub fn (n Neuron) clone() Neuron {
 	return Neuron{
 		threshold:    n.threshold
 		pre_synapses: n.pre_synapses.clone()
+		charges:      n.charges.clone()
 	}
 }
 
@@ -84,6 +86,7 @@ pub:
 	max_synapse_delay   u32 = 5
 	end_to_end_time     u32 = 50
 pub mut:
+	name             string
 	input_domain     []Input_Unit
 	output_range     []Output_Unit
 	neurons          map[string]Neuron
@@ -234,8 +237,10 @@ pub fn (mut n Network) reset_output() {
 }
 
 pub fn (mut n Network) initialize() ! {
+	n.current_timestep = 0
 	// Init neurons
 	for _, mut neuron in n.neurons {
+		neuron.charges.clear()
 		for _ in 0 .. n.max_synapse_delay + 1 {
 			neuron.charges << 0
 		}
@@ -243,6 +248,7 @@ pub fn (mut n Network) initialize() ! {
 
 	// Init output devices
 	for mut output_device in n.output_range {
+		output_device.firing_tracker.clear()
 		match output_device.output_type {
 			.largest_count {
 				for _ in 0 .. output_device.neurons.len {
@@ -434,6 +440,7 @@ pub fn (n Network) visualize() ! {
 		}
 	}
 
+	os.system("echo 'digraph G {\n${d.sb.str()}\n}'| dot -Tpng -oout.png")
 	sixel_graph := os.system("echo 'digraph G {\n${d.sb.str()}\n}'| dot -Tpng | img2sixel")
 	if sixel_graph != 0 {
 		return error('Viz not supported on this platform, please try installing `graphviz (dot)` and `img2sixel`')
@@ -596,9 +603,13 @@ pub fn (n Network) make_w_hidden_layer(params Hidden_Params) Network {
 }
 
 pub fn (n Network) clone() Network {
-	return Network{
-		input_domain: n.input_domain.clone()
-		output_range: n.output_range.clone()
-		neurons:      n.neurons.clone()
-	}
+	return json.decode(Network, json.encode(n)) or { Network{} }
+	// return Network{
+	// 	name:         n.name
+	// 	input_domain: n.input_domain.clone()
+	// 	output_range: n.output_range.clone()
+	// 	neurons:      maps.to_map[string, Neuron, string, Neuron](n.neurons, fn (key string, val Neuron) (string, Neuron) {
+	// 		return key.clone(), val.clone()
+	// 	})
+	// }
 }
