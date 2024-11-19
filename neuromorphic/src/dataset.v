@@ -1,6 +1,7 @@
 module dataset
 
 import network
+import maps
 import arrays
 import rand
 
@@ -185,6 +186,42 @@ pub fn (d Dataset) generate_next_population(networks []network.Network) []networ
 			}
 
 			neuron.pre_synapses = neuron.pre_synapses.filter(it.value != 0)
+		}
+
+		// Hidden Neuron Addition
+		if rand.u32n(2) or { 2 } == 0 {
+			new_key := '${arrays.max(new_network.neurons.keys().map(it.int())) or { 0 } + 1}'
+
+			new_network.neurons[new_key] = network.Neuron{
+				threshold: 1
+			}
+
+			input_neurons := arrays.flatten(new_network.input_domain.map(it.neurons))
+			output_neurons := arrays.flatten(new_network.output_range.map(it.neurons))
+			hidden_neurons := new_network.neurons.keys().filter(it !in input_neurons
+				&& it !in output_neurons)
+
+			average_incoming_hidden := if hidden_neurons.len != 0 {
+				(arrays.sum(maps.filter(new_network.neurons, fn [hidden_neurons] (key string, val network.Neuron) bool {
+					return key in hidden_neurons
+				}).values().map(it.pre_synapses.len)) or { 0 }) / hidden_neurons.len
+			} else {
+				1
+			}
+
+			to_create := average_incoming_hidden + rand.u32() % 5
+			eprintln('I am creating a neuron with ${to_create} synapses')
+			for _ in 0 .. to_create {
+				new_network.neurons[new_key].pre_synapses << network.Synapse{
+					value: rand.element([-1, 1]) or { 1 }
+					delay: rand.element([u32(1), 2, 3, 4]) or { 1 }
+					from:  rand.element(new_network.neurons.keys()) or { new_key }
+				}
+			}
+
+			// average_incoming_output := arrays.sum(maps.filter(new_network.neurons, fn [output_neurons] (key string, val Neuron) bool {
+			// 	return key in output_neurons
+			// }).values().map(it.pre_synapses.len)) / output_neurons.len
 		}
 
 		new_network.name = 'Next ${i}'

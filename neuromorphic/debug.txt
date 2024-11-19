@@ -1,0 +1,6 @@
+I am creating a neuron with 3 synapses
+I am creating a neuron with 43 synapses
+I am creating a neuron with 3 synapses
+I am creating a neuron with 2 synapses
+I am creating a neuron with 0 synapses
+I am creating a neuron with 39 synapses
