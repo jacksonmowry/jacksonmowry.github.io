@@ -1,0 +1,12 @@
+load ./libtest.so
+load ./libtest2.so
+john
+cosc360
+unload cosc360
+unload hello
+list
+load ./libtest2.so
+load./libtest.so
+hello
+cosc360
+quit

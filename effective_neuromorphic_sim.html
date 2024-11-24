@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/Effectively Simulating a Neuromorphic System/</title>
+<meta name="author" content="Jackson" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;} #org-div-home-and-up a:first-child {display: none;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title"><i>Effectively Simulating a Neuromorphic System</i></h1>
+<div id="outline-container-orgb71d9ae" class="outline-2">
+<h2 id="orgb71d9ae"><span class="underline">The Problem</span></h2>
+<div class="outline-text-2" id="text-orgb71d9ae">
+<p>
+Neuromorphic computing is a proposed alternative computing model that draws heavy inspiration from the functionality of neurons and synapses in the human body. It has come into the spotlight as the progression of Moores law steadily slowed. Neuromorphic hardware is gradually becoming more popular, with examples like Intel&rsquo;s Loihi, IBM&rsquo;s True North, and many other examples from research labs [cite all of these]. Now computing needs to evolve to take advantage of massively parallel hardware since the speed of an individual processor core stagnates.
+</p>
+
+<p>
+Naturally, the computing model of neurons and synapses is inherrently parallel, which proposes quite the challenge when attempting to simulate these systems on traditional hardware.
+</p>
+</div>
+</div>
+<div id="outline-container-orgca7504e" class="outline-2">
+<h2 id="orgca7504e"><span class="underline">Why</span></h2>
+<div class="outline-text-2" id="text-orgca7504e">
+<p>
+Our original goal was to run a systolic DBScan on the embedded neuromorphic kit, with an epsilon of 1, and min. points of 4.
+</p>
+
+<p>
+After spending 2–3 weeks optimizing the embedded neuromorphic code to run DBScan at a reasonable framerate we came to the conclusion that the hardware was simply not powerful enough to run the model. We were eventually able to get the model to run at a theoretical max of 1 FPS, at a quarter of the DAVIS 346&rsquo;s resolution. This model was nearing the limits of the Pi Pico 2040 (585 neurons, 1613 synapses), so increasing the resolution was likely not a possibility. Running a model for the full camera resolution would require 2345 neurons and 6488 synapses (3380 neurons and 15800 synapses for an epsilon of 2). Not satisfied with these results, we wanted to see other options that were available.
+</p>
+
+<p>
+Our attention shifted from the kit to a more performant yet still embedded platform. In an attempt to keep similar power consumption, and availability to interface with the world we landed on the Milk-V Duo 256M, an eSBC running a single 1Ghz RISC-V core, with 256Mb of DRAM, all while consuming 0.5W. The board offers 8x the CPU speed of a single Pico 2040, or 2.6x the 3 Picos of the kit, yet it consumes only 0.5W, while the kit consumes 0.6W under load. The Duo 256M has around 1000x more RAM than a Pico, meaning much larger networks are supported.
+</p>
+
+<p>
+The next step was to begin porting the embedded neuromorphic kit code to a single monolithic application which we can run on the Duo.
+</p>
+</div>
+</div>
+<div id="outline-container-orgcc603b3" class="outline-2">
+<h2 id="orgcc603b3"><span class="underline">Architecture</span></h2>
+<div class="outline-text-2" id="text-orgcc603b3">
+<p>
+The Duo features a similar SDK to the Pico, providing its own toolchain to allow cross compilation of RISC-V binaries (<a href="https://github.com/milkv-duo/duo-examples?tab=readme-ov-file">https://github.com/milkv-duo/duo-examples?tab=readme-ov-file</a>).
+</p>
+</div>
+<div id="outline-container-orgf219ac8" class="outline-3">
+<h3 id="orgf219ac8"><span class="underline">Porting the RISP Processor</span></h3>
+<div class="outline-text-3" id="text-orgf219ac8">
+<p>
+Embedded neuromorphic (and by extension the app-compile tool) create three separate binaries that the user can flash to the respective pico. The first step was to combine the functionality of each component into a single executable.
+</p>
+
+<p>
+We decided to dedicate a simple function for both observations and actions, keeping a similar API to the kit code. The user-defined <code>observations</code> function is called for each input neuron at the start of a time step. Similarily, the <code>actions</code> function is called at the end of each timestep, with an array indicating which of the output neurons spiked given to <code>actions</code>.
+</p>
+
+<p>
+Any setup code that was previously split across the two files can simply be brought over, and called before the processor begins running.
+</p>
+
+<p>
+This simple port allowed us to run the full scale model, and we were able to achieve a theoretical max of 7.6 FPS.
+</p>
+</div>
+</div>
+<div id="outline-container-orga0dada7" class="outline-3">
+<h3 id="orga0dada7"><span class="underline">Encoding Limits in the Processor</span></h3>
+<div class="outline-text-3" id="text-orga0dada7">
+<p>
+Similar to the original Embedded Neuromorphic Kit, our port avoids dynamic allocation of memory. This means that the limits (or maximums) of the network must be known at compile time. For instance the number of neurons and synapses is statically defined, which requires the user to extract these values from their network ahead of time.
+</p>
+
+<p>
+If we can count on the user to define these values correctly we can remove error checking from our code that enforces these limits. Future work is needed to extract these parameters from the network to eliminate a potential for user error.
+</p>
+
+<p>
+Removing error checking does not net much a benefit (0.7%), but if the network is sized properly it will never be needed.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb3d4952" class="outline-3">
+<h3 id="orgb3d4952"><span class="underline">Reworking RISP for Better Spatial Locality</span></h3>
+<div class="outline-text-3" id="text-orgb3d4952">
+<p>
+On the Duo 256M we have 32Kb of L1, and 128Kb of L2 data cache. Of course, running Linux we have almost no guarantee that our process will be able to occupy the cache entirely on its own, so it is a good idea to minimze our application&rsquo;s footprint.
+</p>
+
+<p>
+The smallest footprint we were able to achieve on the ported kit code was ~150Kb (which includes neurons, synapses, and charge<sub>changes</sub>). After considering different methods to improve memory usage we found a solution that both decreases memory usage, and greatly simplifies the processor. Instead of storing &ldquo;events&rdquo; separatly from the entity that they act upon, then applying their effects later, we can simply apply the changes directly to a neuron.
+</p>
+
+<p>
+To accomplish this, each neuron now contains a ring buffer who&rsquo;s size is equal to the maximum number of tracked timesteps. Now when a neuron fires, it follows each outgoing synapse and adds the associated weight to the downstream neuron. The position in the ring buffer to which this charge is added can be determined by the delay value of the synapse. This model allows for charges to accumulate for timesteps in the future, without the need to individually track charges, thus drastically decreasing memory usage from 150Kb to 68Kb.
+</p>
+
+<p>
+This change nets the greatest improvement in performance, running the full model at theoretical 10.034 FPS, 31.9% faster than the originally ported code.
+</p>
+</div>
+</div>
+<div id="outline-container-org93b2874" class="outline-3">
+<h3 id="org93b2874"><span class="underline">Embedding Synapses Within Neurons</span></h3>
+<div class="outline-text-3" id="text-org93b2874">
+<p>
+On the same line of thought from above, we can further reduce memory usage by embedded synapses within their associated neurons. Because we want to support more than 255 synapses in a network each synapse has to have a 16-bit integer dedicated to its index. We can eliminate these indexes by places synapses within neurons.
+</p>
+
+<blockquote>
+<p>
+For networks with few synapses this would increase memory usage, as each neuron now has to have capacity for the maximum number of outgoing synapses.
+</p>
+</blockquote>
+
+<p>
+In addition to reducing memory usage, this change further improves spatial locality, which improves the speed of the network further. The final outcome is 10.234 FPS, a full 34.4% improvement over our baseline implementation.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org7ab67d1" class="outline-2">
+<h2 id="org7ab67d1"><span class="underline">Benchmarking</span></h2>
+<div class="outline-text-2" id="text-org7ab67d1">
+</div>
+<div id="outline-container-org3179621" class="outline-3">
+<h3 id="org3179621"><span class="underline">Small</span></h3>
+<div class="outline-text-3" id="text-org3179621">
+<p>
+Epsilon 1, Min. Pts. 4
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">System Description</th>
+<th scope="col" class="org-right">Mean</th>
+<th scope="col" class="org-right">Max. FPS</th>
+<th scope="col" class="org-right">% Gain</th>
+<th scope="col" class="org-right">Observed FPS</th>
+<th scope="col" class="org-right">% Gain</th>
+<th scope="col" class="org-left">Approx. Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">RISP Processor</td>
+<td class="org-right">10.512</td>
+<td class="org-right">7.610</td>
+<td class="org-right">--</td>
+<td class="org-right">5.103</td>
+<td class="org-right">--</td>
+<td class="org-left">150Kb</td>
+</tr>
+
+<tr>
+<td class="org-left">No Error Checking</td>
+<td class="org-right">10.434</td>
+<td class="org-right">7.667</td>
+<td class="org-right">0.7%</td>
+<td class="org-right">5.161</td>
+<td class="org-right">1.1%</td>
+<td class="org-left">150Kb</td>
+</tr>
+
+<tr>
+<td class="org-left">Ring Buffer</td>
+<td class="org-right">7.973</td>
+<td class="org-right">10.034</td>
+<td class="org-right">31.9%</td>
+<td class="org-right">6.057</td>
+<td class="org-right">18.7%</td>
+<td class="org-left">68Kb</td>
+</tr>
+
+<tr>
+<td class="org-left">Embedded Synapses</td>
+<td class="org-right">7.817</td>
+<td class="org-right">10.234</td>
+<td class="org-right">34.4%</td>
+<td class="org-right">6.132</td>
+<td class="org-right">20.2%</td>
+<td class="org-left">60Kb</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 11/23/24</p>
+<p class="author">Author: Jackson</p>
+</div>
+</body>
+</html>

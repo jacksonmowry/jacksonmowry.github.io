@@ -1457,3 +1457,157 @@ select checks over the whole time period, not right away not at the end
 * Windows Video Games Async example
 Messages are provided on IO from the OS
 If there are no messages we can do other internal game things
+
+* Std Args
+#+begin_src C
+#include <stdargs.h>
+
+void va_start(va_list ap, last);
+type va_arg(va_list ap, ytpe);
+void va_end(va_list ap);
+void va_copy(va_list dest, va_list src);
+#+end_src
+
+*** va_list
+*** va_start
+=void va_start(va_list ap, last);=
+
+- Initializes a va_list
+- last
+  - the last named argument
+  - where to look for the next arg
+
+*** va_arg
+=type va_arg(va_list ap, type);=
+
+- Extracts a variable argument of type type
+  - Compiler doesn't keep track of type
+  - Don't extract the wrong type otherwise UB
+- We need to know how many there are
+
+*** va_end
+=void va_end(va_list ap);=
+
+- Call at end to cleanup
+
+** Why
+- printf can take as many arguments as necessary
+- C doesn't have overloading
+  - Can kinda fake overloading
+
+#+begin_src C
+#include <stdarg.h>
+
+int my_print(const char* fmt_str, ...) {
+    va_start(list, fmt);
+    // some stuff here
+    va_end(list);
+}
+#+end_src
+
+** Variadic Function Signature
+#+begin_src C
+void funct(const char* str, ...);
+// ellipses tell us we're accepting multiple arguments
+#+end_src
+
+** Variadic Function Handling
+#+begin_src C
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+long func(const char* fmt, ...);
+
+int main() {
+    long val = func("aasmd", 10, 20, 30, 1234, 9);
+    printf("%ld\n", val);
+}
+
+long func(const char* fmt, ...) {
+    //asdm
+    va_list list;
+    long ret = 0;
+
+    va_start(list, fmt);
+
+    for (int i = 0; fmt[i] != '\0'; i++) {
+        long arg = va_arg(list, long);
+        switch (fmt[i]) {
+        case 'a':
+            ret += arg;
+            break;
+        case 's':
+            ret -= arg;
+            break;
+        case 'm':
+            ret *= arg;
+            break;
+        case 'd':
+            ret /= arg;
+            break;
+        }
+    }
+
+    va_end(list);
+
+    return ret;
+}
+#+end_src
+
+#+RESULTS:
+: 0
+
+* Macros
+** Why
+- Meta-programming
+- #define preprocessor directives
+
+** What
+- Constants
+- Replacements
+- Variadic
+
+** How
+- =#define CONSTANT 33=
+- =#define REPLACE(x) ((x) + 2)=
+- =#define VARIADIC(x, ...) printf(x, __VA_ARGS__)=
+
+#+begin_src C
+#include <stdio.h>
+
+#define VALUE 33
+#define MULT(x,y) ((x)*(y))
+#define PRINTME(x, ...) printf(x, __VA_ARGS__)
+
+int main() {
+    int val = MULT(8+2,3+1);
+    PRINTME("%d\n", val);
+}
+#+end_src
+
+#+RESULTS:
+: 40
+
+#+begin_src C
+#define HEAD "[MY]: "
+#define MYPRINTF(fmt, ...) \
+    printf(HEAD fmt, __VA_ARGS__); \
+    printf("done!\n")
+
+int main() {
+    MYPRINTF("Hello %s\n", "john");
+}
+#+end_src
+
+#+begin_src C
+#include <stdio.h>
+
+int main() {
+    printf("%s %u\n", __FILE__, __LINE__);
+}
+#+end_src
+
+#+RESULTS:
+: /tmp/babel-R9xHZE/C-src-wFlB5V.c 11

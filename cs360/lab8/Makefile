@@ -17,7 +17,7 @@ all: $(EXEC)
 
 # Link object files into final executable
     $(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(OBJS) -o $@ -ldl
 
 # Compile all source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c

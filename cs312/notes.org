@@ -1274,3 +1274,277 @@ These are called NP-complete. Problems referred to as NP-hard are not in NP but 
 A language B is NP-complete if
 1. B \in NP
 2. Every A \in NP is polynomial-time reducible to B
+
+* Dynamic Programming
+- Interpretation of string in a language is in P
+- We execute the exact same process every time
+
+#+begin_src
+D = "on input w=w_{1}w_{2}...w_{n}"
+
+for i = 1 to n:
+    For each variable A:
+        Test whether A \rightarrow{} w_{i} is a rule
+        if so, place A in Table(i,j)
+For l = 2 to n: // l is length of substing
+    For i = 1 to n - l + 1: //i is start pos. of substring
+        Let j = i + l - 1 // j is end pos. of substring
+        For k = i to j - 1: // k is the split position
+            For each rule A \rightarrow{} BC
+                If Table(i,k) contains B and
+                Table(k+1,j) contains C, put A in Table(i,j)
+#+end_src
+
+If S is in Table(1,n), accept; else reject
+
+** Algorithm
+- The resolution of a string lives in the runtime of class O(n^{3})
+
+Take an example grammar
+- S \rightarrow{} RT, R \rightarrow{} TR|a, T \rightarrow{} TR|b
+
+Generate the table for the folloing cases of w: baab, bbab, abaa
+
+|   | 1 | 2   | 3   | 4   |
+|---+---+-----+-----+-----|
+| / | < | <   | <   | <   |
+| 1 | T | R,T | R,T | S   |
+| 2 |   | R   | n/a | n/a |
+| 3 |   |     | R   | S   |
+| 4 |   |     |     | T   |
+Matrix size is determined by the number of characters
+
+*** String baab
+|   | 1   | 2   | 3   | 4   |
+|---+-----+-----+-----+-----|
+| / | <   | <   | <   | <   |
+| 1 |  T  | R,T | R,T | S   |
+| 2 |     |  R  | n/a | n/a |
+| 3 |     |     |  R  | S   |
+| 4 |     |     |     |  T  |
+
+
+[[file:parse_tree.png]]
+
+|   | 1   | 2   | 3   | 4   |
+|---+-----+-----+-----+-----|
+| / | <   | <   | <   | <   |
+| 1 | *T* | R,T | R,T | S   |
+| 2 |     | *R* | n/a | n/a |
+| 3 |     |     | *R* | S   |
+| 4 |     |     |     | *T* |
+- Along the diagonal we place the symbol that can generate that terminal
+  - TRRT -> baab
+|   | 1 | 2     | 3     | 4   |
+|---+---+-------+-------+-----|
+| / | < | <     | <     | <   |
+| 1 | T | *R,T* | R,T   | S   |
+| 2 |   | R     | *n/a* | n/a |
+| 3 |   |       | R     | *S* |
+| 4 |   |       |       | T   |
+- Row = left, col = right
+  - Put your finger along the cell, travel along the row for the left side, then the column for the right
+  - n/a means nothing can produce this terminal
+  - RT, and S can produce that
+
+|   | 1 | 2   | 3     | 4   |
+|---+---+-----+-------+-----|
+| / | < | <   | <     | <   |
+| 1 | T | R,T | *R,T* | S   |
+| 2 |   | R   | n/a   | n/a |
+| 3 |   |     | R     | S   |
+| 4 |   |     |       | T   |
+- Row provide left, col provides right
+
+- What are our possibilities for production
+|   | 1 | 2   | 3     | 4   |
+|---+---+-----+-------+-----|
+| / | < | <   | <     | <   |
+| 1 | /T/ | R,T | R,T   | *S* |
+| 2 |   | R   | n/a   | /n/a/ |
+| 3 |   |     | R     | S   |
+| 4 |   |     |       | T   |
+
+|   | 1 | 2     | 3   | 4   |
+|---+---+-------+-----+-----|
+| / | < | <     | <   | <   |
+| 1 | T | /R,T/ | R,T | *S* |
+| 2 |   | R     | n/a | n/a |
+| 3 |   |       | R   | /S/ |
+| 4 |   |       |     | T   |
+
+|   | 1 | 2     | 3   | 4   |
+|---+---+-------+-----+-----|
+| / | < | <     | <   | <   |
+| 1 | T | R,T   | /R,T/ | *S* |
+| 2 |   | R     | n/a | n/a |
+| 3 |   |       | R   | S   |
+| 4 |   |       |     | /T/ |
+- We finally found the rule to produce RT
+
+
+*** bbab
+|   | 1 | 2   | 3   | 4 |
+| 1 | T | n/a | R,T | S |
+| 2 |   | T   | R,T | S |
+| 3 |   |     | R   | S |
+| 4 |   |     |     | T |
+
+*** abaa
+G: S -> RT
+   R -> TR | a
+   T -> TR | b
+
+|   | 1 | 2 | 3   | 4   |
+| 1 | R | S | S   | S   |
+| 2 |   | T | R,T | R,T |
+| 3 |   |   | R   | n/a |
+| 4 |   |   |     | R   |
+
+- Last Spot
+  - RR
+    - no
+  - RT
+    - yes
+  - S n/a
+    - no
+  - SR
+    - no
+
+*** aaaa
+|   | 1 | 2   | 3   | 4   |
+| 1 | R | n/a | n/a | n/a |
+| 2 |   | R   | n/a | n/a |
+| 3 |   |     | R   | n/a |
+| 4 |   |     |     | R   |
+
+* Satisfiability
+- If you have some formula based on boolean variable, and if you has a logical combination of them, and you're trying to figure out what do x,y,z (variables) have to be, in order to make this function or logic statement true
+- This problem itself is NP-complete
+
+** Cook-Levin Theorem
+SAT \in P \iff P = NP
+
+** 3SAT
+- A clause is severl literals connected with $\vee{}$'s such as
+\[x_{1}\vee{}\bar{x_{2}}\vee{}\bar{x_{3}}\vee{}x_{4}\]
+
+- A boolean formula is in conjunctive normal form (called a cnf-formula) if it compirses sever clauses connected by $\wedge{}$
+
+- The overall problem is essentially (var or var or var) and (var or var or var) and (var or var or var)
+
+- We define the language 3SET by $\{<\phi{}>\ | \phi{} \text{is a satisfiable 3cnf-formula}}$
+
+* \lambda{} Calculus
+| Expression                       | x^{2}+5x+7                  |
+| Function Notation f(x)           | f(x)=x^{2}+5x+7             |
+|                                  | f(y)=y^{2}+5y+7             |
+| Functional Value f(4)            | f(4)=4^{2}+5(4)+7=43        |
+| Independent Variables            | [y^{2}+5y+7](4)             |
+| More than one var, order matters | [y^{2}+5y+18x-2xy^{2}](4,5) |
+
+** Church's notation for a function of one variable
+\lambda{}x[M]
+\[\lambda{}x[x^{2}+5x+7]\]
+
+** Specifying a Value for a Variable
+\[\{F\}(A)\]
+
+** Independent Variables
+\[\{\lambda{}x[M]\}(A)\]
+
+** 2 Independnt Variables
+\[\{\lambda{}x\lambda{}y[y^{2}+5y+18x-2xy^{2}+7]\}(A,B)\]
+
+*** also written as
+\[\lambda{}x\lambda{}y[M](A,B\]
+\[\lambda{}x\lambda{}y.M(A,B)\]
+
+** Rules of Conversion
+- You can change a bounded variable (x \rightarrow{} y), if the new variable does not collide with the formula
+- For $\{\lambda{}x[M]\}(N)$, if N has no expression in x you can substitue N for all occurences of x in M
+- "conv" means by conversion to indicate that one formula has been converted into another equivalent formula
+\[\lambda{}y[y^{2}+5y+7](A) conv A^{2}+5A+7\]
+
+- \rightarrow{} means an abbreviation for
+\[1 \rightarrow{} \lambda{}fx.f(x) \text{ or } 1 \rightarrow{} \{\lambda{}fx[f(x)]\} \text{ or } \lambda{}ab.a(b)\]
+
+- $S \rightarrow{} \lambda{}pfx.f(p(f,x))$
+\[2 \rightarrow{} S(1) \text{ or "2 succeeds 1"}\]
+ - A 3 variable labmda function
+ - \rho{} f and x
+ - f of \rho{} of (f,x)
+
+ - Can write $S(1) = \{\lambda{}pfx.f(p(f,x))\}(\lambda{}ab.a(b))$ so that the first bound variable (p) is replaced by the expression for 1
+
+** Counting
+\[\{\lambda{}\rho{}fx.f(\rho{}(f,x))\}(\lambda{}ab.a(b))\]
+- we've substituted in the expression in () for \rho{}
+\[\{\lambda{}fx.f((\lambda{}ab.a(b)(f,x))\}\]
+- we're taking
+\[\lambda{}fx.f(\{\lambda{}ab.a(b)\})(f,x)\]
+- substitute f for a, and x for b
+\[\lambda{}fx.f(\{\lambda{}fx.f(x)\})\]
+\[\lambda{}fx.f(f(x)) \rightarrow{} 2\]
+
+*** Conv 2 \rightarrow{} S(1)
+\[\lambda{}fx.f(f(x))\]
+*** Conv 3 \rightarrow{} S(2)
+\[\lambda{}fx.f(f(f(x)))\]
+
+** Adding
+\[+ \rightarrow{} \lambda{}\rho{}\sigma{}fx.p(f,\sigma{}(f,x)\]
+
+*** Evaluating 2+3 with 2 \rightarrow{} $\lambda{}ab.a(a(b))$ and 3 \ rightarrow{} $\lambda{}cd.c(c(c(d))$
+\[{+}(2,3) \text{ is ... }\]
+\[\{\lambda{}\rho{}\sigma{}fx.p(f,\sigma{}(f,x))\}(\lambda{}ab.a(a(b)), \lambda{}cd.c(c(c(d))))\]
+- First var (2) goes in for \rho{}
+- Second var (3) goes in for \sigma{}
+
+\[\lambda{}fx.\lambda{}ab.a(a(b))(f, \{\lambda{}cd.c(c(c(d)))\}(f,x))\]
+\[\lambda{}fx.\{\lambda{}ab.a(a(b))\}(f,f(f(f(x))))\]
+\[\lambda{}fx.f(f(f(f(f(x))))) \rightarrow{} 5\]
+
+** Multiplication
+\[\times{} \rightarrow{} \lambda{}\rho{}\sigma{}x.\rho(\sigma(x))\]
+
+{\times{}}(2,3) is...
+
+\[\{\lambda{}\rho{}\sigma{}x.\rho{}(\sigma{}(x))\}(\lambda{}ab.a(a(b)), \lambda{}cd.c(c(c(d))))\]
+\[\lambda{}x.\lambda{}ab.a(a(b))(\{\lambda{}cd.c(c(c(d)))\}(x)\]
+\[\lambda{}x.\{\lambda{}ab.a(a(b))\}(\lambda{}d.x(x(x(d))))\]
+\[\lambda{}x.\lambda{}b.\lambda{}d.x(x(x(d)))\{\lambda{}d.x(x(x(d)))\}(b)\]
+\[\lambda{}x.b.x(x(x(x(x(x(b)))))) \rightarrow{} 6\]
+
+** Proposal
+Church proposed that all \lambda{}-definable functions ar eall the effectively calculable functions; Kleene studied relationships between recursive functions and \lambda{}-definable functions
+
+Equivalent to Turing's work on E-Problem
+
+** Python \lambda{}
+#+begin_src python :results output
+print((lambda x : x**2)(3))
+
+#+end_src
+
+#+RESULTS:
+: 9
+
+#+begin_src python :results output
+processFunc = collapse and (lambda s: \ ".join(s.split())) or lambda(lambda s: s)
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python :results output
+L = [lambda x : x**2, lambda x : x**3, lambda x : x**4]
+for f in L: print(f(3))
+
+print(L[0](11))
+#+end_src
+
+#+RESULTS:
+: 9
+: 27
+: 81
+: 121

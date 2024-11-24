@@ -1,0 +1,6 @@
+load ./libtest.so
+list
+load ./libtest.so
+list
+unload hello
+quit
