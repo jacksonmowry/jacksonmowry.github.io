@@ -1301,7 +1301,9 @@ If S is in Table(1,n), accept; else reject
 - The resolution of a string lives in the runtime of class O(n^{3})
 
 Take an example grammar
-- S \rightarrow{} RT, R \rightarrow{} TR|a, T \rightarrow{} TR|b
+- S -> RT
+- R -> TR | a
+- T -> TR | b
 
 Generate the table for the folloing cases of w: baab, bbab, abaa
 

@@ -19,25 +19,49 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Effectively Simulating a Neuromorphic System</i></h1>
-<div id="outline-container-orgb71d9ae" class="outline-2">
-<h2 id="orgb71d9ae"><span class="underline">The Problem</span></h2>
-<div class="outline-text-2" id="text-orgb71d9ae">
+<div id="outline-container-org56858d5" class="outline-2">
+<h2 id="org56858d5"><span class="underline">The Problem</span></h2>
+<div class="outline-text-2" id="text-org56858d5">
 <p>
-Neuromorphic computing is a proposed alternative computing model that draws heavy inspiration from the functionality of neurons and synapses in the human body. It has come into the spotlight as the progression of Moores law steadily slowed. Neuromorphic hardware is gradually becoming more popular, with examples like Intel&rsquo;s Loihi, IBM&rsquo;s True North, and many other examples from research labs [cite all of these]. Now computing needs to evolve to take advantage of massively parallel hardware since the speed of an individual processor core stagnates.
+Neuromorphic computing is a proposed alternative computing model that draws heavy inspiration from the functionality of neurons and synapses in the human body. It has come into the spotlight as the progression of Moore&rsquo;s law steadily slowed. Neuromorphic hardware is gradually becoming more popular, with examples like Intel&rsquo;s Loihi, IBM&rsquo;s True North, and many other examples from research labs (<a href="#citeproc_bib_item_3">Davies et al. 2018</a>; <a href="#citeproc_bib_item_1">Akopyan et al. 2015</a>; <a href="#citeproc_bib_item_2">Daffron 2015</a>). Now computing needs to evolve to take advantage of massively parallel hardware since the speed of an individual processor core stagnates.
 </p>
 
 <p>
-Naturally, the computing model of neurons and synapses is inherrently parallel, which proposes quite the challenge when attempting to simulate these systems on traditional hardware.
+Naturally, the computing model of neurons and synapses is inherently parallel, which proposes quite the challenge when attempting to simulate these systems on traditional hardware. In this article we will look at 2 high level approaches for simulating neuromorphic systems on a single core CPU. This choice should allow the findings to be applicable to the widest range of neuromorphic applications, although our findings will be presented in an embedded context, specifically microcontrollers and single board computers.
 </p>
 </div>
 </div>
-<div id="outline-container-orgca7504e" class="outline-2">
-<h2 id="orgca7504e"><span class="underline">Why</span></h2>
-<div class="outline-text-2" id="text-orgca7504e">
+<div id="outline-container-orgece8be9" class="outline-2">
+<h2 id="orgece8be9"><span class="underline">Why</span></h2>
+<div class="outline-text-2" id="text-orgece8be9">
 <p>
-Our original goal was to run a systolic DBScan on the embedded neuromorphic kit, with an epsilon of 1, and min. points of 4.
+In order to simulate a neuromorphic system on non-neuromorphic hardware, some level of emulation must be performed. This means simulating both the communication between individual neurons (via synapses), and the storage of charge within an individual neuron. To simplify our model for better understanding we will make the assumption that all charge is leaked from a neuron at the end of each time step.
 </p>
 
+<p>
+It should also be noted that the optimizations explored here are focused strictly on improving performance in a densely connected network, with high levels of activity. A sparsely connected network with low activity would require different optimizations.
+</p>
+</div>
+</div>
+<div id="outline-container-orga014d53" class="outline-2">
+<h2 id="orga014d53"><span class="underline">Simulation Approaches</span></h2>
+<div class="outline-text-2" id="text-orga014d53">
+<p>
+One of the major benefits of a neuromorphic system is that its entire job is to operate on events, and subsequently produce more events. An event-based simulation lends itself to a lazy approach, where only the &ldquo;active&rdquo; parts of a network are performing work. A common implementation uses an event queue (or priority queue), where individual spike propagations are enqueued to be applied to the network at a later time. This approach allows for sparse network to save on simulation cost when little activity is present in the network.
+</p>
+
+<p>
+Due to delay having some fixed upper bound in networks, there is no need to maintain a dynamic priority queue, instead each discrete timestep can have its own pool of events. By provided a fixed location for events to be placed we can effectively eliminate the need for dynamic memory allocation, while maintaining the same advantages of an event queue. The issue now comes when considering the memory footprint of such a solution.
+</p>
+
+<p>
+Each possible timestep (in this case this is equivalent to the max delay in a network) needs to have the capacity to hold that maximum number of events possible in the network.
+</p>
+</div>
+</div>
+<div id="outline-container-org8f5c693" class="outline-2">
+<h2 id="org8f5c693">Prob won&rsquo;t use exactly?</h2>
+<div class="outline-text-2" id="text-org8f5c693">
 <p>
 After spending 2–3 weeks optimizing the embedded neuromorphic code to run DBScan at a reasonable framerate we came to the conclusion that the hardware was simply not powerful enough to run the model. We were eventually able to get the model to run at a theoretical max of 1 FPS, at a quarter of the DAVIS 346&rsquo;s resolution. This model was nearing the limits of the Pi Pico 2040 (585 neurons, 1613 synapses), so increasing the resolution was likely not a possibility. Running a model for the full camera resolution would require 2345 neurons and 6488 synapses (3380 neurons and 15800 synapses for an epsilon of 2). Not satisfied with these results, we wanted to see other options that were available.
 </p>
@@ -51,16 +75,16 @@ The next step was to begin porting the embedded neuromorphic kit code to a singl
 </p>
 </div>
 </div>
-<div id="outline-container-orgcc603b3" class="outline-2">
-<h2 id="orgcc603b3"><span class="underline">Architecture</span></h2>
-<div class="outline-text-2" id="text-orgcc603b3">
+<div id="outline-container-orgb97c614" class="outline-2">
+<h2 id="orgb97c614"><span class="underline">Architecture</span></h2>
+<div class="outline-text-2" id="text-orgb97c614">
 <p>
 The Duo features a similar SDK to the Pico, providing its own toolchain to allow cross compilation of RISC-V binaries (<a href="https://github.com/milkv-duo/duo-examples?tab=readme-ov-file">https://github.com/milkv-duo/duo-examples?tab=readme-ov-file</a>).
 </p>
 </div>
-<div id="outline-container-orgf219ac8" class="outline-3">
-<h3 id="orgf219ac8"><span class="underline">Porting the RISP Processor</span></h3>
-<div class="outline-text-3" id="text-orgf219ac8">
+<div id="outline-container-org87b7844" class="outline-3">
+<h3 id="org87b7844"><span class="underline">Porting the RISP Processor</span></h3>
+<div class="outline-text-3" id="text-org87b7844">
 <p>
 Embedded neuromorphic (and by extension the app-compile tool) create three separate binaries that the user can flash to the respective pico. The first step was to combine the functionality of each component into a single executable.
 </p>
@@ -78,9 +102,9 @@ This simple port allowed us to run the full scale model, and we were able to ach
 </p>
 </div>
 </div>
-<div id="outline-container-orga0dada7" class="outline-3">
-<h3 id="orga0dada7"><span class="underline">Encoding Limits in the Processor</span></h3>
-<div class="outline-text-3" id="text-orga0dada7">
+<div id="outline-container-orge535ae8" class="outline-3">
+<h3 id="orge535ae8"><span class="underline">Encoding Limits in the Processor</span></h3>
+<div class="outline-text-3" id="text-orge535ae8">
 <p>
 Similar to the original Embedded Neuromorphic Kit, our port avoids dynamic allocation of memory. This means that the limits (or maximums) of the network must be known at compile time. For instance the number of neurons and synapses is statically defined, which requires the user to extract these values from their network ahead of time.
 </p>
@@ -94,9 +118,9 @@ Removing error checking does not net much a benefit (0.7%), but if the network i
 </p>
 </div>
 </div>
-<div id="outline-container-orgb3d4952" class="outline-3">
-<h3 id="orgb3d4952"><span class="underline">Reworking RISP for Better Spatial Locality</span></h3>
-<div class="outline-text-3" id="text-orgb3d4952">
+<div id="outline-container-orgcb56c8b" class="outline-3">
+<h3 id="orgcb56c8b"><span class="underline">Reworking RISP for Better Spatial Locality</span></h3>
+<div class="outline-text-3" id="text-orgcb56c8b">
 <p>
 On the Duo 256M we have 32Kb of L1, and 128Kb of L2 data cache. Of course, running Linux we have almost no guarantee that our process will be able to occupy the cache entirely on its own, so it is a good idea to minimze our application&rsquo;s footprint.
 </p>
@@ -114,9 +138,9 @@ This change nets the greatest improvement in performance, running the full model
 </p>
 </div>
 </div>
-<div id="outline-container-org93b2874" class="outline-3">
-<h3 id="org93b2874"><span class="underline">Embedding Synapses Within Neurons</span></h3>
-<div class="outline-text-3" id="text-org93b2874">
+<div id="outline-container-orgf038e83" class="outline-3">
+<h3 id="orgf038e83"><span class="underline">Embedding Synapses Within Neurons</span></h3>
+<div class="outline-text-3" id="text-orgf038e83">
 <p>
 On the same line of thought from above, we can further reduce memory usage by embedded synapses within their associated neurons. Because we want to support more than 255 synapses in a network each synapse has to have a 16-bit integer dedicated to its index. We can eliminate these indexes by places synapses within neurons.
 </p>
@@ -133,13 +157,13 @@ In addition to reducing memory usage, this change further improves spatial local
 </div>
 </div>
 </div>
-<div id="outline-container-org7ab67d1" class="outline-2">
-<h2 id="org7ab67d1"><span class="underline">Benchmarking</span></h2>
-<div class="outline-text-2" id="text-org7ab67d1">
+<div id="outline-container-orgc507485" class="outline-2">
+<h2 id="orgc507485"><span class="underline">Benchmarking</span></h2>
+<div class="outline-text-2" id="text-orgc507485">
 </div>
-<div id="outline-container-org3179621" class="outline-3">
-<h3 id="org3179621"><span class="underline">Small</span></h3>
-<div class="outline-text-3" id="text-org3179621">
+<div id="outline-container-orgfc0a16c" class="outline-3">
+<h3 id="orgfc0a16c"><span class="underline">Small</span></h3>
+<div class="outline-text-3" id="text-orgfc0a16c">
 <p>
 Epsilon 1, Min. Pts. 4
 </p>
@@ -224,6 +248,12 @@ Epsilon 1, Min. Pts. 4
 </tr>
 </tbody>
 </table>
+
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Akopyan, Filipp, Jun Sawada, Andrew Cassidy, Rodrigo Alvarez-Icaza, John Arthur, Paul Merolla, Nabil Imam, et al. 2015. “Truenorth: Design and Tool Flow of a 65 Mw 1 Million Neuron Programmable Neurosynaptic Chip.” <i>Ieee Transactions on Computer-Aided Design of Integrated Circuits and Systems</i> 34 (10): 1537–57. <a href="https://doi.org/10.1109/TCAD.2015.2474396">https://doi.org/10.1109/TCAD.2015.2474396</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Daffron, C. P. 2015. “DANNA a Neuromorphic Computing VLSI Chip.” Masters Thesis, University of Tennessee.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Davies, Mike, Narayan Srinivasa, Tsung-Han Lin, Gautham Chinya, Yongqiang Cao, Sri Harsha Choday, Georgios Dimou, et al. 2018. “Loihi: A Neuromorphic Manycore Processor with on-Chip Learning.” <i>Ieee Micro</i> 38 (1): 82–99. <a href="https://doi.org/10.1109/MM.2018.112130359">https://doi.org/10.1109/MM.2018.112130359</a>.</div>
+</div>
 </div>
 </div>
 </div>
