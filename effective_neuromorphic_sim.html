@@ -19,9 +19,9 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Effectively Simulating a Neuromorphic System</i></h1>
-<div id="outline-container-org0a8fe41" class="outline-2">
-<h2 id="org0a8fe41"><span class="underline">The Problem</span></h2>
-<div class="outline-text-2" id="text-org0a8fe41">
+<div id="outline-container-orge4fb074" class="outline-2">
+<h2 id="orge4fb074"><span class="underline">The Problem</span></h2>
+<div class="outline-text-2" id="text-orge4fb074">
 <p>
 Neuromorphic computing is a proposed alternative computing model that draws heavy inspiration from the functionality of neurons and synapses in the human body. It has come into the spotlight as the progression of Moore&rsquo;s law steadily slowed. Neuromorphic hardware is gradually becoming more popular, with examples like Intel&rsquo;s Loihi, IBM&rsquo;s True North, and many other examples from research labs (<a href="#citeproc_bib_item_4">Davies et al. 2018</a>; <a href="#citeproc_bib_item_1">Akopyan et al. 2015</a>; <a href="#citeproc_bib_item_3">Daffron 2015</a>). Now computing needs to evolve to take advantage of massively parallel hardware since the speed of an individual processor core stagnates.
 </p>
@@ -31,9 +31,9 @@ Naturally, the computing model of neurons and synapses is inherently parallel, w
 </p>
 </div>
 </div>
-<div id="outline-container-org00f74db" class="outline-2">
-<h2 id="org00f74db"><span class="underline">Why</span></h2>
-<div class="outline-text-2" id="text-org00f74db">
+<div id="outline-container-org1792dbb" class="outline-2">
+<h2 id="org1792dbb"><span class="underline">Why</span></h2>
+<div class="outline-text-2" id="text-org1792dbb">
 <p>
 In order to simulate a neuromorphic system on non-neuromorphic hardware, some level of emulation must be performed. This means simulating both the communication between individual neurons (via synapses), and the storage of charge within an individual neuron. To simplify our model for better understanding we will make the assumption that all charge is leaked from a neuron at the end of each time step.
 </p>
@@ -43,26 +43,31 @@ It should also be noted that the optimizations explored here are focused strictl
 </p>
 </div>
 </div>
-<div id="outline-container-org64a115e" class="outline-2">
-<h2 id="org64a115e"><span class="underline">Simulation Approaches</span></h2>
-<div class="outline-text-2" id="text-org64a115e">
+<div id="outline-container-org826b4ec" class="outline-2">
+<h2 id="org826b4ec"><span class="underline">Simulation Approaches</span></h2>
+<div class="outline-text-2" id="text-org826b4ec">
 </div>
-<div id="outline-container-orgb900192" class="outline-3">
-<h3 id="orgb900192"><span class="underline">Current System</span></h3>
-<div class="outline-text-3" id="text-orgb900192">
-<ul class="org-ul">
-<li>Global array of neurons</li>
-<li>Global array of synapses</li>
-<li>Global 2D array of events</li>
-<li>Neurons and synapses are referenced via their index in their respective array (4 byte index, 65536 possible neurons and 65536 possible synapses)</li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org2d9f22a" class="outline-3">
-<h3 id="org2d9f22a"><span class="underline">Priority Queue</span></h3>
-<div class="outline-text-3" id="text-org2d9f22a">
+<div id="outline-container-orged7db4f" class="outline-3">
+<h3 id="orged7db4f"><span class="underline">General Overview of the Current System</span></h3>
+<div class="outline-text-3" id="text-orged7db4f">
+<p>
+As the system is laid out currently, each neuron is located in a large array, referrenced by its index. Similarily, all of the synapses occupy their own array. These two structures alone are nothing surprising, as each of these objects needs to be laid out in memory in some form. Neurons can then be referenced via their index, with each neuron storing the indicies of its synapses.
+</p>
 
-<div id="org7f7db7f" class="figure">
+<p>
+The unique part of the system is how events are stored. Each network has some upper bound of delay that must be representable within the simulation. You can think of this as the longest possible time in the future that an event may need to fire. As these networks are being run continuously the timesteps will eventually wrap back around, reusing space as the simulation moves along.
+</p>
+
+<p>
+At each of these timesteps a certain number of events are tracked, which again comes from the characteristics of the network. This means that at any given time we need to have the capacity for every neuron to fire, and proprogate a spike to their downstream neurons.
+</p>
+</div>
+</div>
+<div id="outline-container-org414a39d" class="outline-3">
+<h3 id="org414a39d"><span class="underline">Priority Queue</span></h3>
+<div class="outline-text-3" id="text-org414a39d">
+
+<div id="org63b15cb" class="figure">
 <p><img src="risp_eventbased.png" alt="risp_eventbased.png" width="100%" />
 </p>
 </div>
@@ -80,9 +85,9 @@ Each possible time step (in this case this is equivalent to the max delay in a n
 </p>
 </div>
 </div>
-<div id="outline-container-org1798862" class="outline-3">
-<h3 id="org1798862"><span class="underline">Internal Ring Buffer</span></h3>
-<div class="outline-text-3" id="text-org1798862">
+<div id="outline-container-orge8ca0de" class="outline-3">
+<h3 id="orge8ca0de"><span class="underline">Internal Ring Buffer</span></h3>
+<div class="outline-text-3" id="text-orge8ca0de">
 <p>
 Instead of storing sparse events in a global container, we can instead store the &ldquo;upcoming&rdquo; state of each neuron internally. Our approach takes the form of a ring buffer within each neuron to store the effective charge at each offset from the current time step. Under this approach each time a neuron fires it propagates a spike down each of its synapses, adding its weight at some offset in the downstream neurons ring buffer.
 </p>
@@ -104,11 +109,11 @@ Again, microcontrollers are less sophisticated and thus have much shallower pipe
 </p>
 </div>
 </div>
-<div id="outline-container-org046c7e6" class="outline-3">
-<h3 id="org046c7e6"><span class="underline">Embedded Synapses</span></h3>
-<div class="outline-text-3" id="text-org046c7e6">
+<div id="outline-container-org9c9d4bf" class="outline-3">
+<h3 id="org9c9d4bf"><span class="underline">Embedded Synapses</span></h3>
+<div class="outline-text-3" id="text-org9c9d4bf">
 
-<div id="org0048c07" class="figure">
+<div id="orga43a048" class="figure">
 <p><img src="risp_ringbuffer.png" alt="risp_ringbuffer.png" width="100%" />
 </p>
 </div>
@@ -128,9 +133,9 @@ It should be noted that this approach requires each neuron to have the same numb
 </blockquote>
 </div>
 </div>
-<div id="outline-container-orge8f6b9e" class="outline-3">
-<h3 id="orge8f6b9e"><span class="underline">Flip the Script &amp; Parallelism</span></h3>
-<div class="outline-text-3" id="text-orge8f6b9e">
+<div id="outline-container-org850e3c6" class="outline-3">
+<h3 id="org850e3c6"><span class="underline">Flip the Script &amp; Parallelism</span></h3>
+<div class="outline-text-3" id="text-org850e3c6">
 <p>
 Thus far, we have focused on optimizations for a lower power, potentially single-core processor, yet our system is trying to simulate parallel operation. If hardware is present that enables parallel processing the current model would not scale well to many units of execution. This is due to the fact that we would have contention around &ldquo;firing&rdquo; events. If we imagine each neuron executing independently, two separate neurons may fire, resulting in two spikes propagating to a downstream neuron at the same time. This is the classical <code>i = i+1</code> problem in computer science.
 </p>
@@ -145,9 +150,9 @@ There are some potential downsides to this parallel approach. First, the system 
 </div>
 </div>
 </div>
-<div id="outline-container-org2bc53d7" class="outline-2">
-<h2 id="org2bc53d7"><span class="underline">Results</span></h2>
-<div class="outline-text-2" id="text-org2bc53d7">
+<div id="outline-container-org30d411d" class="outline-2">
+<h2 id="org30d411d"><span class="underline">Results</span></h2>
+<div class="outline-text-2" id="text-org30d411d">
 <p>
 For the purposes of this article we will be analyzing a neuromorphic implementation of the DBScan algorithm (<a href="#citeproc_bib_item_5">Ester et al. 1996</a>; <a href="#citeproc_bib_item_9">Rizzo and Plank 2024</a>). The DBScan algorithm is meant to both de-noise an image, and highlight areas of interest, which are identified by density of data. This means that our network is expecting high levels of input activity, a perfect scenario for the proposed optimizations. Another key consideration of neuromorphic DBScan is that the networks are densely connected, with most neurons having 3-4 outgoing synapses. Once again, this means that embedded synapses directly within neurons should net an overall benefit, due to the densely connected nature of our network.
 </p>
@@ -245,9 +250,9 @@ Lastly, embedded synapses within a neuron netted a smaller performance increase,
 </p>
 </div>
 </div>
-<div id="outline-container-org25eb019" class="outline-2">
-<h2 id="org25eb019"><span class="underline">Discussion</span></h2>
-<div class="outline-text-2" id="text-org25eb019">
+<div id="outline-container-orgbfd61e5" class="outline-2">
+<h2 id="orgbfd61e5"><span class="underline">Discussion</span></h2>
+<div class="outline-text-2" id="text-orgbfd61e5">
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Akopyan, Filipp, Jun Sawada, Andrew Cassidy, Rodrigo Alvarez-Icaza, John Arthur, Paul Merolla, Nabil Imam, et al. 2015. “Truenorth: Design and Tool Flow of a 65 Mw 1 Million Neuron Programmable Neurosynaptic Chip.” <i>Ieee Transactions on Computer-Aided Design of Integrated Circuits and Systems</i> 34 (10): 1537–57. <a href="https://doi.org/10.1109/TCAD.2015.2474396">https://doi.org/10.1109/TCAD.2015.2474396</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Ambrose, J. D., A. Z. Foshie, M. E. Dean, J. S. Plank, G. S. Rose, J. P. Mitchell, C. D. Schuman, and G. Bruer. 2020. “GRANT: Ground Roaming Autonomous Neuromorphic Targeter.” In <i>Ijcnn: The International Joint Conference on Neural Networks</i>.</div>
@@ -255,9 +260,9 @@ Lastly, embedded synapses within a neuron netted a smaller performance increase,
   <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Davies, Mike, Narayan Srinivasa, Tsung-Han Lin, Gautham Chinya, Yongqiang Cao, Sri Harsha Choday, Georgios Dimou, et al. 2018. “Loihi: A Neuromorphic Manycore Processor with on-Chip Learning.” <i>Ieee Micro</i> 38 (1): 82–99. <a href="https://doi.org/10.1109/MM.2018.112130359">https://doi.org/10.1109/MM.2018.112130359</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Ester, Martin, Hans-Peter Kriegel, Jörg Sander, and Xiaowei Xu. 1996. “A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise.” In <i>Proceedings of the Second International Conference on Knowledge Discovery and Data Mining</i>, 226–31. Kdd’96. Portland, Oregon: AAAI Press.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_6"></a>Ghawaly, J., A. Young, D. Archer, N. Prins, B. Witherspoon, and C. D. Schuman. 2022. “A Neuromorphic Algorithm for Radiation Anomaly Detection.” In <i>Proceedings of the International Conference on Neuromorphic Systems 2022</i>. ACM. <a href="https://doi.org/10.1145/3546790.3546815">https://doi.org/10.1145/3546790.3546815</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_7"></a>Milk-V-Technology. n.d. “Milk-V Duo Github.” <a href="https://github.com/milkv-duo">https://github.com/milkv-duo</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_7"></a>Milk-V-Technology. n.d. “Milk-V Duo Github.” <a href="“https://github.com/milkv-duo”">“https://github.com/milkv-duo”</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_8"></a>Patton, R., C. D. Schuman, S. R. Kulkarni, M. Parsa, J. P. Mitchell, N. Q. Haas, C. Stahl, et al. 2021. “Neuromorphic Computing for Autonomous Racing.” In <i>International Conference on Neuromorphic Computing Systems (Icons)</i>, 1–8. ACM. <a href="https://doi.org/10.1145/3477145.3477170">https://doi.org/10.1145/3477145.3477170</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_9"></a>Rizzo, C. P., and J. S. Plank. 2024. “A Neuromorphic Implementation of the DBSCAN Algorithm.” arXiv:2409.14298. <a href="https://arxiv.org/abs/2409.14298">https://arxiv.org/abs/2409.14298</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_9"></a>Rizzo, C. P., and J. S. Plank. 2024. “A Neuromorphic Implementation of the DBSCAN Algorithm.” arXiv:2409.14298. <a href="“https://arxiv.org/abs/2409.14298”">“https://arxiv.org/abs/2409.14298”</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_10"></a>Schuman, C. D., S. R. Young, J. P. Mitchell, J. T. Johnston, D. Rose, B. P. Maldonado, and B. C. Kaul. 2020. “Low Size, Weight, and Power Neuromorphic Computing to Improve Combustion Engine Efficiency.” In <i>11Th International Green and Sustainable Computing Conference (Igsc)</i>, 1–8. IEEE. <a href="https://doi.org/10.1109/IGSC51522.2020.9291228">https://doi.org/10.1109/IGSC51522.2020.9291228</a>.</div>
 </div>
 </div>

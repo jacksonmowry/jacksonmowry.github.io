@@ -4,7 +4,9 @@
 #include "rtweekend.h"
 #include "vec3.h"
 #include "writer.h"
+#include <bits/pthreadtypes.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdint.h>
 
 // `ray_color` returns the RGB Pixels describing the color at the closest
@@ -42,9 +44,9 @@ camera camera_initialize(int width, int height) {
     c.width = width;
     c.height = height;
     // NOTE You can change the image "quality" with the following line
-    c.samples_per_pixel = 1;
+    c.samples_per_pixel = 10;
     c.pixel_samples_scale = 1.0 / c.samples_per_pixel;
-    c.max_depth = 5;
+    c.max_depth = 25;
     c.vfov = 20;
 
     c.lookfrom = (Vec3){.x = 13, .y = 2, .z = 3};
@@ -91,30 +93,70 @@ camera camera_initialize(int width, int height) {
     return c;
 }
 
+typedef struct Shared {
+    camera c;
+    const hittable_list* world;
+    Pixel* pixels;
+    pthread_mutex_t* mutex;
+    int* row;
+} Shared;
+
+void* worker(void* arg) {
+    Shared* s = (Shared*)arg;
+
+    while (true) {
+        pthread_mutex_lock(s->mutex);
+        int row = *(s->row) + 1;
+        *(s->row) = *(s->row) + 1;
+        pthread_mutex_unlock(s->mutex);
+
+        if (row >= s->c.height) {
+            break;
+        }
+
+        for (int col = 0; col < s->c.width; col++) {
+            Pixel color = (Pixel){.r = 0, .g = 0, .b = 0};
+            for (int sample = 0; sample < s->c.samples_per_pixel; sample++) {
+                Ray new_ray = camera_get_ray(s->c, row, col);
+                color = vec3_add(
+                    color, ray_color(s->c, &new_ray, s->c.max_depth, s->world));
+            }
+
+            s->pixels[(row * s->c.width) + col] =
+                vec3_mul_dbl(color, s->c.pixel_samples_scale);
+        }
+    }
+
+    return NULL;
+}
+
 // `camera_render` takes in an entire scene `world`, the camera `c`, and an
 // output file to render to
 void camera_render(camera c, const hittable_list* world, const char* file_name,
                    int (*write)(const char* file, uint32_t width,
-                                uint32_t height, const Pixel pixels[])) {
+                                uint32_t height, const Pixel pixels[]),
+                   int num_threads) {
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     Pixel* p = malloc(c.width * c.height * sizeof(Pixel));
     if (!p) {
         perror("malloc");
         return;
     }
 
-    for (int row = 0; row < c.height; row++) {
-        for (int col = 0; col < c.width; col++) {
-            Pixel color = (Pixel){.r = 0, .g = 0, .b = 0};
-            for (int sample = 0; sample < c.samples_per_pixel; sample++) {
-                Ray new_ray = camera_get_ray(c, row, col);
-                color =
-                    vec3_add(color, ray_color(c, &new_ray, c.max_depth, world));
-            }
+    int row = 0;
 
-            p[(row * c.width) + col] =
-                vec3_mul_dbl(color, c.pixel_samples_scale);
-        }
+    Shared s = {
+        .c = c, .world = world, .pixels = p, .mutex = &mutex, .row = &row};
+
+    pthread_t threads[num_threads];
+    for (int i = 0; i < num_threads; i++) {
+        pthread_create(threads + i, NULL, worker, (void*)&s);
     }
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+    pthread_mutex_destroy(&mutex);
 
     write(file_name, c.width, c.height, p);
     free(p);

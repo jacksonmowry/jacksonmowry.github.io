@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
                         .mat = (struct material*)sphere_material_fixed3});
 
     camera cam = camera_initialize(width, height);
-    camera_render(cam, &hl, file_name, write);
+    camera_render(cam, &hl, file_name, write, threads);
 
     for (size_t i = 0; i < hl.objects.len; i++) {
         free(hl.objects.array[i].mat);

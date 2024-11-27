@@ -36,7 +36,8 @@ typedef struct {
 
 void camera_render(camera c, const hittable_list* world, const char* file_name,
                    int (*write)(const char* file, uint32_t width,
-                                uint32_t height, const Pixel pixels[]));
+                                uint32_t height, const Pixel pixels[]),
+                   int num_threads);
 camera camera_initialize(int width, int height);
 Pixel ray_color(camera c, const Ray* r, int max_depth,
                 const hittable_list* world);
