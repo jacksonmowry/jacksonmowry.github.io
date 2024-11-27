@@ -19,71 +19,77 @@ In order to simulate a neuromorphic system on non-neuromorphic hardware, some le
 It should also be noted that the optimizations explored here are focused strictly on improving performance in a densely connected network, with high levels of activity. A sparsely connected network with low activity would require different optimizations.
 
 * _Simulation Approaches_
+** _Current System_
+- Global array of neurons
+- Global array of synapses
+- Global 2D array of events
+- Neurons and synapses are referenced via their index in their respective array (4 byte index, 65536 possible neurons and 65536 possible synapses)
+
 ** _Priority Queue_
+#+ATTR_HTML: :width 100%
+[[file:risp_eventbased.png]]
+
 One of the major benefits of a neuromorphic system is that its entire job is to operate on events, and subsequently produce more events. An event-based simulation lends itself to a lazy approach, where only the "active" parts of a network are performing work. A common implementation uses an event queue (or priority queue), where individual spike propagations are enqueued to be applied to the network at a later time. This approach allows for sparse network to save on simulation cost when little activity is present in the network.
 
-Due to delay having some fixed upper bound in networks, there is no need to maintain a dynamic priority queue, instead each discrete timestep can have its own pool of events. By provided a fixed location for events to be placed we can effectively eliminate the need for dynamic memory allocation, while maintaining the same advantages of an event queue. The issue now comes when considering the memory footprint of such a solution.
+Due to the delay of any given synapse having some fixed upper bound in networks, there is no need to maintain a dynamic priority queue, instead each discrete time step can have its own pool of events. By provided a fixed location for events to be placed we can effectively eliminate the need for dynamic memory allocation, while maintaining the same advantages of an event queue. The issue now comes when considering the memory footprint of such a solution.
 
-Each possible timestep (in this case this is equivalent to the max delay in a network) needs to have the capacity to hold that maximum number of events possible in the network.Therefore, even though this solution is optimized to do the smallest amount of work possible under low network activity conditions, it always consumes more memory.
+Each possible time step (in this case this is equivalent to the max delay in a network) needs to have the capacity to hold that maximum number of events possible in the network. Therefore, even though this solution is optimized to do the smallest amount of work possible under low network activity conditions, it always consumes more memory.
 
 ** _Internal Ring Buffer_
-Instead of storing sparse events in a global container, we can instead store the "upcoming" state of each neuron internally.
+Instead of storing sparse events in a global container, we can instead store the "upcoming" state of each neuron internally. Our approach takes the form of a ring buffer within each neuron to store the effective charge at each offset from the current time step. Under this approach each time a neuron fires it propagates a spike down each of its synapses, adding its weight at some offset in the downstream neurons ring buffer.
 
-* Prob won't use exactly?
-After spending 2–3 weeks optimizing the embedded neuromorphic code to run DBScan at a reasonable framerate we came to the conclusion that the hardware was simply not powerful enough to run the model. We were eventually able to get the model to run at a theoretical max of 1 FPS, at a quarter of the DAVIS 346's resolution. This model was nearing the limits of the Pi Pico 2040 (585 neurons, 1613 synapses), so increasing the resolution was likely not a possibility. Running a model for the full camera resolution would require 2345 neurons and 6488 synapses (3380 neurons and 15800 synapses for an epsilon of 2). Not satisfied with these results, we wanted to see other options that were available.
+This has the benefit of integrating events into their final sum at the time of firing, reducing the number of tracked states drastically, thus reducing memory used. On processors or platforms with relatively limited cache reducing the overall memory footprint of a simulator can have large benefits on the running time. This is especially important on microcontrollers where limited or no cache is available to speed up execution.
 
-Our attention shifted from the kit to a more performant yet still embedded platform. In an attempt to keep similar power consumption, and availability to interface with the world we landed on the Milk-V Duo 256M, an eSBC running a single 1Ghz RISC-V core, with 256Mb of DRAM, all while consuming 0.5W. The board offers 8x the CPU speed of a single Pico 2040, or 2.6x the 3 Picos of the kit, yet it consumes only 0.5W, while the kit consumes 0.6W under load. The Duo 256M has around 1000x more RAM than a Pico, meaning much larger networks are supported.
+Another benefit of this approach is improved spatial locality. Instead of interacting with a large global container storing all activity, we are directly writing/reading from a single neuron at a time. Large arrays are likely to not be entirely resident in cache, meaning we will take the penalty of a cache miss more frequently as jump around to different time steps. In contrast, the embedded ring buffer approach not only lowers the overall size in memory, but it also reduces the number of possible memory location we can write to.
 
-The next step was to begin porting the embedded neuromorphic kit code to a single monolithic application which we can run on the Duo.
+However, due to the shift in how our network is represented in memory our computation will also need to change. We can no longer act on only the active neurons, which is a tradeoff we must make in order to support densely connected networks with high activity. Now each neuron is iterated through, checking for to see if it should fire, if not the loop continues on. If the neuron should fire we begin iterating through each of its synapses to apply a charge to any downstream neurons. With the model leak can be applied within the same loop as charges are propagates, further increases time savings.
 
-* _Architecture_
-The Duo features a similar SDK to the Pico, providing its own toolchain to allow cross compilation of RISC-V binaries ([[https://github.com/milkv-duo/duo-examples?tab=readme-ov-file]]).
+Again, microcontrollers are less sophisticated and thus have much shallower pipelines, leading to less overall cost to branching. Therefore, we can pay the cost of checking if each neuron should fire and still achieve a speedup over the event-based simulation.
 
-** _Porting the RISP Processor_
-Embedded neuromorphic (and by extension the app-compile tool) create three separate binaries that the user can flash to the respective pico. The first step was to combine the functionality of each component into a single executable.
+** _Embedded Synapses_
+#+ATTR_HTML: :width 100%
+[[file:risp_ringbuffer.png]]
 
-We decided to dedicate a simple function for both observations and actions, keeping a similar API to the kit code. The user-defined =observations= function is called for each input neuron at the start of a time step. Similarily, the =actions= function is called at the end of each timestep, with an array indicating which of the output neurons spiked given to =actions=.
+In an effort to further reduce out programs memory footprint we can also eliminate the global array of synapses. To allow our system to support a reasonable number of neurons/synapses they have to be referenced with a 2 byte index (65536 possible indexes). The issue is that a synapse itself is only 4 bytes in total, therefore a 2 byte index is 50% overhead.
 
-Any setup code that was previously split across the two files can simply be brought over, and called before the processor begins running.
-
-This simple port allowed us to run the full scale model, and we were able to achieve a theoretical max of 7.6 FPS.
-
-** _Encoding Limits in the Processor_
-Similar to the original Embedded Neuromorphic Kit, our port avoids dynamic allocation of memory. This means that the limits (or maximums) of the network must be known at compile time. For instance the number of neurons and synapses is statically defined, which requires the user to extract these values from their network ahead of time.
-
-If we can count on the user to define these values correctly we can remove error checking from our code that enforces these limits. Future work is needed to extract these parameters from the network to eliminate a potential for user error.
-
-Removing error checking does not net much a benefit (0.7%), but if the network is sized properly it will never be needed.
-
-** _Reworking RISP for Better Spatial Locality_
-On the Duo 256M we have 32Kb of L1, and 128Kb of L2 data cache. Of course, running Linux we have almost no guarantee that our process will be able to occupy the cache entirely on its own, so it is a good idea to minimze our application's footprint.
-
-The smallest footprint we were able to achieve on the ported kit code was ~150Kb (which includes neurons, synapses, and charge_changes). After considering different methods to improve memory usage we found a solution that both decreases memory usage, and greatly simplifies the processor. Instead of storing "events" separatly from the entity that they act upon, then applying their effects later, we can simply apply the changes directly to a neuron.
-
-To accomplish this, each neuron now contains a ring buffer who's size is equal to the maximum number of tracked timesteps. Now when a neuron fires, it follows each outgoing synapse and adds the associated weight to the downstream neuron. The position in the ring buffer to which this charge is added can be determined by the delay value of the synapse. This model allows for charges to accumulate for timesteps in the future, without the need to individually track charges, thus drastically decreasing memory usage from 150Kb to 68Kb.
-
-This change nets the greatest improvement in performance, running the full model at theoretical 10.034 FPS, 31.9% faster than the originally ported code.
-
-** _Embedding Synapses Within Neurons_
-On the same line of thought from above, we can further reduce memory usage by embedded synapses within their associated neurons. Because we want to support more than 255 synapses in a network each synapse has to have a 16-bit integer dedicated to its index. We can eliminate these indexes by places synapses within neurons.
+Each synapse represents a relationship between exactly 2 neurons (or a recurrent connection between a neuron and itself), and they are never shared, meaning that a synapse can be embedded within the upstream neuron. This change eliminates the need for the 2 byte index, and further improves spatial locality by bundling neurons with their associated synapses.
 
 #+begin_quote
-For networks with few synapses this would increase memory usage, as each neuron now has to have capacity for the maximum number of outgoing synapses.
+It should be noted that this approach requires each neuron to have the same number of synapses. This would likely be a downside for a sparsely connected network, but it proves to be beneficial in networks with dense connectivity.
 #+end_quote
 
-In addition to reducing memory usage, this change further improves spatial locality, which improves the speed of the network further. The final outcome is 10.234 FPS, a full 34.4% improvement over our baseline implementation.
 
-* _Benchmarking_
-** _Small_
-Epsilon 1, Min. Pts. 4
+** _Flip the Script & Parallelism_
+Thus far, we have focused on optimizations for a lower power, potentially single-core processor, yet our system is trying to simulate parallel operation. If hardware is present that enables parallel processing the current model would not scale well to many units of execution. This is due to the fact that we would have contention around "firing" events. If we imagine each neuron executing independently, two separate neurons may fire, resulting in two spikes propagating to a downstream neuron at the same time. This is the classical =i = i+1= problem in computer science.
+
+Instead, if we think about this problem from the perspective of the downstream neuron, we all but eliminate this issue. Instead of having each neuron propagate a charge downstream, we can have neurons look at their upstream neurons to determine if they fired. This is a bit of backwards way to think about things, but it enables potentially massive parallelism.
+
+There are some potential downsides to this parallel approach. First, the system now requires 2 full iterations over all neurons, one to collect charges from all neurons which have fired on this time step, and a second to apply leak to the network. Second, our memory access pattern is much more unpredictable, however, with sufficient parallelism this benefits will outweigh the costs.
+
+* _Results_
+For the purposes of this article we will be analyzing a neuromorphic implementation of the DBScan algorithm [cite:@dbscan;@neuromorphic_dbscan;]. The DBScan algorithm is meant to both de-noise an image, and highlight areas of interest, which are identified by density of data. This means that our network is expecting high levels of input activity, a perfect scenario for the proposed optimizations. Another key consideration of neuromorphic DBScan is that the networks are densely connected, with most neurons having 3-4 outgoing synapses. Once again, this means that embedded synapses directly within neurons should net an overall benefit, due to the densely connected nature of our network.
+
+DBScan works by analyzing each pixel and determining how many other pixels are in its "neighborhood", if the number of pixels meets or exceedes at set threshold than that event would be considered a *core* event. The other two possible classifications are *border* and *noise*, where *border* events are defined as a pixel with a *core* event within its neighborhood. Both parameters for the neighborhood (epsilon), and threshold (minimum points) are tunable, with an increase in either parameter resulting in a corresponding increase in network size.
+
+The network used for testing had 2345 neurons and 6488 synapses, which is quite large for an embedded neuromorphic application. Typical neuromorphic networks for classification or control tasks end up in the tens to hundreds of neurons range [cite:@grant;@radiation;@f1;@engine].
+
+#+caption: Epsilon 1, Min. Pts. 4
 | System Description |   Mean | Max. FPS | % Gain | Observed FPS | % Gain | Approx. Size |
 |--------------------+--------+----------+--------+--------------+--------+--------------|
-| /                  |      < |        < |      < |            < |      < |              |
-| RISP Processor     | 10.512 |    7.610 |     -- |        5.103 |     -- | 150Kb        |
-| No Error Checking  | 10.434 |    7.667 |   0.7% |        5.161 |   1.1% | 150Kb        |
-| Ring Buffer        |  7.973 |   10.034 |  31.9% |        6.057 |  18.7% | 68Kb         |
-| Embedded Synapses  |  7.817 |   10.234 |  34.4% |        6.132 |  20.2% | 60Kb         |
+| /                  |      < |        < | <      |            < | <      |              |
+| Event Based        | 10.512 |    7.610 | --     |        5.103 | --     | 150Kb        |
+| Neuron Ring Buffer |  7.973 |   10.034 | 31.9%  |        6.057 | 18.7%  | 68Kb         |
+| Embedded Synapses  |  7.817 |   10.234 | 34.4%  |        6.132 | 20.2%  | 60Kb         |
 
-#  LocalWords:  Neuromorphic Loihi non-neuromorphic
+The original event based simulator was ported to run on a RISC-V microcontroller [cite:@milkv-duo], although the hardware used is not necessary to be familiar with to see the benefits. As a starting state we observed a theoretical 7.610 FPS, with approximately 150Kb of memory utilized to run the simulation. This architecture requires more memory than we have L2 cache, meaning that at no point can the entire system be held in cache.
+
+Switching from the original event based model to each neuron holding an internal ring buffer drops the overall memory usage from 150Kb to 68Kb, meaning that a simulator can now much more easily fit in a system's cache. Additionally, moving to this computation model further improves performance to a theoretical 10.034 FPS, a 31.9% improvement.
+
+Lastly, embedded synapses within a neuron netted a smaller performance increase, resulting in 10.234 FPS, a 34.4% increase over baseline. This architecture also further lowered memory consumption down to 60Kb.
+
+* _Discussion_
+
+
+#  LocalWords:  Neuromorphic Loihi non-neuromorphic DBScan
 
 #+print_bibliography:
