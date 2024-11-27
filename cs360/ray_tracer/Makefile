@@ -6,7 +6,7 @@ CC = clang
 CFLAGS = -Wall -Wextra -Iinclude -O3 -mavx -Wmissing-field-initializers -Wpedantic
 ANALYZERFLAGS = -g -fanalyzer -lm
 SANITIZERFLAGS = -g -fsanitize=address -lm
-PERFFLAGS = -g -Iinclude -lm -mavx -ffast-math -O3
+PERFFLAGS = -g -Iinclude -lm -mavx -O3
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -40,8 +40,8 @@ sanitizer: $(EXEC)
 
 # Build and run perf
 perf: CFLAGS = $(PERFFLAGS)
-perf: $(EXEC)
-	perf record ./$(EXEC) > sweep.ppm
+perf: $(EXEC) ppm_plugin bmp_plugin
+	cd build && perf record ./raytrace -t 12 -d ppm > sweep.ppm
 
 ppm_plugin: plugins/ppm.c src/interval.c src/vec3.c
 	$(CC) -fPIC -shared plugins/ppm.c -o $(BUILD_DIR)/libppm.so src/interval.c src/vec3.c -Iinclude
