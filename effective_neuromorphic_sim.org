@@ -83,6 +83,14 @@ Switching from the original event based model to each neuron holding an internal
 Lastly, embedded synapses within a neuron netted a smaller performance increase, resulting in 10.234 FPS, a 34.4% increase over baseline. This architecture also further lowered memory consumption down to 60Kb. Embedding synapses within neurons may not be beneficial for all use-cases, and further exploration is needed to find the cutoff point.
 
 * _Discussion_
+Clearly different approaches benefit different network configuations, and exploration is needed to tailor the simulator to a specific application. Although the major benefit of neuromorphic computing is its asynchronous approach, not every appication can share those same characteristics. For this application the difference is largely due to the hand-built nature of the network, as opposed to a network produced through evolutionary optimization.
+
+The input and output space can also play a large role in the resulting complexity of the network. Specifically, for image based applications we generally need one input neuron per pixel, or some portion of the input space. This large input space leads to a highly active network, making it a perfect candidate for the optimizations described above.
+
+Reducing the memory footprint of our simulator both improves the simulation speed, and allows us to fit larger networks on constrained hardware. For the purposes of embedded DBScan this means with can either support a higher resolution camera, or we could utilize the tunable network parameters to increase the effectivness of the algorithm.
+
+* _Future Work_
+In the future it would be beneficial to explor how this computational model can scale to other architectures. As stated before the simulation of a neurmorphic network can be scaled in parallel to more closely mimic biological neurons and synapses. For instance porting the simulator to a GPU to take advantage of the high core count and memory bandwidth.
 
 ** _Flip the Script & Parallelism_
 Thus far, we have focused on optimizations for a lower power, potentially single-core processor, yet our system is trying to simulate parallel operation. If hardware is present that enables parallel processing the current model would not scale well to many units of execution. This is due to the fact that we would have contention around "firing" events. If we imagine each neuron executing independently, two separate neurons may fire, resulting in two spikes propagating to a downstream neuron at the same time. This is the classical =i = i+1= problem in computer science.
@@ -91,7 +99,10 @@ Instead, if we think about this problem from the perspective of the downstream n
 
 There are some potential downsides to this parallel approach. First, the system now requires 2 full iterations over all neurons, one to collect charges from all neurons which have fired on this time step, and a second to apply leak to the network. Second, our memory access pattern is much more unpredictable, however, with sufficient parallelism this benefits will outweigh the costs.
 
+* _Conclusion_
+In conclusion, having the ability to tune a neuromorphic simulator specifically for an application has clear benefits. Networks with dense connectivity are more effectively represened by a regular structure, where each neuron has the capacity to hold the same number of synapses. Applications that require high network activity scale much better by integrating spikes as soon as they occur, instead of processing them at a later time.
 
 #  LocalWords:  Neuromorphic Loihi non-neuromorphic DBScan
 
+* _Bibliography_
 #+print_bibliography:

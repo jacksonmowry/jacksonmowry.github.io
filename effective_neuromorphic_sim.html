@@ -19,107 +19,121 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title"><i>Effectively Simulating a Neuromorphic System</i></h1>
-<div id="outline-container-orge4fb074" class="outline-2">
-<h2 id="orge4fb074"><span class="underline">The Problem</span></h2>
-<div class="outline-text-2" id="text-orge4fb074">
+<div id="outline-container-orgc74b0b0" class="outline-2">
+<h2 id="orgc74b0b0"><span class="underline">The Problem</span></h2>
+<div class="outline-text-2" id="text-orgc74b0b0">
 <p>
-Neuromorphic computing is a proposed alternative computing model that draws heavy inspiration from the functionality of neurons and synapses in the human body. It has come into the spotlight as the progression of Moore&rsquo;s law steadily slowed. Neuromorphic hardware is gradually becoming more popular, with examples like Intel&rsquo;s Loihi, IBM&rsquo;s True North, and many other examples from research labs (<a href="#citeproc_bib_item_4">Davies et al. 2018</a>; <a href="#citeproc_bib_item_1">Akopyan et al. 2015</a>; <a href="#citeproc_bib_item_3">Daffron 2015</a>). Now computing needs to evolve to take advantage of massively parallel hardware since the speed of an individual processor core stagnates.
+Neuromorphic computing is a proposed alternative computing model that draws heavy inspiration from the functionality of neurons and synapses in the human body. It has come into the spotlight as the progression of Moore&rsquo;s law steadily slowed. Neuromorphic hardware is gradually becoming more popular, with examples like Intel&rsquo;s Loihi, IBM&rsquo;s True North, and many other examples from independent research labs (<a href="#citeproc_bib_item_4">Davies et al. 2018</a>; <a href="#citeproc_bib_item_1">Akopyan et al. 2015</a>; <a href="#citeproc_bib_item_3">Daffron 2015</a>). Now computing needs to evolve to take advantage of massively parallel hardware as the speed increases of an individual processor core stagnates.
 </p>
 
 <p>
-Naturally, the computing model of neurons and synapses is inherently parallel, which proposes quite the challenge when attempting to simulate these systems on traditional hardware. In this article we will look at 2 high level approaches for simulating neuromorphic systems on a single core CPU. This choice should allow the findings to be applicable to the widest range of neuromorphic applications, although our findings will be presented in an embedded context, specifically microcontrollers and single board computers.
+Naturally, the computing model of neurons and synapses is inherently parallel, which poses a large challenge when attempting to simulate these systems on traditional hardware. In this article we will look at 2 high level approaches for simulating neuromorphic systems on a single core CPU, one traditional, and one optimized for densely connected highly active networks. This choice should allow the findings to be applicable to the widest range of embedded neuromorphic applications.
 </p>
 </div>
 </div>
-<div id="outline-container-org1792dbb" class="outline-2">
-<h2 id="org1792dbb"><span class="underline">Why</span></h2>
-<div class="outline-text-2" id="text-org1792dbb">
+<div id="outline-container-org5789fa0" class="outline-2">
+<h2 id="org5789fa0"><span class="underline">Introduction</span></h2>
+<div class="outline-text-2" id="text-org5789fa0">
 <p>
 In order to simulate a neuromorphic system on non-neuromorphic hardware, some level of emulation must be performed. This means simulating both the communication between individual neurons (via synapses), and the storage of charge within an individual neuron. To simplify our model for better understanding we will make the assumption that all charge is leaked from a neuron at the end of each time step.
 </p>
 
+<blockquote>
 <p>
 It should also be noted that the optimizations explored here are focused strictly on improving performance in a densely connected network, with high levels of activity. A sparsely connected network with low activity would require different optimizations.
 </p>
-</div>
-</div>
-<div id="outline-container-org826b4ec" class="outline-2">
-<h2 id="org826b4ec"><span class="underline">Simulation Approaches</span></h2>
-<div class="outline-text-2" id="text-org826b4ec">
-</div>
-<div id="outline-container-orged7db4f" class="outline-3">
-<h3 id="orged7db4f"><span class="underline">General Overview of the Current System</span></h3>
-<div class="outline-text-3" id="text-orged7db4f">
+</blockquote>
+
 <p>
-As the system is laid out currently, each neuron is located in a large array, referrenced by its index. Similarily, all of the synapses occupy their own array. These two structures alone are nothing surprising, as each of these objects needs to be laid out in memory in some form. Neurons can then be referenced via their index, with each neuron storing the indicies of its synapses.
+For the purposes of this article we will be analyzing a neuromorphic implementation of the DBScan algorithm (<a href="#citeproc_bib_item_5">Ester et al. 1996</a>; <a href="#citeproc_bib_item_9">Rizzo and Plank 2024</a>). The DBScan algorithm both de-noises an image, and highlights areas of interest, which are identified by the density of data. This means that our network is expecting high levels of input activity, a perfect scenario for the optimizations explored. Another key consideration of neuromorphic DBScan is that the networks are densely connected, with most neurons having 3-4 outgoing synapses. Once again, this means that embedding synapses directly within neurons should net an overall benefit, due to the densely connected nature of our network.
 </p>
 
 <p>
-The unique part of the system is how events are stored. Each network has some upper bound of delay that must be representable within the simulation. You can think of this as the longest possible time in the future that an event may need to fire. As these networks are being run continuously the timesteps will eventually wrap back around, reusing space as the simulation moves along.
+DBScan works by analyzing each pixel and determining how many other pixels are in its &ldquo;neighborhood&rdquo;, if the number of pixels meets or exceeded at set threshold than that event is considered a <b>core</b> event. The other two possible classifications are <b>border</b> and <b>noise</b>, where <b>border</b> events are defined as a pixel with a <b>core</b> event within its neighborhood. Every other event is classified as noise, and for most purposes would be ignored. Both the parameters for neighborhood (epsilon), and threshold (minimum points) are tunable, with an increase in either parameter resulting in a corresponding increase in network size.
 </p>
 
 <p>
-At each of these timesteps a certain number of events are tracked, which again comes from the characteristics of the network. This means that at any given time we need to have the capacity for every neuron to fire, and proprogate a spike to their downstream neurons.
+The network used for testing had 2345 neurons and 6488 synapses, which is on the upper end for an embedded neuromorphic application. Typical neuromorphic networks for classification or control tasks end up in the tens to hundreds of neurons range (<a href="#citeproc_bib_item_2">Ambrose et al. 2020</a>; <a href="#citeproc_bib_item_6">Ghawaly et al. 2022</a>; <a href="#citeproc_bib_item_8">Patton et al. 2021</a>; <a href="#citeproc_bib_item_10">Schuman et al. 2020</a>), meaning that neuromorphic DBScan is one of the largest networks deployed in an embedded application.
 </p>
 </div>
 </div>
-<div id="outline-container-org414a39d" class="outline-3">
-<h3 id="org414a39d"><span class="underline">Priority Queue</span></h3>
-<div class="outline-text-3" id="text-org414a39d">
+<div id="outline-container-orgd1a2841" class="outline-2">
+<h2 id="orgd1a2841"><span class="underline">Simulation Approaches</span></h2>
+<div class="outline-text-2" id="text-orgd1a2841">
+</div>
+<div id="outline-container-org03ccebd" class="outline-3">
+<h3 id="org03ccebd"><span class="underline">General Overview of the Current System</span></h3>
+<div class="outline-text-3" id="text-org03ccebd">
+<p>
+As the system stands currently, each neuron is located in a large array, referenced by its index. Similarly, all the synapses occupy their own spot in an array. These two structures alone are nothing surprising, as each of these objects needs to exist in memory in some form. We can then reference neurons via their index, with each neuron also storing the indices of its synapses.
+</p>
 
-<div id="org63b15cb" class="figure">
+<p>
+The unique part of this system is an event queue to store spikes as they occur. Each network has some upper bound of delay (associated with each synapse) that must be representable within the simulation. You can think of this as the longest possible time in the future that an event may need to fire. As these networks are run continuously the time steps will eventually wrap back around, reusing space as the simulation moves along.
+</p>
+
+<p>
+Each index in this array has the capacity to store a fixed number of events, which again comes from the characteristics of the network. This means that at any given time we need to have the capacity for every neuron to fire, and propagate a spike to their downstream neurons.
+</p>
+</div>
+</div>
+<div id="outline-container-org50ead05" class="outline-3">
+<h3 id="org50ead05"><span class="underline">Priority Queue</span></h3>
+<div class="outline-text-3" id="text-org50ead05">
+
+<div id="org3b72d41" class="figure">
 <p><img src="risp_eventbased.png" alt="risp_eventbased.png" width="100%" />
 </p>
 </div>
 
 <p>
-One of the major benefits of a neuromorphic system is that its entire job is to operate on events, and subsequently produce more events. An event-based simulation lends itself to a lazy approach, where only the &ldquo;active&rdquo; parts of a network are performing work. A common implementation uses an event queue (or priority queue), where individual spike propagations are enqueued to be applied to the network at a later time. This approach allows for sparse network to save on simulation cost when little activity is present in the network.
+One of the major benefits of a neuromorphic system is that it operates on events, and subsequently produces more events. An event-based simulation lends itself to a lazy approach, where only the &ldquo;active&rdquo; parts of a network require computation. A common implementation uses an event queue (or priority queue), where individual spike propagations are enqueued, which are then applied to the network at a later time. This approach allows for sparse networks to save on simulation cost when little activity is present.
 </p>
 
 <p>
-Due to the delay of any given synapse having some fixed upper bound in networks, there is no need to maintain a dynamic priority queue, instead each discrete time step can have its own pool of events. By provided a fixed location for events to be placed we can effectively eliminate the need for dynamic memory allocation, while maintaining the same advantages of an event queue. The issue now comes when considering the memory footprint of such a solution.
+Due to the delay of any given synapse having some fixed upper bound in networks, there is no need to maintain a dynamic priority queue, instead each discrete time step can have its own pool of events. By providing a fixed location for events to be stored we can effectively eliminate the need for dynamic memory allocation, while maintaining the same advantages of a priority queue. The issue now comes when considering the memory footprint of such a solution.
 </p>
 
 <p>
-Each possible time step (in this case this is equivalent to the max delay in a network) needs to have the capacity to hold that maximum number of events possible in the network. Therefore, even though this solution is optimized to do the smallest amount of work possible under low network activity conditions, it always consumes more memory.
+Each possible time step needs to have the capacity to hold that maximum number of events possible in the network. Therefore, even though this solution is optimized to perform the smallest amount of computation under low network activity conditions, it always consumes more memory.
 </p>
 </div>
 </div>
-<div id="outline-container-orge8ca0de" class="outline-3">
-<h3 id="orge8ca0de"><span class="underline">Internal Ring Buffer</span></h3>
-<div class="outline-text-3" id="text-orge8ca0de">
+<div id="outline-container-orgbd8e6c1" class="outline-3">
+<h3 id="orgbd8e6c1"><span class="underline">Internal Ring Buffer</span></h3>
+<div class="outline-text-3" id="text-orgbd8e6c1">
 <p>
-Instead of storing sparse events in a global container, we can instead store the &ldquo;upcoming&rdquo; state of each neuron internally. Our approach takes the form of a ring buffer within each neuron to store the effective charge at each offset from the current time step. Under this approach each time a neuron fires it propagates a spike down each of its synapses, adding its weight at some offset in the downstream neurons ring buffer.
+Instead of storing sparse events in a global container, we can instead store the &ldquo;upcoming&rdquo; state of each neuron internally. Our approach takes the form of a ring buffer within each neuron to store the effective charge at each offset from the current time step. Under this approach each time a neuron fires it propagates a spike down each of its synapses, adding its weight at some offset in the downstream neurons ring buffer. This ring buffer is then reused in much the same way as the event queue described previously.
 </p>
 
 <p>
-This has the benefit of integrating events into their final sum at the time of firing, reducing the number of tracked states drastically, thus reducing memory used. On processors or platforms with relatively limited cache reducing the overall memory footprint of a simulator can have large benefits on the running time. This is especially important on microcontrollers where limited or no cache is available to speed up execution.
+This has the benefit of integrating events into their final sum at the time of firing, reducing the number of tracked states drastically, thus reducing memory used. On processors or platforms with limited cache, reducing the overall memory footprint of a simulator can have large benefits on the simulation speed. This is especially important on microcontrollers where limited or no cache is available to speed up execution.
 </p>
 
 <p>
-Another benefit of this approach is improved spatial locality. Instead of interacting with a large global container storing all activity, we are directly writing/reading from a single neuron at a time. Large arrays are likely to not be entirely resident in cache, meaning we will take the penalty of a cache miss more frequently as jump around to different time steps. In contrast, the embedded ring buffer approach not only lowers the overall size in memory, but it also reduces the number of possible memory location we can write to.
+Another benefit of this approach is the improved spatial locality. Instead of interacting with a large global container storing all activity, we are directly writing/reading from a single neuron at a time. Large arrays are likely to not be entirely resident in cache, meaning we will take the penalty of a cache miss more frequently as we jump around to different time steps. In contrast, the embedded ring buffer approach not only lowers the overall size in memory, but it also reduces the number of possible memory location we can write to.
 </p>
 
 <p>
-However, due to the shift in how our network is represented in memory our computation will also need to change. We can no longer act on only the active neurons, which is a tradeoff we must make in order to support densely connected networks with high activity. Now each neuron is iterated through, checking for to see if it should fire, if not the loop continues on. If the neuron should fire we begin iterating through each of its synapses to apply a charge to any downstream neurons. With the model leak can be applied within the same loop as charges are propagates, further increases time savings.
+However, due to the shift in how our network is represented in memory our computation will also need to change. We can no longer act on only active neurons, which is a tradeoff we must make in order to support densely connected networks with high activity. Now we iterate through each neuron, checking for to see if it should fire, continuing on if not. If the neuron should fire we begin iterating through each of its synapses to apply a charge to any downstream neurons. With this computation model, leak can be applied within the same loop as charges are propagated, further increases time savings.
 </p>
 
 <p>
-Again, microcontrollers are less sophisticated and thus have much shallower pipelines, leading to less overall cost to branching. Therefore, we can pay the cost of checking if each neuron should fire and still achieve a speedup over the event-based simulation.
+Again, microcontrollers are less sophisticated and thus have much shallower pipelines, leading to less overall cost to branching. Therefore, we can pay the cost of checking if each neuron should fire and still achieve a speedup over the event-based simulation due to the much lower pressure placed on memory.
 </p>
 </div>
 </div>
-<div id="outline-container-org9c9d4bf" class="outline-3">
-<h3 id="org9c9d4bf"><span class="underline">Embedded Synapses</span></h3>
-<div class="outline-text-3" id="text-org9c9d4bf">
+<div id="outline-container-org2dc46ad" class="outline-3">
+<h3 id="org2dc46ad"><span class="underline">Embedded Synapses</span></h3>
+<div class="outline-text-3" id="text-org2dc46ad">
 
-<div id="orga43a048" class="figure">
+<div id="org3eb3cb7" class="figure">
 <p><img src="risp_ringbuffer.png" alt="risp_ringbuffer.png" width="100%" />
 </p>
 </div>
 
 <p>
-In an effort to further reduce out programs memory footprint we can also eliminate the global array of synapses. To allow our system to support a reasonable number of neurons/synapses they have to be referenced with a 2 byte index (65536 possible indexes). The issue is that a synapse itself is only 4 bytes in total, therefore a 2 byte index is 50% overhead.
+In an effort to further reduce our program&rsquo;s memory footprint, we can also eliminate the global array of synapses. To allow our system to support a reasonable number of neurons/synapses they are referenced with a 2 byte index (65536 possible indexes). The issue is that a synapse itself is only 4 bytes in total, therefore a 2 byte index is a 50% overhead.
 </p>
 
 <p>
@@ -128,43 +142,15 @@ Each synapse represents a relationship between exactly 2 neurons (or a recurrent
 
 <blockquote>
 <p>
-It should be noted that this approach requires each neuron to have the same number of synapses. This would likely be a downside for a sparsely connected network, but it proves to be beneficial in networks with dense connectivity.
+It should be noted that this approach requires each neuron to have the capacity for the same number of synapses. This would likely be a downside for a sparsely connected network, but it proves to be beneficial in networks with dense connectivity.
 </p>
 </blockquote>
 </div>
 </div>
-<div id="outline-container-org850e3c6" class="outline-3">
-<h3 id="org850e3c6"><span class="underline">Flip the Script &amp; Parallelism</span></h3>
-<div class="outline-text-3" id="text-org850e3c6">
-<p>
-Thus far, we have focused on optimizations for a lower power, potentially single-core processor, yet our system is trying to simulate parallel operation. If hardware is present that enables parallel processing the current model would not scale well to many units of execution. This is due to the fact that we would have contention around &ldquo;firing&rdquo; events. If we imagine each neuron executing independently, two separate neurons may fire, resulting in two spikes propagating to a downstream neuron at the same time. This is the classical <code>i = i+1</code> problem in computer science.
-</p>
-
-<p>
-Instead, if we think about this problem from the perspective of the downstream neuron, we all but eliminate this issue. Instead of having each neuron propagate a charge downstream, we can have neurons look at their upstream neurons to determine if they fired. This is a bit of backwards way to think about things, but it enables potentially massive parallelism.
-</p>
-
-<p>
-There are some potential downsides to this parallel approach. First, the system now requires 2 full iterations over all neurons, one to collect charges from all neurons which have fired on this time step, and a second to apply leak to the network. Second, our memory access pattern is much more unpredictable, however, with sufficient parallelism this benefits will outweigh the costs.
-</p>
 </div>
-</div>
-</div>
-<div id="outline-container-org30d411d" class="outline-2">
-<h2 id="org30d411d"><span class="underline">Results</span></h2>
-<div class="outline-text-2" id="text-org30d411d">
-<p>
-For the purposes of this article we will be analyzing a neuromorphic implementation of the DBScan algorithm (<a href="#citeproc_bib_item_5">Ester et al. 1996</a>; <a href="#citeproc_bib_item_9">Rizzo and Plank 2024</a>). The DBScan algorithm is meant to both de-noise an image, and highlight areas of interest, which are identified by density of data. This means that our network is expecting high levels of input activity, a perfect scenario for the proposed optimizations. Another key consideration of neuromorphic DBScan is that the networks are densely connected, with most neurons having 3-4 outgoing synapses. Once again, this means that embedded synapses directly within neurons should net an overall benefit, due to the densely connected nature of our network.
-</p>
-
-<p>
-DBScan works by analyzing each pixel and determining how many other pixels are in its &ldquo;neighborhood&rdquo;, if the number of pixels meets or exceedes at set threshold than that event would be considered a <b>core</b> event. The other two possible classifications are <b>border</b> and <b>noise</b>, where <b>border</b> events are defined as a pixel with a <b>core</b> event within its neighborhood. Both parameters for the neighborhood (epsilon), and threshold (minimum points) are tunable, with an increase in either parameter resulting in a corresponding increase in network size.
-</p>
-
-<p>
-The network used for testing had 2345 neurons and 6488 synapses, which is quite large for an embedded neuromorphic application. Typical neuromorphic networks for classification or control tasks end up in the tens to hundreds of neurons range (<a href="#citeproc_bib_item_2">Ambrose et al. 2020</a>; <a href="#citeproc_bib_item_6">Ghawaly et al. 2022</a>; <a href="#citeproc_bib_item_8">Patton et al. 2021</a>; <a href="#citeproc_bib_item_10">Schuman et al. 2020</a>).
-</p>
-
+<div id="outline-container-org6c5394a" class="outline-2">
+<h2 id="org6c5394a"><span class="underline">Results</span></h2>
+<div class="outline-text-2" id="text-org6c5394a">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 1:</span> Epsilon 1, Min. Pts. 4</caption>
 
@@ -238,21 +224,69 @@ The network used for testing had 2345 neurons and 6488 synapses, which is quite 
 </table>
 
 <p>
-The original event based simulator was ported to run on a RISC-V microcontroller (<a href="#citeproc_bib_item_7">Milk-V-Technology, n.d.</a>), although the hardware used is not necessary to be familiar with to see the benefits. As a starting state we observed a theoretical 7.610 FPS, with approximately 150Kb of memory utilized to run the simulation. This architecture requires more memory than we have L2 cache, meaning that at no point can the entire system be held in cache.
+The original event based simulator was ported to run on a RISC-V microcontroller (<a href="#citeproc_bib_item_7">Milk-V-Technology, n.d.</a>), although the hardware used is not necessary to be familiar with to see the benefits. As a starting state we observed a theoretical 7.610 FPS, with approximately 150Kb of memory utilized to run the simulation. This architecture requires more memory than we have L2 cache, meaning that at no point can the entire simulation be held in cache.
 </p>
 
 <p>
-Switching from the original event based model to each neuron holding an internal ring buffer drops the overall memory usage from 150Kb to 68Kb, meaning that a simulator can now much more easily fit in a system&rsquo;s cache. Additionally, moving to this computation model further improves performance to a theoretical 10.034 FPS, a 31.9% improvement.
+Switching from the original event based model to each neuron holding an internal ring buffer drops the overall memory usage from 150Kb to 68Kb, meaning that a simulator can now much more easily fit in a system&rsquo;s cache. Additionally, moving to this computation model further improves performance to a theoretical 10.034 FPS, a 31.9% improvement. This is the largest jump we observed in FPS, which makes sense due to the significant architectural change.
 </p>
 
 <p>
-Lastly, embedded synapses within a neuron netted a smaller performance increase, resulting in 10.234 FPS, a 34.4% increase over baseline. This architecture also further lowered memory consumption down to 60Kb.
+Lastly, embedded synapses within a neuron netted a smaller performance increase, resulting in 10.234 FPS, a 34.4% increase over baseline. This architecture also further lowered memory consumption down to 60Kb. Embedding synapses within neurons may not be beneficial for all use-cases, and further exploration is needed to find the cutoff point.
 </p>
 </div>
 </div>
-<div id="outline-container-orgbfd61e5" class="outline-2">
-<h2 id="orgbfd61e5"><span class="underline">Discussion</span></h2>
-<div class="outline-text-2" id="text-orgbfd61e5">
+<div id="outline-container-org72c4dff" class="outline-2">
+<h2 id="org72c4dff"><span class="underline">Discussion</span></h2>
+<div class="outline-text-2" id="text-org72c4dff">
+<p>
+Clearly different approaches benefit different network configuations, and exploration is needed to tailor the simulator to a specific application. Although the major benefit of neuromorphic computing is its asynchronous approach, not every appication can share those same characteristics. For this application the difference is largely due to the hand-built nature of the network, as opposed to a network produced through evolutionary optimization.
+</p>
+
+<p>
+The input and output space can also play a large role in the resulting complexity of the network. Specifically, for image based applications we generally need one input neuron per pixel, or some portion of the input space. This large input space leads to a highly active network, making it a perfect candidate for the optimizations described above.
+</p>
+
+<p>
+Reducing the memory footprint of our simulator both improves the simulation speed, and allows us to fit larger networks on constrained hardware. For the purposes of embedded DBScan this means with can either support a higher resolution camera, or we could utilize the tunable network parameters to increase the effectivness of the algorithm.
+</p>
+</div>
+</div>
+<div id="outline-container-orgac7765f" class="outline-2">
+<h2 id="orgac7765f"><span class="underline">Future Work</span></h2>
+<div class="outline-text-2" id="text-orgac7765f">
+<p>
+In the future it would be beneficial to explor how this computational model can scale to other architectures. As stated before the simulation of a neurmorphic network can be scaled in parallel to more closely mimic biological neurons and synapses. For instance porting the simulator to a GPU to take advantage of the high core count and memory bandwidth.
+</p>
+</div>
+<div id="outline-container-orgd45168b" class="outline-3">
+<h3 id="orgd45168b"><span class="underline">Flip the Script &amp; Parallelism</span></h3>
+<div class="outline-text-3" id="text-orgd45168b">
+<p>
+Thus far, we have focused on optimizations for a lower power, potentially single-core processor, yet our system is trying to simulate parallel operation. If hardware is present that enables parallel processing the current model would not scale well to many units of execution. This is due to the fact that we would have contention around &ldquo;firing&rdquo; events. If we imagine each neuron executing independently, two separate neurons may fire, resulting in two spikes propagating to a downstream neuron at the same time. This is the classical <code>i = i+1</code> problem in computer science.
+</p>
+
+<p>
+Instead, if we think about this problem from the perspective of the downstream neuron, we all but eliminate this issue. Instead of having each neuron propagate a charge downstream, we can have neurons look at their upstream neurons to determine if they fired. This is a bit of backwards way to think about things, but it enables potentially massive parallelism.
+</p>
+
+<p>
+There are some potential downsides to this parallel approach. First, the system now requires 2 full iterations over all neurons, one to collect charges from all neurons which have fired on this time step, and a second to apply leak to the network. Second, our memory access pattern is much more unpredictable, however, with sufficient parallelism this benefits will outweigh the costs.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org52604d2" class="outline-2">
+<h2 id="org52604d2"><span class="underline">Conclusion</span></h2>
+<div class="outline-text-2" id="text-org52604d2">
+<p>
+In conclusion, having the ability to tune a neuromorphic simulator specifically for an application has clear benefits. Networks with dense connectivity are more effectively represent the a regular structure, where each neuron has the capacity to hold the same number of synapses. Applications that require high network activity scale much better by integrating spikes as soon as they occur, instead of processing them at a later time.
+</p>
+</div>
+</div>
+<div id="outline-container-org34f66f9" class="outline-2">
+<h2 id="org34f66f9"><span class="underline">Bibliography</span></h2>
+<div class="outline-text-2" id="text-org34f66f9">
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Akopyan, Filipp, Jun Sawada, Andrew Cassidy, Rodrigo Alvarez-Icaza, John Arthur, Paul Merolla, Nabil Imam, et al. 2015. “Truenorth: Design and Tool Flow of a 65 Mw 1 Million Neuron Programmable Neurosynaptic Chip.” <i>Ieee Transactions on Computer-Aided Design of Integrated Circuits and Systems</i> 34 (10): 1537–57. <a href="https://doi.org/10.1109/TCAD.2015.2474396">https://doi.org/10.1109/TCAD.2015.2474396</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Ambrose, J. D., A. Z. Foshie, M. E. Dean, J. S. Plank, G. S. Rose, J. P. Mitchell, C. D. Schuman, and G. Bruer. 2020. “GRANT: Ground Roaming Autonomous Neuromorphic Targeter.” In <i>Ijcnn: The International Joint Conference on Neural Networks</i>.</div>
@@ -260,9 +294,9 @@ Lastly, embedded synapses within a neuron netted a smaller performance increase,
   <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Davies, Mike, Narayan Srinivasa, Tsung-Han Lin, Gautham Chinya, Yongqiang Cao, Sri Harsha Choday, Georgios Dimou, et al. 2018. “Loihi: A Neuromorphic Manycore Processor with on-Chip Learning.” <i>Ieee Micro</i> 38 (1): 82–99. <a href="https://doi.org/10.1109/MM.2018.112130359">https://doi.org/10.1109/MM.2018.112130359</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Ester, Martin, Hans-Peter Kriegel, Jörg Sander, and Xiaowei Xu. 1996. “A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise.” In <i>Proceedings of the Second International Conference on Knowledge Discovery and Data Mining</i>, 226–31. Kdd’96. Portland, Oregon: AAAI Press.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_6"></a>Ghawaly, J., A. Young, D. Archer, N. Prins, B. Witherspoon, and C. D. Schuman. 2022. “A Neuromorphic Algorithm for Radiation Anomaly Detection.” In <i>Proceedings of the International Conference on Neuromorphic Systems 2022</i>. ACM. <a href="https://doi.org/10.1145/3546790.3546815">https://doi.org/10.1145/3546790.3546815</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_7"></a>Milk-V-Technology. n.d. “Milk-V Duo Github.” <a href="“https://github.com/milkv-duo”">“https://github.com/milkv-duo”</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_7"></a>Milk-V-Technology. n.d. “Milk-V Duo Github.” <a href="https://github.com/milkv-duo">https://github.com/milkv-duo</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_8"></a>Patton, R., C. D. Schuman, S. R. Kulkarni, M. Parsa, J. P. Mitchell, N. Q. Haas, C. Stahl, et al. 2021. “Neuromorphic Computing for Autonomous Racing.” In <i>International Conference on Neuromorphic Computing Systems (Icons)</i>, 1–8. ACM. <a href="https://doi.org/10.1145/3477145.3477170">https://doi.org/10.1145/3477145.3477170</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_9"></a>Rizzo, C. P., and J. S. Plank. 2024. “A Neuromorphic Implementation of the DBSCAN Algorithm.” arXiv:2409.14298. <a href="“https://arxiv.org/abs/2409.14298”">“https://arxiv.org/abs/2409.14298”</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_9"></a>Rizzo, C. P., and J. S. Plank. 2024. “A Neuromorphic Implementation of the DBSCAN Algorithm.” arXiv:2409.14298. <a href="https://arxiv.org/abs/2409.14298">https://arxiv.org/abs/2409.14298</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_10"></a>Schuman, C. D., S. R. Young, J. P. Mitchell, J. T. Johnston, D. Rose, B. P. Maldonado, and B. C. Kaul. 2020. “Low Size, Weight, and Power Neuromorphic Computing to Improve Combustion Engine Efficiency.” In <i>11Th International Green and Sustainable Computing Conference (Igsc)</i>, 1–8. IEEE. <a href="https://doi.org/10.1109/IGSC51522.2020.9291228">https://doi.org/10.1109/IGSC51522.2020.9291228</a>.</div>
 </div>
 </div>
