@@ -1,5 +1,4 @@
-#ifndef CAMERA_H_
-#define CAMERA_H_
+#pragma once
 
 #include "hittable_list.h"
 #include "vec3.h"
@@ -42,5 +41,3 @@ camera camera_initialize(int width, int height);
 Pixel ray_color(camera c, const Ray* r, int max_depth,
                 const hittable_list* world);
 Ray camera_get_ray(camera c, int i, int j);
-
-#endif // CAMERA_H_

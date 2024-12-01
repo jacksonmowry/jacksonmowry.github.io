@@ -1,5 +1,4 @@
-#ifndef VECTOR_H_
-#define VECTOR_H_
+#pragma once
 
 #include <stddef.h>
 #include <stdio.h>
@@ -86,5 +85,3 @@
         return !memcmp(a.array, b.array, sizeof(type) * a.len);                \
     }                                                                          \
     void vector_##type##_free(vector_##type v) { free(v.array); }
-
-#endif // VECTOR_H_

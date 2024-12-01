@@ -1,5 +1,4 @@
-#ifndef MATERIAL_H_
-#define MATERIAL_H_
+#pragma once
 
 #include "hittable.h"
 #include "ray.h"
@@ -24,5 +23,3 @@ material material_make_metal(Pixel albedo);
 
 bool scatter(material* m, const Ray* r, const hit_record* rec,
              Pixel* attenuation, Ray* scattered);
-
-#endif // MATERIAL_H_

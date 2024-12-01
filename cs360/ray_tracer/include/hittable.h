@@ -1,5 +1,4 @@
-#ifndef HITTABLE_H_
-#define HITTABLE_H_
+#pragma once
 
 #include "interval.h"
 #include "ray.h"
@@ -33,5 +32,3 @@ typedef struct {
 } hittable;
 
 bool hit(hittable h, const Ray, interval i, hit_record* record);
-
-#endif // HITTABLE_H_

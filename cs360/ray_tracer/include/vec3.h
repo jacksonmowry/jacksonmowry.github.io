@@ -1,5 +1,4 @@
-#ifndef VEC3_H_
-#define VEC3_H_
+#pragma once
 
 #include <stdbool.h>
 typedef struct {
@@ -44,5 +43,3 @@ Vec3 vec3_refract(Vec3 v, Vec3 n, double etai_over_etat);
 Vec3 vec3_random_in_unit_disk(void);
 
 double linear_to_gamma(double linear_component);
-
-#endif // VEC3_H_

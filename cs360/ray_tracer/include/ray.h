@@ -1,5 +1,4 @@
-#ifndef RAY_H_
-#define RAY_H_
+#pragma once
 
 #include "vec3.h"
 #include <stdbool.h>
@@ -11,5 +10,3 @@ typedef struct {
 
 double hit_sphere(Vec3 center, double radius, Ray r);
 Vec3 ray_at(Ray r, double t);
-
-#endif // RAY_H_
