@@ -5,6 +5,8 @@
 * Articles
 ** Effectively Simulating a Neuromorphic System
 [[file:effective_neuromorphic_sim.org][Effective Neuromorphic Simulation]]
+** Neuromorphic Computing
+[[file:neuromorphic.org][Neuromorphic Computing]]
 ** 1 Billion Row Challenge
 [[file:1BR.org][1 Billion Rows]]
 ** Fast File Search (multithreaded grep)

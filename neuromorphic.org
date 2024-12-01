@@ -1,0 +1,21 @@
+#+HTML_LINK_HOME: index.html
+#+HTML_LINK_UP: index.html
+#+title: /Neuromorphic Introduction/
+#+author: Jackson
+#+date: 11/27/24
+#+setupfile: ./retro_dark.theme
+#+options: toc:nil num:nil html-style:nil timestamp:nil org-footnote-section:t
+#+cite_export: csl
+
+/This article will hopefully be a very brief and informal introduction to the world of neuromorphic computing. As I learn more about the topic I hope to continue updating this article with my findings./
+
+* _Introduction_
+We've all probably heard that Moore's law is dead, or something to that effect. This matters for us because our code no longer gets faster year over year just due to CPUs getting faster. There are two sides of a solution to this problem that have begun playing out recently. Option one is to create more CPUs cores on the same physical package, allowing programmers to take advantage of parallelism to solve their tasks faster. Option two is to explore alternative approaches to computation.
+
+Neuromorphic computing is a proposed solution to the problem, and it sits under the category of option two. At a very high level neuromorphic has two major components, neurons and synapses. These two components are analogous to the neurons and synapses in the human body. Problems are solved by essentially recreating the structures formed in nature that allow huamns (and other animals) to process information and make decisions.
+
+#+begin_quote
+Before you get your hopes up (or get extremely bored), no this is not a pathway towards artificial intelligence. While we are simulating how the brain works, the applications of neuromorphic computing are more tailored to control tasks and classification. However, more and more general purpose applications have found their way into neuromorphic computing, which is always exciting.
+#+end_quote
+
+Before we move on I should also note I am coming at the from the perspective of a programmer and computer scientist, not a hardware designer. Neuromorphic computing has vast applications in the hardware field which we will touch on, just know that I am not focused on those application at the moment.
