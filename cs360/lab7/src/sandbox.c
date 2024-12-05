@@ -18,16 +18,16 @@ typedef struct node {
     pid_t pid;
     char* command;
     struct node* next;
-} node;
+} Node_t;
 
 // A single list to rule them all
-static node* head = NULL;
+static Node_t* head = NULL;
 static size_t num_jobs = 0;
 
 // Adds a job node to the list
 static void add_pid(pid_t new_pid, char* command) {
     if (!head) {
-        head = calloc(1, sizeof(node));
+        head = calloc(1, sizeof(Node_t));
         if (!head) {
             perror("calloc");
             exit(1);
@@ -38,7 +38,7 @@ static void add_pid(pid_t new_pid, char* command) {
         return;
     }
 
-    node* new_node = malloc(sizeof(node));
+    Node_t* new_node = malloc(sizeof(Node_t));
     if (!new_node) {
         perror("malloc");
         exit(1);
@@ -57,7 +57,7 @@ static void remove_pid(pid_t pid) {
     }
 
     if (head->pid == pid) {
-        node* tmp = head;
+        Node_t* tmp = head;
         head = head->next;
 
         free(tmp->command);
@@ -66,8 +66,8 @@ static void remove_pid(pid_t pid) {
         return;
     }
 
-    node* trailing = head;
-    node* cursor = head->next;
+    Node_t* trailing = head;
+    Node_t* cursor = head->next;
     while (cursor) {
         if (cursor->pid == pid) {
             trailing->next = cursor->next;
@@ -84,7 +84,7 @@ static void remove_pid(pid_t pid) {
 
 // Calls waitpid with WNOHANG on each pid, removing it if it has died
 static void reap_jobs(void) {
-    node* cursor = head;
+    Node_t* cursor = head;
 
     while (cursor) {
         if (!waitpid(cursor->pid, NULL, WNOHANG)) {
@@ -119,7 +119,7 @@ static bool shell_cd(const char* new_dir) {
 
 // Prints all current jobs
 static void shell_jobs(void) {
-    node* cursor = head;
+    Node_t* cursor = head;
 
     printf("%zu jobs.\n", num_jobs);
     while (cursor) {

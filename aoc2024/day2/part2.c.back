@@ -1,0 +1,64 @@
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+  int arr[10];
+  int arr_len = 0;
+  int count = 0;
+
+  char buf[256] = {0};
+
+  while (!feof(stdin)) {
+    while (scanf("%d", arr + arr_len++) == 1) {
+      char thing;
+      if ((thing = fgetc(stdin)) == '\n') {
+        break;
+      }
+
+      ungetc(thing, stdin);
+    }
+
+    if (arr_len == 1) {
+      break;
+    }
+
+    for (int removed = 0; removed < arr_len; removed++) {
+      int temp[arr_len - 1];
+      int temp_len = 0;
+      for (int j = 0; j < arr_len; j++) {
+        if (j == removed) {
+          continue;
+        }
+        temp[temp_len++] = arr[j];
+      }
+
+      bool increasing = temp[1] > temp[0];
+
+      for (int i = 1; i < temp_len; i++) {
+        if (temp[i] > temp[i - 1] != increasing) {
+          goto end;
+        }
+
+        if (temp[i] == temp[i - 1]) {
+          goto end;
+        }
+
+        int ab = abs(temp[i] - temp[i - 1]);
+
+        if (ab < 1 || ab > 3) {
+          goto end;
+        }
+      }
+
+      count++;
+      break;
+
+    end:
+      continue;
+    }
+    arr_len = 0;
+  }
+
+  printf("%d\n", count);
+}

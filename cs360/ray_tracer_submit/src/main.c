@@ -44,32 +44,15 @@ int main(int argc, char* argv[]) {
             break;
         case 'w':
             sscanf(optarg, "%u", &width);
-            if (width < 50 || width > 9000) {
-                fprintf(stderr, "error: width must be between 50 and 9000\n");
-                return 1;
-            }
             break;
         case 'h':
             sscanf(optarg, "%u", &height);
-            if (height < 50 || height > 9000) {
-                fprintf(stderr, "error: height must be between 50 and 9000\n");
-                return 1;
-            }
             break;
         case 's':
             sscanf(optarg, "%u", &seed);
-            if (seed > 10000) {
-                fprintf(stderr, "error: seed must be between 0 and 10000\n");
-                return 1;
-            }
             break;
         case 't':
             sscanf(optarg, "%u", &threads);
-            if (threads < 1 || threads > 400) {
-                fprintf(stderr,
-                        "error: num threads must be between 1 and 400\n");
-                return 1;
-            }
             break;
         case '?':
             if (optopt == 'd' || optopt == 'w' || optopt == 'h' ||
