@@ -172,14 +172,14 @@ int main() {
       }
     }
 
-    for (size_t i = 0; i < v.len; i++) {
-      if (v.array[i].type != whitespace) {
-        printf("%s: %.*s\n", Token_Type_str[v.array[i].type],
-               (int)v.array[i].len, v.array[i].content);
-      } else {
-        printf("%s: ' '\n", "whitespace");
-      }
-    }
+    /* for (size_t i = 0; i < v.len; i++) { */
+    /*   if (v.array[i].type != whitespace) { */
+    /*     printf("%s: %.*s\n", Token_Type_str[v.array[i].type], */
+    /*            (int)v.array[i].len, v.array[i].content); */
+    /*   } else { */
+    /*     printf("%s: ' '\n", "whitespace"); */
+    /*   } */
+    /* } */
 
     for (size_t i = 0; i < v.len - 6; i++) {
       if (v.array[i].type == mul && v.array[i + 1].type == lparen &&
@@ -195,7 +195,7 @@ int main() {
           continue;
         }
 
-        printf("%d * %d = %d\n", digit_a, digit_b, digit_a * digit_b);
+        /* printf("%d * %d = %d\n", digit_a, digit_b, digit_a * digit_b); */
         accum += digit_a * digit_b;
       }
     }
