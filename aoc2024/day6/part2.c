@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define NUM_THREADS 12
+
 char map[130][135] = {0};
 const int dirs[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
@@ -116,12 +118,12 @@ int main() {
                  .y = y,
                  .dir = dir};
 
-  pthread_t tids[8];
-  for (int i = 0; i < 8; i++) {
+  pthread_t tids[NUM_THREADS];
+  for (int i = 0; i < NUM_THREADS; i++) {
     pthread_create(tids + i, NULL, worker, &work);
   }
 
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < NUM_THREADS; i++) {
     pthread_join(tids[i], NULL);
   }
 
