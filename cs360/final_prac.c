@@ -1,108 +1,166 @@
+#include "lab6/include/tpool.h"
+#include <assert.h>
 #include <dirent.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
 typedef struct Work {
-    char* needle;
-    struct dirent entry;
-    struct Work* next;
+    char* filename;
+    bool large_hash;
+    size_t result_index;
 } Work_t;
 
-Work_t* head = NULL;
+typedef struct TPool {
+    pthread_t* tids;
+    size_t num_tids;
 
-void add_work(Work_t w) {
-    Work_t* new = malloc(sizeof(Work_t));
-    *new = w;
+    bool die;
 
-    new->next = head;
-    head = new;
-}
+    Work_t** buf;
+    size_t ring_size;
+    size_t ring_cap;
+    size_t ring_at;
 
-Work_t* get_work(void) {
-    Work_t* ret = head;
+    uint64_t* results;
+    size_t results_len;
+    size_t results_cap;
 
-    if (head) {
-        head = head->next;
-    }
+    int outstanding_work;
 
-    return ret;
-}
+    pthread_cond_t not_full;
+    pthread_cond_t not_empty;
+    pthread_cond_t all_done;
+    pthread_mutex_t mutex;
+} TPool_t;
 
 void* worker(void* arg) {
+    TPool_t* tp = (TPool_t*)arg;
+
     while (true) {
-        pthread_mutex_lock(&mutex);
-        Work_t* w = get_work();
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_lock(&tp->mutex);
+        while (tp->ring_size == 0 && !tp->die) {
+            pthread_cond_wait(&tp->not_empty, &tp->mutex);
 
-        if (!w) {
-            break;
-        }
-
-        FILE* fp = fopen(w->entry.d_name, "r");
-
-        char* line = NULL;
-        size_t len = 0;
-        ssize_t nread;
-
-        while ((nread = getline(&line, &len, fp)) != -1) {
-            if (strstr(line, w->needle)) {
-                pthread_mutex_lock(&mutex);
-                printf("%s: %s", w->entry.d_name, line);
-                pthread_mutex_unlock(&mutex);
+            if (tp->die) {
+                pthread_mutex_unlock(&tp->mutex);
+                return NULL;
             }
         }
 
-        fclose(fp);
-        free(line);
+        Work_t* w = tp->buf[tp->ring_at % tp->ring_cap];
+        tp->ring_size--;
+        tp->ring_at++;
+
+        pthread_mutex_unlock(&tp->mutex);
+        pthread_cond_signal(&tp->not_full);
+
+        // simulate work
+        uint64_t result = rand();
+
+        pthread_mutex_lock(&tp->mutex);
+
+        if (w->result_index >= tp->results_cap) {
+            tp->results_cap *= 2;
+            tp->results =
+                realloc(tp->results, sizeof(*tp->results) * tp->results_cap);
+        }
+
+        tp->results[w->result_index] = result;
+        tp->results_len++;
+        tp->outstanding_work--;
+
+        pthread_cond_signal(&tp->all_done);
+        pthread_mutex_unlock(&tp->mutex);
+
         free(w);
     }
 
+    pthread_mutex_unlock(&tp->mutex);
     return NULL;
 }
 
-int main(int argc, char* argv[]) {
-    int flags, opt;
-    int threads;
-    char* needle = "";
+TPool_t* init(size_t num_threads) {
+    if (num_threads == 0 || num_threads > 32) {
+        return NULL;
+    }
 
-    flags = 0;
-    while ((opt = getopt(argc, argv, "n:t:")) != -1) {
-        switch (opt) {
-        case 't': {
-            if (sscanf(optarg, "%d", &threads) != 1) {
-                fprintf(stderr, "usage: %s <num_threads>\n", argv[0]);
-            }
-        } break;
-        case 'n':
-            needle = optarg;
-            break;
-        default:
-            fprintf(stderr, "usage: %s <num_threads>\n", argv[0]);
-            return 1;
+    TPool_t* tp = calloc(1, sizeof(*tp));
+    *tp = (TPool_t){.tids = malloc(num_threads * sizeof(*tp->tids)),
+                    .num_tids = num_threads,
+                    .buf = calloc(num_threads, sizeof(*tp->buf)),
+                    .ring_cap = num_threads,
+                    .results = calloc(num_threads, sizeof(*tp->results)),
+                    .results_cap = num_threads,
+                    .not_full = PTHREAD_COND_INITIALIZER,
+                    .not_empty = PTHREAD_COND_INITIALIZER,
+                    .all_done = PTHREAD_COND_INITIALIZER,
+                    .mutex = PTHREAD_MUTEX_INITIALIZER};
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_create(tp->tids + i, NULL, worker, tp);
+    }
+
+    return tp;
+}
+
+void wrapper(TPool_t* tp, size_t num_threads) {
+    tp->results_len = 0;
+    tp->outstanding_work = 0;
+
+    for (int i = 0; i < 32; i++) {
+        Work_t* w = malloc(sizeof(*w));
+        w->result_index = i;
+        pthread_mutex_lock(&tp->mutex);
+        while (tp->ring_size == tp->ring_cap) {
+            pthread_cond_wait(&tp->not_full, &tp->mutex);
         }
+
+        tp->buf[(tp->ring_at + tp->ring_size) % tp->ring_cap] = w;
+        tp->ring_size++;
+        pthread_mutex_unlock(&tp->mutex);
+        pthread_cond_signal(&tp->not_empty);
     }
 
-    DIR* d = opendir(".");
-    struct dirent* entry;
+    pthread_mutex_lock(&tp->mutex);
+    while (tp->outstanding_work > 0) {
+        pthread_cond_wait(&tp->all_done, &tp->mutex);
+    }
+    pthread_mutex_unlock(&tp->mutex);
 
-    while ((entry = readdir(d))) {
-        add_work((Work_t){.entry = *entry, .needle = needle});
+    for (int i = 0; i < tp->results_len; i++) {
+        printf("%lu\n", tp->results[i]);
+    }
+}
+
+void cleanup(TPool_t* tp) {
+    pthread_mutex_lock(&tp->mutex);
+    tp->die = true;
+    pthread_cond_broadcast(&tp->not_empty);
+    pthread_mutex_unlock(&tp->mutex);
+
+    for (int i = 0; i < tp->num_tids; i++) {
+        pthread_join(tp->tids[i], NULL);
     }
 
-    closedir(d);
+    free(tp->tids);
+    free(tp->buf);
+    free(tp->results);
 
-    pthread_t pids[threads];
-    for (int i = 0; i < threads; i++) {
-        pthread_create(pids + i, NULL, worker, NULL);
-    }
+    pthread_cond_destroy(&tp->not_empty);
+    pthread_cond_destroy(&tp->not_full);
+    pthread_cond_destroy(&tp->all_done);
+    pthread_mutex_destroy(&tp->mutex);
+}
 
-    for (int i = 0; i < threads; i++) {
-        pthread_join(pids[i], NULL);
-    }
+int main() {
+    TPool_t* tp = init(8);
+
+    wrapper(tp, 32);
+
+    cleanup(tp);
 }

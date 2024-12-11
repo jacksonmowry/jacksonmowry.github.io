@@ -1,0 +1,99 @@
+#+title: Worker
+
+* Work
+Pretty simple
+- File name
+- hash type (small or large)
+- result index
+
+* Thread Pool Init
+** Struct
+- tids
+- num tids
+
+- bool die
+
+- ring buffer
+  - work** buf
+  - size
+  - capacity
+  - at
+
+- some structure for results to land
+  - len
+  - capacity
+
+- outstanding work
+
+- pthread stuff
+  - cond not full
+  - cond not empty
+  - cond all done
+  - mutex
+
+** Worker
+- pointer case arg
+- while true
+  - lock
+  - while tp->size == 0 && !tp->die
+    - wait on not empty
+    - if *die*
+      - unlock
+      - ret null
+  - grab work
+    - tp->buf[tp->at % tp->capacity]
+    - tp->at++
+    - tp->size--
+
+    - unlock
+    - signal not full
+  - do work now (open file/read file)
+    - lock again once done
+    - check if result index >= result len
+      - if so, realloc to 2x
+      - err check realloc?
+    - Write result back out to wherever we are wanting it
+      - Increase results_len++
+    - decrement outstanding work counter
+    - signal all done
+    - unlock
+    - free work
+  - If somehow we exit the while true look just unlock the mutex and ret null
+
+** thread_pool_init
+- parameter num_threads
+  - check bounds
+- calloc TPool struct calloc(1, sizeof(TPool_t))
+  - malloc tids
+  - malloc result arr
+  - set all fields
+  - static pthread library initializers
+- buf calloc Work* * num_threads
+- for loop to call =pthread_create=
+- return thread pool
+
+* Wrapper
+Marz had us create a wrapper that main will call, with a handle to a TPool
+- It does some basic error checking
+- resets results len to 0
+- resets outstanding work to 0
+- Then opens a dir, and for all dirents...
+  - wait to make sure the ring buffer is not full
+    - while tp->size == tp->capacity, wait on not_full
+  - crafts a work object, locks the pool, and adds it, signaling not empty at the end
+  - tp->buf[(tp->at + tp->size) % tp->capacity]
+  - tp->size++
+- *lock* Then wait on outstanding work to == 0
+  - lock
+  - while tp->outstanding_work > 0
+    - wait on all_done
+  - Unlock
+  - print results
+
+* Cleanup
+- lock, set die, unlock
+- broadcast on not_empty
+- join all threads
+- free heap allocated data
+- Destory pthread cond and mutex
+

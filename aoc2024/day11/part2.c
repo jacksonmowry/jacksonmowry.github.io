@@ -3,6 +3,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
+
+#define NUM_CACHED 400000
+
+typedef struct entry {
+  int64_t key;
+  int64_t val;
+  int64_t step;
+  struct entry *next;
+} entry_t;
+
+typedef struct hashmap {
+  entry_t **arr;
+} hashmap_t;
+
+hashmap_t hashmap_init() {
+  return (hashmap_t){.arr = calloc(sizeof(entry_t *), NUM_CACHED)};
+}
+
+void hashmap_insert(hashmap_t *h, int64_t key, int64_t val, int64_t step) {
+  entry_t *e = malloc(sizeof(entry_t));
+  *e = (entry_t){
+      .key = key, .val = val, .step = step, .next = h->arr[key % NUM_CACHED]};
+  h->arr[key % NUM_CACHED] = e;
+}
+
+entry_t *hashmap_find(hashmap_t *h, int64_t key, int64_t step) {
+  entry_t *e = h->arr[key % NUM_CACHED];
+
+  while (e) {
+    if (e->key == key && e->step == step) {
+      return e;
+    }
+
+    e = e->next;
+  }
+
+  return NULL;
+}
 
 size_t total_stones = 0;
 
@@ -17,18 +56,16 @@ int num_digits(uint64_t num) {
   return digits;
 }
 
-#define NUM_BLINKS 75
-#define NUM_CACHED 50000000
-int64_t *cache;
-#define cache_at(steps, num) cache[(steps * NUM_CACHED) + num]
+hashmap_t h;
 
 uint64_t recurse(uint64_t num, uint64_t steps) {
   if (steps == 75) {
     return 1;
   }
 
-  if (cache_at(steps, num) != -1) {
-    return cache_at(steps, num);
+  entry_t *e;
+  if ((e = hashmap_find(&h, num, steps))) {
+    return e->val;
   }
 
   uint64_t inner_count = 0;
@@ -53,14 +90,13 @@ uint64_t recurse(uint64_t num, uint64_t steps) {
     }
   }
 
-  cache_at(steps, num) = inner_count;
+  hashmap_insert(&h, num, inner_count, steps);
 
   return inner_count;
 }
 
 int main() {
-  cache = malloc(sizeof(int64_t) * NUM_BLINKS * NUM_CACHED);
-  memset(cache, -1, sizeof(int64_t) * NUM_BLINKS * NUM_CACHED);
+  h = hashmap_init();
   uint64_t input[10];
   size_t input_len = 0;
 
