@@ -10,3 +10,8 @@ tmp/
 *.mp3
 
 202/project
+
+.part1.input
+.part2.input
+part1
+part2

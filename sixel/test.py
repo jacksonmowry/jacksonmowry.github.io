@@ -94,7 +94,5 @@ if __name__ == "__main__":
         x.set_pixel_rgb(n + 3, n, 0, 100, 0)
         x.set_pixel_rgb(33 - n, n, 0, 0, 100)
 
-    print(x.grid)
-
     with x:
         x.display()
