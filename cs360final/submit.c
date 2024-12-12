@@ -1,6 +1,5 @@
 // Jackson Mowry
 
-#include <assert.h>
 #include <math.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -64,6 +63,7 @@ int main(int argc, char *argv[]) {
   size_t fv;
   size_t sv;
 
+  // Oops I guess we didn't have to check these
   if (sscanf(argv[1], "%lu", &num_threads) != 1) {
     printf("Invalid number of threads: %s\n", argv[1]);
     return -1;
