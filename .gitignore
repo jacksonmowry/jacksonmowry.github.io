@@ -15,3 +15,4 @@ tmp/
 .part2.input
 part1
 part2
+*.o
