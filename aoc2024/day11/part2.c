@@ -56,7 +56,14 @@ int num_digits(uint64_t num) {
   return digits;
 }
 
+<<<<<<< Updated upstream
 hashmap_t h;
+=======
+#define NUM_BLINKS 75
+#define NUM_CACHED 80000000
+int64_t *cache;
+#define cache_at(steps, num) cache[(steps * NUM_CACHED) + num]
+>>>>>>> Stashed changes
 
 uint64_t recurse(uint64_t num, uint64_t steps) {
   if (steps == 75) {

@@ -1,0 +1,8 @@
+title=Podcast feed
+link=pod.mowry.coffee
+author=Jackson Mowry
+description=Custom podcast feed to listening to YT videos
+image=https://pod.mowry.coffee/img
+base_url=https://pod.mowry.coffee
+port=3000
+cookie_path=/home/jackson/Downloads/cookies.firefox-private.txt

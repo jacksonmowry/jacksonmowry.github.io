@@ -1,4 +1,4 @@
-% Created 2024-10-19 Sat 10:19
+% Created 2025-01-11 Sat 18:13
 % Intended LaTeX compiler: pdflatex
 \documentclass[conference]{IEEEtran}{}
                       \usepackage{lmodern} % Ensures we have the right font
@@ -85,24 +85,24 @@
 This research paper investigates the transformative potential of \texttt{io\_uring} in scaling HTTP web servers to accommodate the needs of numerous concurrent clients. Despite the extensive exploration of various scaling techniques, little attention has been paid to the potential paradigm shift that \texttt{io\_uring} may introduce in asynchronous I/O architectures. \texttt{io\_uring} enables the handling of workloads traditionally confined to highly parallelized systems. This paper aims to explore the implications of \texttt{io\_uring} on asynchronous I/O systems, shedding light on its promise for enhancing server scalability and performance in the face of ever-increasing demands.
 \end{abstract}
 \section{Introduction}
-\label{sec:orgf50295f}
+\label{sec:org084d96b}
 Web servers are a class of software that sit between nearly every interaction a client makes on their device, and access to the files hosted on a server. Despite this fact, their implementations mainly use software designs of the past, due to the fact that for most use cases they are ``good enough''. It is true that even a naive HTTP server can serve thousands of requests per second \cslcitation{1}{[1]}, \cslcitation{2}{[2]}, which easily surpasses the needs of most users. However, when it comes time to handle a higher load, the same architecture has only two ways to scale. The server can either be rewritten to take advantage of multiple CPU cores, or it can have multiple instances running behind a load balancer \cslcitation{3}{[3]}.
 
 The root of this issue lies in the fact that these workloads are still inherently synchronous at some level (excluding \texttt{aio} based solutions, which are rare \cslcitation{4}{[4]}), which leads to large requests slowing the time needed to complete each request. \texttt{io\_uring} presents a true asynchronous io system with its introduction into the Linux kernel (version 5.1) \cslcitation{4}{[4]}, \cslcitation{5}{[5]}. An exciting new space for high performance single core servers now exists, in this paper we will see how \texttt{io\_uring} can fill that gap. To date \texttt{io\_uring} has not been implemented in mainstream web server applications, this paper serves to illuminate the potential benefits, to both speed and latency, of the latest in asynchronous io technology.
 \section{Previous Work}
-\label{sec:org9ef8474}
+\label{sec:orgb40a0c0}
 Maximizing throughput on asynchronous or multiplexed architectures has often focused on \texttt{epoll} as the main differentiating factor\cslcitation{2}{[2]}, \cslcitation{3}{[3]}. The performance of \texttt{epoll} is better than that of synchronous mechanisms like \texttt{select} or \texttt{poll}, but \texttt{epoll} alone is not enough to meet modern demands \cslcitation{6}{[6]}. Instead, web servers often implement complex thread pools to handle massively concurrent workloads \cslcitation{7}{[7]}. By spreading the load out to multiple physical cores, the disadvantages of blocking system calls can be mitigated from a request latency perspective \cslcitation{3}{[3]}.
 
 \texttt{io\_uring} has begun to receive attention in the storage performance world, where the new architecture allows for high performance systems across all types of file descriptors. This interface allows for performance critical application to both improve performance, and simplify the event handling code, while keeping the important logic entirely in user-space \cslcitation{8}{[8]}, \cslcitation{9}{[9]}, \cslcitation{10}{[10]}.
 
 The increasing momentum around \texttt{io\_uring} has drawn more eyes to the system, leading to more features being added \cslcitation{11}{[11]}, and vulnerabilities being patched \cslcitation{12}{[12]}, \cslcitation{13}{[13]}.
 \section{Asynchronous IO}
-\label{sec:org345a051}
+\label{sec:org3fbdcfc}
 Most if not all system calls used in day to day software are considered ``blocking'', meaning they will only return once the entire function has finished executing. This model allows for programmers to not have to worry about order of execution, as they know their program will run top to bottom without skipping a step. This paradigm was formed under the (correct) assumption that IO was always the bottleneck of an application, however, modern systems are now at the point where CPU is once again becoming a limiting factor \cslcitation{14}{[14]}, \cslcitation{15}{[15]}. To avoid the performance impact of synchronous IO, programmers may choose to design their software around asynchronous IO.
 
 For most applications it may not make sense to perform all system calls concurrently/asynchronously \cslcitation{7}{[7]}. We certainly want slower system calls to complete in the background, but the added overhead of an asynchronous system call may make faster calls worse. We expect to see greater differences in throughput for large files as serving large files synchronously requires the entire file to be sent before moving on to the next connection.
 \section{Latency}
-\label{sec:org52c08cd}
+\label{sec:org6bc52be}
 A common mark of server performance is requests per second \cslcitation{1}{[1]}, \cslcitation{2}{[2]}, but this metric only applies to some workloads. If the goal is to serve many concurrent connections without massive latency, special care needs to be taken to how requests handling is scheduled. Specifically for a file server, the application needs to ensure that requests are being processed concurrently, so that each request has a chance to progress towards completion \cslcitation{16}{[16]}.
 
 \begin{figure*}
@@ -115,14 +115,14 @@ These problems were first described as the ``C10K'' problem, which references th
 
 Both \texttt{poll} and \texttt{epoll} (along with other synchronous approaches) fall short in this regard. Due to the linear scanning of all incoming requests, latency will grow quickly as the number of clients increases (Figure 6). A server spread across multiple cores will easily outperform a single core are lower connected clients, but will quickly begin to climb in latency as the number of clients grows. The overhead from spawning a thread per request is not feasible past a certain point. \texttt{io\_uring} is able to avoid this problem by scheduling requests within the kernel, which allows the application to handle an event as soon as it completes \cslcitation{4}{[4]}.
 \section{\texttt{aio}}
-\label{sec:org985abe6}
+\label{sec:orga78e47d}
 The \texttt{aio} system in Linux has two implementations, POSIX compliant, and the Linux implementation. Both systems suffer from the same core issue, they are intended to work with regular files, and as such don't play well with sockets. glibc creates a thread pool to perform regular synchronous io off the main thread, giving the illusion of asynchronicity to the user-space program \cslcitation{17}{[17]}.
 
 \texttt{aio} is also very limited in scope, only offering real support for read and write calls \cslcitation{4}{[4]}. This means that without splicing together features from different asynchronous IO frameworks an application will still have to rely heavily on blocking system calls \cslcitation{11}{[11]}.
 
 For all of these reasons \texttt{aio} is generally avoided in application code.
 \section{\texttt{epoll}}
-\label{sec:orgd71e1c8}
+\label{sec:org912a891}
 \texttt{epoll} is kernel based implementation of \texttt{poll}, with both providing a way to monitor a range of file descriptors, and alerting the user when one or many are ready for IO. It has become a common architecture for web servers and other asynchronous io systems to be built on top of. Most notably to implement the primitives golang's \texttt{net/http} package is built upon, and \texttt{libuv} which powers the Node.js event loop.
 
 \texttt{epoll} expands on the original ideas of \texttt{poll} by sharing a list of file descriptors between the user and kernel, allowing for a more efficient loop once events are ready. When any number of file descriptors are ready for IO they will be placed in a separate shared list, which the user can then perform the desired action on \cslcitation{18}{[18]}.
@@ -131,7 +131,7 @@ This architecture allows for a single thread to handle a large of active file de
 
 While it is true that receiving data from a socket can block, which \texttt{epoll} is aware of, regular files do not exhibit the same behavior. Due to \texttt{epoll}'s handling of regular files they will always be placed on the ready list immediately. On Linux read and write calls to a file should not block, but as we all know this is not true. You can make a write call and expect it to complete instantly, but if the kernels write cache is full, you will have to wait. The same goes for a read call which can blocked if the file is on a slow drive \cslcitation{6}{[6]}.
 \section{\texttt{io\_uring}}
-\label{sec:orgcc7cb24}
+\label{sec:org8a99bc7}
 \texttt{io\_uring} is the latest attempt at adding asynchronous operations to Linux. The design intentions show that many lessons have been learned from shortcomings of previous asynchronous IO systems on Linux. Not only does \texttt{io\_uring} provide a common interface across all types of file descriptors, it also implements most IO systems calls in an asynchronous fashion \cslcitation{4}{[4]}, \cslcitation{5}{[5]}, \cslcitation{11}{[11]}.
 
 \begin{figure*}
@@ -150,12 +150,12 @@ In systems where response time is the highest concern, submission queue polling 
 
 Being the latest in the asynchronous IO space \texttt{io\_uring} is still lacking some features. Most notably is missing system calls, and event notification on a submission/completion level. Most missing system calls can be implemented without changing the underlying system \cslcitation{6}{[6]}, \cslcitation{11}{[11]}.
 \section{System Calls}
-\label{sec:org07c5fdf}
+\label{sec:org7950d26}
 One of the major mitigations put into place after the speculative execution attacks were discovered (spectre and meltdown) was isolation of kernel and user space memory. This slows system calls as they must switch to privileged execution and the kernel address space to perform the operation, and switch back once they're done, requiring a TLB flush before returning to user mode \cslcitation{14}{[14]}, \cslcitation{15}{[15]}, \cslcitation{20}{[20]}, \cslcitation{21}{[21]}, \cslcitation{22}{[22]}.
 
 To mitigate this, modern software systems have transitioned to a model where system calls are avoided, sometimes entirely \cslcitation{23}{[23]}. The most obvious implementations of this are systems that manage memory allocations themselves, or those that manage files using shared memory \cslcitation{24}{[24]}.
 
-\texttt{io\_uring} allows the program to avoid system calls for job submission, meaning that an application can work entirely in user-space, without the need for costly system calls. This reduces the number of system calls from at a minimum 4 (accept, read, write, close) in a synchronous server, to a potential 0\footnote{Once \texttt{sendfile} is implemented this will be possible, for now one call to \texttt{pipe}, and two calls to \texttt{fcntl} are required to mimic the behavior.\label{org31029fd}} in an \texttt{io\_uring} based approach.
+\texttt{io\_uring} allows the program to avoid system calls for job submission, meaning that an application can work entirely in user-space, without the need for costly system calls. This reduces the number of system calls from at a minimum 4 (accept, read, write, close) in a synchronous server, to a potential 0\footnote{Once \texttt{sendfile} is implemented this will be possible, for now one call to \texttt{pipe}, and two calls to \texttt{fcntl} are required to mimic the behavior.\label{orgcca1e96}} in an \texttt{io\_uring} based approach.
 
 \begin{table}[htbp]
 \caption{System calls needed to process a request on each server architecture}
@@ -168,7 +168,7 @@ epoll & 8\\
 io\textsubscript{\_}uring simple & 7\\
 io\textsubscript{\_}uring simple + polling & 6\\
 io\textsubscript{\_}uring full & 7\\
-io\textsubscript{\_}uring full + polling & 3\textsuperscript{\ref{org31029fd}}\\
+io\textsubscript{\_}uring full + polling & 3\textsuperscript{\ref{orgcca1e96}}\\
 \end{tabular}
 \end{table}
 
@@ -176,7 +176,7 @@ Another advantage of \texttt{io\_uring} comes in its ability to schedule many jo
 
 Web servers may try to combat the cost of system calls by using auxiliary threads to handle either entire requests, or smaller portions. This approach works until a certain point, as the overhead of spawning an operating system thread is non-trivial. The best approach will likely vary application to application, as certain applications may require heavy synchronous computations, which a single thread would not be able to handle \cslcitation{7}{[7]}.
 \section{Methods \& Implementation}
-\label{sec:orgb08e24c}
+\label{sec:orge09209b}
 Testing will include an \texttt{epoll} server, four distinct \texttt{io\_uring} servers, and a sixth synchronous server using \texttt{poll}. Servers will parse a request, open a file, respond with the appropriate headers, send the file, and finally close the connection. Performance testing using \texttt{wrk} at \{1, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192\} concurrent connections run over 30 seconds, with the mean of 3 runs reported for each metric. Servers will also be tested across a range of file sizes \{9B, 12KB, 2.1Mb\}.
 
 Each server will follow a similar pattern to minimize differences between implementations. After parsing the request to determine which file is being request, the file will then be opened. In order to send back valid HTTP headers, \texttt{stat} is called on the file to gather the file size. The response headers can then be formed and sent back using \texttt{send}. The final step is to send back the file contents using \texttt{sendfile}, which we will emulate using \texttt{splice} in \textbf{uring full}.
@@ -187,9 +187,9 @@ The first general purpose web server, named \textbf{uring simple}, will perform 
 
 Both \texttt{io\_uring} servers will have submission queue polling enabled (\textbf{uring simple + SQP}) (\textbf{uring full + SQP}) as additional observation points.
 \section{Results}
-\label{sec:org122c7d8}
+\label{sec:org8b73d24}
 \subsection{Latency}
-\label{sec:org328c6c4}
+\label{sec:org7ecf662}
 As expected, the synchronous \texttt{poll} based server experiences substantial growth in latency as the number of concurrent requests in increased. This is due to the fact the scanning the list of watched file descriptors happens in linear time as each is checked for a \texttt{POLLIN} event. The \texttt{epoll} server is able to maintain a similar latency to either \texttt{io\_uring} server until 128 concurrent requests when it begins to climb rapidly. Latency continues to grow with connections, and would be expected to continue rising.
 
 Both \texttt{io\_uring} servers exhibit similar P99 latency, quickly reaching a plateau around 25ms from 1024 concurrent requests and beyond (Figure 4). Submission queue polling increases latency by a fixed amount across the entire test range, with the change having the largest impact when serving small files, as was predicted. For the \textbf{uring simple} and \textbf{uring full} servers, enabling polling dropped latency by 67\% and 53\% respectivly (Figure 3).
@@ -206,7 +206,7 @@ While serving small files still benefits substantially from \texttt{io\_uring}, 
 \captionof{figure}{With medium-sized files \textbf{uring simple} performs the best at about half the latency of \textbf{uring full}. \texttt{poll} begins to show major disadvantages compare to any other option.}
 \end{center}
 \subsection{Throughput}
-\label{sec:orgf45078b}
+\label{sec:orgd1afcb9}
 Throughput of the synchronous server follows our expectations, a nearly flat line across the entire testing range (Figure 5). The rate at which we can push data over the wire is entirely limited by the fact that each request is handled one at a time, which is dependent on the time in which we are blocked in system calls. For simple applications this approach may be enough to handle the workload, and it comes with the upside that a \texttt{poll} implementation is a much simpler architecture.
 
 \begin{center}
@@ -237,7 +237,7 @@ The largest contributing factor to decreased throughput (and thus increased late
 
 We see the opposite results when testing a smaller 9 byte file, as the overhead of processing system calls asynchronously greatly decreases overall throughput. The best performer with small files was \textbf{uring simple} with submission queue polling enabled, which managed 8.79MB/s at 8192 concurrent connections. \textbf{uring full} was able to achieve just under half the throughput (3.84MB/s), still beating either synchronous server (\textasciitilde{}1.30MB/s) (Figure 7).
 \section{Discussion}
-\label{sec:orgc225650}
+\label{sec:orgecb48fb}
 \texttt{io\_uring} has shown that with a superior implementation can outperform the contemporary way we build single-threaded web servers. Showing a 1.75x improvement (1.85x with SQ polling enabled) in throughput when serving a 12Kb file, scaling to 3.5x with a 2.1Mb file. Even when serving small files, where the asynchronous overhead is the greatest, \textbf{uring simple} achieves a throughput 6x higher than \texttt{epoll}.
 
 The latency characteristics also scale much better than \texttt{epoll}, which either \texttt{io\_uring} server outperforms at any request size. When serving a 9 byte file \texttt{io\_uring} exhibits 1/40\textsuperscript{th} the latency of \texttt{epoll}. Moving to a 12Kb file shows 1/3 the latency, which continues when serving a 2.1Mb file. This follows the long known trend that asynchronous operations help IO bound applications scale \cslcitation{3}{[3]}, \cslcitation{10}{[10]}. As file size increases we would expect to see the same trend of decreased latency and increase throughput.
@@ -248,14 +248,14 @@ Either asynchronous implementation offers obvious advantages over an entirely sy
 
 A fully asynchronous server is able to scale in both throughput and latency, which is desirable for many applications. This increase in performance also comes with the simplicity of running on a single user space thread. A single threaded application generally limits the need for concurrency control mechanisms, which can slow the execution of a program \cslcitation{7}{[7]}.
 \section{Future Work}
-\label{sec:org63e3a3c}
+\label{sec:orgb21551a}
 More work is needed to explore the different performance impacts of various asynchronous calls through \texttt{io\_uring}. Theoretically, a server performing very few systems calls should outperform one doing many system calls, but as we have observed, this is not always the case. Once a few more of the key systems calls have been implemented (pipe, and sendfile specifically) performance testing should once again be performed.
 
 In order to mitigate the impacts of submission queue polling, a hybrid architecture that can dynamically toggle polling on and off should be explored. This could be implemented either with a load balancer which can switch to a different server when overload load reaches some threshold, or within the server by using two separate \texttt{io\_uring} instances. This behavior is likely achievable due to the tunable spin downtime of the polling thread, which can essentially be disabled by setting this value appropriately.
 
 Lastly, language level asynchronous systems now have an interesting opportunity to run atop the architecture provided by \texttt{io\_uring}. Current applications hoping to take advantage of \texttt{io\_uring} would likely incur a large rewrite of their application to fit it into the new model. Thus, there is a large gap to fill with easy-to-use libraries which can take advantage of \texttt{io\_uring}, and present the user with a model more familiar to synchronous programming.
 \section{References}
-\label{sec:orgd47b4ad}
+\label{sec:org3e73749}
 \begin{cslbibliography}{1}{0}
 \cslbibitem{1}{\cslleftmargin{[1]}\cslrightinline{G. Banga and P. Druschel, “Measuring the capacity of a web server,” in \textit{Usenix symposium on internet technologies and systems (usits 97)}, 1997.}}
 
@@ -263,11 +263,11 @@ Lastly, language level asynchronous systems now have an interesting opportunity 
 
 \cslbibitem{3}{\cslleftmargin{[3]}\cslrightinline{D. Kegel, “The c10k problem,” \textit{Http://www. kegel. com/c10k. html}, 2006.}}
 
-\cslbibitem{4}{\cslleftmargin{[4]}\cslrightinline{J. Axboe, “Efficient io with io\_uring,” \textit{Kernel.dk}. Available: \href{{https://kernel.dk/io_uring.pdf}}{{https://kernel.dk/io\_uring.pdf}}}}
+\cslbibitem{4}{\cslleftmargin{[4]}\cslrightinline{J. Axboe, “Efficient io with io\_uring,” \textit{Kernel.dk}. Available: \url{https://kernel.dk/io_uring.pdf}}}
 
-\cslbibitem{5}{\cslleftmargin{[5]}\cslrightinline{J. Corbet, “Ringing in a new asynchronous i/o api,” \textit{Lwn.net}. Available: \href{{https://lwn.net/Articles/776703/}}{{https://lwn.net/Articles/776703/}}}}
+\cslbibitem{5}{\cslleftmargin{[5]}\cslrightinline{J. Corbet, “Ringing in a new asynchronous i/o api,” \textit{Lwn.net}. Available: \url{https://lwn.net/Articles/776703/}}}
 
-\cslbibitem{6}{\cslleftmargin{[6]}\cslrightinline{S. Hussain, “Welcome to lord of the io\_uring,” \textit{Welcome to lord of the io\_uring - lord of the io\_uring documentation}. Available: \href{{https://unixism.net/loti/}}{{https://unixism.net/loti/}}}}
+\cslbibitem{6}{\cslleftmargin{[6]}\cslrightinline{S. Hussain, “Welcome to lord of the io\_uring,” \textit{Welcome to lord of the io\_uring - lord of the io\_uring documentation}. Available: \url{https://unixism.net/loti/}}}
 
 \cslbibitem{7}{\cslleftmargin{[7]}\cslrightinline{J. Ousterhout, “Why threads are a bad idea (for most purposes).” Talk, Sep. 1995.}}
 
@@ -303,7 +303,7 @@ Lastly, language level asynchronous systems now have an interesting opportunity 
 
 \cslbibitem{23}{\cslleftmargin{[23]}\cslrightinline{L. Gerhorst, B. Herzog, S. Reif, W. Schröder-Preikschat, and T. Hönig, “Anycall: Fast and flexible system-call aggregation,” in \textit{Proceedings of the 11th workshop on programming languages and operating systems}, 2021, pp. 1–8.}}
 
-\cslbibitem{24}{\cslleftmargin{[24]}\cslrightinline{I. TigerBeetle, “Tigerbeetle,” \textit{Tigerbeetle.com}. Available: \href{{https://tigerbeetle.com/}}{{https://tigerbeetle.com/}}}}
+\cslbibitem{24}{\cslleftmargin{[24]}\cslrightinline{I. TigerBeetle, “Tigerbeetle,” \textit{Tigerbeetle.com}. Available: \url{https://tigerbeetle.com/}}}
 
 \end{cslbibliography}
 \end{document}

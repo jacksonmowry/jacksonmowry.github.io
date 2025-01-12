@@ -4,7 +4,7 @@
 #include <string.h>
 
 int main() {
-  uint64_t *input = malloc(sizeof(uint64_t) * 100000000);
+  uint64_t *input = malloc(sizeof(uint64_t) * 1000000000);
   size_t input_len = 0;
 
   while (scanf("%lu", &input[input_len++]) == 1) {
@@ -19,7 +19,7 @@ int main() {
 
   for (int i = 0; i < 75; i++) {
     printf("%d\n", i);
-    int64_t *new = malloc(sizeof(uint64_t) * 100000000);
+    int64_t *new = malloc(sizeof(uint64_t) * 1000000000);
     size_t new_len = 0;
 
     for (int j = 0; j < input_len; j++) {

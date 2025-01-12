@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Podcast feed</title>
+    <link>pod.mowry.coffee</link>
+    <language>en-us</language>
+    <copyright>&#169; 2025 Jackson Mowry</copyright>
+    <itunes:author>Jackson Mowry</itunes:author>
+    <description>Custom podcast feed to listening to YT videos</description>
+    <itunes:type>serial</itunes:type>
+    <itunes:image href="https://pod.mowry.coffee/img" />
+    <itunes:category>custom</itunes:category>
+    <itunes:explicit>false</itunes:explicit>
+    <item>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:title>Change World</itunes:title>
+      <description>
+          <![CDATA[Literally just testing if this works]]>
+      </description>
+      <enclosure
+        length="1026656"
+        type="audio/wav"
+        url="https://upload.wikimedia.org/wikipedia/commons/8/8c/Car_Horn.wav"
+      />
+      <guid>7bb5a9d7-2df5-41bc-8d00-4e75630c11b8</guid>
+      <pubDate>Sat, 04 Jan 2025 14:56:39 -0500</pubDate>
+      <itunes:duration>0</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:title>HIGH LOON! (full album)</itunes:title>
+      <description>
+          <![CDATA[VINYL sALE ENDS FRIDAY--https://qrates.com/projects/28653-high-loon0:00 no no yes no2:51 threety three6:29 no more funk9:42 scoops12:30 i will never be cool1...]]>
+      </description>
+      <enclosure
+        length="37134254"
+        type="audio/opus"
+        url="pod.mowry.coffee/episode/0a1244d3-9d41-48e9-b383-4ba9d202c36a"
+      />
+      <guid>0a1244d3-9d41-48e9-b383-4ba9d202c36a</guid>
+      <pubDate>Mon, 06 Jan 2025 05:08:55 -0500</pubDate>
+      <itunes:duration>2149</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:title>Strange Satisfaction (full album) - Woody and Jeremy</itunes:title>
+      <description>
+          <![CDATA[Stream on Spotify: https://open.spotify.com/album/7asSXczPSP1MDGaeFLkHmHStream on Bandcamp: https://woodyandjeremy.bandcamp.com/0:00 - Too Hot in L.A.4:16 - ...]]>
+      </description>
+      <enclosure
+        length="26348450"
+        type="audio/opus"
+        url="pod.mowry.coffee/episode/72e96843-fc85-460c-9be0-61ae3f9af00e"
+      />
+      <guid>72e96843-fc85-460c-9be0-61ae3f9af00e</guid>
+      <pubDate>Mon, 06 Jan 2025 05:20:24 -0500</pubDate>
+      <itunes:duration>1577</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:title>insaneintherainmusic - Insane In The Rain (Insane In The Rain)</itunes:title>
+      <description>
+          <![CDATA[Purchase Insane In The Rain Digital Download / CD / Vinyl: https://insaneintherainmusic.bandcamp.com/album/insane-in-the-rain&quot;Insane In The Rain&quot; Sheet Music...]]>
+      </description>
+      <enclosure
+        length="7672585"
+        type="audio/opus"
+        url="pod.mowry.coffee/episode/833c5d69-2c16-444f-8258-6d525977ab9c"
+      />
+      <guid>833c5d69-2c16-444f-8258-6d525977ab9c</guid>
+      <pubDate>Mon, 06 Jan 2025 13:37:41 -0500</pubDate>
+      <itunes:duration>432</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:title>HIGH LOON! (full album)</itunes:title>
+      <description>
+          <![CDATA[VINYL sALE ENDS FRIDAY--https://qrates.com/projects/28653-high-loon0:00 no no yes no2:51 threety three6:29 no more funk9:42 scoops12:30 i will never be cool1...]]>
+      </description>
+      <enclosure
+        length="37134254"
+        type="audio/opus"
+        url="pod.mowry.coffee/episode/3a429d26-3feb-4bf4-8be8-ae8880035abc.opus"
+      />
+      <guid>3a429d26-3feb-4bf4-8be8-ae8880035abc</guid>
+      <pubDate>Mon, 06 Jan 2025 15:03:50 -0500</pubDate>
+      <itunes:duration>2149</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+  </channel>
+</rss>
