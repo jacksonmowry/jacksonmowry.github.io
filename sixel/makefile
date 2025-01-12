@@ -3,16 +3,19 @@
 #
 # @file
 # @version 0.1
-all: main color
-	gcc main.o color.o -o sixel
+all: main color image
+	gcc main.o color.o image.o -o sixel
 
 main: main.c
 	gcc -c main.c -o main.o
+
+image: image.c
+	gcc -c image.c -o image.o
 
 color: color.c
 	gcc -c color.c -o color.o
 
 clean:
-	rm *.o sixel
+	rm -f *.o sixel
 
 # end

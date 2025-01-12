@@ -18,7 +18,7 @@ MATH_OBJ = $(BUILD_DIR)/vec3.o
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 EXEC = $(BUILD_DIR)/raytrace
-all: $(EXEC) ppm_plugin bmp_plugin
+all: $(EXEC) ppm_plugin bmp_plugin sixel_plugin
 
 # Link object files into final executable
 $(EXEC): $(OBJS) #$(MATH_OBJ)
@@ -48,6 +48,9 @@ ppm_plugin: plugins/ppm.c src/interval.c src/vec3.c
 
 bmp_plugin: plugins/bmp.c src/interval.c src/vec3.c
 	$(CC) -fPIC -shared plugins/bmp.c -o $(BUILD_DIR)/libbmp.so src/interval.c src/vec3.c -Iinclude
+
+sixel_plugin: plugins/sixel.c src/interval.c src/vec3.c
+	$(CC) -fPIC -shared plugins/sixel.c -o $(BUILD_DIR)/libsixel.so src/interval.c src/vec3.c -Iinclude -I/home/jackson/jacksonmowry.github.io/sixel ~/jacksonmowry.github.io/sixel/color.c ~/jacksonmowry.github.io/sixel/image.c
 
 clean:
 	rm -f $(BUILD_DIR)/*.o $(EXEC) $(BUILD_DIR)/tests $(BUILD_DIR)/*.so

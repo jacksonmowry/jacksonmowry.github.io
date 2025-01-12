@@ -1,2 +1,4 @@
 -I
 include
+-I
+/home/jackson/jacksonmowry.github.io/sixel
