@@ -3,6 +3,9 @@
 #
 # @file
 # @version 0.1
+neuro: image color
+	gcc -Wextra -Wall -Os generated.c image.o color.o -o neuro
+
 all: main color image
 	gcc main.o color.o image.o -o sixel
 
