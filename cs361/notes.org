@@ -1,0 +1,14 @@
+#+title: Operating Systems
+
+* Chapter 2
+- We have abstractions that allow a single program to behave as the only process on the machine
+- Mechanisms are how is the code implemented
+- Policies are how we decide when to use the mechanisms
+- Primary way we expose resources is through virtualization
+  - CPU, RAM, disk
+  - Make virtual forms for the program to use
+** Evolution
+- Early OS was just a lib, only one process at a time
+- Then we gain protections, raw data storage is dangerous
+- Then we gained multiprogramming. Running more than one job at a time
+- As we talk about various OS pieces, we will show the evolution into the modern versions .
