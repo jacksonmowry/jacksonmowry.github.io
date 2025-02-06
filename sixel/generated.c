@@ -3822,7 +3822,7 @@ int main(void) {
     color_register_teardown(stdout);
     puts("");
     printf("\033\\\n\n");
-    usleep(90000);
+    // usleep(90000);
     printf("\033[H");
   }
 }
