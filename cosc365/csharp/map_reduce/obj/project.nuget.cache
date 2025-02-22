@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "vWbEynQd3U0=",
+  "success": true,
+  "projectFilePath": "/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/map_reduce.csproj",
+  "expectedPackageFiles": [
+    "/home/jackson/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.1/microsoft.aspnetcore.app.ref.9.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

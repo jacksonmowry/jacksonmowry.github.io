@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "XbS+2/0VllY=",
+  "success": true,
+  "projectFilePath": "/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/par.csproj",
+  "expectedPackageFiles": [
+    "/home/jackson/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.1/microsoft.aspnetcore.app.ref.9.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

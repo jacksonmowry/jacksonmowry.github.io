@@ -1,0 +1,405 @@
+#+title: C# Notes
+
+* Hello World!
+#+begin_src csharp
+public class Program {
+    public static void Main(string[] args) {
+        System.Console.WriteLine("Hello World!");
+    }
+}
+#+end_src
+
+#+RESULTS:
+: Hello World!
+
+* Libraries
+- Added in the compiler command
+  - Called assemblies
+  - Called linking an assembly
+- System library is automatically linked
+  - Many things use the System Library
+    - =using System;=
+  - Subclasses are not necessarily in the same assembly
+
+#+begin_src csharp
+using System;
+
+class Test {
+    public static void Main(string[] args) {
+        Console.WriteLine("Hello");
+        Test myobj = new Test();
+        int[] i = new int[]{1,2,3,4,5}; // Heap allocated
+    }
+
+    public Test(int initial) {
+        _data = initial;
+    }
+
+    public Test() {
+        this._data = 10;
+    }
+
+    private int _data;
+}
+#+end_src
+
+#+RESULTS:
+: Hello
+
+* Value vs Reference
+** Primitive
+- int
+- char
+- byte
+- long
+- string
+- uint
+- ulong
+- float
+- double
+** Objective Primitives
+- Int16
+- Int32
+- Int64
+- Uint16
+- Uint32
+- Uint64
+** Arrays
+- int[]
+- char[]
+- Allocated on the heap
+** Struct
+- Stack based
+** Classes
+- Heap based
+** Pointers
+- Function similar to C++
+- Don't use
+
+* Casting
+** Type Casting
+- Same as c =var new_data = (type)data;=
+** Class Casting (Polymorphism)
+- Covered later?
+** Converting Data Types
+- Uses the =Convert= class
+** From string
+- Use the =Parse()= functions
+
+* Handling Null
+- ? to stop execution from the rest of the statement, making the entire expression evaluate to null
+- ?? To provide a default value, making the entire expression evaluate to the RHS if LHS is null
+
+#+begin_src csharp
+using System;
+
+class Test {
+    public static void Main(string[] args) {
+        // C++ Style way
+        string line = Console.ReadLine();
+        if (line == null) {
+            line = string.Empty;
+        } else {
+            line = line.Trim();
+            if (line == null) {
+                line = string.Empty;
+            }
+        }
+    }
+}
+#+end_src
+
+** Nullable Value Types
+- Value types do not hol null by default
+- The ? syntax when declaring tells C# to also let the value type hold null
+
+#+begin_src csharp
+class NVT {
+    public static void Main(string[] args) {
+        double? pi = 3.14;
+        char? letter = 'a';
+
+        int m2 = 10;
+        int? m = m2;
+
+        bool? flag = null;
+
+        // An array of a nullable value type
+        int?[] arr = new int?[10];
+    }
+}
+#+end_src
+
+* Conversions
+#+begin_src csharp
+class Conv {
+    public static void Main(string[] args) {
+        var result = Convert.ToBool(value);
+        var result2 = Convert.ToInt32(7.95);
+        var result3 = Convert.ToSingle(7);
+    }
+}
+#+end_src
+
+* Built-in String Parsing
+System.String
+
+#+begin_src csharp
+class SP {
+    public static void Main(string[] args) {
+        int value = int.Parse("123");
+        double value = double.Parse("7.59");
+
+        string input = "Hello World!";
+        char[] string_chars = input.ToCharArray(6, input.Length); // C style string, params (starting, count)
+    }
+}
+#+end_src
+
+* Console
+#+begin_src csharp
+class C {
+    public static void Main(string[] args) {
+        Console.Write("Something");
+        Console.WriteLine("something else");
+
+        char c = Console.Read();
+        string? s = Console.ReadLine();
+    }
+}
+#+end_src
+
+* File IO
+#+begin_src csharp
+class I {
+    public static void Main(string[] args) {
+        // Binary reader
+        // Binary writer
+        // Stream Reader
+        // Stream Writer
+    }
+}
+#+end_src
+
+* Exceptions
+- Just like C++
+- Try/Catch
+- You can create your own exceptions
+
+#+begin_src csharp
+using System;
+using System.IO;
+
+class Ex {
+    public static void Main(string[] args) {
+        StreamReader sr;
+
+        try {
+            sr = new StreamReader("myfile.txt");
+        }
+        catch (Exception e) {
+            Console.WriteLine(e.Message);
+            return;
+        }
+
+        sr.Close();
+    }
+}
+#+end_src
+
+#+RESULTS:
+: Could not find file "/home/jackson/jacksonmowry.github.io/cosc365/csharp/myfile.txt"
+
+* Loops
+- Same as C++
+
+** For each
+#+begin_src csharp :results verbatim
+using System;
+
+class FE {
+    public static void Main(string[] args) {
+        int[] a = new int[20];
+        for (int i = 0; i < 20; i++) {
+            a[i] = i;
+        }
+
+        foreach(int v in a) {
+            Console.WriteLine(v);
+        }
+    }
+}
+#+end_src
+
+#+RESULTS:
+#+begin_example
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+#+end_example
+
+* Classes
+- Like C++
+- Has access protection
+- member functions, properties, variables, and events
+- All classes inherit from Object
+
+#+begin_src csharp
+class C {
+    public static void Main(string[] args) {
+        var t = new Test();
+
+        t.Value = 10;
+    }
+
+    public int Value {
+        get;
+    }
+}
+#+end_src
+
+* Indexers
+- not created auto
+#+begin_src csharp
+using System;
+
+class I {
+    public static void Main(string[] args) {
+        var t = new I();
+
+        t[0] = 100;
+        Console.WriteLine(t[0]);
+    }
+
+    public I() {
+        _data = new double[10];
+    }
+
+    private double[] _data;
+    public double this[int i] {
+        get {
+            return _data[i];
+        }
+        set {
+            _data[i] = value;
+        }
+    }
+}
+#+end_src
+
+#+RESULTS:
+
+* Delegate
+#+begin_src csharp
+using System;
+class D {
+    public static void Main(string[] args) {
+        var D = new D();
+
+        Console.WriteLine(D.DoSomething(D.AFunction, 10, 20));
+    }
+
+    private int AFunction(int i , int j) {
+        return i*j;
+    }
+
+    public delegate int Func(int i, int j);
+
+    public int DoSomething(Func func, int i, int j) {
+        return func(i, j);
+    }
+}
+#+end_src
+
+#+RESULTS:
+: 200
+
+* Files
+* Create Our Own Classes
+
+#+begin_src csharp :results verbatim
+using System;
+
+public class Test {
+    public static void Main(string[] args) {
+        Test t = new Test();
+        t.Work();
+        MyOther o = new MyOther();
+        o.Work();
+        (o as Test).Work();
+    }
+
+    virtual public void Work() {
+        Console.WriteLine("do work");
+    }
+}
+
+public class MyOther : Test {
+    override public void Work() {
+        Console.WriteLine("My think");
+    }
+}
+#+end_src
+
+#+RESULTS:
+: do work
+: My think
+: My think
+
+* Threading
+#+begin_src csharp :results verbatim
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class Test {
+    public static void Func(object? o) {
+        var t_num = o as int?;
+        if (t_num != null) {
+            Console.WriteLine($"Thread started... {t_num}");
+            Thread.Sleep(1000);
+            Console.WriteLine($"Thread done... {t_num}");
+        }
+    }
+
+    public static void Main() {
+        int i;
+        List<Thread> mythreads = new List<Thread>();
+
+        for (i = 0; i < 4; i++) {
+            Thread t = new Thread(new ParameterizedThreadStart(Func));
+            mythreads.Add(t);
+            t.Start(i+1);
+        }
+
+        Console.WriteLine("Threads created...");
+        Console.WriteLine("Threads started...");
+
+        foreach(var t in mythreads) {
+            t.Join();
+        }
+
+        Console.WriteLine("Threads joined...");
+    }
+}
+        #+end_src
+
+#+RESULTS:

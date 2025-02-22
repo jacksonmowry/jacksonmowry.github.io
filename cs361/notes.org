@@ -12,3 +12,220 @@
 - Then we gain protections, raw data storage is dangerous
 - Then we gained multiprogramming. Running more than one job at a time
 - As we talk about various OS pieces, we will show the evolution into the modern versions .
+
+* Chapter 8
+** MLFQ: Multilevel Feedback Queue
+- Multiple queues
+- each is assigned a priority level
+- When we make a decision we go to highest priority
+  - For jobs within the same queue we use round-robin
+
+*** Rules
+1. If priority(A) > priority(B) => A
+2. If priority(A) == priority(B) => Round-robin
+3. When a job enters it is at highest priority
+4. If it uses its entire timeslice its priority is reduced, no matter how many times it gives up the CPU
+5. If it gives up the CPU before its timeslice is up it stays
+6. After some time point S, move all jobs in the system to the topmost queue
+
+** How to select Priority?
+- Job that often yields (getting keyboard input) should be prioritized for quicker response time
+- If a job keeps making syscalls, we should priortize it as it is probably an interactive process
+- If it uses the cpu a lot we should prioritize turn-around time
+
+But job priority cannot be entirely static, it must be able to change over time.
+
+** How to change Priority?
+- Give each job an allotment, this is the amount of time it can exist in a queue without reducing its priority
+- When a job begins it is placed at the highest priority
+- If it uses its entire timeslice its priority is reduced
+- If a job gives up the CPU before running through its allotment it can stay at the same priority
+
+Highly interactive jobs will always stay at the highest priority because they never use up an entire timeslice without making a syscall
+
+A program can also game the scheduler by always issuing IO right before the time slice is up
+
+A program can also change its behavior from CPU intensive to IO intensive
+
+** Priority Boost
+Process could be getting starved, but if we boost everything, they will all then get a fair chance to run again
+
+** Better Accounting
+- To prevent gaming, change rule 4
+- If you use up your 10ms timeslice (even across schedules) then you move down
+
+* Chapter 9
+Proportional Share Scheduling
+
+** A New Metric
+- Tickets represent the share of a resource that an entity should recieve
+- The percent of tickets it hold represent the % they get
+
+*** Lottery
+- Draw a random ticket, schedule the process that holds that ticket
+- More tickets you have the more likely you are to be scheduled
+
+*** Ticket Currency
+- Allows a user to create their own currency
+  - Global currency and then whatever currency each user creates
+
+- Example both A and B are given 100 global tickets
+  - A runs A1 and A2
+    - A1/A2 both get 500 A bucks
+  - B runs B1
+    - B1 gets 10 B bucks
+
+  - A1 and A2 are getting 50 global tickets each
+  - B1 gets 100 global tickets
+
+*** Ticket Transfer
+- allows a process to lend tickets to another process
+- Client/server running on same machine
+  - Client sends request, wait on server
+  - So it also send some of its tickets over to the server as well
+  - The server will send them back when done
+
+*** Ticket Inflation
+- Can just grow its own ticket amount, only really makes sense in a co-op environment
+
+*** Impl
+- Good RNG
+- List to hold processes
+- Total # of tickets
+
+- Generate number N
+- Traverse list, add up ticket values
+- Winner once the total is greater than N
+
+- Linear time
+
+*** Fairness
+- 2 jobs of the same length how fair is the scheduler?
+- Randomness affects short jobs
+- Fairness = job_finish_1 / job_finish_2
+- Want fairness to be 1
+
+** Stride Scheduling
+- Randomness isn't fair
+- Deterministic fair scheduler
+- Stride = (some large number) / tickets
+  - Inverse in proportion to the number of tickets it has
+- Each process has a running pass value starting at 0
+- When a process is scheduled, increment its pass by stride
+- Always schedule the process with the lowest pass breaking ties arbitrarily
+
+- Why do we even do this?
+  - We now have global state, lottery doesnt
+  - What happens if we add a new process? What should its pass be? Do we start at 0, or start at average
+
+** Linux Completely Fair Scheduler
+- Highly efficient and scalable fair-share scheduler
+- Aims to spend very little time making choices
+- Important to not waste resources
+  - Google used 5% of CPU time scheduling
+- Reducing overhead is a key goal in modern schedulers
+- Goal is to divide the CPU evenly among all competing processes
+- It does so with a virtual runtime (vruntime)
+
+*** CFS: Basic Operation
+- Each process runs an accumulates vruntime
+- Always picks the process with lowest vruntime
+- CFS varies with sched_latency
+  - Represents the largest time slice size possible
+  - Determined by sched_latency/number of processes
+
+*** Niceness
+- Adds weighting to the time slice calculation
+- time slice = Poriton of all processes running * max time slice
+- vruntime = previous vruntime + time just ran * weighting based on niceness
+
+$\frac{1024}{2048} * \mathtt{sched\_latency}$
+
+$\mathtt{previous\_vr} + \frac{\mathtt{0 weight}}{\mathtt{your weight}} * \mathtt{sched\_latency}$
+
+$100 + \frac{1024}{820} * 10 = 110$
+
+*** Using Red-Black Tree
+- List is O(n), tree is not
+- Why not a heap
+
+*** IO & Sleep
+- When a job wakes up its vruntim is set to the maximum of its own vruntime and the minimum in the tree
+  - It will be set to the min in the tree essentially
+  - Still gets scheduled first, but wont get a ton more time
+- This avoids starvation at the cost of not being fair to frequently sleeping processes
+
+*** Other Fun
+- Cache performance
+- Multiple CPUs
+- Large groups of processes
+
+* Virtualizing Memory Chapter 13
+** Early Systems
+- OS was just a library of functions
+- A single program used the entire memory available
+
+** Multiprogramming and Time sharing
+- Multiple processes, maximize cpu usage
+- Time share
+  - we need programs to be interractive
+
+*** Time Sharing
+- One way is context switching, including all physical memory to/from disk
+- Brutally slow, especially as memory grows, we want to leave processes in memory and only save/load registers (much faster)
+- We need protection to segment memory
+
+** Address Space
+- We need an abstraction on top of the physical memory
+- The address space of a process contains all the memory state
+  - Code, stack, heap, and others
+- We need to make each process appear to have its own address space
+*** Layout
+- Code
+- Heap
+  - grows down
+- Stack
+  - grows up
+
+** Goals of Virtual Memory
+- Transparancy
+- Efficiency
+- Protection
+
+* Chapter 15 Address Translation
+** How to Efficienctly and Flexibly Virtualize Memory
+- Effiecient
+- Flexible
+- Access protection
+- Restrictions
+
+** Assumptions
+- Address space in placed contiguously in physical memory
+- Address space fits in memroy
+- Address spaces are all of equal size
+
+** Translation
+All of the following addresses are within our processes address space, not physical memory
+1. Fetch instructions at address 128
+2. Exectue this instruction (load address 15kb)
+3. Fetch instruction at address 132
+4. Execute this instruction (no load/store)
+5. Fetch the instruction at address 135
+6. Execute the instruction (store address 15kb)
+
+** Dynamic Relocation
+- Base and bounds (dynamic relocation)
+  - 2 hardware registers base and bounds (beginning of mmu)
+- Programs assume they're loaded at address 0x0
+- When the OS places the program in rabe is sets base/bounds
+  - Physical address = virtual address + bas
+- Bounds registers prevents us from going past the end of our addres space
+
+** Hardware Support So Far
+| Hardware                          | Notes                                              |
+| Privlige                          | Prevent user-mode from executing priv instructions |
+| Base/Bounds                       | Address translation                                |
+| Translate virtual address         | quick and make sure is valid                       |
+| Instruction to update base/bounds | OS only functions                                  |
+| Handle exceptions                 | if user accesses oob                               |
+| Raise exceptions                  | throw when oob                                     |

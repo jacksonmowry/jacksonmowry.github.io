@@ -1,0 +1,17 @@
+{
+	"name": "C++",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"aaron-bond.better-comments",
+				"jeff-hykin.better-cpp-syntax",
+				"ms-vscode.cpptools-extension-pack",
+				"yzhang.markdown-all-in-one",
+				"streetsidesoftware.code-spell-checker"
+			]
+		}
+	}
+}

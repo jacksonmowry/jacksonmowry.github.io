@@ -1,0 +1,7 @@
+FROM --platform=linux/amd64 mcr.microsoft.com/devcontainers/cpp:0-debian-11
+
+# Install package to compile 32-bit binaries
+ RUN apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+  gcc-multilib python2-minimal \
+  && rm -rf /var/lib/apt/lists/*

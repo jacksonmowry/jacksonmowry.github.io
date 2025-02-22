@@ -3,6 +3,8 @@
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
 * Articles
+** Going Phone-/less/
+[[file:phone-less.org][Going Phone-/less/]]
 ** Effectively Simulating a Neuromorphic System
 [[file:effective_neuromorphic_sim.org][Effective Neuromorphic Simulation]]
 ** Neuromorphic Computing

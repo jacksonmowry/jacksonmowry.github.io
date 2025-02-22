@@ -1,0 +1,15 @@
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/bin/Debug/net9.0/par
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/bin/Debug/net9.0/par.deps.json
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/bin/Debug/net9.0/par.runtimeconfig.json
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/bin/Debug/net9.0/par.dll
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/bin/Debug/net9.0/par.pdb
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.GeneratedMSBuildEditorConfig.editorconfig
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.AssemblyInfoInputs.cache
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.AssemblyInfo.cs
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.csproj.CoreCompileInputs.cache
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.sourcelink.json
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.dll
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/refint/par.dll
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.pdb
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/par.genruntimeconfig.cache
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/par/obj/Debug/net9.0/ref/par.dll

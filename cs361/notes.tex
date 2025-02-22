@@ -1,0 +1,232 @@
+% Created 2025-01-31 Fri 09:45
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{Operating Systems}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={Operating Systems},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Chapter 2}
+\label{sec:org5991405}
+\begin{itemize}
+\item We have abstractions that allow a single program to behave as the only process on the machine
+\item Mechanisms are how is the code implemented
+\item Policies are how we decide when to use the mechanisms
+\item Primary way we expose resources is through virtualization
+\begin{itemize}
+\item CPU, RAM, disk
+\item Make virtual forms for the program to use
+\end{itemize}
+\end{itemize}
+\subsection{Evolution}
+\label{sec:org3f2ef08}
+\begin{itemize}
+\item Early OS was just a lib, only one process at a time
+\item Then we gain protections, raw data storage is dangerous
+\item Then we gained multiprogramming. Running more than one job at a time
+\item As we talk about various OS pieces, we will show the evolution into the modern versions .
+\end{itemize}
+\section{Chapter 8}
+\label{sec:org86c543d}
+\subsection{MLFQ: Multilevel Feedback Queue}
+\label{sec:orgee9d062}
+\begin{itemize}
+\item Multiple queues
+\item each is assigned a priority level
+\item When we make a decision we go to highest priority
+\begin{itemize}
+\item For jobs within the same queue we use round-robin
+\end{itemize}
+\end{itemize}
+\subsubsection{Rules}
+\label{sec:org478d466}
+\begin{enumerate}
+\item If priority(A) > priority(B) => A
+\item If priority(A) == priority(B) => Round-robin
+\item When a job enters it is at highest priority
+\item If it uses its entire timeslice its priority is reduced, no matter how many times it gives up the CPU
+\item If it gives up the CPU before its timeslice is up it stays
+\item After some time point S, move all jobs in the system to the topmost queue
+\end{enumerate}
+\subsection{How to select Priority?}
+\label{sec:org5761c3b}
+\begin{itemize}
+\item Job that often yields (getting keyboard input) should be prioritized for quicker response time
+\item If a job keeps making syscalls, we should priortize it as it is probably an interactive process
+\item If it uses the cpu a lot we should prioritize turn-around time
+\end{itemize}
+
+But job priority cannot be entirely static, it must be able to change over time.
+\subsection{How to change Priority?}
+\label{sec:org376f7d4}
+\begin{itemize}
+\item Give each job an allotment, this is the amount of time it can exist in a queue without reducing its priority
+\item When a job begins it is placed at the highest priority
+\item If it uses its entire timeslice its priority is reduced
+\item If a job gives up the CPU before running through its allotment it can stay at the same priority
+\end{itemize}
+
+Highly interactive jobs will always stay at the highest priority because they never use up an entire timeslice without making a syscall
+
+A program can also game the scheduler by always issuing IO right before the time slice is up
+
+A program can also change its behavior from CPU intensive to IO intensive
+\subsection{Priority Boost}
+\label{sec:orgef2b7bf}
+Process could be getting starved, but if we boost everything, they will all then get a fair chance to run again
+\subsection{Better Accounting}
+\label{sec:orgc462c34}
+\begin{itemize}
+\item To prevent gaming, change rule 4
+\item If you use up your 10ms timeslice (even across schedules) then you move down
+\end{itemize}
+\section{Chapter 9}
+\label{sec:org783703c}
+Proportional Share Scheduling
+\subsection{A New Metric}
+\label{sec:org32b8f75}
+\begin{itemize}
+\item Tickets represent the share of a resource that an entity should recieve
+\item The percent of tickets it hold represent the \% they get
+\end{itemize}
+\subsubsection{Lottery}
+\label{sec:org876fbbe}
+\begin{itemize}
+\item Draw a random ticket, schedule the process that holds that ticket
+\item More tickets you have the more likely you are to be scheduled
+\end{itemize}
+\subsubsection{Ticket Currency}
+\label{sec:org4f7d4cf}
+\begin{itemize}
+\item Allows a user to create their own currency
+\begin{itemize}
+\item Global currency and then whatever currency each user creates
+\end{itemize}
+
+\item Example both A and B are given 100 global tickets
+\begin{itemize}
+\item A runs A1 and A2
+\begin{itemize}
+\item A1/A2 both get 500 A bucks
+\end{itemize}
+\item B runs B1
+\begin{itemize}
+\item B1 gets 10 B bucks
+\end{itemize}
+
+\item A1 and A2 are getting 50 global tickets each
+\item B1 gets 100 global tickets
+\end{itemize}
+\end{itemize}
+\subsubsection{Ticket Transfer}
+\label{sec:orga4ade9d}
+\begin{itemize}
+\item allows a process to lend tickets to another process
+\item Client/server running on same machine
+\begin{itemize}
+\item Client sends request, wait on server
+\item So it also send some of its tickets over to the server as well
+\item The server will send them back when done
+\end{itemize}
+\end{itemize}
+\subsubsection{Ticket Inflation}
+\label{sec:orgad68ec6}
+\begin{itemize}
+\item Can just grow its own ticket amount, only really makes sense in a co-op environment
+\end{itemize}
+\subsubsection{Impl}
+\label{sec:orge3532a6}
+\begin{itemize}
+\item Good RNG
+\item List to hold processes
+\item Total \# of tickets
+
+\item Generate number N
+\item Traverse list, add up ticket values
+\item Winner once the total is greater than N
+
+\item Linear time
+\end{itemize}
+\subsubsection{Fairness}
+\label{sec:org3ceb002}
+\begin{itemize}
+\item 2 jobs of the same length how fair is the scheduler?
+\item Randomness affects short jobs
+\item Fairness = job\textsubscript{finish}\textsubscript{1} / job\textsubscript{finish}\textsubscript{2}
+\item Want fairness to be 1
+\end{itemize}
+\subsection{Stride Scheduling}
+\label{sec:org5344723}
+\begin{itemize}
+\item Randomness isn't fair
+\item Deterministic fair scheduler
+\item Stride = (some large number) / tickets
+\begin{itemize}
+\item Inverse in proportion to the number of tickets it has
+\end{itemize}
+\item Each process has a running pass value starting at 0
+\item When a process is scheduled, increment its pass by stride
+\item Always schedule the process with the lowest pass breaking ties arbitrarily
+
+\item Why do we even do this?
+\begin{itemize}
+\item We now have global state, lottery doesnt
+\item What happens if we add a new process? What should its pass be? Do we start at 0, or start at average
+\end{itemize}
+\end{itemize}
+\subsection{Linux Completely Fair Scheduler}
+\label{sec:org0958630}
+\begin{itemize}
+\item Highly efficient and scalable fair-share scheduler
+\item Aims to spend very little time making choices
+\item Important to not waste resources
+\begin{itemize}
+\item Google used 5\% of CPU time scheduling
+\end{itemize}
+\item Reducing overhead is a key goal in modern schedulers
+\item Goal is to divide the CPU evenly among all competing processes
+\item It does so with a virtual runtime (vruntime)
+\end{itemize}
+\subsubsection{CFS: Basic Operation}
+\label{sec:org4ea3699}
+\begin{itemize}
+\item Each process runs an accumulates vruntime
+\item Always picks the process with lowest vruntime
+\item CFS varies with sched\textsubscript{latency}
+\begin{itemize}
+\item Represents the largest time slice size possible
+\item Determined by sched\textsubscript{latency}/number of processes
+\end{itemize}
+\end{itemize}
+\subsubsection{Niceness}
+\label{sec:org01ec592}
+\begin{itemize}
+\item Adds weighting to the time slice calculation
+\item time slice = Poriton of all processes running * max time slice
+\item vruntime = previous vruntime + time just ran * weighting based on niceness
+\end{itemize}
+
+\[
+\frac{1024}{2048} * \text{sched_latency}
+\]
+\end{document}

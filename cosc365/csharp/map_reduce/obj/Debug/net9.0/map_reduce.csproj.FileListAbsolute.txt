@@ -1,0 +1,15 @@
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/bin/Debug/net9.0/map_reduce
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/bin/Debug/net9.0/map_reduce.deps.json
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/bin/Debug/net9.0/map_reduce.runtimeconfig.json
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/bin/Debug/net9.0/map_reduce.dll
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/bin/Debug/net9.0/map_reduce.pdb
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.GeneratedMSBuildEditorConfig.editorconfig
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.AssemblyInfoInputs.cache
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.AssemblyInfo.cs
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.csproj.CoreCompileInputs.cache
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.sourcelink.json
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.dll
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/refint/map_reduce.dll
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.pdb
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/map_reduce.genruntimeconfig.cache
+/home/jackson/jacksonmowry.github.io/cosc365/csharp/map_reduce/obj/Debug/net9.0/ref/map_reduce.dll
