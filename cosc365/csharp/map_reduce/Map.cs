@@ -1,3 +1,4 @@
+// Jackson Mowry
 public partial class MapReduce<T> {
     public delegate T MapFunction(T func);
 

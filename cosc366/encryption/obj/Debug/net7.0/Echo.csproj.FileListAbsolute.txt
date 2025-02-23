@@ -77,9 +77,9 @@
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.AssemblyInfo.cs
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.csproj.CoreCompileInputs.cache
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.sourcelink.json
-/home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.csproj.CopyComplete
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.dll
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/refint/Echo.dll
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.pdb
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.genruntimeconfig.cache
 /home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/ref/Echo.dll
+/home/jackson/jacksonmowry.github.io/cosc366/encryption/obj/Debug/net7.0/Echo.csproj.Up2Date

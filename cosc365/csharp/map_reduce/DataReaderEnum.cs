@@ -1,9 +1,10 @@
+// Jackson Mowry
 public class DataReaderEnum
 {
     private readonly double[] values;
     private int itr_pos = -1;
 
-    public DataReaderEnum(double[] vals)
+    public DataReaderEnum(ref double[] vals)
     {
         values = vals;
     }

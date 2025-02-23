@@ -1,42 +1,69 @@
+// Jackson Mowry
 public class DataReader
 {
     public DataReader(string filename)
     {
-        doubles = new List<double>();
-        using (FileStream fs = File.Open(filename, FileMode.Open))
+        List<double> doubles = new List<double>();
+        try
         {
-            using (BinaryReader reader = new BinaryReader(fs, System.Text.Encoding.ASCII, false))
+            using (FileStream fs = File.Open(filename, FileMode.Open))
             {
-                while (true)
+                using (BinaryReader reader = new BinaryReader(fs, System.Text.Encoding.ASCII, false))
                 {
-                    try
+                    while (true)
                     {
-                        double value = reader.ReadDouble();
-                        doubles.Add(value);
-                    }
-                    catch (EndOfStreamException)
-                    {
-                        if (doubles.Count() > 0)
+                        try
                         {
-                            Count = doubles.Count();
-                            return;
+                            double value = reader.ReadDouble();
+                            doubles.Add(value);
                         }
-                        else
+                        catch (EndOfStreamException)
                         {
-                            throw new EndOfStreamException();
+                            if (doubles.Count() > 0)
+                            {
+                                this.doubles = doubles.ToArray();
+                                return;
+                            }
+                            else
+                            {
+                                throw new EndOfStreamException();
+                            }
                         }
                     }
                 }
             }
         }
-
+        catch (FileNotFoundException fnfe)
+        {
+            throw new FileNotFoundException(fnfe.Message);
+        }
+        catch (EndOfStreamException eose)
+        {
+            throw new EndOfStreamException(eose.Message);
+        }
     }
 
     public DataReaderEnum GetEnumerator()
     {
-        return new DataReaderEnum(doubles.ToArray());
+        return new DataReaderEnum(ref doubles);
     }
 
-    public readonly int Count;
-    private List<double> doubles;
+    public double this[int i]
+    {
+        get
+        {
+            if (i >= doubles.Length)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            return doubles[i];
+        }
+    }
+
+    public int Count
+    {
+        get => doubles.Length;
+    }
+
+    private double[] doubles;
 }
