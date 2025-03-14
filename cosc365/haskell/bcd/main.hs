@@ -1,3 +1,5 @@
+-- Jackson Mowry
+
 import Data.Binary
 import Data.Bits
 import Data.ByteString qualified as B
