@@ -1,0 +1,1 @@
+/home/jackson/jacksonmowry.github.io/cosc365/rust/minigrep/target/debug/minigrep: /home/jackson/jacksonmowry.github.io/cosc365/rust/minigrep/src/lib.rs /home/jackson/jacksonmowry.github.io/cosc365/rust/minigrep/src/main.rs

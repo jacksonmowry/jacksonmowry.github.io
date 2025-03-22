@@ -1,0 +1,16 @@
+#+title: Energy-Efficient Neuromorphic Architectures for Nuclear Radiation Detection Applications
+#+author: Jackson Mowry
+#+date: Mon Mar  3 12:01:45 2025
+
+* Review
+In order to help detect radionuclide the researchers propose a novel system which uses memristive technoligies. By utilizing their memristive technology to create a crossbar memristive array, the researchers create a resevoir, which an attached output layer that is much easier to train. This system all together is inspired by the locally competitive algorithm (LCA), by Rozell et. all, which allows for classification of sparse approximation problems. Through the implementation of the LCA, they are able to better differentiate the desired classification by the firing time and rate of a specific neuron. When a neuron fires early, and often it can then inhibit other neurons, hence why it is termed competition.
+
+The main focus of the paper is on specific memristive hardware, which the researchers fabriate themselves, providing 2 possible implementations for review.
+
+The first of these approaches is dubbed the "Analog Signal Architecture", which utilizes the crossbar arrangement to perform a vector matrix multiply. Neurons are also connected pair-wise to enable the inhibitory signals needed for the LCS algorithm. Sadly the authors didn't talk much about the low level implementation of this version, just high level, with a few equations to sum up the general behavior. They also note that while this architecture is simple to understand it does not scale well, as the number of components scales quadratically.
+
+The second approachs seeks to apply linear scaling to a similar model proposed previously. In this way, they can keep the number of components down, while increasing the external complexity of the system. This is achieved through a feedback system that inhibits all neurons if any neuron is firing. Effectively, the first neuron the fires will almost always win, as it can spike before being inhibited by its own spiking signal.
+
+Getting to the experiment being performed, the researchers were attempting to see how well their hardware device could perform at radionuclide detection. Using a standardized cart moving past a radioactive sample they were able to classify a source and its distance. This sampling/inference was able to converge on a decision with 30ns, while all other classifications were inhibited in the same time-frame. The researchers did a poor job of comparing their results against a state-of-the-art implementation, so gathering any sort of accuracy or precision information is not possible. The numbers they do show appear to be within the same order of magnitude as the reference implementation.
+
+Lastly, the researchers pivot to discussing a CMOS implementation of a neuron, as their memristor based approach did not perform will enough and with enough consistency. This seems like an odd pivot to make at the end of a paper, espeicially in the context of this being a paper all about hardware. Either way, they conclude that the energy consumption of their final device is around 3.9nJ per operation, a relatively low number for the field. Overall, the researchers seem to have achieved their goal, although requiring a pivot, producing respectable results on a relatively low power budget.

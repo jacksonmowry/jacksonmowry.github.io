@@ -21,7 +21,7 @@ internal class BCryptHasher : IPasswordHasher<IdentityUser> {
         // todo: Use the EnhancedHashPassword function.
         // todo: Ensure that it uses at least 100,000 iterations, but no more than 200,000.
         // $2a$17$2DgFr6sSl4u4nnuRL4FFaeg5coiYZlh8Um3Y7CwBRINrJ0N9YkBoS
-        return BC.HashPassword(password, 17);
+        return BC.EnhancedHashPassword(password, 17);
     }
 
     /// <summary>
@@ -32,9 +32,7 @@ internal class BCryptHasher : IPasswordHasher<IdentityUser> {
     /// <returns></returns>
     public PasswordVerificationResult VerifyHashedPassword(IdentityUser user, string hashedPassword, string providedPassword) {
         // todo: Verify that the given password matches the hashedPassword (as originally encoded by HashPassword)
-        Console.WriteLine(hashedPassword);
-        Console.WriteLine(BC.HashPassword(providedPassword, hashedPassword));
-        if (!BC.Verify(providedPassword, hashedPassword)) {
+        if (!BC.EnhancedVerify(providedPassword, hashedPassword)) {
             return PasswordVerificationResult.Failed;
         }
 

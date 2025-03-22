@@ -25,7 +25,7 @@ internal class Argon2idHasher : IPasswordHasher<IdentityUser> {
         byte[] salt = RandomNumberGenerator.GetBytes(32);
 
         argon2.DegreeOfParallelism = 8;
-        argon2.MemorySize = 125000;
+        argon2.MemorySize = 128 * 1024;
         argon2.Iterations = 4;
         argon2.Salt = salt;
 
@@ -45,12 +45,10 @@ internal class Argon2idHasher : IPasswordHasher<IdentityUser> {
         var argon2 = new Argon2id(Utils.Encoding.GetBytes(providedPassword));
 
         argon2.DegreeOfParallelism = 8;
-        argon2.MemorySize = 125000;
+        argon2.MemorySize = 128 * 1024;
         argon2.Iterations = 4;
         argon2.Salt = salt;
 
-        Console.WriteLine(System.Convert.ToBase64String(digest));
-        Console.WriteLine(System.Convert.ToBase64String(argon2.GetBytes(32)));
         if (!digest.SequenceEqual(argon2.GetBytes(32))) {
             return PasswordVerificationResult.Failed;
         }

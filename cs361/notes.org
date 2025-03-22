@@ -229,3 +229,167 @@ All of the following addresses are within our processes address space, not physi
 | Instruction to update base/bounds | OS only functions                                  |
 | Handle exceptions                 | if user accesses oob                               |
 | Raise exceptions                  | throw when oob                                     |
+
+
+* Chapter 26 Concurrency Introduction
+- Multiple program counters
+  - and it's own set of register
+  - yet they share the same addr space
+  - Own stack, which complicates the addr space
+- Why?
+  - Parallelism
+  - Avoid blocking due to IO
+- Possible Outcomes of Thread Creation
+  - Non-deterministic creation and running of threads, relies on the OS scheduler
+- Shared Data
+- Heart of the Problem -- Uncontrolled scheduling
+  - When a thread gets interrupted during a critial section of code, non-atomic operations essentially
+  - Instead of making specialized atomic instructions we make a few primitive atomic instructions to create sync primitives
+  - Waiting, sleeping/waking for cond vars
+  - OS was the first concurrent program
+    - 2 processes writing to the same file, how can we solve that?
+* Chapter 28 Locks
+- Basic idea is to create lock that can be "locked" or "unlocked" atomically
+
+** Building a Lock
+- Evaluating the performance/implementation of a lock
+  - Mutual exclusion
+  - Fairness (starvation of thread)
+  - Performance (overhead)
+    - single threaded overhead
+    - multiple thread overhead on a single CPU
+    - multpile thread overhead on multiple CPUs
+- OG would turn off interrupts, meaning we physically cannot be interrupted
+  - Pros
+    - Simple
+  - Cons
+    - We have to trust all programs running
+    - Doesn't scale to multiple CPUs
+    - Interrupts off for an extended time can lead to lost interrupts
+- Just using load/stores
+  - Simple flag var
+  - We either lock it or unlock it, but this is not being done atomically
+  - Correctness
+    - Setting the flag itself is not atomic, cannot be correct
+    - Spin locks are horrible on single CPU systems
+- Test and Set
+  - This way works, but it's not great
+  - atomic exchange
+    - Returns the variables old value, and sets it to the new value atomically
+    - If we get back 0, that means we just lock the lock (it is now 1)
+    - If we get back 1, it was already locked, we must wait
+    - Correctness -- yes
+    - Fairness -- no
+      - Nothing to guarantee that a thread eventually gets the lock
+    - Performance
+      - single CPU
+        - Awful
+        - Preempted within a critial section, the scheduler would go through every other thread before coming back to the only thread that can actually do work
+      - Multiple CPU
+        - Thread A grabs lock, B spins
+        - Hopefully the critial section in short, thus it won't spin for long
+- Compare and Swap
+  - Differs from Test and Set b/c, if the value in the flag is equal to our expected value then we update it, and then we return the value of the flag always
+  - Still produces a spin lock, waiting to see once the flag is zero
+- Load-Linked and Store-Conditional
+  - Only store to an address if no other intervening store has taken place
+  - Has there been any update to the lock since I last did a load-linked?
+    - If not we have success, otherwise failure
+  - Load-Linked until it's zero
+    - Then immedietly try to write to it
+    - If somehow it got interrupted there will have been a write, therefore store conditional will fail and we need to start over
+- Fetch and Add
+  - Atomically increment a value while returning the old value
+  - Use this to make a ticket lock (ticket value & turn value)
+    - To acquire the lock fetch and add on the ticket value, this is your number
+    - When the turn value equals your ticket, you have the lock
+    - To unlock increment the turn value
+  - This ensures fairness
+** Avoiding Spinning
+- We need OS support to prevent spinning
+- Yield an entire time slice
+  - But, with a ton of threads, we will possibly have to go through N-1 threads of context switches
+  - also does not address fairness
+- We use a queue to sleep instead of spin
+  - This helps us avoid chance
+  - Queue of threads that are waiting on the lock
+  - Park/Unpark sleep and wake up, sleeping threads cannot be scheduled
+- Putting something on the queue is really the only critial section, so we still spin, but this time should now be constant
+- The thread who unlocks essentially wakes the first thread up, allowing it to be scheduled
+- Setpark, indicates that I am about to park myself, so when unpark is called on this TID, the next park will be nop so you don't get put to sleep
+
+** Futex
+- By default this uses a futex under the hood
+- Have a specific location in physcial memory, as well as a per-futex in-kernel queue
+- Callers can use
+  - futex_wait => sleep if value at addr is equal to expected
+  - futex_wake => wakes one thread from the queue
+
+- We attempt to spin shortly, but if we spin for too long we go to sleep and go into the kernel
+
+* Chapter 30 Condition Variables
+- Locks can't do it all
+- How do we wait on something to happen?
+  - Can spin
+    - Horrible on a single CPU
+    - OK on a multi cpu system, if the job is short
+  - We really should sleep until some condition is met
+- Building a condition variable
+  - explicit queue that threads can put themselves on when some condition is not as they want it to be
+  - When another thread changes that condition it can wake one of the threads in the queue
+** Definition
+- Must hold lock before calling wait
+  - wait releases the lock and sleeps the calling thread atomically
+  - When the thread is woken up, it will reacquire the lock
+- Two cases
+  - Either parent of child runs first
+  - Do we still need the done variable?
+    - Removing done can cause a race condition, the child may run first and signal to no one
+** Producer/Consumer
+- One or more of each of these types of threads
+- Bounded buffer
+  - put() assumes that the queue is empty, adds the value and sets count to 1
+  - Get sets count to 0 and returns the value
+  - Only want to put at 0, only get at 1
+  - Producer grabs lock, waits if it is one, wakes up when buffer is empty
+  - Consumer grabs lock, wait if it is 0, waks up when buffer has a value
+*** Mesa Semantics
+- Cond vars are just a hint that things may have changed, not a 100% that it changed
+- We must always recheck when we recieve the signal
+- if count == 1, while count == 1
+* Semaphore
+- 2 routines
+  - sem_wait()
+    - decrements
+  - sem_post()
+    - increments
+    - Also wakes threads up
+** Binary Semaphore
+- Init to a value 0
+- wait/post bounce back and forth between 1 & 0
+** Solving Producer Consumer Problem
+- Init semaphore empty to MAX
+- Init semaphore full to 0
+- Producer waits on empty, posts on full
+- Consumer waits on full, posts on empty
+- Wont work when MAX > 1
+- Race condition between consumers and between producers
+** Reader Writer Locks
+- Several concurrent list operations, including inserts and simple lookups
+- Inserts change state
+- Lookup simply look at list
+- Many people can look, as long as no one write
+- RW Lock supports this
+- First reader also grabs the write lock
+- If they go to release and they're last, they can let go of the write lock
+-
+
+* Chapter 32 - Common Concurrency Problems
+-
+
+* Midterm 1 Review
+** Stack VA->PA Translation
+- 2 segments, 1024 total, 512 each
+- Take the max possible size - offset = reverse offset
+- As long as this is <= the bounds we're good
+- Final address translation is base - reverse offset = PA

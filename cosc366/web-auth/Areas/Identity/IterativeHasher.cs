@@ -38,7 +38,6 @@ internal class IterativeHasher : IPasswordHasher<IdentityUser>
             }
         }
 
-
         return Utils.EncodeSaltAndDigest(salt, digest);
     }
 

@@ -1,0 +1,78 @@
+#+title: Notes
+
+* Main
+Main must always have the function signature
+#+begin_src haskell
+main :: IO()
+#+end_src
+
+* Data Structures
+[] - list
+() - tuple
+
+** Arrays
+Called lists
+
+*** Operators
+| Operator | Action                        |
+| ++       | joins 2 lists                 |
+| :        | Joins a value to head of list |
+
+#+begin_src haskell :results output
+main = print [1,2,3,4,5]
+main
+#+end_src
+
+#+RESULTS:
+: [1,2,3,4,5]
+
+#+begin_src haskell :results output
+ugly = print (filter (/=0) (map (\x -> x * 2) [1,2,3,4,5]))
+ugly
+
+better = print $ filter (>=0) $ map (\x -> x * 2) [-1,-2,0,1,2]
+better
+#+end_src
+
+#+RESULTS:
+: [2,4,6,8,10]
+: [0,2,4]
+
+* Let Bindings
+#+begin_src haskell :results output
+main = let i = [1,2,3,4,5]
+             j = 20 in
+         putStrLn ("i = " ++ (show i))
+main
+#+end_src
+
+#+RESULTS:
+: <interactive>:3:27: error:
+:     parse error (possibly incorrect indentation or mismatched brackets)
+: <interactive>:4:21-22: error: parse error on input ‘in’
+: <interactive>:5:36: error: Variable not in scope: i
+: <interactive>:6:1-4: error:
+:     • Variable not in scope: main
+:     • Perhaps you meant ‘min’ (imported from Prelude)
+
+#+begin_src haskell :results output
+callMyFunc :: Int -> Int -> Int
+callMyFunc x y = x * 2 + y
+
+main = callMyFunc 10 20
+
+main
+#+end_src
+
+#+RESULTS:
+: <interactive>:3:1-10: error:
+:     Variable not in scope: callMyFunc :: Int -> Int -> Int
+: 40
+
+#+begin_src haskell :results output
+import Text.Printf (printf)
+
+joinStrings x y = x ++ (show y)
+
+main = getLine >>= \line -> print $ words line
+#+end_src
