@@ -1,0 +1,212 @@
+#+title: Midterm 1
+1. At its core the OS is a resource manager. Its job is to make it easy and efficient to use the resources of the computer. It does this primarily through a technique called
+   - Virtualization
+2. State of a process
+   - FDs
+   - Registers
+   - Address Space
+3. Process State
+   - READY -> Available to be scheduled
+   - BLOCKED -> Not available
+   - RUNNING -> On CPU
+4. Instruction to jump into kernel, and raise priv level
+   - Trap
+5. Non-coop scheduling, how does a CPU regain control
+   - Timer interrupt
+6. How to run more processes than we have cores?
+   - time-sharing
+7. OS set's up this to enable system calls
+   - Trap table
+8. Abstraction of resources is __, how to use them __
+   - Mechanisms and policies
+9. How do we change which process is running?
+   - Context switch
+10. How to get back to user-space?
+    - Return from trap
+11. Diff between lottery and stride
+    - Stride scheduling is deterministic and lottery is non-deterministic
+12. Optimal scheduling for turnaround time, only CPU, run-time known
+    - PSJF
+13. Turnaround time, a - b, what are a and b
+    - a = completion time
+    - b = arrival time
+14. Linux CFS time slice calculation
+    - Sched_latency
+    - # of jobs in queue
+    - min_granularity
+    - Niceness
+15. Final MLFQ Rules preventing gaming
+    - Process is lowered once it uses it's alloted time, not matter if it is within a single "burst"
+16. RR sched, context switch required 17ms, min time for 91% of CPU for jobs
+    - 189 is wrong lol
+17. Response time = a - b
+    - a = first run time
+    - b = arrival time
+18. Fairness = a:b
+    - turnaround times
+19. CFS Example
+    - sched_latency 300
+    - min_gran 50
+    - A, N=13, VR=55
+    - B, N=5, VR=100
+    - C, N=10, VR=210
+    - D, N=0, VR=37
+    - E, N=0, VR=200
+    - time_slice_{k} = (weight_{k})/(all weights) * sched_latency
+    - vruntime = vruntime_{prev} + (weight_{0})/(weight_{i}) * runtime_{i}
+20. MLFQ rule 5
+    - Properly prio jobs that have become interactive
+    - Starvation
+21. VA Space 198KB, how many bits are needed
+    - ceil(log_{2}(198*1024)) = 18
+22. Segmentation questions
+    | Segment | Segment Idx |   Base | Bounds | Grows + |
+    | Code    |          00 | 0x2280 | 0x0600 |       1 |
+    | Heap    |          01 | 0x8800 | 0x0A00 |       1 |
+    | Stack   |          11 | 0x5A00 | 0x0800 | 0       |
+23. VA 0x1420, translate
+    - Heap, simple
+24. VA 0x37AE, translate
+    - Stack, hard
+    - 0x7AE => 1966
+    - 4096-1966 = 2130
+    - Bound = 2048
+    - Rev offset > bounds, segfault
+25. VA 0x0ECC
+    - Segfault
+26. 0xEACE
+    - 4096-2766=1330
+    - 1300 < Bound, valid
+    - Base + rev offset = 0x54CE
+27. PA Space 101MB, how many bits to represent
+    - ceil(log_{2}(101 * 1024 * 1024)) = 27
+28. Asm, memory accesses, w/o TLB or paging
+    #+begin_src asm
+movl 0x0(%ebx), %eax
+addl $0x03, %eax
+movl %eax, 0x0(%ebx)
+    #+end_src
+    - 5
+29. AS of 10-bits, 32 byte pages, which VPN coorosponds to addr 586
+    - 586//32 = 18
+30. Asm, w/o TLB, with paging
+        #+begin_src asm
+movl 0x0(%ebx), %eax
+addl $0x03, %eaxr
+movl %eax, 0x0(%ebx)
+        #+end_src
+    - 10
+31. How do we share SOs with other processes
+    - Utilizing the same physical frame number
+32. Asm, Hit rate, w/ TLB, 10-bit VA, 32 byte pages
+   #+begin_src asm
+124: movl 0x0(%ebx), %eax
+128: addl $0x03, %eaxr
+132: movl %eax, 0x0(%ebx)
+   #+end_src
+    - 2/5
+    - 3 instructions, 124/128 miss, 132 hits
+    - 2 mem addr, first miss, second hit
+33. Allocates in powers of 2
+    - binary buddy allocator
+34. Allocating more space than requested
+    - internal frag
+35. Allocator has units of free space too small to service requests
+    - external frag
+36. TLB only holds valid translations for a single process, how to ensure this
+    - include Address space identifier
+    - Flush all entries on context switch
+37. Why are linear page tables bad?
+    - Use all the memory all the time
+    - Every memory access causes an additional level of indirection
+38. Popular size memory requests?
+    - Segregated list, slab allocator
+39. 2 level page tables
+    - 14-bit VA, 64 byte page, 2 level page table
+    - PDE and PTE both 4 bytes (16 entries)
+    - Physical address 16-bit
+    - How many bits for the VPN?
+      - 8, need 8 for offset
+    - How many PDEs
+      - 16
+    - How many PTEs
+      - 16
+    - How many bits of the VPN for PDI?
+      - 4, 2**4 = 16
+    - How many for PTI?
+      - 4, 2**4 = 16
+    - How many bits for physical frame number?
+      - PA is 16-bits, with 64 byte pages, meaning we need 6 bits for offset
+      - 10 bits left over for PFN
+40. Inverse page tables
+    - 1MB ram, 512B pages
+    - (1024*1024)/512 = 2048
+41. How to we mark a page as needed to be written back to disk?
+    - Dirty bit
+42. FIFO scheduling turnaround time
+    - A=43
+    - B=34
+    - C=39
+    - D=30
+    - E=7
+    - (43 + (43+34) + (43+34+39) + (43+34+39+30) + (43+34+39+30+7)) / 5
+    - 107.0
+43. FIFO Scheduling response time
+    - A=30
+    - B=32
+    - C=32
+    - D=32
+    - E=27
+    - (30 + (30+32) + (30+32+32) + (30+32+32+32)) / 5
+    - 62.4
+44. PSJF I got this wrong
+45. RR, how to get average response time of 3 processes to be 40ms
+    - Set timeslice to 40
+    - (0+40+80)/2
+46. RR, 1ms, turnaround time of first job
+    - A=44
+    - B=50
+    - C=7
+    - D=29
+    - E=42
+    - (7*5) - 2 (5 total jobs, C length 7, but it starts 3rd)
+47. Max fairness using lottery scheduler, jobs of equal length [4,52]
+    - 4, always lowest
+48. Stride scheduler, 100ms length, 50 tickets, how to get fairness [0.95, 1.05]
+    - 1-5ms
+    - 100/6 = 16.6 -> 17
+    - 6*17 -> 102
+    - 6*16 -> 96
+    - 102/96 = 1.0625
+    - Therefore 6ms is too big
+49. CFS again
+    - Time slice
+      - 50
+      - Niceness 13 = 56
+      - 56 / (56 + 335 + 110 + 1024 + 1024) * 300(sched_lat) = 6.59, too small
+      - therefore 50
+    - How much is added to vruntime?
+      - 914
+      - (1024/56) * 50 = 914.2856 -> 914 (integer math)
+50. Stack, base = 0x184B, bound = 492, 9 bit offset
+    - 0x36c -> 0b101101100 -> 364
+    - Max size - offset = reverse offset
+      - 512 - 364 = 148
+    - Reverse offset < bounds = good
+      - 148 < 492
+    - Physical addr = base - reverse offset
+      - 0x184B - 148 = 6071 = 0x17B7
+51. Page Cache
+    - Access pattern
+      - 4, 3, 3, 0, 6, 5, 3, 5, 5, 1, 0, 7, 0, 5, 2
+    - Oldest->Newest for optimal and FIFO
+    - LRU->MRU for LRU
+    - Optimal
+      - [0, 5, 2]
+      - 7 hits
+    - FIFO
+      - [7, 5, 2]
+      - 4 hits
+    - LRU
+      - [0, 5, 2]
+      - 4 hits

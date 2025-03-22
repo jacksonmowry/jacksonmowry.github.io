@@ -1,0 +1,58 @@
+           __________________________________________________
+
+                          PAPER PRESENTATION 1
+                  Design and validation of a real-time
+            spiking-neural-network decoder for brain–machine
+                               interfaces
+
+                             Jackson Mowry
+           __________________________________________________
+
+
+Table of Contents
+_________________
+
+1. Summary
+
+
+1 Summary
+=========
+
+  The researchers in this paper demonstrate how spiking neural networks
+  may be used as a brain-machine interface, specifically for control
+  tasks. The issue explored is the control of a prosthetic limb, through
+  the observation and interpretation of brain signals, which are
+  typically used to control the limb being replaced. The observation is
+  accomplished through the embedding of an electrode array on the head
+  of the test subject (in this case a monkey).
+
+  The end goal of collecting these observations is to apply a Kalman
+  filter to translate instantaneous velocity into an absolute position.
+  For the purposes of this paper, the observations were used to allow a
+  monkey to control a cursor on a screen. The monkeys were trained to
+  move the cursor between various control points through moving their
+  arm, which in turn allowed the brain signals to be monitored and
+  translated into velocity measurements. For the online portion of data
+  collection the recorded measurements were fed through a traditional
+  Kalman filter, and 3 sizes of spiking neural networks, each of which
+  were controlling a cursor on the screen. The researchers additionally
+  tested offline, in which they simply compared the calculated position
+  to the observed position, tracked via a traditional camera with a
+  tracking dot on the monkey's finger.
+
+  Overall, the researchers found little difference in the time it took
+  for a monkey to adapt to the spiking-neural-network based control
+  scheme as opposed to the Kalman filter. However, the
+  spiking-neural-network approach consumed much less power, they quote
+  less than 50nW per silicon neuron. Which puts their best performing
+  network (20,000 neurons) at a total consumption of ~1mW. Kalman filter
+  approaches range from 5mW to 14mW, which is approaching or exceeding
+  the dangerous limits of how much heat can be dissipated that close to
+  someone's brain (~10mW for the targeted package size).
+
+  Sadly, the research presented in the paper used a neuromorphic
+  simulator (Nengo) to process the data, meaning all processing was
+  happening off-board, with no constraints on power or size. They were
+  however successful in closely matching the state-of-the-art Kalman
+  filters, with 3% and 6% error on networks of 20,000 and 2,000 neurons
+  respectively.
