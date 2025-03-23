@@ -40,6 +40,6 @@ pub fn main() !void {
     var res: f64 = @floatFromInt(total_time);
     res /= std.time.ns_per_s;
     res /= 1000;
-    res = 1 / res;
-    std.debug.print("FPS: {}\n", .{res});
+    const fps = 1 / res;
+    std.debug.print("res: {}, FPS: {}\n", .{ res, fps });
 }

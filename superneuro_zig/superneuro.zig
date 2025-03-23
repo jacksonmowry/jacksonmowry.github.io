@@ -145,14 +145,14 @@ pub const NeuromorphicModel = struct {
         } else {
             // Zig doesn't allow mutating function parameters
             var tracking_pre_id = pre_id;
-            for (0..delay) |_| {
+            for (0..delay - 1) |_| {
                 const temp_id = try self.create_neuron(0.0, 99999999, 0.0, 0);
                 _ = try self.create_synapse(tracking_pre_id, temp_id, 1.0, 1, false);
 
                 tracking_pre_id = temp_id;
             }
 
-            _ = try self.create_synapse(tracking_pre_id, post_id, weight, delay, stdp_enabled);
+            _ = try self.create_synapse(tracking_pre_id, post_id, weight, 1, stdp_enabled);
         }
 
         return self.num_synapses - 1;
@@ -397,6 +397,28 @@ test "Call Setup" {
     _ = try nm.create_synapse(1, 0, 1, 1, false);
 
     try nm.setup();
+}
+
+test "Delay" {
+    var nm = try NeuromorphicModel.init(std.testing.allocator);
+    defer nm.deinit();
+
+    _ = try nm.create_neuron(0, 1, 0, 0);
+    _ = try nm.create_neuron(0, 1, 0, 0);
+    const sink_id = try nm.create_neuron(0, 1, 0, 0);
+    _ = try nm.create_synapse(0, 2, 1, 1, true);
+    _ = try nm.create_synapse(1, 2, 1, 2, false);
+
+    try nm.setup();
+
+    try nm.add_spike(0, 0, 1);
+    try nm.add_spike(0, 1, 1);
+
+    try nm.simulate(4);
+
+    try expect(std.mem.eql(u32, &.{ 0, 1 }, nm.spike_train.items[0]));
+    try expect(std.mem.eql(u32, &.{ 2, 3 }, nm.spike_train.items[1]));
+    try expect(std.mem.eql(u32, &.{2}, nm.spike_train.items[2]));
 }
 
 test "And Gate" {
