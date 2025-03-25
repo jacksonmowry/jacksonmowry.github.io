@@ -15,7 +15,7 @@ pub fn main() !void {
 
     for (0..128) |i| {
         for (0..32) |j| {
-            _ = try nm.create_synapse(@intCast(i), @intCast(128 + ((i + j) % 128)), 1, 1, false);
+            _ = try nm.create_synapse(@intCast(i), @intCast(128 + ((i + j) % 128)), 1, @intCast(j % 16 + 1), false);
         }
     }
 
@@ -23,7 +23,7 @@ pub fn main() !void {
 
     var total_time: u64 = 0;
 
-    for (0..1000) |_| {
+    for (0..5000) |_| {
         for (0..128) |input| {
             if (rand.uintLessThan(u8, 100) + 1 < 25) {
                 try nm.add_spike(@intCast(0), @intCast(input), 1);
@@ -39,7 +39,7 @@ pub fn main() !void {
 
     var res: f64 = @floatFromInt(total_time);
     res /= std.time.ns_per_s;
-    res /= 1000;
+    res /= 5000;
     const fps = 1 / res;
-    std.debug.print("res: {}, FPS: {}\n", .{ res, fps });
+    std.debug.print("res: {d}, FPS: {d}\n", .{ res, fps });
 }

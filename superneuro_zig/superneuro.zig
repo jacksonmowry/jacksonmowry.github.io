@@ -293,6 +293,12 @@ pub const NeuromorphicModel = struct {
             return error.TimeStepsEqZero;
         }
 
+        for (self.spike_train.items) |item| {
+            self.allocator.free(item);
+        }
+
+        self.spike_train.clearRetainingCapacity();
+
         for (0..time_steps) |time_step| {
             var internal_spike_train = ArrayListUnmanaged(u32).empty;
             var fba = std.heap.FixedBufferAllocator.init(self.scratch_buffer[0..]);
@@ -405,7 +411,7 @@ test "Delay" {
 
     _ = try nm.create_neuron(0, 1, 0, 0);
     _ = try nm.create_neuron(0, 1, 0, 0);
-    const sink_id = try nm.create_neuron(0, 1, 0, 0);
+    _ = try nm.create_neuron(0, 1, 0, 0);
     _ = try nm.create_synapse(0, 2, 1, 1, true);
     _ = try nm.create_synapse(1, 2, 1, 2, false);
 
