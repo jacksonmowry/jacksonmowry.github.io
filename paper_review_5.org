@@ -1,0 +1,19 @@
+#+title: Time-Coded Spiking Fourier Transform in Neuromorphic Hardware
+#+author: Jackson Mowry
+
+* Review
+The authors of this paper set out to build a network capable of performing a fourier transform entirely via a spiking neural network. To accomplish this they used Intel's Loihi chip and a hand-tooled network structure. Instead of mimicking biological systems found in nature they used and entirely math-based approach replicating many of the original elements of the fourier transform. In addition to performing a fourier transform, the authors also expanded on their work to build a fast fourier transform network, which has computational benefits.
+
+Throughout this work the authors compared both of their solutions to a dedicated FFT accelerator, which is highly optimized to perform this computation. Their goal was to get either of solutions in a comparable range of both accuracy and speed.
+
+As seen in many papers using Intel's Loihi chip, the success of this networks relies on the ability to implement highly complex neuronal models entirely in hardware. The author's proposed neural model consists of 2 distinct phases, which allows them to perform multiplication. The first phase is known as the silent phase in which no neurons are allowed to spike, which is ensured by computing the maximum possible change. A given neuron's charge is entirely dependent on the time since each pre-synaptic neuron spiked, meaning if a neuron is spiked into at timestep 0 it will continue to build charge throughout the silent phase. The next phase is the spiking stage where each neuron will be charged with a constant voltage until it reaches a set threshold. Through this process neurons with higher values will spike earlier, and lower values will spike later.
+
+Their 2 solutions were measured while processing radar data and the results follow.
+
+The spiking discrete fourier transform consisted of 2048 neurons, and required 2.1 million spikes to process a single "frame" of data. This inference consumed 844mW, running at 77.6 microseconds per frame.
+
+The spiking fast fourier transform consisted of 10240 neurons, and required 84 thousand spikes to process a single frame. The inference consumed 158mW, with 315 microseconds required to process each frame.
+
+Both of the implementations showed comparable accuracy, though both were far lower than the dedicated hardware. Either implementation showed 1-2 orders of magnitude worse error than the accelerator, which processing "frames" at a rate 9-76x slower than the dedicated hardware. In addition, Loihi consumes 100-1,000x more power.
+
+Even given the results above the authors are confident in the emerging hardware of the neuromorphic space and believe that this approach will one day beat/match a custom accelerator.

@@ -272,8 +272,8 @@ pub const NeuromorphicModel = struct {
             self.synaptic_weights.items,
         );
 
-        for (self.neuron_refractory_periods.items, 0..) |rfp, i| {
-            try self.internal_neuron_refractory_periods.set(@intCast(i), rfp);
+        for (self.neuron_refractory_periods.items, 0..) |_, i| {
+            try self.internal_neuron_refractory_periods.set(@intCast(i), 0);
         }
 
         if (self.stdp == true) {

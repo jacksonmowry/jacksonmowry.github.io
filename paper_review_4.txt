@@ -1,0 +1,49 @@
+           __________________________________________________
+
+             AN 82-NW 0.53-PJ/SOP CLOCK-FREE SPIKING NEURAL
+              NETWORK WITH 40-ΜS LATENCY FOR AIOT WAKE-UP
+            FUNCTIONS USING A MULTILEVEL-EVENT-DRIVEN BIONIC
+             ARCHITECTURE AND COMPUTING-IN-MEMORY TECHNIQUE
+
+                             Jackson Mowry
+           __________________________________________________
+
+
+Table of Contents
+_________________
+
+1. Review
+
+
+1 Review
+========
+
+  The authors of this paper were seeking to create a real-time
+  /Artifical Intelligence of Things/ classifier. This classifier would
+  serve as a general purpose device which could be put in place in
+  medical or other settings where low power and low latency are
+  required. They solved the power problem by placing an additional
+  /always-on/ detection layer before the full processing higher power
+  layers.
+
+  This layer consists of a spiking neural network, which uses temporally
+  encoded spikes to determine if some event of interest is occurring.
+  These signals are then sent to a second pre-processing layer which
+  records the start and end time of an event. Once the event is detected
+  it can be sent to the traditional Von-neumann computer for further
+  processing.
+
+  The entire pre-processing layer is implemented in a clock-free manner,
+  meaning that all layers of the computation can occur simultaneously.
+  Additionally, this allows the SNN to be sampled for a result as soon
+  as the event ends, as all previous "frames" will have already been
+  processed.
+
+  This processing occurs within a 5 layer network, with each layer being
+  fulled connected. Synaptic connections do not have delay, and their
+  charge is stored as a 4-bit signed integer.
+
+  Overall, their device exhibited incredible latency, with average
+  efficiency, and a poor accuracy. The authors cite the fact that their
+  training environment did not match the inference environment, leading
+  to different results in training an inference.

@@ -3034,3 +3034,82 @@ for (int i = 0; i < 8; i++) {
 |  98% |  11.48371021 | 17.37069515 | 11.75597747 | 27.43525803 |
 |  99% |  11.71750142 | 16.84040389 | 11.42398200 | 27.65575919 |
 | 100% |  11.70533337 | 16.77098398 | 11.68013174 | 26.19905332 |
+
+
+* Bryson Data
+** Key
+| Number | Epsilon | Min. Pts |
+|      1 |       1 |        7 |
+|      2 |       2 |       18 |
+|      3 |       3 |       36 |
+|      4 |       4 |       60 |
+|      5 |       5 |       90 |
+|      6 |       6 |      120 |
+** -O3
+*** BSS Comparison
+#+PLOT: title:"DBSCAN Varied Parameters BSS Size Comparison"
+#+PLOT: set:"size ratio 0.5" set:"yrange [0:*]" file:"bss_comp.png"
+#+PLOT: set:"xlabel 'DBSCAN Param Combo'" set:"ylabel 'Size (bytes)'" ind:1 set:"key right top" with:"lines linewidth 2" set:"xrange[1:6]"
+#+PLOT: labels:("x" "risp" "rispSoA")
+|   |    risp | rispSoA |
+| 1 |  519076 |  170872 |
+| 2 | 1264036 |  246808 |
+| 3 | 2336996 |  322712 |
+| 4 | 3736036 |  398648 |
+| 5 | 5459236 |  474552 |
+| 6 | 7504676 |  550488 |
+
+*** Data Comparison
+#+PLOT: title:"DBSCAN Varied Parameters Data Size Comparison"
+#+PLOT: set:"size ratio 0.5" set:"yrange [0:*]" file:"data_comp.png"
+#+PLOT: set:"xlabel 'DBSCAN Param Combo'" set:"ylabel 'Size (bytes)'" ind:1 set:"key right top" with:"lines linewidth 2" set:"xrange[1:6]"
+#+PLOT: labels:("x" "risp" "rispSoA")
+|   |    risp | rispSoA |
+| 1 |  280800 |  180196 |
+| 2 |  513760 |  368436 |
+| 3 |  813280 |  623236 |
+| 4 | 1179360 |  944596 |
+| 5 | 1612000 | 1332516 |
+| 6 | 2111200 | 1786996 |
+
+*** Data+BSS Comparison
+#+PLOT: title:"DBSCAN Varied Parameters Data+BSS Size Comparison"
+#+PLOT: set:"size ratio 0.5" set:"yrange [0:*]" file:"data_bss_comp.png"
+#+PLOT: set:"xlabel 'DBSCAN Param Combo'" set:"ylabel 'Size (bytes)'" ind:1 set:"key right top" with:"lines linewidth 2" set:"xrange[1:6]"
+#+PLOT: labels:("x" "risp" "rispSoA")
+|   |    risp | rispSoA |
+| 1 |  799876 |  351068 |
+| 2 | 1777796 |  615244 |
+| 3 | 3150276 |  945948 |
+| 4 | 4915396 | 1343244 |
+| 5 | 7071236 | 1807068 |
+| 6 | 9615876 | 2337484 |
+
+* 4 layer
+** 64 Layer Size
+#+PLOT: set:"size ratio 0.5" set:"yrange [0:*]"
+#+PLOT: set:"xlabel 'Input Neuron Fan-Out'" set:"ylabel 'Runs per Second'" ind:1 set:"key right top" with:"lines linewidth 2" set:"xrange[1:64]"
+#+PLOT: labels:("x" "SuperNeuroMat" "risp" "vrisp" "vrisp-vector" "caspian")
+| Fan-Out | SuperNeuro | risp | vrisp | vrisp-vector | caspian |
+| 1 | 923.464977 | 41232.182543 | 73717.499797 | 63931.261108 | 81927.592394 |
+| 2 | 855.093906 | 26036.513607 | 56925.564132 | 46468.185557 | 56822.056049 |
+| 4 | 785.646367 | 14666.520001 | 41954.932012 | 37304.941786 | 22065.069891 |
+| 8 | 724.300566 | 7516.994044 | 27223.329304 | 32362.564280 | 8217.183445 |
+| 16 | 594.768016 | 3943.124374 | 18264.439866 | 29494.435875 | 4103.030375 |
+| 32 | 426.988090 | 1610.456890 | 11101.465171 | 21633.689712 | 1237.622997 |
+| 64 | 0.000000 | 468.532557 | 6271.574215 | 13470.081602 | 315.029222 |
+
+** 256 Layer Size
+#+PLOT: set:"size ratio 0.5" set:"yrange [0:*]" set:"logscale y"
+#+PLOT: set:"xlabel 'Input Neuron Fan-Out'" set:"ylabel 'Runs per Second'" ind:1 set:"key right top" with:"lines linewidth 2" set:"xrange[1:256]"
+#+PLOT: labels:("x" "SuperNeuroMat" "risp" "vrisp" "vrisp-vector" "caspian")
+| Fan-Out | SuperNeuro | risp | vrisp | vrisp-vector | caspian |
+| 1 | 642.381890 | 10252.288311 | 11826.230105 | 10113.790254 | 20927.069164 |
+| 2 | 610.329137 | 5971.525378 | 11747.306049 | 9299.756253 | 14889.371966 |
+| 4 | 596.862770 | 2128.870313 | 9108.422102 | 7477.876702 | 4364.109909 |
+| 8 | 527.386384 | 922.506757 | 6544.648245 | 7000.634257 | 785.337683 |
+| 16 | 483.084880 | 356.225081 | 4362.879920 | 6672.186789 | 244.860135 |
+| 32 | 364.912482 | 172.649928 | 2633.079803 | 4965.043610 | 114.344635 |
+| 64 | 0.000000 | 79.639549 | 1229.702379 | 2093.237399 | 59.591288 |
+| 128 | 0.000000 | 39.164288 | 621.264106 | 1089.432375 | 33.361311 |
+| 256 | 0.000000 | 21.997481 | 379.006841 | 682.841404 | 22.509448 |

@@ -1,0 +1,14 @@
+#+title: Event-based PID controller fully realized in neuromorphic hardware: a one DoF study.
+#+author: Jackson Mowry
+For my third paper I reviewed a neuromorphic PID implementation, using Intel's Loihi as their hardware platform. They compared their results directly against a software implemented PID. Either platform was controlling the motors of a drone, which was fixed on an axle, allowing one degree of freedom.
+
+On the Kapoho Bay device binning was used as their encoding strategy. Specifically, they used 63 neurons to encode all possible values for each of their three inputs. As inputs to the system angular acceleration, angle, and a set point were given. The two external measurements were captured using a DAVIS 240C EBC. Instead of training a model, the researchers used a collection of hand built functional blocks, pieced together to achieve their desired functionality.
+
+To perform their desired computation the researchers built a two dimensional matrix where the components of =a*b= were spiked in the row and column respectively. Every neuron in the row, and column spiked would be activated, with only the intersection point producing an output spike. This effectively worked as an output table allowing them to perform some fixed set of multiplication operations. After processing the output spikes were decoded using the x86 cores on Loihi to generate an analog signal between [-1, 1].
+
+Their network fit on one third of a Loihi core, meaning they needed to run more than one network simultaneously in order to observe accurate power consumption numbers. When running three networks 20.3mW were consumed, which scaled linearly as the number of networks increased.
+
+Their quantitative results showed slightly worse performance than a software PID. The only category they beat the software implementation in was /rise time/, just because they commanded higher values than necessary, resulting in large over-shoots.
+
+The last key point from the paper was that the communication overhead between Loihi and
+the real world proved to be a challenge. They cited numbers around 9ms of delay, with the network itself only requiring 1ms to perform a calculation. This is likely the reason they were not able to perform up to the level of the software PID.

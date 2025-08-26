@@ -1,0 +1,93 @@
+#+HTML_LINK_HOME: index.html
+#+HTML_LINK_UP: index.html
+#+title: /Write Composable Scripts/
+#+author: Jackson
+#+date: 3/28/24
+#+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
+#+SETUPFILE: retro_dark.theme
+
+* _Introduction_
+When writing scripts for data collection or other types of automation I often find I can take one of two different paths. I can either write a fully self contained script, which is purpose built for the task at hand, or I can write small scripts which expose everything I could *ever* need out of running them. The latter option not only leads to faster iteration times, but also better collaboration, with the ability to quickly pivot and try other ideas.
+
+* _The Problem_
+We'll be looking at benchmarking an example application, which consists of a single metric, runtime. The application takes in a few parameters and simply prints out the final metric, we rely on the application itself to report runtime. This may seem like an odd decision, but the timing code is shared in the driver code common to both applications.
+
+#+begin_src shell
+$ bin/connectivity_app_risp
+usage: bin/connectivity_app_risp network_json activity_percent timesteps
+$
+$ bin/connectivity_app_risp networks/testing_cache/4_4_15_2_10.json 100 200
+Average frame time: 0.0000005218
+$
+#+end_src
+
+#+begin_example
+If we were concerned about another metric it would be printed alongside the frame time.
+#+end_example
+
+Our application takes a few arguments which we'll want to vary over the course of our experiments. To that end, instead of writing a single mega-script which handles all aspects of benchmarking and parameter changing, we'll first write a parameterizied driver script, and then individual wrapper scripts for our experiments.
+
+** _Driver Script_
+#+begin_src shell
+if [ "${#}" -ne 8 ]; then
+    echo "usage: ${0} [empty_network.json] [num_input_neurons] [num_output_neurons] [max_delay] [fan_out] [recurrence] [activity_percent] [timesteps]" 2>&1
+    exit 1
+fi
+
+empty_network="${1}"
+num_input_neurons="${2}"
+num_output_neurons="${3}"
+max_delay="${4}"
+fan_out="${5}"
+recurrence="${6}"
+activity_percent="${7}"
+timesteps="${8}"
+#+end_src
+
+We start by declaring all of our parameters in a usage statement, then binding them to variables. I like to start here without ever writing any actual code. By defining the "API" up front we can stub out the rest of the script and then move on to using this script in a composable manner. Here is the stub for the remainder of the script.
+
+#+begin_src shell
+echo "1.000"
+echo "1.000"
+#+end_src
+
+We're doing a simple A to B benchmark with two applications, so we expect the script to output the time we saw above for both implementations. With that out of the way we can now move on to using this script. For brevity we will implement only one of the experiment scripts, and then show how to modify it for various experiments.
+
+** _Experiment Script_
+#+begin_src shell
+i=1
+while [ "${i}" -le 15 ]; do #                                                vvvvvv This is our experimental parameter
+    output=$(sh scripts/blog_driver.sh networks/risp_15_plus.json 64 64 "${i}" 32 10 25 5000)
+    printf '| %2d | %s | %s |\n' \
+        "${i}" \
+        "$(echo "${output}" | sed '1q;d' | awk '{ printf("%0f", 1/$1) }')" \
+        "$(echo "${output}" | sed '2q;d' | awk '{ printf("%0f", 1/$1) }')"
+    i=$((i + 1))
+done
+#+end_src
+
+That's it! Now our experiment script won't have to change. We've defined a clear boundary between the two scripts, allowing us to change the inner script, as long as we stick to the API. Let's run it an see what we get.
+
+#+begin_src shell
+$ sh scripts/blog_exp.sh
+|  1 | 1.000000 | 1.000000 |
+|  2 | 1.000000 | 1.000000 |
+|  3 | 1.000000 | 1.000000 |
+|  4 | 1.000000 | 1.000000 |
+|  5 | 1.000000 | 1.000000 |
+|  6 | 1.000000 | 1.000000 |
+|  7 | 1.000000 | 1.000000 |
+|  8 | 1.000000 | 1.000000 |
+|  9 | 1.000000 | 1.000000 |
+| 10 | 1.000000 | 1.000000 |
+| 11 | 1.000000 | 1.000000 |
+| 12 | 1.000000 | 1.000000 |
+| 13 | 1.000000 | 1.000000 |
+| 14 | 1.000000 | 1.000000 |
+| 15 | 1.000000 | 1.000000 |
+$
+#+end_src
+
+Great! This isn't any use to us so far, but hopefully this shows the beginning of the idea. Now we can talk about implementing the rest of the driver.
+
+#  LocalWords:  Composable composable

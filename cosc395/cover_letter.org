@@ -1,0 +1,11 @@
+I am applying for the position of High-Level Embedded Software Intern as embedded systems development is a large passion of mine. I have previously completed 2 internships with Garmin and am familiar with the development strategies used across the company, along with the expectation for high quality software. Additionally, I have had the privilege to take many courses in software development during my time at UTK. Designing functioning systems that satisfies the customers needs, and provides the opportunities for other engineers to build upon is a goal I will always strive for in this role.
+
+During my last summer internship with Garmin I developed a system provided data syncing capabilities across both production and non-production environments. This project was an opportunity to serve both customer, product support, and engineering with a single product. This was the perfect opportunity to showcase my ability to engineer a product from start to finish with minimal guidance from other engineers, allowing me to speak directly with stakeholders to determine requirements. My next goal is to be able to showcase these skills in an embedded environment where my passion can shine through.
+
+Another recent project that would benefit the embedded teams at Garmin was a network description to C code compiler. As part of my research I worked together with a team of graduate research assistants to develop a compiler allowing for high level neuromorphic network descriptions to produce efficient C code. I would love the opportunity to work on Garmin's equivalent of this tool, CheetaFX, specifically the resource compiler for UI layout. The chance to work an a top tier engineering team would be an incredible opportunity.
+
+Lastly, I would just like to thank your for taking the time to read through my application and hope that you'll consider me for an interview. You can find my resume enclosed with previous technical experience and relevant skills.
+
+Sincerely,
+
+Jackson Mowry
