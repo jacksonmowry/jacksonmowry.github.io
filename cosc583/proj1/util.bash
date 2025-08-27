@@ -104,6 +104,17 @@ function printState {
     printf '\n'
 }
 
+function debugPrint {
+    local -n s="${1}"
+
+    printf '%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n' \
+        "${s[0]}" "${s[4]}" "${s[8]}" "${s[12]}" \
+        "${s[1]}" "${s[5]}" "${s[9]}" "${s[13]}" \
+        "${s[2]}" "${s[6]}" "${s[10]}" "${s[14]}" \
+        "${s[3]}" "${s[7]}" "${s[11]}" "${s[15]}"
+
+}
+
 function transpose {
     local -n t_mat="${1}"
     local -a t_copy=("${t_mat[@]}")

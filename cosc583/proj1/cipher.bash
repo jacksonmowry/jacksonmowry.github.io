@@ -109,11 +109,14 @@ function AddRoundKey {
     local -i round="${3}"
 
     for ((ark_col = 0; ark_col < 4; ark_col++)); do
+        printf '%08x' $((ark_w[(round) * Nb + ark_col]))
         ark_state[(0 * Nb) + ark_col]=$((ark_state[(0 * Nb) + ark_col] ^ (ark_w[(round) * Nb + ark_col] >> 24) & 0xFF))
         ark_state[(1 * Nb) + ark_col]=$((ark_state[(1 * Nb) + ark_col] ^ (ark_w[(round) * Nb + ark_col] >> 16) & 0xFF))
         ark_state[(2 * Nb) + ark_col]=$((ark_state[(2 * Nb) + ark_col] ^ (ark_w[(round) * Nb + ark_col] >> 8) & 0xFF))
         ark_state[(3 * Nb) + ark_col]=$((ark_state[(3 * Nb) + ark_col] ^ (ark_w[(round) * Nb + ark_col] >> 0) & 0xFF))
     done
+
+    printf '\n'
 }
 
 function SubBytes {
@@ -264,21 +267,51 @@ function Cipher {
     local -i rounds=0
     Nr $((c_nk)) rounds
 
+    printf '%-20s' "round[ 0].input"
+    debugPrint state
+
+    printf '%-20s' "round[ 0].k_sch"
     AddRoundKey state c_w 0
 
     for ((c_round = 1; c_round < rounds; c_round++)); do
+        printf 'round[%2d].start     ' $((c_round))
+        debugPrint state
+
         SubBytes state
+        printf 'round[%2d].s_box     ' $((c_round))
+        debugPrint state
+
         ShiftRows state
+        printf 'round[%2d].s_row     ' $((c_round))
+        debugPrint state
+
         MixColumns state
+        printf 'round[%2d].m_col     ' $((c_round))
+        debugPrint state
+
+        printf 'round[%2d].k_sch     ' $((c_round))
         AddRoundKey state c_w $((c_round))
+
     done
 
+    printf 'round[%2d].start     ' $((rounds))
+    debugPrint state
+
     SubBytes state
+    printf 'round[%2d].s_box     ' $((rounds))
+    debugPrint state
+
     ShiftRows state
+    printf 'round[%2d].s_row     ' $((rounds))
+    debugPrint state
+
+    printf 'round[%2d].k_sch     ' $((rounds))
     AddRoundKey state c_w $((rounds))
 
     c_out=("${state[@]}")
     transpose c_out
+    printf 'round[%2d].output    ' $((rounds))
+    debugPrint state
 }
 
 function ICipher {
@@ -289,23 +322,51 @@ function ICipher {
 
     local -a state=("${ic_in[@]}")
     transpose state
-
     local -i rounds=0
     Nr $((ic_nk)) rounds
 
+    printf '%-20s' "round[ 0].iinput"
+    debugPrint state
+
+    printf '%-20s' "round[ 0].ik_sch"
     AddRoundKey state ic_w rounds
 
     for ((ic_round = rounds - 1; ic_round >= 1; ic_round--)); do
+        printf 'round[%2d].istart    ' $((rounds - ic_round))
+        debugPrint state
+
         InvShiftRows state
+        printf 'round[%2d].is_row    ' $((rounds - ic_round))
+        debugPrint state
+
         InvSubBytes state
+        printf 'round[%2d].is_box    ' $((rounds - ic_round))
+        debugPrint state
+
+        printf 'round[%2d].ik_sch    ' $((rounds - ic_round))
         AddRoundKey state ic_w $((ic_round))
+        printf 'round[%2d].ik_add    ' $((rounds - ic_round))
+        debugPrint state
+
         InvMixColumns state
     done
 
+    printf 'round[%2d].istart    ' $((rounds))
+    debugPrint state
+
     InvShiftRows state
+    printf 'round[%2d].is_row    ' $((rounds))
+    debugPrint state
+
     InvSubBytes state
+    printf 'round[%2d].is_box    ' $((rounds))
+    debugPrint state
+
+    printf 'round[%2d].ik_sch    ' $((rounds))
     AddRoundKey state ic_w $((0))
 
     ic_out=("${state[@]}")
     transpose ic_out
+    printf 'round[%2d].ioutput   ' $((rounds))
+    debugPrint state
 }
