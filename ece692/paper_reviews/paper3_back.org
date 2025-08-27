@@ -1,0 +1,5 @@
+#+title: Paper Presentation 3
+#+subtitle: Event-based PID controller fully realized in neuromorphic hardware: a one DoF study.
+#+author: Jackson Mowry
+
+* Summary

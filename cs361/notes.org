@@ -393,3 +393,122 @@ All of the following addresses are within our processes address space, not physi
 - Take the max possible size - offset = reverse offset
 - As long as this is <= the bounds we're good
 - Final address translation is base - reverse offset = PA
+
+* Chapter 33 - Event Based Concurrency
+- Multithreading is hard
+- Multithreading gives little control over scheduling
+- How can we build a concurrent server without threads?
+  - Event loop
+  - Event handlers, decide on that to handle next
+** Select/Poll
+- check if any changes have been made to a file descriptor
+** Issues
+- Moving to multi cpu is actually harder than pure multi-threading
+- If an event handler page faults it will block
+- Hard to manage oer time, blocking to non-blocking the handler must change
+- Mixed interfaces between network I/O and disk I/O
+- Select()/poll() for network; aio_XXX() for disk
+
+* Persistence
+* Chapter 36 - I/O Devices
+- How do we integrate I/O into systems? What are the mechanisms, how do we make them efficient?
+- System architecture
+  - CPU attached to RAM via memory bus
+  - Some devices are on I/O bus
+    - PCI
+  - Slower devices are on a peripheral bus
+    - Disk/USB
+-
+** Device
+- Interface and Internals
+  - Register
+    - Status
+      - Get the status of device
+    - Command
+      - Write to issue a command
+    - Data
+      - Put/Get data to/from device
+#+begin_src
+while (STATUS == BUSY)
+    ;
+Write data to DATA register
+Write command to COMMAND register
+    starts device
+While (STATUS == BUSY)
+    ;
+#+end_src
+
+- But this has problems
+  - Polling is inefficient
+  - Instead have a hardware interrupt
+    - When hardware is done, it raises an interrupt
+    - OS interrupt handler completes the IO
+- But interrupt might also be bad
+  - If the time it would take to do 2 context switches is longer than it would take for the actual IO operation we should do it blocking
+    - Fast devices
+    - Networking
+  - Event coalescing
+    - Device doesn't raise interrupt immediately (spam vs latency)
+- Even more
+  - PIO wastes CPU time, must copy data one word at a time
+  - DMA is essentially a very specific device to transfer between RAM and devices
+  - DMA raises an interrupt on completion
+- x86 has in/out instructions
+- Other devices have MMIO, hardware makes device registers available as if they were memory locations
+- OS issues load/store to the address to read/write the registers
+** Device Drivers
+- Device drivers have a very specific interface, how to keep them generic
+- Linux is 70% device drivers
+- To keep them generic we abstract on top of them with the various layers of APIs
+
+* Chapter 37 - Hard Drive
+IO Time
+
+T_seek + T_rotation + T_transfer (average need to /2)
+
+Rate IO
+size_transfer / T_io
+
+** Cheetah
+ - T_seek -> 4ms
+ - T_rotation
+   - 15000rpm / 60
+   - 250rps, 1/250 sec
+   - 4ms, 2ms average (R/2)
+ - T_transfer, size/transfer speed
+   - 4KB -> 0.032ms
+   - 100MB -> 800ms
+*** Random 4KB Read
+4ms + 2ms + 0.032ms = 6.032ms
+4KB/6.032ms = 4MB/6.032s ~= 0.66MB/s
+*** Sequential 100MB Read
+4ms + 2ms + 800ms = 806ms
+100MB/806ms = 100000MB/806s ~= 125MB/s
+** Barracuda
+- T_rotation = 4.16ms
+  - 7200RPM -> 120RPS
+  - 1/120 second (8.33ms)
+- T_transfer
+  - 4KB -> 0.038ms
+  - 100MB -> 952ms
+- T_seek 9ms
+*** Random
+9ms + 4.16ms + 0.038ms = 13.198ms
+4KB/13.198ms = 4MB / 13.198s ~= 0.31MB/s
+*** Sequential
+9ms + 4.16ms
+
+** Scratch
+RPMs = 5400
+Average Seek = 10ms
+Max Transfer 300MB/s
+
+
+
+T_rotation = 11.11ms/2 = *5.555*
+T_seek = 10ms
+T_transfer = 333.33ms
+
+354.44
+
+100MB/349ms

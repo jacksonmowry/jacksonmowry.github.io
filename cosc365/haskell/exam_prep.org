@@ -1,0 +1,103 @@
+#+title: Exam Prep
+
+* Pig Latin
+#+begin_src haskell
+import Data.Char
+
+mapper :: String -> String
+mapper str
+    | Data.Char.toLower (head str) `elem` ['a', 'e', 'i', 'o', 'u'] = str ++ "yay"
+    | otherwise = rst ++ h ++ "ay"
+        where h = takeWhile (\c -> not (c `elem` ['a', 'e', 'i', 'o', 'u'])) str
+              rst = drop (length h) str
+
+main = do
+    line <- getLine
+    let inputList = words line
+        strList = map mapper inputList
+    putStrLn $ unwords strList
+#+end_src
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+* Tax Rates
+#+begin_src haskell
+import Text.Printf (printf)
+
+taxRates :: [(Double, Double)]
+-- Write tax rates here
+-- The left value is the income floor
+-- The right value is the tax rate for that income floor
+taxRates = [(15000, 0.3815), (10000, 0.3129), (5000, 0.2871), (1000, 0.25), (0, 0.20)]
+
+helper :: Double -> (Double, Double) -> Double
+helper dollars rate
+    | dollars > fst(rate) = (dollars - fst(rate)) * snd(rate)
+    | otherwise = 0.0
+
+calculateTaxes :: Double -> [(Double,Double)] -> Double
+-- Write calculateTaxes here
+-- The first parameter is the dollar amount.
+-- The second parameter is a list of tuples containing the tax rates.
+calculateTaxes _ [] = 0.0
+calculateTaxes dollars [singleRate] = helper dollars singleRate
+calculateTaxes dollars rates = helper dollars (head rates) + calculateTaxes newDollars (tail rates)
+    where newDollars = minimum [dollars, fst (head rates)]
+
+main :: IO ()
+main = do
+    line <- getLine
+    let dollars = read line :: Double
+        tax = calculateTaxes dollars taxRates
+        taxP = round (tax / dollars * 100) :: Int
+    printf "$%.2f\n" tax
+    printf "%d%%\n" taxP
+#+end_src
+
+* Factors
+#+begin_src haskell
+findFactors :: Int -> Int -> [Int] -> [Int]
+findFactors iterator upperBound listSoFar
+    | iterator > upperBound = listSoFar
+    | (upperBound `mod` iterator) == 0 = findFactors (iterator+1) upperBound [iterator]++listSoFar
+    | otherwise = findFactors (iterator+1) upperBound listSoFar
+
+main = do
+    s <- getLine
+    e <- getLine
+
+    let start = read s :: Int
+        end   = read e :: Int
+
+    let strs = map (\num -> (show num) ++ ":" ++ (map (\c -> if not (c `elem` ['[', ']', ',']) then c else ' ') (show (reverse (findFactors 1 num [])))))[start..end]
+    putStrLn (unlines strs)
+#+end_src

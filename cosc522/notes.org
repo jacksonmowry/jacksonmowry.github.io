@@ -1,0 +1,11 @@
+#+title: Notes
+
+* Intro Day
+-
+* HW 1
+- Entropy of 1 when you have N values and each has 1/N probability
+  - Do a proof of the above
+
+* Entropy of N variables
+X: T, ..., n
+H(X) = negative sigma

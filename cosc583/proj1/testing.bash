@@ -17,7 +17,9 @@ function expect_equal_int_array {
     local len=${#testing_expected[@]}
     for ((i = 0; i < len; i++)); do
         if ((testing_expected[i] != testing_actual[i])); then
-            echo "Expected ${testing_expected[@]}, got ${testing_actual[@]}, element ${i} (${testing_expected[i]} != ${testing_actual[i]})"
+            echo "Expected [${testing_expected[*]}]"
+            echo "Got [${testing_actual[*]}]"
+            printf "Element %d (0x%08x != 0x%08x)\n" $((i)) $((testing_expected[i])) $((testing_actual[i]))
             exit 1
         fi
     done

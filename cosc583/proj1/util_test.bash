@@ -29,4 +29,25 @@ expect_equal_int 0x07 "${result}"
 ffMultiply 0x57 0x13 result
 expect_equal_int 0xfe "${result}"
 
+####################
+# extended_euclids #
+####################
+extended_euclids 3 256 result
+expect_equal_int 171 $((result))
+
+extended_euclids 0 256 result
+expect_equal_int 0 $((result))
+
+###########
+# SubByte #
+###########
+SubByte 0x13 result
+expect_equal_int 0x7d $((result))
+
+SubByte 0xff result
+expect_equal_int 0x16 $((result))
+
+SubByte 0x00 result
+expect_equal_int 0x63 $((result))
+
 echo "All Tests Passed"
