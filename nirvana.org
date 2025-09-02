@@ -1,0 +1,52 @@
+#+title: Nirvana
+
+* Primitives
+** Input
+- Seems pretty simple, N dimensional
+- Could be implemented as a flat layer with additional metadata describing the shape
+- Additionally, this can probably get folded into the actual neurons, there is no point in having an additional layer as far as I can tell
+** Output
+- Same as above
+** Affine
+- Looks like a linear equation, Wx+b
+- W and b appear to be provided as parameters
+** Convolution
+- P complicated
+- Kernel is described as W, rest of the parameters seems self explanatory
+** Delay
+- Real numbered delay (yikes)
+- Computation is described as grabbing the charge from T time steps in the past
+- Probably don't implement it is described above, but we'll see
+** Flatten
+- Simply a description of how to map between 2 layers, will only exist at the synapse level
+** Integrator
+- For some reason this has a scalar on the integrator??
+- I guess we would consider this to always be 1 in RISP?
+** Leaky Integrator
+- Some constant amount of leak?
+- This equation doesn't make a whole lot of sense
+** Linear/Scale
+- These are the same thing?
+- Just used to scale a signal I guess
+** Spike
+- Theta = threshold
+* Higher-Order Primitives
+** Integrate-and-fire
+- Integrator going into a spike, with a linear reset block
+** Leaky Integrate and Fire
+- Same as above, just leaks
+** Current-based leaky integrate-and-fire
+- No clue, just seems more complicated
+
+* Plan
+- Create a translation layer from TENNLab network into NIR
+  - This will allow me to get the concepts/python API under my belt
+  - Will also test if other simulators are even worth porting our networks to
+- Create a translation layer from NIR to TENNLab networks
+  - Depending on how many primitives we'd like to support we can just steal the code/logic from the whetstone conversion program
+  - Things we cannot support
+    1. Linear/Scale
+    2. Affine
+- Don't know if there's any reason to build a full NIR compliant simulator?
+  - Wouldn't I basically just be building SnnTorch or something similar at that point?
+  - We wouldn't be able to use EONS to take full advantage of it's potential
