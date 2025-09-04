@@ -1,0 +1,26 @@
+#+title: Neuromorphic Intermediate Representation
+* Paper Notes
+- Basically everything in this section is directly quoted from the paper sans typos
+** Introduction
+- Neuromorphic models are best captured as a continuous-time dynamical system
+  - Any representation of a continuous system as a sequence of digital instructions implies using numberical integration techniques
+- Inspired by signal flow graphs, linear time-invariant systems, and mealy machines for the description of composable circuit components with application to digital or analog or hybird systems
+** Goals
+1. Dervie and implement a set of model-centric computational primitives that are common to multiple neuromorphic software and hardware systems
+2. Illustrate the application of NIR across 7 different simulators and 4 different hardware platforms
+3. Demonstrate flxxible cross-platform deployment of NIR models
+4. Evaluate exemplary neuromorphic models defined in NIR across all 11 supported platforms hardware/software
+** Results
+- Computations are graphs, with each node representing a computational primitive
+  - These are defined by a hybrid continuous-time dynamical system
+  - Advantages of this include:
+    1. avoiding any assumptions around discretization/hardware constraints
+    2. Provides a reference model against which implementations can be compared
+    3. Decouples the software description from the hardware layer, allowing seamless integration with mixed-signal chips, as well as analog hardware, and hybrid digital-analog systems
+  - The conversion between continuous-time dynamical systems and digital platforms will give divergent results
+  - Predefined set of computational primitives instead of neural equaltions
+    - LIF
+  - Will demoed on 3 different tasks
+    1. LIF model
+    2. SCNN
+    3. SRNN

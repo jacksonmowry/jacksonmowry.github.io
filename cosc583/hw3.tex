@@ -1,0 +1,66 @@
+% Created 2025-09-03 Wed 09:33
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Wed Sep  3 09:33:29 2025}
+\title{Hw3}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={Hw3},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.31)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\begin{enumerate}
+\item Pseudocode for the padding function described in Section 5.1.1.
+\end{enumerate}
+\begin{verbatim}
+# Equation we're trying to solve l + 1 + k == 448mod512
+# Simplifies to 448 - (l + 1) = k
+
+def pad_message(message: u1[]) -> void:
+    message_len: u64 = length of message in bits
+    k = 448 - (message_len + 1)
+
+    message += 1
+    for 0 to k:
+        message += 0
+    end
+
+    message += message_len as u1[]
+
+\end{verbatim}
+
+\begin{enumerate}
+\item Pseudocode for calculating the messaging schedule (W\textsubscript{t}) described in Section 6.1.2.
+\end{enumerate}
+\begin{verbatim}
+def message_schedule(message: u1[], block: u32) -> u32[]:
+    current_block = message[(block * 512)..(block * 512 + 512)]
+    w: u32[] = []
+
+    for i = 0 to 80:
+        if i >= 0 && i <= 15:
+            w += current_block[(i * 32)..(i * 32 + 32)]
+        else
+            w += rotl(w[i-3] ^ w[i-8] ^ w[t-14] ^ w[t-16])
+        fi
+    end
+
+    return w
+\end{verbatim}
+\end{document}

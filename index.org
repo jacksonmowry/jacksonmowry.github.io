@@ -2,6 +2,16 @@
 #+author: Jackson
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
+* Papers
+** VRISP: A Vectorized Open-Source Simulator for Efficient Neuromorphic Computing
+*Jackson Mowry* and James S. Plank
+
+[[https://neuromorphic.eecs.utk.edu/publications/2025-07-30-vrisp-a-vectorized-open-source-simulator-for-efficient-neuromorphic-computing][VRISP Paper]]
+** Generating Spiking Neural Network Code Libraries for Embedded Systems
+Bryson Gullett and *Jackson Mowry* and James S. Plank and Luke Whatley and Charlie P, Rizzo and Catherine. D. Schuman
+
+[[https://neuromorphic.eecs.utk.edu/publications/2025-07-29-generating-spiking-neural-network-code-libraries-for-embedded-systems][Framework Embedder Paper]]
+
 * Articles
 ** Going Phone-/less/
 [[file:phone-less.org][Going Phone-/less/]]
