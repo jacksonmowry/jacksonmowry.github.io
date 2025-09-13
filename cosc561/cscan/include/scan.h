@@ -6,10 +6,10 @@ extern "C"{
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#define MAX_LEXEME_LENGTH (64)
+#include <string.h>
 
 #define TOKEN_VALUES        \
+    X(ASSIGN, "=")          \
     X(ASSIGN_OR, "|=")      \
     X(ASSIGN_XOR, "^=")     \
     X(ASSIGN_AND, "&=")     \
@@ -22,11 +22,11 @@ extern "C"{
     X(ASSIGN_MOD, "%=")     \
     X(OR, "||")             \
     X(AND, "&&")            \
+    X(BIT_NOT, "~")         \
     X(BIT_OR, "|")          \
     X(BIT_XOR, "^")         \
     X(BIT_AND, "&")         \
     X(EQ, "==")             \
-    X(SET, "=")             \
     X(NE, "!=")             \
     X(GT, ">")              \
     X(GE, ">=")             \
@@ -40,7 +40,6 @@ extern "C"{
     X(DIV, "/")             \
     X(MOD, "%")             \
     X(NOT, "!")             \
-    X(INVERSE, "~")         \
     X(SEMICOLON, ";")       \
     X(COLON, ":")           \
     X(COMMA, ",")           \
@@ -73,16 +72,25 @@ typedef enum TokenType {
     STRING_LITERAL,
     IDENTIFIER,
     EOF_TOKEN,
+    NULL_TOKEN,
 } TokenType;
 
 typedef struct Token {
     TokenType type;
+    int line;
+    int column;
+    char* lexeme;
     union {
         double float_literal;
         long long int_literal;
-        char* lexeme;
     };
 } Token;
+
+typedef struct Keyword {
+    TokenType type;
+    char *lexeme;
+    struct Keyword *next;
+} Keyword;
 
 static void print_escaped_char(char c) {
 	switch (c) {
@@ -143,10 +151,14 @@ static void print_token(Token token) {
     case FIRST: 
         TOKEN_VALUES
 #undef X
-    case STRING_LITERAL:
     case IDENTIFIER:
-            printf("%-16s ", token_type_str(token.type));
+            printf("%-16s %s", token_type_str(token.type), token.lexeme);
+            printf("\n");
+            break;
+    case STRING_LITERAL:
+            printf("%-16s \"", token_type_str(token.type));
             print_escaped_str(token.lexeme);
+            printf("\" (length=%ld)", strlen(token.lexeme));
             printf("\n");
             break;
     case INT_LITERAL:
