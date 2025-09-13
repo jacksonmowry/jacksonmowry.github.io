@@ -1,10 +1,10 @@
 # Compilers
-CC  := gcc
-CXX := g++
+CC  := clang
+CXX := clang++
 
-CFLAGS   := -Wall -Wextra -Iinclude -g -fPIE
-CXXFLAGS := -Wall -Wextra -Iinclude -g -fPIE
-LDFLAGS  := -fPIE
+CFLAGS   := -Wall -Wextra -Iinclude -g -fPIE -fsanitize=address
+CXXFLAGS := -Wall -Wextra -Iinclude -g -fPIE -fsanitize=address
+LDFLAGS  := -fPIE -fsanitize=address
 LIBS     := -Lref_lib -lscan
 
 SRC_DIR := src
