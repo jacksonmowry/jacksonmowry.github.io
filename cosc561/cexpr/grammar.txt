@@ -1,0 +1,37 @@
+prog  -> stmts
+
+stmts -> stmt stmts
+      |  epsilon
+
+stmt  -> expr ;
+      |  ;
+
+expr  -> term = expr
+      |  term |= expr
+      |  term ^= expr
+      |  term &= expr
+      |  term <<= expr
+      |  term >>= expr
+      |  term += expr
+      |  term -= expr
+      |  term *= expr
+      |  term /= expr
+      |  term %= expr
+      |  term | expr
+      |  term ^ expr
+      |  term & expr
+      |  term << expr
+      |  term >> expr
+      |  term + expr
+      |  term - expr
+      |  term * expr
+      |  term / expr
+      |  term % expr
+      |  term
+
+term  -> ( expr )
+      |  -expr
+      |  ~expr
+      |  ID
+      |  LIT
+

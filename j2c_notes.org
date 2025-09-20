@@ -1,0 +1,46 @@
+#+title: J2c Notes
+
+* Notes
+- Spikes/rate encoder -> hamming distance
+  - Spike only uses bin
+- Temporal -> minkowski (euclidian distance), time + bin are both taken in factor
+- Val -> amplitude + bin
+- What we're looking to show
+  - You get the distance value between every pair of samples
+  - Dunn index, or average dunn index makes more sense
+  - Encoder A has this value for avg dunn idx
+  - Scale all dunn idxs between 0 and 1 and then plot thos on the tukey plot graph
+  - As the tukey plot graph gets worse the single points for the dunn idx per encoder also get worse
+    - Hoping this is a linear relationship
+  - Showing that an encoder is good for a particular dataset and eons
+- No support for timeseries yet, will come once it is proven to work
+- Only supporting classification for now
+  - Doesn't make a ton of sense for control unless you just make the control into a classification task
+- Deliverables
+  - Across 10 datasets, 100's of encoders, calculate avg dunn indexes, plot that (after scaling) on the same graph, hopefully showing a correlation between fitness and avg dunn index
+  - Run a ton of experiments generting a ton of tukey plots
+** Why
+- Avoids doing grid search
+- We can pick the top x % of encoders before doing a larger experiment
+- This all happens before eons training starts
+- Manually steering how we run more experiments
+** Goals
+- Easy paper
+- Exploring latent space that you create when you encode data
+- Timeseries or not
+* Encoder Interface
+- Avg dunn index is a grandslam, implement something where we don't have a defined encoder, we just maximize the dunn index and an encoder is simply chosen for the user
+- The interface would enable us to build a tool that just does this automatically for the user
+- Now we have a new encoder interface (which supports any encoder) instead of just training eons on 100+ encoder, we just start with the best ones (by dunn index), growing the dunn index incrementally through evolution
+- Make this a much bigger thing where we revamp how we think about encoders
+  - We can literally be the best lab in the world at this
+  - don't want to have to think about encoding in the future
+- Encoding can be done better
+- Don't destory all previous networks
+  - If you do, have a tool to auto upgrade old networks
+- Reproducible or programitically generate graphical representations of the wacky encoders
+
+* Priorities
+- Simulation runs for calculating dunn index and eons fitness
+  - Verify that this metric even makes sense
+- Then generalizing encoders
