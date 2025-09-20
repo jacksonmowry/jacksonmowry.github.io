@@ -98,7 +98,7 @@ top:
     case '~': {
         // Only monograph
         match('~');
-        return (Token){.type = INVERSE, .lexeme = "~"};
+        return (Token){.type = BIT_NOT, .lexeme = "~"};
     } break;
     case '^': {
         match('^');
@@ -178,7 +178,7 @@ top:
             return (Token){.type = EQ, .lexeme = "=="};
         } break;
         default: {
-            return (Token){.type = SET, .lexeme = "="};
+            return (Token){.type = ASSIGN, .lexeme = "="};
         } break;
         }
     } break;
