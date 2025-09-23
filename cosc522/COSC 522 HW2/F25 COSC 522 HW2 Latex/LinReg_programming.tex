@@ -1,0 +1,80 @@
+\section{Linear Regression for Time Series [30 Points]}
+
+In this problem you will explore fitting a linear regression to predict time series data using OLS and stochastic gradient descent.
+
+\subsection{Data Processing}
+
+In this problem, you will be using a temperature dataset which can be found in the file \texttt{temperature.csv}. This file contains timestamps (column labeled \texttt{`Date Time'}) at 30 minute intervals and corresponding temperature measurements (column labeled \texttt{`T (degC)'}) over eight years of data collection. 
+
+Your first task is to split this data into a train set and a test set. We want to use the first 6 years of data as our training set and the last 2 years as our test set. Since the dataset includes one measurement every 30 minutes (i.e. 2 measurements every hour), the training set should contain the first $2 * 24 * 365 * 6 = 105142$ samples and the test set should contain the last $2 * 24 * 365 * 2 = 35040$ samples (i.e. training and test comprises the entire dataset).
+
+Our first task will be to train a model that predicts the temperature at a given time based on the measurements at the previous \textbf{D=10} timesteps, so we use the value $10$ for $D$ below to set us up for this.
+
+Concretely, we can write our training portion of the dataset as $X_{\mathrm{train}} = \{x_1, x_2, ... ,x_T \}$ where each $x_i$ is one temperature measurement and $T = 105142$ is the total number of training samples. 
+In this setting, we will use the temperatures $x_1, x_2, x_3, ..., x_D$ to predict the value at $x_{D+1}$; temperatures $x_2, x_3, ..., x_{D+1}$ to predict the temperature at $x_{D+2}$; and so on so that in general we use $x_i, x_{i+1}, ..., x_{i+(D-1)}$ to predict the value of $x_{i+D}$.
+
+You need to reformat the training portion of the dataset to follow this framework. You should create an \texttt{X\_train} matrix that has $D$ columns (i.e. the $D$ consecutive timestamps) and $T-D$ rows. Note that data will be repeated in this matrix, since each row is shifted by only one timestep from the previous row and will therefore contain $D-1$ of the same temperature values. You should also create a \texttt{y\_train} vector that contains the target values we want to predict, i.e. $[x_{D+1}, x_{D+2}, ..., x_T]$.
+
+Similarly, we can define our test portion of our dataset as $X_{\mathrm{test}} = \{x_{T+1}, x_{T+2}, ... ,x_{T+C} \}$ where $C$ is the total number of the test samples. We will create an \texttt{X\_test} matrix and a \texttt{y\_test} vector following the same procedure as for the training dataset. 
+
+
+We have now created normalized datasets with 10 features and can use these 10 features to predict the target corresponding to each row. 
+
+\clearpage
+
+\subsection{Predicting Temperatures using Linear Regression}
+
+For this question, please submit all code you wrote in a single, self-contained file titled \texttt{time\_series.py} on Canvas.
+
+\begin{enumerate}
+    \item \textbf{[4 points]} Fit an OLS linear regression model using \texttt{X\_train} and \texttt{y\_train} to find the OLS solution. Report the following values:
+    \begin{enumerate}
+        \item the weights you learned (including the bias or intercept weight)
+        \item the time taken to fit the model
+        \item the MSE on \texttt{X\_test}
+    \end{enumerate}
+    As a reminder, you are not permitted to use libraries other than \texttt{numpy} in your implementations. 
+    
+    \begin{tcolorbox}[fit,height=5cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    %solution
+    \end{tcolorbox}
+    
+    \item \textbf{[8 points]} Repeat the previous question for $D=\{50, 100, 500\}$. For these models, you should just report the weights on the first 10 features and the bias weight, along with the time required to fit each model and the MSE on \texttt{X\_test}.
+    \begin{tcolorbox}[fit,height=7cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    %solution
+    \end{tcolorbox}
+
+    \clearpage
+    
+    \item \textbf{[3 points]} Using the times taken to fit the models for $D=10, 50, 100,$ and $500$, estimate the time it would take to fit a model using features from an entire year's worth of data (i.e. $D = 2 * 24 * 365 = 17520$). Report how you estimated the time (i.e. what function did you fit?) and your time estimate in minutes.
+    \begin{tcolorbox}[fit,height=3cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    %solution
+    \end{tcolorbox}
+
+    \clearpage
+    
+    \item \textbf{[10 points]} Based on our result from the previous part, we may conclude that using OLS will result in a very high computational cost. As an alternative, you will now learn the weights $\mathbf{w}$ and bias $b$ using \textbf{stochastic gradient descent}. We will use train and test datasets created for $D=17520$, i.e. using the data from an entire year.
+    
+    Your implementation of SGD should use a learning rate of $\eta=1e-10$ and run for 20 epochs. Initialize your weights to be uniformly distributed, with each value set to $\frac{1}{D}$ and your bias to be $1$. Additionally, while normally you would shuffle or permute the training data points in each epoch of SGD, for this assignment, you should loop through the training dataset in chronological order (i.e., the original ordering of the dataset) without randomly shuffling the data points. 
+    
+    Again, please only use \texttt{numpy} to implement SGD from scratch. After using SGD to train a LR model that uses a year's worth of data for 20 epochs, please report the following values:
+    \begin{enumerate}
+        \item Train MSE
+        \item Test MSE
+        \item Total training time
+        \item First 10 items in your final weight vector. 
+    \end{enumerate}
+    
+
+    \begin{tcolorbox}[fit,height=8cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    %solution
+    \end{tcolorbox}
+
+    \clearpage
+    
+    \item \textbf{[5 points]} Now we can examine the weights learned by SGD. What takeaways can you observe? Are any features particularly informative in predicting the targets? Please give a 2-3 sentence response describing your observations. \textbf{Hint:} consider which features have the largest weights; what observations do those features correspond to? 
+    \begin{tcolorbox}[fit,height=5cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    %%% Write your solution here %%%
+    \end{tcolorbox}
+    
+\end{enumerate}

@@ -1,0 +1,62 @@
+\section{Na\"{i}ve  Bayes [32 Points]}
+
+%In this question, we use upper-case letters such as $X, y$ to denote random variables, and lower-case letters to denote \emph{values} of random variables.
+
+Let $X=(x_1,x_2,..,.x_d)$ denote a set of features and $y\in \{0, 1\}$ denote a binary label. Recall that na\"{i}ve Bayes models the conditional label distribution $P(y \mid X)$ via the conditional distribution of features given the label $P(X \mid y)$:
+\begin{equation}\label{eqn:pxy}
+P(y \mid X) \propto P(X \mid y)P(y) \nonumber
+\end{equation}
+%\begin{equation}
+%P(X|y)P(y).
+%\end{equation}
+
+\begin{enumerate}
+    \item \textbf{Multinomial Na\"{i}ve Bayes} Suppose that each feature $x_i$ takes values in the set $\{1,2,...,K\}$. Further, suppose that the label distribution is Bernoulli, and the feature distribution conditioned on the label is multinomial. 
+    \begin{enumerate}
+        \item \textbf{[3 points]} What is the total number of parameters of the model under the na\"{i}ve Bayes assumption? For full credit you must show your work.
+    
+        \begin{tcolorbox}[fit,height=3cm, width=0.85\textwidth, blank, borderline={1pt}{-2pt}]
+        %solution 
+        \end{tcolorbox}
+        
+    \item\textbf{[3 points]} What is the total number of parameters of the model without the na\"{i}ve Bayes assumption? For full credit you must show your work.
+    
+        \begin{tcolorbox}[fit,height=3cm, width=0.85\textwidth, blank, borderline={1pt}{-2pt}]
+        %solution 
+        \end{tcolorbox}
+        
+    \item \textbf{[6 points]} Suppose we change the set of values that $y$ takes, so that $y\in \{0, 1, ..., M-1\}$. How would your answers change in both cases (with and without the na\"{i}ve Bayes assumption)? For full credit you must show your work.
+    
+        \begin{tcolorbox}[fit,height=5cm, width=0.85\textwidth, blank, borderline={1pt}{-2pt}]
+        %solution 
+        \end{tcolorbox}
+        
+    \end{enumerate}
+    
+    \newpage
+    
+    \item \textbf{[10 points] Gaussian Na\"{i}ve  Bayes} Now suppose each feature is real-valued, with $x_i \in \mathbb{R}$, and $P(x_i \mid y=c)\sim \mathcal{N}(\mu_{i,c}, 1)$ for $i=1,2,...,d$ and $c=0,1$. Again, suppose that the label distribution is Bernoulli with $P(y = 1) = \pi$. Under the na\"{i}ve Bayes assumption, show that the decision boundary $\{(x_1, x_2, \dots, x_d): P(y=0 \mid x_1, x_2, \dots, x_d) = P(y=1 \mid x_1, x_2, \dots, x_d)\}$ is linear in $x_1, x_2, \dots, x_d$.
+    
+        \begin{tcolorbox}[fit,height=14cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+        %solution 
+        \end{tcolorbox}
+        
+    \clearpage
+    
+    \item \textbf{MLE estimators can be biased} Given $N$ independent observations drawn from a univariate Gaussian distribution $x^{(1)}, ..., x^{(N)} \sim \text{N}(\mu, \sigma^2)$, recall that the MLE of the mean and variance parameters are
+    \begin{align*}
+        \widehat{\mu} = \frac{1}{n}\sum_{i=1}^{n} x^{(i)} \textrm{ and } \widehat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^{n}(x^{(i)} - \widehat{\mu})^2.
+    \end{align*}
+
+    \begin{enumerate}
+        \item \textbf{[6 points]} Prove that $\widehat{\mu}$ is an \emph{unbiased} estimator of $\mu$ (by showing $\mathbb{E}[\widehat{\mu}] = \mu$) and that $\widehat{\sigma}^2$ is a \emph{biased} estimator of $\sigma^2$ (by showing $\mathbb{E}[\widehat{\sigma}^2] \ne \sigma^2$).
+        \begin{tcolorbox}[fit,height=10cm, width=0.85\textwidth, blank, borderline={1pt}{-2pt}]
+        % solution
+        \end{tcolorbox}
+
+        \item \textbf{[4 points]} Based on your response to the previous question, propose an unbiased estimator of $\sigma^2$.
+        \begin{tcolorbox}[fit,height=4cm, width=0.85\textwidth, blank, borderline={1pt}{-2pt}]
+        % solution
+        \end{tcolorbox}
+    \end{enumerate}
+\end{enumerate}

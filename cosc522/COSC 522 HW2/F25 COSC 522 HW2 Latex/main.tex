@@ -1,0 +1,183 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb, amsthm, enumerate, graphicx}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{bm}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{float}
+\usepackage{graphics}
+\setlength{\marginparwidth}{2.15cm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{epsfig}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage[normalem]{ulem}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows, automata}
+\usepackage{pgfplots}
+\usepackage[font=scriptsize]{subcaption}
+\usepackage{float}
+\usepackage[]{algorithm2e}
+\usepackage{environ}
+\usepackage{bbm}
+\usepackage{titling}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{lipsum}
+\usepackage{lastpage}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage{multicol}
+\usepackage{tabularx}
+\usepackage{comment}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage{setspace}
+\usepackage{marvosym}
+\usepackage{wrapfig}
+\usepackage{datetime}
+\usepackage[many]{tcolorbox}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wasysym}
+\usepackage{cancel}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{soul}
+
+
+
+
+
+
+
+%%% old packages
+\usepackage{fullpage}
+\usepackage{sectsty}
+\usepackage{amsfonts}
+
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\blackcircle}{\tikz\draw[black,fill=black] (0,0) circle (1ex);}
+\renewcommand{\circle}{\tikz\draw[black] (0,0) circle (1ex);}
+\DeclareMathOperator{\sign}{sign}
+
+\input{math.tex}
+
+% SOLUTION environment
+\NewEnviron{soln}{
+\leavevmode\color{red}\ignorespaces \textbf{Solution} \BODY }{}
+
+% QUESTION AUTHORS environment
+\NewEnviron{qauthor}{
+\leavevmode\color{blue}\ignorespaces \textbf{Author} \BODY}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TO ONLY SHOW HOMEWORK QUESTIONS, include following (else comment out):
+ %\RenewEnviron{soln}{}
+ % \RenewEnviron{qauthor}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\newcommand{\norm}[1]{\lVert #1 \rVert}
+%\newcommand{\st}{\mathrm{s.t.}}
+
+\makeatletter
+\newcommand{\removelatexerror}{\let\@latex@error\@gobble}
+\makeatother
+
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Custom box for highlights               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Define box and box title style
+\tikzstyle{mybox} = [fill=blue!10, very thick,
+    rectangle, rounded corners, inner sep=1em, inner ysep=1em]
+
+\NewEnviron{notebox}{
+\begin{tikzpicture}
+\node [mybox] (box){
+    \begin{minipage}{\textwidth}
+        \BODY
+    \end{minipage}
+};
+\end{tikzpicture}
+}
+
+
+\begin{document}
+
+\section*{}
+\begin{center}
+  \centerline{\textsc{\LARGE  Homework 2}}
+  \vspace{0.5em}
+  \centerline{\textsc{\large Linear Regression, Logistic Regression, MLE/MAP, Na\"ive Bayes}
+  }
+  \vspace{1em}
+  \textsc{\large UTK COSC 522: Machine Learning (Fall 2025)} \\
+  \vspace{0.5em}
+
+  \centerline{OUT: Sunday, Sep 21st, 2025}
+  %\today{} at \currenttime{}}}
+  \vspace{0.5em}
+  \centerline{\textbf{DUE: Monday, Oct 13th, 2025, 11:59pm}, \textbf{Bonus Point Deadline: Oct 8th, 2025, 11:59pm}}
+\end{center}
+
+
+\section*{Homework Instructions}
+\begin{itemize}
+\item \textbf{Collaboration policy: Taking Responsibility for Your Career} 
+
+The skills you learn in this course are tools for your future, and this policy is designed to help you sharpen them. You are responsible for your own learning and career, and this framework ensures you get the most from every assignment.
+
+We encourage collaboration, but it must be done \emph{right}. \emph{First}, make a genuine effort to solve problems on your own. This independent effort is where the most critical learning occurs. \emph{Afterward}, you may discuss strategies with peers or consult resources to clarify concepts—the goal is to deepen your own understanding, not to simply get an answer.
+
+\emph{Finally}, like any professional, you must stand behind your own work. Your submitted solution must be written entirely by you, from scratch, without collaborators present. This proves you have truly mastered the material. To maintain academic and professional integrity, you must also cite any person or resource that contributed to your understanding along the way. 
+
+\item\textbf{Late Submission Policy:} See the late homework policy \href{https://docs.google.com/document/d/1lYopNzjn_0AOipRiiwO4h2Ow64seQNeD/edit?usp=sharing&ouid=114000599194691965836&rtpof=true&sd=true}{here}.
+
+\item\textbf{Submitting your work:} 
+
+\begin{itemize}
+
+\item \textbf{Canvas:} 
+For this homework, you will submit a \textbf{single .zip file} to Canvas. Please name your file in the format \textbf{YourName\_NetID\_HW2.zip}. This zip file must contain exactly two files: your written solutions in a single PDF and your Python code.
+
+Your \textbf{single PDF file} must contain your answers to all questions, including written problems (proofs, short answers, plots) and the empirical questions from the programming section. You must use the provided homework template. Using the LaTeX version to typeset is strongly recommended, but you may also submit a scan of the template with legible handwriting; \textbf{illegible answers will not be graded}. Please complete all answers within the provided boxes. 
+
+The second file in your zip archive must be your \emph{single} completed programming file, named exactly as \textbf{time\ series.py}. Please ensure your code is runnable, as we may execute it to verify your results.
+
+Regrade requests can be made after homework grades are released. Please be aware that a regrade request allows the TA to review your entire assignment, which may result in points being deducted if new errors are found.
+
+\end{itemize}
+
+\end{itemize}
+
+%For multiple-choice and select-all-that-apply questions, please shade the corresponding box or circle to indicate your answer(s). If you are using the LaTeX template, use the $\blacksquare$ command for shaded boxes and $\blackcircle$ for shaded circles. \textbf{Note}: Do not alter the template in any other way. If a question includes a box for showing your work, you must \textbf{show your work} to receive full credit.
+
+\clearpage
+\input{linReg}
+
+\clearpage
+\input{LogReg}
+
+\clearpage
+\input{nb}
+
+
+\clearpage
+\input{LinReg_programming}
+
+\clearpage
+\input{collaboration.tex}
+
+\end{document}

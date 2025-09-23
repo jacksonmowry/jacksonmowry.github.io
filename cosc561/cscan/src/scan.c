@@ -1,3 +1,5 @@
+// Jackson Mowry
+
 #include "scan.h"
 #include <assert.h>
 #include <ctype.h>
@@ -16,8 +18,12 @@ void consume_whitespace() {
     }
 }
 
-void error() {
-    printf("Something bad happened\n");
+void error(char* message) {
+    if (message) {
+        puts(message);
+    } else {
+        puts("Something bad happened");
+    }
     exit(1);
 }
 
@@ -25,7 +31,7 @@ void match(char expected) {
     if (lookahead == expected) {
         lookahead = getchar();
     } else {
-        error();
+        error("Expected character didn't not match character in input stream");
     }
 }
 
@@ -304,22 +310,22 @@ top:
     case '[': {
         // Only monograph
         match('[');
-        return (Token){.type = LBRACE, .lexeme = "["};
+        return (Token){.type = LBRACKET, .lexeme = "["};
     } break;
     case ']': {
         // Only monograph
         match(']');
-        return (Token){.type = RBRACE, .lexeme = "]"};
+        return (Token){.type = RBRACKET, .lexeme = "]"};
     } break;
     case '{': {
         // Only monograph
         match('{');
-        return (Token){.type = LBRACKET, .lexeme = "{"};
+        return (Token){.type = LBRACE, .lexeme = "{"};
     } break;
     case '}': {
         // Only monograph
         match('}');
-        return (Token){.type = RBRACKET, .lexeme = "}"};
+        return (Token){.type = RBRACE, .lexeme = "}"};
     } break;
     case '"': {
         buf_len = 0;
@@ -327,6 +333,10 @@ top:
         match('"');
 
         while (lookahead != '"') {
+            if (lookahead == '\n') {
+                // We don't allow multi strings
+                error("expected ending quote before newline");
+            }
             if (lookahead == '\\') {
                 // Handle escaped char
                 match('\\');
@@ -365,6 +375,16 @@ top:
                 case '0':
                     buf[buf_len++] = '\0';
                     break;
+                case '\n':
+                    break;
+                default: {
+                    char error_buf[256] = {0};
+                    snprintf(error_buf, sizeof(error_buf) - 1,
+                             "Unexpected escape character '%c'",
+                             (char)lookahead);
+
+                    error(error_buf);
+                } break;
                 }
 
                 lookahead = getchar();
@@ -387,12 +407,12 @@ top:
         // Should be identifiers, keywords, and int/float literals
         buf_len = 0;
 
-        if (isalpha(lookahead)) {
+        if (isalpha(lookahead) || lookahead == '_') {
             // Parse identifier or keyword
             buf[buf_len++] = lookahead;
             lookahead = getchar();
 
-            while (isalnum(lookahead)) {
+            while (isalnum(lookahead) || lookahead == '_') {
                 buf[buf_len++] = lookahead;
                 lookahead = getchar();
             }
@@ -401,31 +421,31 @@ top:
             buf[buf_len] = '\0';
 
             // Now attempt to match keywords
-            if (!strncmp("char", buf, 4)) {
+            if (strlen(buf) == 4 && !strncmp("char", buf, 4)) {
                 return (Token){.type = CHAR, .lexeme = "char"};
-            } else if (!strncmp("int", buf, 3)) {
+            } else if (strlen(buf) == 3 && !strncmp("int", buf, 3)) {
                 return (Token){.type = INT, .lexeme = "int"};
-            } else if (!strncmp("float", buf, 5)) {
+            } else if (strlen(buf) == 5 && !strncmp("float", buf, 5)) {
                 return (Token){.type = FLOAT, .lexeme = "float"};
-            } else if (!strncmp("double", buf, 6)) {
+            } else if (strlen(buf) == 6 && !strncmp("double", buf, 6)) {
                 return (Token){.type = DOUBLE, .lexeme = "double"};
-            } else if (!strncmp("if", buf, 2)) {
+            } else if (strlen(buf) == 2 && !strncmp("if", buf, 2)) {
                 return (Token){.type = IF, .lexeme = "if"};
-            } else if (!strncmp("else", buf, 4)) {
+            } else if (strlen(buf) == 4 && !strncmp("else", buf, 4)) {
                 return (Token){.type = ELSE, .lexeme = "else"};
-            } else if (!strncmp("while", buf, 5)) {
+            } else if (strlen(buf) == 5 && !strncmp("while", buf, 5)) {
                 return (Token){.type = WHILE, .lexeme = "while"};
-            } else if (!strncmp("do", buf, 2)) {
+            } else if (strlen(buf) == 2 && !strncmp("do", buf, 2)) {
                 return (Token){.type = DO, .lexeme = "do"};
-            } else if (!strncmp("for", buf, 3)) {
+            } else if (strlen(buf) == 3 && !strncmp("for", buf, 3)) {
                 return (Token){.type = FOR, .lexeme = "for"};
-            } else if (!strncmp("return", buf, 6)) {
+            } else if (strlen(buf) == 6 && !strncmp("return", buf, 6)) {
                 return (Token){.type = RETURN, .lexeme = "return"};
-            } else if (!strncmp("break", buf, 5)) {
+            } else if (strlen(buf) == 5 && !strncmp("break", buf, 5)) {
                 return (Token){.type = BREAK, .lexeme = "break"};
-            } else if (!strncmp("continue", buf, 8)) {
+            } else if (strlen(buf) == 8 && !strncmp("continue", buf, 8)) {
                 return (Token){.type = CONTINUE, .lexeme = "continue"};
-            } else if (!strncmp("goto", buf, 4)) {
+            } else if (strlen(buf) == 4 && !strncmp("goto", buf, 4)) {
                 return (Token){.type = GOTO, .lexeme = "goto"};
             } else {
                 // Just an identifier
@@ -439,7 +459,8 @@ top:
 
             while (isdigit(lookahead) || lookahead == '.') {
                 if (lookahead == '.' && contains_dot) {
-                    error();
+                    error("invalid float literal: \".\" can only appear once "
+                          "in each literal");
                 } else if (lookahead == '.') {
                     contains_dot = true;
                 }
@@ -460,7 +481,10 @@ top:
                 return (Token){.type = INT_LITERAL, .int_literal = val};
             }
         } else {
-            error();
+            char buf[256] = {0};
+            snprintf(buf, 255, "Unexpected token in input stream %c",
+                     (char)lookahead);
+            error(buf);
         }
     } break;
     }

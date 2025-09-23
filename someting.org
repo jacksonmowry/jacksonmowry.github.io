@@ -1,0 +1,17 @@
+#+title: Someting
+
+#+begin_src c
+void expr() {
+}
+
+#+end_src
+
+#+begin_src
+void expr() {
+    if (lookahead == EOF) {
+        return;
+    }
+
+
+}
+#+end_src

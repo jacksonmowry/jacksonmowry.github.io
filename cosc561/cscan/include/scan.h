@@ -65,7 +65,7 @@ extern "C"{
 
 typedef enum TokenType {
 #define X(FIRST, SECOND) FIRST,
-   TOKEN_VALUES 
+   TOKEN_VALUES
 #undef X
     INT_LITERAL,
     REAL_LITERAL,
@@ -93,28 +93,28 @@ typedef struct Keyword {
 } Keyword;
 
 static void print_escaped_char(char c) {
-	switch (c) {
-	case '\n': printf("\\n"); break;
-	case '\t': printf("\\t"); break;
-	case '\r': printf("\\r"); break;
-	case '\v': printf("\\v"); break;
-	case '\f': printf("\\f"); break;
-	case '\a': printf("\\a"); break;
-	case '\b': printf("\\b"); break;
-	case '\\': printf("\\\\"); break;
-	case '\"': printf("\\\""); break;
-	case '\'': printf("\\\'"); break;
-	case '\0': printf("\\0"); break;
-	default:
-		if ((unsigned char)c < 32 || (unsigned char)c > 126) {
-			// Non-printable -> show as hex escape
-			printf("\\x%02x", (unsigned char)c);
-		} else {
-			// Printable character
-			printf("%c", c);
-		}
-		break;
-	}
+        switch (c) {
+        case '\n': printf("\\n"); break;
+        case '\t': printf("\\t"); break;
+        case '\r': printf("\\r"); break;
+        case '\v': printf("\\v"); break;
+        case '\f': printf("\\f"); break;
+        case '\a': printf("\\a"); break;
+        case '\b': printf("\\b"); break;
+        case '\\': printf("\\\\"); break;
+        case '\"': printf("\\\""); break;
+        case '\'': printf("\\\'"); break;
+        case '\0': printf("\\0"); break;
+        default:
+                if ((unsigned char)c < 32 || (unsigned char)c > 126) {
+                        // Non-printable -> show as hex escape
+                        printf("\\x%02x", (unsigned char)c);
+                } else {
+                        // Printable character
+                        printf("%c", c);
+                }
+                break;
+        }
 }
 
 static void print_escaped_str(char *s) {
@@ -128,7 +128,7 @@ static const char* token_type_str(TokenType ty) {
 #define X(FIRST, SECOND) \
     case FIRST:          \
         return #FIRST;
-   TOKEN_VALUES 
+   TOKEN_VALUES
 #undef X
     case INT_LITERAL:
        return "INT_LITERAL";
@@ -148,7 +148,7 @@ static const char* token_type_str(TokenType ty) {
 static void print_token(Token token) {
     switch (token.type) {
 #define X(FIRST, SECOND) \
-    case FIRST: 
+    case FIRST:
         TOKEN_VALUES
 #undef X
     case IDENTIFIER:

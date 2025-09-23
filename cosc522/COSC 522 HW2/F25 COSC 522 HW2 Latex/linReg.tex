@@ -1,0 +1,36 @@
+\section{Regularized Linear Regression [10 Points]}
+
+\begin{enumerate}
+
+\item {\bf [10 Points]} Consider the following linear regression model: for each data point in $\mathcal{D} = \{(\bm{x}^{(i)}, y^{(i)})\}_{i=1}^n$,
+\begin{align}
+    y^{(i)} &= \bm{w}^T \bm{x}^{(i)} + \epsilon\; \text{where}\; y^{(i)}, \epsilon \in \mathbb{R}\; \text{and}\; \bm{w}, \bm{x}^{(i)} \in \mathbb{R}^{d+1} \nonumber
+\end{align}
+In matrix notation, we can express this linear relationship for all data points as:
+\begin{align}
+    \bm{y} &= \bm{X}\bm{w} + \bm{\epsilon}\; \text{where}\; \bm{y}, \bm{\epsilon} \in \mathbb{R}^n, \bm{X} \in \mathbb{R}^{n \times (d+1)},\; \text{and}\; \bm{w} \in \mathbb{R}^{d+1} \nonumber
+\end{align}
+Assuming the residuals are normal and i.i.d.\ ($\bm{\epsilon} \sim \mathcal{N}(\bm{0}, \sigma^2 \bm{I})$), we can write:
+\begin{align}
+    \bm{y}|\bm{X},\bm{w} &\sim \mathcal{N}(\bm{X}\bm{w}, \sigma^2 \bm{I}) \nonumber
+\end{align}
+
+Now assume that we have a Gaussian prior on $\bm{w}$:
+\begin{align}
+    \bm{w} &\sim \mathcal{N}\left(0,\frac{2\sigma^2}{\lambda}\bm{I}\right) \nonumber
+\end{align}
+for some fixed $\lambda > 0$. Recall that in ridge regression, the optimal parameter vector is given by:
+\begin{align}
+\wv^\star = \argmin_{\wv} \|\yv - X\wv\|_2^2 + \lambda \|\wv\|_2^2. \nonumber
+\end{align}
+
+Show that the solution to the MAP estimate $\bm{w}^*_{\text{MAP}}$ in this setting is the same as the one obtained from ridge regression. 
+
+(Hint: Start by writing down the expression for the negative log posterior and show that minimizing it gives the same solution as minimizing the OLS with Ridge regression.)
+
+\begin{tcolorbox}[fit,height=9cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+%solution
+\end{tcolorbox}
+
+
+\end{enumerate}
