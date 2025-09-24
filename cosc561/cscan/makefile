@@ -28,8 +28,8 @@ OBJ2 := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(filter %.c,$(SRC2))) \
 
 .PHONY: all clean
 
-#all: $(BIN1) $(BIN2)
-all:  $(BIN2)
+all: $(BIN1) $(BIN2)
+# all:  $(BIN2)
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
