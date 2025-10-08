@@ -7,7 +7,6 @@
 #include <string.h>
 
 #define rotl(x, n) ((x << n) | (x >> (32 - n)))
-/* #define rotr(x, n) ((x >> n) | (x << ((sizeof(w) * 8) - n))) */
 #define k1 0x5a827999
 #define k2 0x6ed9eba1
 #define k3 0x8f1bbcdc
@@ -39,15 +38,6 @@ char *pad_message(const char *message, size_t *new_len) {
   new_buf[new_message_len - 3] = (message_len_bits >> (8 * 2)) & 0xff;
   new_buf[new_message_len - 2] = (message_len_bits >> (8 * 1)) & 0xff;
   new_buf[new_message_len - 1] = (message_len_bits >> (8 * 0)) & 0xff;
-
-  /* for (size_t i = 0; i < new_message_len; i++) { */
-  /*     if (i % 8 == 0 && i != 0) { */
-  /*         printf("\n"); */
-  /*     } */
-
-  /*     printf("%02x ", (uint8_t)new_buf[i]); */
-  /* } */
-  /* printf("\n"); */
 
   return new_buf;
 }
@@ -98,7 +88,6 @@ void hash_string(const char *string) {
     uint32_t w[80];
     for (size_t t = 0; t < 80; t++) {
       if (t != 0 && t % 8 == 0) {
-        /* printf("\n"); */
       }
       if (t <= 15) {
         w[t] = padded_message[(round * 16) + t];
@@ -106,10 +95,7 @@ void hash_string(const char *string) {
         uint32_t tmp = w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16];
         w[t] = rotl(tmp, 1);
       }
-
-      /* printf("%08x ", w[t]); */
     }
-    /* printf("\n"); */
 
     uint32_t a = H[0];
     uint32_t b = H[1];
@@ -132,8 +118,6 @@ void hash_string(const char *string) {
     H[2] += c;
     H[3] += d;
     H[4] += e;
-
-    /* printf("%08x%08x%08x%08x%08x\n", H[0], H[1], H[2], H[3], H[4]); */
   }
   printf("%08x%08x%08x%08x%08x\n", H[0], H[1], H[2], H[3], H[4]);
 
