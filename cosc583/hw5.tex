@@ -1,0 +1,100 @@
+% Created 2025-09-30 Tue 13:18
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Tue Sep 30 11:10:39 2025}
+\title{Hw5}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={Hw5},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.31)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section*{Diffie-Hellman}
+\label{sec:orgc17cca9}
+\begin{enumerate}
+\item Describe the Diffie-Hellman Protocol.
+\begin{itemize}
+\item The Diffie-Hellman is a process of establishing a secure communication channel across an insecure medium. This requires some parameters to be agreed upon beforehand, then each party can pick their own secret. The combination of these agreed upon initial parameters, and their chosen secrets allows for both parties to end up with the same shared secret. The concept can be more simply described as what one key does (encrypt) the other key undoes (decrypt).
+\end{itemize}
+\item Show how Mallory can conduct a man-in-the-middle attack when Alice and Bob perform the HD protocol from Question 1.
+\begin{itemize}
+\item If we assume Mallory can listen to the communications between Alice and Bob, then we can also assume she was able to listen to their initial key sharing process. There is no proof to Alice that Bob is actually Bob, and same for Bob to Alice. Therefore, Mallory can perform the key agreement process with Alice, pretending to be Bob, and with Bob pretending to be Alice. Going forward all communication between Alice and Bob would be tunneled through Mallory, where she could read all messages.
+\end{itemize}
+\item What is the recommended key size for the prime modulus p in DH?
+\begin{itemize}
+\item A number of at least 2048 bits.
+\end{itemize}
+\item Why is the recommended size of p for DH so much larger than the recommended key size for AES?
+\begin{itemize}
+\item In order for the math in DH to work the keys have to be mathmatically related, specifically defined by the initial chosen shared values which limit our space. The mathmatical relationship that initially allows us to choose the 2 keys could also be used find the 2 keys if we're able to factor a large number into 2 primes.
+\end{itemize}
+\end{enumerate}
+\section*{RSA}
+\label{sec:orge854f28}
+\begin{enumerate}
+\item Generate RSA key parameters where p=7, q=13, and 2<e<7. Try values for e in order until finding one that will work. Generate d using the extended Euclidean algorithm. Show detailed work. do All your work by hand.
+\begin{itemize}
+\item p = 7
+\item q = 13
+\item n = 91
+\item tot(n) = 12 = lcm(p-1,q-1)
+\begin{itemize}
+\item Calculate lcm here
+\item (6 * 12) / 6
+\item 72 / 6
+\item 12
+\item The lcm is 12
+\end{itemize}
+\item e = 3, gcd(3, 12) = 4
+\begin{itemize}
+\item Calcuate gcd by hand
+\item 12 = 3 * x + 0
+\item 12 = 3 * 4 + 0
+\item Done, gcd = 4
+\end{itemize}
+\item e = 4, gcd(4, 12) = 3
+\begin{itemize}
+\item Calculate gcd by hand
+\item 12 = 4 * x + 0
+\item 12 = 4 * 3 + 0
+\item Done, gcd = 3
+\end{itemize}
+\item e = 5, gcd(5, 12) = 1
+\begin{itemize}
+\item Calculate gcd by hand, then do extended euclidians
+\item 12 = 5 * 2 + 2
+\item 5 = 2 * 2 + 1
+\item 2 = 1 * 2 + 0
+\item done, gcd = 1
+\item Working our way back up
+\item 5 - 2 * 2 = 1
+\item 5 - (12 - 5 * 2) * 2= 1
+\item 5 - 12 * 2 - 5 * 4
+\item 5 * 5 - 2 * 12
+\item 5 and -2, 5 is our MI
+\end{itemize}
+\item d = 5
+\end{itemize}
+\item Identify the RSA public key and the RSA private key.
+\begin{itemize}
+\item Public key = \{5, 91\} (\{e, n\})
+\item Private key = \{5, 91\} (\{d, n\})
+\end{itemize}
+\end{enumerate}
+\end{document}

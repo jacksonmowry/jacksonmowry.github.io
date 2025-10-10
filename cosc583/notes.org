@@ -1,0 +1,68 @@
+#+title: Notes
+* Example RSA
+- p=5, q=13, 3 <= e <= 7
+- n = 5*13 = 65
+- phi(n) = (p-1)(q-1) = 4*12 = 48
+- trying e = 3,
+  - 48 = 16 * 3 + 0
+  - stop b/c = 0
+- Trying e = 7
+  - 48 = 6 * 7 + 6
+  - 7  = 1 * 6 + 1
+  - 6  = 6 * 1 + 0
+  - GCD = 1
+- Extended euclids, getting it in terms of 48 7
+  - 1 = (1)(7) + (-1)(6)
+  - = (1)(7) + (-1)(1*48 + (-6)(7))
+  - = (-1)(48) + (7)(7)
+  - 1 = 7*7 (mod 48)
+  - 7 is congruent to 7^{-1}, therefore it is its own multiplicitive inverse
+- Now finish out RSA
+  - Public: Give them {e(7), n(65)}
+  - Private: {d(7), n(65)}
+- Cannot calculate e<=>d
+
+* Proving
+| Alice             | Bob               |
+| S P G             | P G               |
+| S                 |                   |
+| V = g^{s} (mod p) |                   |
+| r (random)        | x                 |
+| x = g^{r} (mod p) |                   |
+|                   | c in C1 C log p d |
+| y = r - S * C     | y                 |
+
+
+g^{y} v^{c} === x (mod p) ?
+
+- y is r = s*c
+- v is g^{s}^{c}
+- x is
+- Perfectly and computationally hiding
+
+* Hash Based Authentication
+- Alice needs to send some commitment that bob doesn't know
+- Bob has to verify that she did this legit
+- Alice has a secret x, also going to generate a random value r, calculate h = hash(r||x)
+- Send h to bob
+- Bob has a commitment, but does not know x
+- x1 r1 -> h1
+- x2 r2 -> h1
+- Then when alice wants to reveal her value she sens x,r
+- Bob calculates if h == hash(r||x)
+- Perfectly and computationally hiding
+
+* Pettersons
+- p,q
+- q(p-1)
+- p = 2q+1
+- g element of Z_{q}^{*}
+- p and g are public, share them
+- Alice is going to create a public parameter H, private parameter a, calculate H = g^{a} (mod p)
+- alice will commit to a value x and some random value r
+- Calculate c = g^{x}*h^{r} (mod p), send c (commitment) to bob
+- Once she wants to reveal
+- She sends x and r
+- Bob calculates c == g^{x}h^{r} (mod p)
+- Perfectly hiding
+- We can find different values of x and r that can give the same thing

@@ -1,0 +1,58 @@
+% Created 2025-10-01 Wed 12:26
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.31)}, 
+ pdflang={English}}
+\begin{document}
+
+\section*{UT Verse}
+\label{sec:org0cb4794}
+Summary:
+
+This research explores using small spiking neural networks (SNNs) to control insulin delivery for people with Type 1 diabetes, aiming to develop a low-power, embedded artificial pancreas system. The networks decide how much insulin to give every 3 minutes based on continuous glucose monitor (CGM) data.
+
+Key points:
+
+The insulin doses controlled by the networks could only change in fixed steps of 0.15 Units per output spike, which limited fine control. This sometimes caused the network to give too much insulin (``overbolus'') or made it hard to maintain a steady basal insulin level, especially for younger patients.
+
+Blood glucose data from both adults and children showed that the networks were generally effective at keeping blood sugar in the healthy range (called the ``euglycemic'' range), but children's glucose levels were more variable.
+
+The CGM sensor data is noisy and sometimes inaccurate. The networks were able to handle this noise fairly well without overreacting too much and causing dangerous blood sugar drops.
+
+Compared to other reinforcement learning methods tested on similar diabetes simulations, the small spiking neural networks performed as well or better, while being much smaller and simpler. This makes them ideal for use on tiny, low-power devices.
+
+The researchers deployed the best adult network on a Raspberry Pi Pico microcontroller and measured its power use. The network processed a full day's worth of glucose readings very quickly and used very little energy overall—about 267 joules per day. This suggests such a system could run efficiently on a small embedded device.
+
+The small size (only 5 neurons and 5 connections) also makes the network easier to understand and analyze compared to large neural networks.
+
+Conclusion:
+
+Tiny spiking neural networks can effectively control insulin dosing in real time, and they are efficient enough to run on low-power embedded hardware. This supports the idea that such networks could be used to build a neuromorphic artificial pancreas—an implantable or wearable device that automatically regulates blood sugar for people with diabetes.
+\section*{My Comments}
+\label{sec:org147f0a7}
+\begin{itemize}
+\item I would have liked for UTVerse to provide a more comprehensive overview of the concept of SNNs as they power much of this work.
+\item The writing style is almost too informal for this type of summary
+\item It did a great job at producing an overview of T1D, while essentially glossing over many of the details needed to understand the computations. This could be a good or bad thing depending on the focus of the manager, is this a tech-first company or a medical company.
+\item I'd like to see a bit more output from the AI considering it was fed over 9 pages of a document.
+\item Overall, as a starting point I believe this is an adequate summary for presentation for a manger or PM
+\end{itemize}
+\end{document}

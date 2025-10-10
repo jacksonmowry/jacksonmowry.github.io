@@ -14,6 +14,7 @@ typedef enum Precedence {
     PREC_SHIFT,
     PREC_ADD_SUB,
     PREC_MUL_DIV_MOD,
+    PREC_NEGATE,
     PREC_ERROR
 } Precedence;
 
@@ -227,9 +228,21 @@ Value apply_arithmetic_operator(Token op, Value lhs, Value rhs) {
 
     switch (op.type) {
     case ADD:
+        if ((lhs.rval > 0 && rhs.rval > 0 && (lhs.rval + rhs.rval) < 0) ||
+            (lhs.rval < 0 && rhs.rval < 0 && (lhs.rval + rhs.rval) > 0)) {
+            printf("error: integer overflow (add)\n");
+            lhs.error = true;
+            return lhs;
+        }
         v.rval = lhs.rval + rhs.rval;
         break;
     case SUB:
+        if ((lhs.rval > 0 && -rhs.rval > 0 && (lhs.rval + -rhs.rval) < 0) ||
+            (lhs.rval < 0 && -rhs.rval < 0 && (lhs.rval + -rhs.rval) > 0)) {
+            printf("error: integer overflow (sub)\n");
+            lhs.error = true;
+            return lhs;
+        }
         v.rval = lhs.rval - rhs.rval;
         break;
     case MUL:
@@ -341,14 +354,14 @@ Value term() {
     } else if (lookahead_token.type == SUB) {
         match(SUB);
 
-        Value v = expr();
-        v.rval *= -1;
+        Value v = term();
+        v.rval = -v.rval;
 
         return v;
     } else if (lookahead_token.type == BIT_NOT) {
         match(BIT_NOT);
 
-        Value v = expr();
+        Value v = term();
         v.rval = ~v.rval;
 
         return v;

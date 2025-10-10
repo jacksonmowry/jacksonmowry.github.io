@@ -1,0 +1,7 @@
+#+title: Notes
+
+* Calculating First
+- Goes to terminal, just use the terminal
+- Goes to a nonterm, compute its first
+- Many terminals, use them all
+-
