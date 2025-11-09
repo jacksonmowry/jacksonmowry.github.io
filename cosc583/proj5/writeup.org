@@ -1,0 +1,84 @@
+#+title: Writeup
+#+author: Jackson Mowry
+#+date: Sat Oct 18 15:22:30 2025
+#+options: toc:nil num:nil
+
+* Writeup
+- How long did it take you to complete this project?
+  - 5 minutes
+- What steps did you take to complete the project?
+  - Make sure to include details on how you generated your key pair, how you set up commit signing in your Git client, how you signed the commit, and how you verified your signed commit.
+    - I generated my keypair using the gpg command line tool, specifically the following command.
+      - =gpg --full-generate-key=
+    - Setting up commit signing in my git client was accomplished with the following command.
+      - =git config --global commit.gpgsign true=
+    - The commit itself was signed using the following command, I believe the =-S= is not necessary after the previous config, but I included it anyways.
+      - =git commit -S -m "Commit for ukm part 1"=
+    - The commit was then verified using the following command.
+      - =git verify-commit -v a796ebf1=
+  - Include details about anything you attempted that ultimately did not work.
+  - Include screenshots if you think that would be helpful.
+- Identify the tools you used.
+  - Tools used
+    - I used the =gpg=, and =git= command line tools on my Linux distro.
+  - Also, include details about any tools you ultimately abandoned.
+    - No tools were abandoned.
+  - Describe what went well with these tools and what was challenging.
+    - Everything was very smooth with both tools.
+- Describe what information sources you used and how helpful (or unhelpful) they were.
+  - Information sources
+    - I used the following sources
+      - https://docs.github.com/en/authentication/
+        managing-commit-signature-verification/signing-commits
+      - https://docs.github.com/en/authentication/
+        managing-commit-signature-verification/telling-git-about-your-signing-key
+      - https://docs.github.com/en/authentication/
+        managing-commit-signature-verification/generating-a-new-gpg-key
+      - https://docs.github.com/en/authentication/
+        managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account
+      - https://git-scm.com/docs/git-verify-commit
+  - Why did you need to use them?
+    - GitHub has generally been my goto source for supplemental git documentation that I cannot easily find from =git-scm.com=. They have a very good guide for all things related to commit signing.
+  - Why were they helpful (or unhelpful)?
+    - All 5 resources linked were very helpful.
+- Answer the following questions:
+  - What were the easiest steps to set up Git commit signing, sign a commit, or verify a commit? Why were they the easiest?
+    - The easiest step in setting up git commit signing was running the =gpg= command to genearate a key, as it is a step-by-step process that prompts you at each step for the necessary information.
+    - The easiest step in signing a commit was running the actual =git commit -S= command, this is because everything for retreiving the GPG key is handled by my operating system.
+    - The easiest step in verifying a commit was running =git verify-commit= as it is a simple command.
+  - What were the hardest one or two steps in setting up Git commit signing, signing a commit, or verifying a commit? Why were they the hardest?
+    - The hardest step in setting up git commit signing was nothing, all steps were easy.
+    - The hardest step in signing a commit was nothing, all steps were easy.
+    - The hardest step in verifying a commit was nothing, all steps were easy.
+  - What would you change about the setup process, if anything?
+    - I wouldn't change anything in the setup process, it was very straight forward.
+- Answer the after-scenario questionnaire (ASQ) by indicating how much you agree with the following statements on a scale of 1 (strongly disagree) to 7 (strongly agree).
+  - Overall, I am satisfied with the ease of setting up and using commit signing.
+    - 7
+  - Overall, I am satisfied with the amount of time it took to set up and use Git commit signing.
+    - 7
+  - Overall, I am satisfied with the support information (online help, messages, documentation) I found when setting up and using commit signing.
+    - 7
+- Answer the system usability scale (SUS) questions by indicating how much you agree with the following statements on a scale of 1 (strongly agree) to 5 (strongly disagree). Note that this scale is different than the previous scale.
+  - I think that I would have no problem using Git commit signing frequently.
+    - 5
+  - I found using Git commit signing unnecessarily complex.
+    - 1
+  - I thought that using Git commit signing was easy.
+    - 5
+  - I think that I would need the support of a technical support staff to use Git commit signing in the future.
+    - 1
+  - I found the various functions for using Git commit signing to be well-integrated.
+    - 5
+  - I thought there was too much inconsistency in using Git commit signing.
+    - 1
+  - I would imagine that most people would learn to use Git commit signing very quickly.
+    - 5
+  - I found using Git commit signing to be very cumbersome.
+    - 1
+  - I felt very confident using Git commit signing.
+    - 5
+  - I needed to learn a lot of things before I could get going with using Git commit signing.
+    - 1
+- Provide any other feedback you have about the project or Git commit signing.
+  - No other feedback from my end.

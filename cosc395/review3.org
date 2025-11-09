@@ -1,0 +1,43 @@
+#+title: Review 3
+#+author: UTVerse
+#+options: toc:nil num:nil \n:t
+
+* Summary
+
+The document discusses the RISP neuroprocessor, an open-source tool designed to support research and development in neuromorphic computing. Neuromorphic computing is a technology inspired by the way the human brain processes information, using artificial neurons and synapses to create efficient, low-power systems. Unlike traditional computers that rely on large memory and high power, neuromorphic processors use spiking neural networks (SNNs), which are more energy-efficient and computationally powerful.
+Key Points:
+
+** What is Neuromorphic Computing?
+It mimics the brain’s structure and function, using neurons and synapses to process information.
+Spiking Neural Networks (SNNs) add a temporal aspect to computations, making them distinct from traditional artificial neural networks.
+
+** The RISP Neuroprocessor:
+A simplified neuromorphic processor that uses “integrate-and-fire” neurons and synapses with discrete delays.
+It enables researchers to simulate and implement neuromorphic networks on hardware like Field-Programmable Gate Arrays (FPGAs).
+Two repositories are available:
+Framework-open: For simulation and network manipulation.
+FPGA repository: For implementing RISP networks on FPGAs.
+
+** Applications:
+Examples include solving problems like balancing a cart-pole system, computing mathematical functions like sine, recognizing patterns (bars-and-stripes), and clustering data using DBSCAN algorithms.
+These applications demonstrate how neuromorphic computing can handle complex tasks efficiently.
+
+** Advantages of RISP:
+Open-source tools make it accessible for researchers without requiring expensive hardware or proprietary solutions.
+The approach focuses on embedding specific networks directly into FPGA hardware, optimizing resource usage compared to general-purpose neuroprocessors.
+
+** Challenges:
+Communication between the FPGA and host computer is currently a bottleneck due to limitations in UART communication protocols.
+The authors propose solutions like buffering, aggregation, and advanced communication protocols (e.g., AXI DMA) to improve performance.
+
+** Future Goals:
+Enhance communication efficiency for real-time applications like event-based cameras.
+Expand support for additional FPGA platforms and communication protocols.
+Encourage contributions from the open-source community to improve the implementation further.
+
+In summary, this paper introduces the RISP neuroprocessor as a practical tool for exploring neuromorphic computing in embedded systems. By leveraging open-source software and hardware implementations, researchers can create energy-efficient systems capable of handling complex tasks while addressing current challenges in communication efficiency.
+
+* My Thoughts
+- As compared to previous summaries I thought UTVerse did a really good job this week. It hit on all of the key points leaving very little left up to the reader to go discover independently.
+- If I had to change one thing I would include hard numbers on the communication bottle neck.
+- We also need to include the title and authors into the summary.

@@ -1,0 +1,70 @@
+% Created 2025-11-05 Wed 12:21
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{UTVerse}
+\date{\today}
+\title{Review 3}
+\hypersetup{
+ pdfauthor={UTVerse},
+ pdftitle={Review 3},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.31)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section*{Summary}
+\label{sec:org9f34827}
+
+The document discusses the RISP neuroprocessor, an open-source tool designed to support research and development in neuromorphic computing. Neuromorphic computing is a technology inspired by the way the human brain processes information, using artificial neurons and synapses to create efficient, low-power systems. Unlike traditional computers that rely on large memory and high power, neuromorphic processors use spiking neural networks (SNNs), which are more energy-efficient and computationally powerful.\\
+Key Points:\\
+\subsection*{What is Neuromorphic Computing?}
+\label{sec:org3a151fe}
+It mimics the brain’s structure and function, using neurons and synapses to process information.\\
+Spiking Neural Networks (SNNs) add a temporal aspect to computations, making them distinct from traditional artificial neural networks.\\
+\subsection*{The RISP Neuroprocessor:}
+\label{sec:orgcb9637b}
+A simplified neuromorphic processor that uses “integrate-and-fire” neurons and synapses with discrete delays.\\
+It enables researchers to simulate and implement neuromorphic networks on hardware like Field-Programmable Gate Arrays (FPGAs).\\
+Two repositories are available:\\
+Framework-open: For simulation and network manipulation.\\
+FPGA repository: For implementing RISP networks on FPGAs.\\
+\subsection*{Applications:}
+\label{sec:org070fc0c}
+Examples include solving problems like balancing a cart-pole system, computing mathematical functions like sine, recognizing patterns (bars-and-stripes), and clustering data using DBSCAN algorithms.\\
+These applications demonstrate how neuromorphic computing can handle complex tasks efficiently.\\
+\subsection*{Advantages of RISP:}
+\label{sec:org8aebb37}
+Open-source tools make it accessible for researchers without requiring expensive hardware or proprietary solutions.\\
+The approach focuses on embedding specific networks directly into FPGA hardware, optimizing resource usage compared to general-purpose neuroprocessors.\\
+\subsection*{Challenges:}
+\label{sec:org0b86b56}
+Communication between the FPGA and host computer is currently a bottleneck due to limitations in UART communication protocols.\\
+The authors propose solutions like buffering, aggregation, and advanced communication protocols (e.g., AXI DMA) to improve performance.\\
+\subsection*{Future Goals:}
+\label{sec:org810bc9f}
+Enhance communication efficiency for real-time applications like event-based cameras.\\
+Expand support for additional FPGA platforms and communication protocols.\\
+Encourage contributions from the open-source community to improve the implementation further.\\
+
+In summary, this paper introduces the RISP neuroprocessor as a practical tool for exploring neuromorphic computing in embedded systems. By leveraging open-source software and hardware implementations, researchers can create energy-efficient systems capable of handling complex tasks while addressing current challenges in communication efficiency.\\
+\section*{My Thoughts}
+\label{sec:org406f5ce}
+\begin{itemize}
+\item As compared to previous summaries I thought UTVerse did a really good job this week. It hit on all of the key points leaving very little left up to the reader to go discover independently.\\
+\item If I had to change one thing I would include hard numbers on the communication bottle neck.\\
+\item We also need to include the title and authors into the summary.\\
+\end{itemize}
+\end{document}

@@ -14,7 +14,6 @@ typedef enum Precedence {
     PREC_SHIFT,
     PREC_ADD_SUB,
     PREC_MUL_DIV_MOD,
-    PREC_NEGATE,
     PREC_ERROR
 } Precedence;
 
@@ -221,28 +220,16 @@ Value apply_arithmetic_operator(Token op, Value lhs, Value rhs) {
     if ((op.type == DIV || op.type == MOD) && rhs.rval == 0) {
         // We need to do something here to A) not return a value and B) skip the
         // computation
-        printf("error: attempting to divide by zero\n");
+        printf("error: attempted to divide by 0\n");
         lhs.error = true;
         return lhs;
     }
 
     switch (op.type) {
     case ADD:
-        if ((lhs.rval > 0 && rhs.rval > 0 && (lhs.rval + rhs.rval) < 0) ||
-            (lhs.rval < 0 && rhs.rval < 0 && (lhs.rval + rhs.rval) > 0)) {
-            printf("error: integer overflow (add)\n");
-            lhs.error = true;
-            return lhs;
-        }
         v.rval = lhs.rval + rhs.rval;
         break;
     case SUB:
-        if ((lhs.rval > 0 && -rhs.rval > 0 && (lhs.rval + -rhs.rval) < 0) ||
-            (lhs.rval < 0 && -rhs.rval < 0 && (lhs.rval + -rhs.rval) > 0)) {
-            printf("error: integer overflow (sub)\n");
-            lhs.error = true;
-            return lhs;
-        }
         v.rval = lhs.rval - rhs.rval;
         break;
     case MUL:
@@ -264,11 +251,19 @@ Value apply_arithmetic_operator(Token op, Value lhs, Value rhs) {
         v.rval = lhs.rval & rhs.rval;
         break;
     case LSH:
-        // TODO error check
+        if (rhs.rval > 63 || rhs.rval < 0) {
+            printf("error: invalid shift width (lsh)\n");
+            lhs.error = true;
+            return lhs;
+        }
         v.rval = lhs.rval << rhs.rval;
         break;
     case RSH:
-        // TODO error check
+        if (rhs.rval > 63 || rhs.rval < 0) {
+            printf("error: invalid shift width (rsh)\n");
+            lhs.error = true;
+            return lhs;
+        }
         v.rval = lhs.rval >> rhs.rval;
         break;
     default:
@@ -347,6 +342,9 @@ Value term() {
         match(LPAREN);
 
         Value v = expr();
+        if (v.error) {
+            return v;
+        }
 
         match(RPAREN);
 
@@ -355,6 +353,10 @@ Value term() {
         match(SUB);
 
         Value v = term();
+        if (v.type == LVAL) {
+            v.type = RVAL;
+            v.rval = v.lval->val;
+        }
         v.rval = -v.rval;
 
         return v;
@@ -362,6 +364,10 @@ Value term() {
         match(BIT_NOT);
 
         Value v = term();
+        if (v.type == LVAL) {
+            v.type = RVAL;
+            v.rval = v.lval->val;
+        }
         v.rval = ~v.rval;
 
         return v;
@@ -396,6 +402,9 @@ Value __expr(Precedence min_prec) {
             }
 
             rhs = __expr(next_min);
+            if (rhs.error) {
+                return rhs;
+            }
             lhs = apply_arithmetic_operator(op, lhs, rhs);
 
             if (lhs.error) {
@@ -405,12 +414,18 @@ Value __expr(Precedence min_prec) {
     } else if (is_assignment_operator(lookahead_token)) {
         if (lhs.type != LVAL) {
             fprintf(stderr, "error: cannot assign to rval: %lld\n", lhs.rval);
+            lhs.type = LVAL;
+            lhs.error = true;
+            return lhs;
         }
 
         op = lookahead_token;
         match(op.type);
 
-        rhs = expr();
+        rhs = __expr(precedence(op) + 1);
+        if (rhs.error) {
+            return rhs;
+        }
 
         lhs = apply_assignment_operator(op, lhs, rhs);
         assert(lhs.type == LVAL);
@@ -433,6 +448,13 @@ void stmt() {
     // Are we in the set of symbols that can start an expression
     if (in_first_of_expr(lookahead_token)) {
         val = expr();
+    }
+
+    if (val.error) {
+        // Consume tokens till SEMICOLON
+        while (lookahead_token.type != SEMICOLON) {
+            match(lookahead_token.type);
+        }
     }
 
     // Check if this is valid before printing

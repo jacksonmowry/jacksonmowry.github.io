@@ -1,0 +1,182 @@
+% Created 2025-10-18 Sat 15:26
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Sat Oct 18 15:22:30 2025}
+\title{Writeup}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={Writeup},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.31)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section*{Writeup}
+\label{sec:orgab99c4a}
+\begin{itemize}
+\item How long did it take you to complete this project?
+\begin{itemize}
+\item 5 minutes
+\end{itemize}
+\item What steps did you take to complete the project?
+\begin{itemize}
+\item Make sure to include details on how you generated your key pair, how you set up commit signing in your Git client, how you signed the commit, and how you verified your signed commit.
+\begin{itemize}
+\item I generated my keypair using the gpg command line tool, specifically the following command.
+\begin{itemize}
+\item \texttt{gpg -{}-{}full-generate-key}
+\end{itemize}
+\item Setting up commit signing in my git client was accomplished with the following command.
+\begin{itemize}
+\item \texttt{git config -{}-{}global commit.gpgsign true}
+\end{itemize}
+\item The commit itself was signed using the following command, I believe the \texttt{-S} is not necessary after the previous config, but I included it anyways.
+\begin{itemize}
+\item \texttt{git commit -S -m "Commit for ukm part 1"}
+\end{itemize}
+\item The commit was then verified using the following command.
+\begin{itemize}
+\item \texttt{git verify-commit -v a796ebf1}
+\end{itemize}
+\end{itemize}
+\item Include details about anything you attempted that ultimately did not work.
+\item Include screenshots if you think that would be helpful.
+\end{itemize}
+\item Identify the tools you used.
+\begin{itemize}
+\item Tools used
+\begin{itemize}
+\item I used the \texttt{gpg}, and \texttt{git} command line tools on my Linux distro.
+\end{itemize}
+\item Also, include details about any tools you ultimately abandoned.
+\begin{itemize}
+\item No tools were abandoned.
+\end{itemize}
+\item Describe what went well with these tools and what was challenging.
+\begin{itemize}
+\item Everything was very smooth with both tools.
+\end{itemize}
+\end{itemize}
+\item Describe what information sources you used and how helpful (or unhelpful) they were.
+\begin{itemize}
+\item Information sources
+\begin{itemize}
+\item I used the following sources
+\begin{itemize}
+\item \url{https://docs.github.com/en/authentication/}
+managing-commit-signature-verification/signing-commits
+\item \url{https://docs.github.com/en/authentication/}
+managing-commit-signature-verification/telling-git-about-your-signing-key
+\item \url{https://docs.github.com/en/authentication/}
+managing-commit-signature-verification/generating-a-new-gpg-key
+\item \url{https://docs.github.com/en/authentication/}
+managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account
+\item \url{https://git-scm.com/docs/git-verify-commit}
+\end{itemize}
+\end{itemize}
+\item Why did you need to use them?
+\begin{itemize}
+\item GitHub has generally been my goto source for supplemental git documentation that I cannot easily find from \texttt{git-scm.com}. They have a very good guide for all things related to commit signing.
+\end{itemize}
+\item Why were they helpful (or unhelpful)?
+\begin{itemize}
+\item All 5 resources linked were very helpful.
+\end{itemize}
+\end{itemize}
+\item Answer the following questions:
+\begin{itemize}
+\item What were the easiest steps to set up Git commit signing, sign a commit, or verify a commit? Why were they the easiest?
+\begin{itemize}
+\item The easiest step in setting up git commit signing was running the \texttt{gpg} command to genearate a key, as it is a step-by-step process that prompts you at each step for the necessary information.
+\item The easiest step in signing a commit was running the actual \texttt{git commit -S} command, this is because everything for retreiving the GPG key is handled by my operating system.
+\item The easiest step in verifying a commit was running \texttt{git verify-commit} as it is a simple command.
+\end{itemize}
+\item What were the hardest one or two steps in setting up Git commit signing, signing a commit, or verifying a commit? Why were they the hardest?
+\begin{itemize}
+\item The hardest step in setting up git commit signing was nothing, all steps were easy.
+\item The hardest step in signing a commit was nothing, all steps were easy.
+\item The hardest step in verifying a commit was nothing, all steps were easy.
+\end{itemize}
+\item What would you change about the setup process, if anything?
+\begin{itemize}
+\item I wouldn't change anything in the setup process, it was very straight forward.
+\end{itemize}
+\end{itemize}
+\item Answer the after-scenario questionnaire (ASQ) by indicating how much you agree with the following statements on a scale of 1 (strongly disagree) to 7 (strongly agree).
+\begin{itemize}
+\item Overall, I am satisfied with the ease of setting up and using commit signing.
+\begin{itemize}
+\item 7
+\end{itemize}
+\item Overall, I am satisfied with the amount of time it took to set up and use Git commit signing.
+\begin{itemize}
+\item 7
+\end{itemize}
+\item Overall, I am satisfied with the support information (online help, messages, documentation) I found when setting up and using commit signing.
+\begin{itemize}
+\item 7
+\end{itemize}
+\end{itemize}
+\item Answer the system usability scale (SUS) questions by indicating how much you agree with the following statements on a scale of 1 (strongly agree) to 5 (strongly disagree). Note that this scale is different than the previous scale.
+\begin{itemize}
+\item I think that I would have no problem using Git commit signing frequently.
+\begin{itemize}
+\item 5
+\end{itemize}
+\item I found using Git commit signing unnecessarily complex.
+\begin{itemize}
+\item 1
+\end{itemize}
+\item I thought that using Git commit signing was easy.
+\begin{itemize}
+\item 5
+\end{itemize}
+\item I think that I would need the support of a technical support staff to use Git commit signing in the future.
+\begin{itemize}
+\item 1
+\end{itemize}
+\item I found the various functions for using Git commit signing to be well-integrated.
+\begin{itemize}
+\item 5
+\end{itemize}
+\item I thought there was too much inconsistency in using Git commit signing.
+\begin{itemize}
+\item 1
+\end{itemize}
+\item I would imagine that most people would learn to use Git commit signing very quickly.
+\begin{itemize}
+\item 5
+\end{itemize}
+\item I found using Git commit signing to be very cumbersome.
+\begin{itemize}
+\item 1
+\end{itemize}
+\item I felt very confident using Git commit signing.
+\begin{itemize}
+\item 5
+\end{itemize}
+\item I needed to learn a lot of things before I could get going with using Git commit signing.
+\begin{itemize}
+\item 1
+\end{itemize}
+\end{itemize}
+\item Provide any other feedback you have about the project or Git commit signing.
+\begin{itemize}
+\item No other feedback from my end.
+\end{itemize}
+\end{itemize}
+\end{document}

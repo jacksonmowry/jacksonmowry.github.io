@@ -1,0 +1,56 @@
+#+title: Revision 3
+#+author: Jackson Mowry
+#+options: toc:nil num:nil \n:t
+
+* Revised Summary
+
+The paper titled “The RISP Neuroprocessor - Open Source Support for Embedded Neuromorphic Computing” by authors James S. Plank, Keegan E. M. Dent, Bryson Gullett, Charles P. Rizzo, and Catherine D. Schuman introduces the RISP neuroprocessor as an open-source tool designed to advance research and development in neuromorphic computing. Neuromorphic computing is a brain-inspired technology that uses artificial neurons and synapses to create efficient, low-power systems capable of handling complex tasks. This work highlights the simplicity and effectiveness of the RISP neuroprocessor, which employs integrate-and-fire neurons and synapses with discrete delays, enabling researchers to simulate and implement spiking neural networks (SNNs) on hardware platforms like Field-Programmable Gate Arrays (FPGAs).
+
+Key Points:
+
+** What is Neuromorphic Computing?
+It mimics the brain’s structure and function, using neurons and synapses to process information.
+Spiking Neural Networks (SNNs) add a temporal aspect to computations, making them distinct from traditional artificial neural networks.
+
+** The RISP Neuroprocessor:
+A simplified neuromorphic processor that uses “integrate-and-fire” neurons and synapses with discrete delays.
+It enables researchers to simulate and implement neuromorphic networks on hardware like Field-Programmable Gate Arrays (FPGAs).
+Two repositories are available:
+Framework-open: For simulation and network manipulation.
+FPGA repository: For implementing RISP networks on FPGAs.
+
+** Applications:
+Examples include solving problems like balancing a cart-pole system, computing mathematical functions like sine, recognizing patterns (bars-and-stripes), and clustering data using DBSCAN algorithms.
+These applications demonstrate how neuromorphic computing can handle complex tasks efficiently.
+
+** Advantages of RISP:
+Open-source tools make it accessible for researchers without requiring expensive hardware or proprietary solutions.
+The approach focuses on embedding specific networks directly into FPGA hardware, optimizing resource usage compared to general-purpose neuroprocessors.
+
+** Challenges:
+Communication between the FPGA and host computer is currently a bottleneck due to limitations in UART communication protocols.
+*** Communication Bottleneck
+**** Cart-Pole Application:
+Average communication per timestep: 59 bytes (DIDO mode).
+Average computation time per timestep:
+DIDO: 0.0123 seconds.
+DISO: 0.0128 seconds.
+SIDO: 0.0140 seconds.
+SISO: 0.0144 seconds.
+While these timings are faster than the required application timestep of 0.02 seconds, they highlight inefficiencies due to frequent communication.
+
+**** Key Observations:
+The performance of the FPGA depends more on communication efficiency than on the execution speed of spiking neural networks themselves.
+Current communication protocols require interaction at every neuroprocessor timestep, even when output spikes are sparse or unnecessary.
+
+**** Proposed Solutions:
+To alleviate these bottlenecks, several improvements are planned:
+Implementing buffering and aggregation for input/output spikes to reduce communication frequency.
+Introducing advanced protocols like AXI DMA, PCIe, and MIPI to achieve faster data transfer rates.
+Optimizing communication paradigms by reducing redundant messages (e.g., reporting only aggregated output counts).
+** Future Goals:
+Enhance communication efficiency for real-time applications like event-based cameras.
+Expand support for additional FPGA platforms and communication protocols.
+Encourage contributions from the open-source community to improve the implementation further.
+
+In summary, this paper introduces the RISP neuroprocessor as a practical tool for exploring neuromorphic computing in embedded systems. By leveraging open-source software and hardware implementations, researchers can create energy-efficient systems capable of handling complex tasks while addressing current challenges in communication efficiency.
