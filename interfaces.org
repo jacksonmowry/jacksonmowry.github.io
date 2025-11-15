@@ -1,0 +1,148 @@
+#+title: Interfaces
+
+* Perf Stat
+** clang
+- All compiled with =-O3 -ffast-math -DNDEBUG -march=native=
+*** _Generic
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./macros 25000 25000 45':
+
+         42,634.16 msec task-clock                       #    1.000 CPUs utilized
+         3,353,869      cpu_atom/cache-references/       #   78.666 K/sec
+           495,377      cpu_atom/cache-misses/           #   14.77% of all cache refs
+   181,939,819,796      cpu_atom/cycles/                 #    4.267 GHz
+   920,751,937,825      cpu_atom/instructions/           #    5.06  insn per cycle
+   168,772,772,629      cpu_atom/branches/               #    3.959 G/sec
+         7,990,689      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      42.647552981 seconds time elapsed
+
+      42.496754000 seconds user
+       0.099880000 seconds sys
+#+end_src
+
+*** Tagged Unions
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./tagged_unions 25000 25000 45':
+
+         45,668.72 msec task-clock                       #    1.000 CPUs utilized
+         3,913,224      cpu_atom/cache-references/       #   85.687 K/sec
+           556,658      cpu_atom/cache-misses/           #   14.23% of all cache refs
+   195,846,335,985      cpu_atom/cycles/                 #    4.288 GHz
+   977,444,730,182      cpu_atom/instructions/           #    4.99  insn per cycle
+   181,378,314,686      cpu_atom/branches/               #    3.972 G/sec
+         7,280,282      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      45.681773138 seconds time elapsed
+
+      45.512557000 seconds user
+       0.116862000 seconds sys
+#+end_src
+
+*** Function Pointers
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./function_pointers 25000 25000 45':
+
+         57,732.83 msec task-clock                       #    1.000 CPUs utilized
+         7,198,730      cpu_atom/cache-references/       #  124.690 K/sec
+         1,482,189      cpu_atom/cache-misses/           #   20.59% of all cache refs
+   244,457,704,688      cpu_atom/cycles/                 #    4.234 GHz
+ 1,190,331,976,407      cpu_atom/instructions/           #    4.87  insn per cycle
+   192,561,656,924      cpu_atom/branches/               #    3.335 G/sec
+         7,793,756      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      57.753686140 seconds time elapsed
+
+      57.547411000 seconds user
+       0.118548000 seconds sys
+#+end_src
+
+*** Full Interface
+#+begin_src shell
+Performance counter stats for 'taskset -c 0 ./full_interface 25000 25000 45':
+
+         61,107.39 msec task-clock                       #    1.000 CPUs utilized
+        10,555,999      cpu_atom/cache-references/       #  172.745 K/sec
+         2,832,319      cpu_atom/cache-misses/           #   26.83% of all cache refs
+   244,742,833,210      cpu_atom/cycles/                 #    4.005 GHz
+ 1,196,227,332,390      cpu_atom/instructions/           #    4.89  insn per cycle
+   192,601,498,838      cpu_atom/branches/               #    3.152 G/sec
+         8,553,721      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      61.136820225 seconds time elapsed
+
+      60.853145000 seconds user
+       0.141385000 seconds sys
+#+end_src
+** gcc
+*** _Generic
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./macros 25000 25000 45':
+
+         42,189.36 msec task-clock                       #    1.000 CPUs utilized
+         3,911,535      cpu_atom/cache-references/       #   92.714 K/sec
+           645,378      cpu_atom/cache-misses/           #   16.50% of all cache refs
+   179,106,409,864      cpu_atom/cycles/                 #    4.245 GHz
+   905,969,236,128      cpu_atom/instructions/           #    5.06  insn per cycle
+   171,515,418,406      cpu_atom/branches/               #    4.065 G/sec
+         6,874,501      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      42.203639471 seconds time elapsed
+
+      42.037233000 seconds user
+       0.112808000 seconds sys
+#+end_src
+
+*** Tagged Unions
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./tagged_unions 25000 25000 45':
+
+         46,621.87 msec task-clock                       #    1.000 CPUs utilized
+         3,039,209      cpu_atom/cache-references/       #   65.188 K/sec
+           391,259      cpu_atom/cache-misses/           #   12.87% of all cache refs
+   200,598,977,032      cpu_atom/cycles/                 #    4.303 GHz
+   973,522,677,240      cpu_atom/instructions/           #    4.85  insn per cycle
+   182,737,284,137      cpu_atom/branches/               #    3.920 G/sec
+         7,887,028      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      46.634116027 seconds time elapsed
+
+      46.489584000 seconds user
+       0.092880000 seconds sys
+#+end_src
+
+*** Function Pointers
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./function_pointers 25000 25000 45':
+
+         54,491.19 msec task-clock                       #    1.000 CPUs utilized
+         4,185,089      cpu_atom/cache-references/       #   76.803 K/sec
+           573,192      cpu_atom/cache-misses/           #   13.70% of all cache refs
+   233,665,852,695      cpu_atom/cycles/                 #    4.288 GHz
+ 1,196,963,355,076      cpu_atom/instructions/           #    5.12  insn per cycle
+   205,138,323,224      cpu_atom/branches/               #    3.765 G/sec
+         7,897,653      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      54.505833943 seconds time elapsed
+
+      54.344657000 seconds user
+       0.098882000 seconds sys
+#+end_src
+
+*** Full Interface
+#+begin_src shell
+ Performance counter stats for 'taskset -c 0 ./full_interface 25000 25000 45':
+
+         56,663.69 msec task-clock                       #    1.000 CPUs utilized
+         7,523,181      cpu_atom/cache-references/       #  132.769 K/sec
+         1,773,856      cpu_atom/cache-misses/           #   23.58% of all cache refs
+   237,060,047,864      cpu_atom/cycles/                 #    4.184 GHz
+ 1,202,979,147,957      cpu_atom/instructions/           #    5.07  insn per cycle
+   205,166,117,978      cpu_atom/branches/               #    3.621 G/sec
+         8,470,190      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      56.684210992 seconds time elapsed
+
+      56.472638000 seconds user
+       0.113353000 seconds sys
+#+end_src

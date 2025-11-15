@@ -1,7 +1,7 @@
 pkg load statistics
 
-risp = csvread('~/snake-room-cluster/risp.csv')/60/60
-crisp = csvread('~/snake-room-cluster/crisp.csv')/60/60
+risp = csvread('./risp.csv')/60/60
+crisp = csvread('./crisp.csv')/60/60
 
 h = violin([risp,crisp], "smoothfactor", 50)
 xlabel("Neuroprocessor")

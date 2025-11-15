@@ -1,0 +1,39 @@
+// x > 0
+B1.code = if x > 0 goto B1.true = L1
+          goto B1.false = L4
+
+// x < y
+B2.code = if x > y goto B2.true = L3
+          goto B2.false = L4
+
+// B3 -> B1 || B2
+B1.true = newlabel() = L1
+B1.false = B3.false = L4
+B2.true = B3.true = L3
+B2.false = B3.false = L4
+B3.code = B1.code || L1 || B2.code
+
+// S1 -> id = E5
+x = x + 1
+
+// S -> while (B3) S1
+begin = newlabel() = L2
+B3.true = newlabel() = L3
+B3.false = S.next
+S1.next = L2
+S.code = L2 || B3.code || L3 || S1.code || goto L2
+
+// P -> S
+S.next = newlabel() = L4
+P.code = S.code || L4
+
+L2:
+    if x > 0 goto L1
+    goto L4
+L1:
+    if x > y goto L3
+    goto L4
+L3:
+    x = x + 1
+    goto L2
+L4:

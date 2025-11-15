@@ -1,0 +1,141 @@
+#+title: Writeup
+#+author: Jackson Mowry
+#+date: Sat Oct 25 20:00:59 2025
+#+options: toc:nil num:nil \n:t
+
+* For each website, a summary of key properties. Include the following information:
+   - Subject, common name, and alternative names
+   - Validity period
+   - Type of cryptographic key
+   - Details about the certificate chain
+   - The authentication algorithm (how the client authenticates the server)
+   - The symmetric encryption algorithm, key size, and mode
+   - The hashing algorithm
+   - A list of the cryptographic guarantees (confidentiality, integrity, forward secrecy) provided by this configuration
+   - Three other properties that you find interesting
+
+** Comparison of Names
+|    | Subject                           | Common Name                       | Alternative Names                                        |
+|  1 | *.google.com                      | *.google.com                      | Too many to list, but all google services and ad related |
+|  2 | github.com                        | github.com                        | github.com www.github.com                                |
+|  3 | microsoft.com                     | microsoft.com                     | Too many to list, all microsoft service related          |
+|  4 | www.ssllabs.com                   | www.ssllabs.com                   | www.ssllabs.com ssllabs.com api.ssllabs.com, etc         |
+|  5 | slack.com                         | slack.com                         | *.slack.com slack.com                                    |
+|  6 | discord.com                       | discord.com                       | discord.com *.discord.com                                |
+|  7 | news.ycombinator.com              | news.ycombinator.com              | news.ycombinator.com                                     |
+|  8 | utk.edu                           | utk.edu                           | utk.edu                                                  |
+|  9 | formula1.com                      | formula1.com                      | formula1.com                                             |
+| 10 | cluster95.canvas-user-content.com | cluster95.canvas-user-content.com | *.instructure.com instructure.com canvaslms.com, etc     |
+** Validity Periods
+|                     | Validity Period |
+| google.com          | 24 Days         |
+| github.com          | 1 year          |
+| microsoft.com       | 6 months        |
+| ssllabs.com         | 1 year          |
+| slack.com           | 3 months        |
+| discord.com         | 3 months        |
+| new.ycombinator.com | 3 months        |
+| utk.edu             | 3 months        |
+| formula1.com        | 13 months       |
+| utk.instructure.com | 13 months       |
+** Type of Cryptographic Key
+|                     | Key Type                |
+| google.com          | EC 256 bits             |
+| github.com          | RSA 4096 bits (e 65537) |
+| microsoft.com       | RSA 2048 bits (e 65537) |
+| www.ssllabs.com     | RSA 2048 bits (e 65537) |
+| slack.com           | RSA 2048 bits (e 65537) |
+| discord.com         | EC 256 bits             |
+| new.ycombinator.com | EC 256 bits             |
+| utk.edu             | RSA 2048 bits (e 65537) |
+| formula1.com        | RSA 2048 bits (e 65537) |
+| utk.instructure.com | RSA 2048 bits (e 65537) |
+** Details about the Certificate Chain
+|                     | Certificate Chain                                                                                                         |
+| google.com          | 3 certs, [WE2, GTS Root R4, GlobalSign RootCA]                                                                            |
+| github.com          | 3 certs, [Sectigo RSA Domain Validation Secure Server CA, USERTrust RSA Certification Authority AAA Certificate Services] |
+| microsoft.com       | 2 certs, [Microsoft Azure RSA TLS Issuing CA, Digicert Global Root G2]                                                    |
+| www.ssllabs.com     | 2 certs, [DigiCert Global G2 TLS RSA SHA256 2020 CA1, DigiCertGlobal RootG2]                                              |
+| slack.com           | 2 certs, [R13, ISRG Root X1]                                                                                              |
+| discord.com         | 3 certs, [WE1, GTS Root R4, GlobalSign Root CA]                                                                           |
+| new.ycombinator.com | 2 certs, [E8, ISRG Root X1]                                                                                               |
+| utk.edu             | 3 certs, [WR1, GTS Root R1, GlobalSign Root CA]                                                                           |
+| formula1.com        | 3 certs, [Amazon RSA 2048 MO4, Amazon Root CA 1, Starfield Services Root Certificate Authority - G2]                      |
+| utk.instructure.com | 3 certs, [Amazon RSA 2048 MO3, Amazon Root CA 1, Starfield Services Root Certificate Authority - G2]                      |
+** Authentication Algorithm
+|                     | Authentication Algorithm |
+| google.com          | ECDHE x25519             |
+| github.com          | RSA                      |
+| microsoft.com       | RSA                      |
+| www.ssllabs.com     | RSA                      |
+| slack.com           | RSA                      |
+| discord.com         | ECDHE x25519             |
+| new.ycombinator.com | ECDHE x25519             |
+| utk.edu             | RSA                      |
+| formula1.com        | RSA                      |
+| utk.instructure.com | RSA                      |
+** Symmetric Encryption Algorithm, Key Size, and Mode
+- Just listing the top algorithm for the highest version of TLS supported
+|                     | Encryption Algorithm | Key Size | Mode |
+| google.com          | AES                  |      128 | GCM  |
+| github.com          | AES                  |      128 | GCM  |
+| microsoft.com       | AES                  |      128 | GCM  |
+| www.ssllabs.com     | AES                  |      128 | GCM  |
+| slack.com           | AES                  |      128 | GCM  |
+| discord.com         | AES                  |      128 | GCM  |
+| new.ycombinator.com | AES                  |      256 | GCM  |
+| utk.edu             | AES                  |      128 | GCM  |
+| formula1.com        | AES                  |      128 | GCM  |
+| utk.instructure.com | AES                  |      128 | GCM  |
+** Hashing Algorithm
+|                     | Hashing Algorithm |
+| google.com          | SHA256            |
+| github.com          | SHA256            |
+| microsoft.com       | SHA256            |
+| www.ssllabs.com     | SHA256            |
+| slack.com           | SHA256            |
+| discord.com         | SHA256            |
+| new.ycombinator.com | SHA384            |
+| utk.edu             | SHA256            |
+| formula1.com        | SHA256            |
+| utk.instructure.com | SHA256            |
+** Properties of Cryptographic Configuration
+|                     | Properties |
+| google.com          | FS, C, I   |
+| github.com          | FS, C, I   |
+| microsoft.com       | FS, C, I   |
+| www.ssllabs.com     | FS, C, I   |
+| slack.com           | FS, C, I   |
+| discord.com         | FS, C, I   |
+| new.ycombinator.com | FS, C, I   |
+| utk.edu             | FS, C, I   |
+| formula1.com        | FS, C, I   |
+| utk.instructure.com | FS, C, I   |
+** 3 Additional Properties
+|                     | Grade | Debian Weak Key | Highest TLS Version |
+| google.com          | B     | No              |                 1.3 |
+| github.com          | A+    | No              |                 1.3 |
+| microsoft.com       | A+    | No              |                 1.3 |
+| www.ssllabs.com     | A     | No              |                 1.3 |
+| slack.com           | A+    | No              |                 1.3 |
+| discord.com         | A+    | No              |                 1.3 |
+| new.ycombinator.com | B     | No              |                 1.2 |
+| utk.edu             | A     | No              |                 1.3 |
+| formula1.com        | A-    | No              |                 1.2 |
+| utk.instructure.com | A+    | No              |                 1.3 |
+
+* A textual summary of any interesting differences or common features that you observe.
+While most of the servers tested here follow a very similar configuration pattern it was interesting to see how the grades across services vary. For the majority of servers that did not receive an A+ it seems that SSL Labs does not like when a server supports older versions of TLS such as 1.0 and 1.1. Those services which do support the most recent version of TLS (1.3) SSL Labs gives a bump in grade. This seems to be a careful balance of supported modern protocols, while deprecating older ones as soon as your user base begins phasing those protocols out.
+
+For those services which support TLS 1.3 they have almost identical configurations, settling on AES with 128 bit keys, and GCM for the mode. This makes sense as if most of the web supports a specific protocol it will be necessity have the most eyes on attempting to poke holes in the code.
+
+I also found it interesting that large companies (and those who provide cloud hosting) tend to have shorter certificate chains where they are also found within the chain.
+
+Lastly I am interested in how these companies model the threat of long lived certificates, as I know client companies like Apple and Google are pushing for these certificates to be shorter and shorter.
+* List questions about any information you don’t understand or would like to know more about.
+I would like to know more about the Debian Weak Key issue, which after some quick digging looks like a very interesting issue when it comes to cybersecurity.
+
+I would also like to know more about how realistic a threat it is to have a certificate cover all subdomains such as *.discord.com versus having only discord.com.
+
+* Additional Review
+Chris White

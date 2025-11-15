@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-11-08 Sat 20:29 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Password Cracking</title>
+<meta name="author" content="Jackson Mowry" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Password Cracking</h1>
+<div id="outline-container-org5b1c961" class="outline-2">
+<h2 id="org5b1c961">Cracking Details</h2>
+<div class="outline-text-2" id="text-org5b1c961">
+<ul class="org-ul">
+<li>What tool did you select to use? Why?<br />
+<ul class="org-ul">
+<li>To crack all 16 passwords I ended up using a mix of both John the Ripper and Hashcat. I utilized both tools as this allowed to use both of their default rulesets to avoid having to write a ton of my own to cover all permutations of both. Additionally, I read online that Hashcat is often faster, which led me to use the tool. However, in the end I observed similar speeds using both tools.<br /></li>
+</ul></li>
+<li>What was your average rate for password checks a second (c/s in JTR)?<br />
+<ul class="org-ul">
+<li>On an NVIDIA 4060 I was able to achieve around 12 million checks per second in JTR. On the same 4060 I would get around 13 million checks per second in Hashcat.<br /></li>
+</ul></li>
+<li>What guessing strategies did you employ?<br />
+<ul class="org-ul">
+<li>My guessing strategies were copied straight from the project writeup, using each of the 4 given password composition rules to guide my choice in ruleset. These ruleset choices were combined with a large english word dictionary available through my operating system&rsquo;s package manager, and the default word lists provided with both tools.<br /></li>
+</ul></li>
+<li>List the passwords that you cracked. List the strategy used to crack each of these passwords.<br />
+<ul class="org-ul">
+<li>$1$ii13OK6b$j39q6K.6TKBzZzCGxqTH20:41t3rn4t3<br />
+<ul class="org-ul">
+<li>Cracking using hashcat, combination of the unix leetspeak ruleset and some custom changes to transform more letters<br /></li>
+</ul></li>
+<li>user2:7OgTHT::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>$1$ZScxtUI7$O38W8SgWrPsvLjl4UA4Og1:14b0r4t0ri35<br />
+<ul class="org-ul">
+<li>Cracking using hashcat, combination of the unix leetspeak ruleset and some custom changes to transform more letters<br /></li>
+</ul></li>
+<li>$1$f5Bw0IKt$2u7QmNwYzD7lqArefbYVb/:int3rn4ti0n411y<br />
+<ul class="org-ul">
+<li>Cracking using hashcat, combination of the unix leetspeak ruleset and some custom changes to transform more letters<br /></li>
+</ul></li>
+<li>user5:lkyru::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user6:forwarding::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, word list without modifications<br /></li>
+</ul></li>
+<li>user7:increased::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, word list without modifications<br /></li>
+</ul></li>
+<li>user8:31iz4b3th::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, custom leetspeak rules<br /></li>
+</ul></li>
+<li>user9:31w4::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user10:SJ::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user11:2c8zc::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user12:uddg::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user13:c0mp4ni35::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, custom leetspeak rules<br /></li>
+</ul></li>
+<li>user14:longitude::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, word list without modifications<br /></li>
+</ul></li>
+<li>user15:ta::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Lowercase only<br /></li>
+</ul></li>
+<li>user16:revolutionary::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, word list without modifications<br /></li>
+</ul></li>
+<li>user17:lr4::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user18:ugrknq::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Alnum rule set to lengths between 2-6<br /></li>
+</ul></li>
+<li>user19:cincinnati::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, word list without modifications<br /></li>
+</ul></li>
+<li>user20:lsv::::::<br />
+<ul class="org-ul">
+<li>Cracked using JTR, Lowercase only<br /></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org1b787fb" class="outline-2">
+<h2 id="org1b787fb">Followup Questions</h2>
+<div class="outline-text-2" id="text-org1b787fb">
+<ol class="org-ol">
+<li>Assuming that you used your setup for this project alone, how long do you calculate that it would take to crack a 6-character alphanumeric password? Eight characters? Ten characters? Twelve characters? Give exact estimates for either the average time needed to crack a password of the given length and composition, or the max time needed. Show your work.<br />
+<ul class="org-ul">
+<li>I utilized 6 NVIDIA 4060 GPUs for this project, which meant an average of 12 million checks per second on a single GPU, or 72 million checks per second all together. Utilizing the <code>--node</code> flag in JTR to split work across machines it would take around 13 minutes <code>(62**6) / 72,000,000 / 60 sec per min</code> to enumerate all 6 character alphanumeric passwords. Eight would scale to 842 hours, 10 scales to 134918 days, 12 scales to 1420892 years. Same formula for all examples just raising 62 to the power of the length.<br /></li>
+</ul></li>
+<li>Recently, high-end GPUs have revolutionized password cracking. An RTX 3080 (a recent high-end GPU) is able to check 2.5 billion passwords a second using MD5 crypt. Using this guessing rate, estimate how long it would take to crack the passwords described in Question 1.<br />
+<ul class="org-ul">
+<li>6 = 0.27 minutes<br /></li>
+<li>8 = 17.32 hours<br /></li>
+<li>10 = 2775.46 days<br /></li>
+<li>12 = 29229.78 years<br /></li>
+</ul></li>
+<li>Do you think that the password meter is a good indication of actual password security? From the results of your experiment, what is your recommendation for minimum password length? Be creative in your response. Imagine what hardware and resources a potential attacker might have, and briefly justify your assessment of the attacker&rsquo;s capabilities.<br />
+<ul class="org-ul">
+<li>The quickest way to increase the time taken to guess a password it to make sure that it is long, assuming a reasonable mix of characters. The 12 character password example from the previous question is a perfect example of this. However, if we take that same 12 character password and reduce it to only using lowercase ASCII letters the time taken to crack drops to a staggering 0.86 years. For this reason while we should encourage users to utilize long passwords, we should also encourage a healthy mix of characters. I believe that password strength bars are an antiquated technique built for an error where utilizing a password manager was so easy. With the ease-of-use of a modern password manager a user shouldn&rsquo;t even have to know a single character of their possibly 36-character long password. If a user is relying on the password bar as a gauge of security they will probably be led to a false conclusion that maximizing one single metric (such a length or character mix) will give a secure password, when in reality true randomness of significant length is the most secure method for creating a password. If we have to give one single number for minimum password length I would simply set it to just over a year of time spent cracking on the most modern gaming GPU with an entirely lowercase password. This is the worst case for password strength on the users end, and the &ldquo;best&rdquo; reasonable case for a solo hacker who can afford a modern high-end GPU. This value comes out to 13 characters.<br /></li>
+</ul></li>
+<li>Fedora 14 and other modern Linux distributions use SHA-512 (rather than MD5) for hashing passwords. Does the use of this hashing algorithm improve password security in some way? Why or why not?<br />
+<ul class="org-ul">
+<li>Yes, MD5 produces 128-bit digests, which have a vastly smaller space than the 512-bit hashes used in SHA-512. At a minimum this means that 4 times larger hashes have to be computed and checked. Additionally, MD5 has known vulnerabilities and has been cracked before. Lastly, SHA-512 offers much greater preimage attack resistance, making the feasibility of finding a collision much higher.<br /></li>
+</ul></li>
+<li>Does the use of a salt increase password security? Why or why not?<br />
+<ul class="org-ul">
+<li>Yes, but only slightly. If a user has access to rainbow tables for a particular hash function and that hash function is being used without a salt, then &ldquo;cracking&rdquo; the password is trivial. If instead a salt is being used then the hacker either has to have many different rainbow tables, or more likely they will just begin brute forcing passwords with some of the strategies used in this very project. At the end of the day a salt should always be used as it further complicates the cracking process.<br /></li>
+</ul></li>
+<li>Against any competent system, an online attack of this nature would not be possible due to network lag, timeouts, and throttling by the system administrator. Does this knowledge lessen the importance of offline password attack protection?<br />
+<ul class="org-ul">
+<li>If there is any level of competence in the team administrating the site there is no chance an attack like this would be possible. In my quest to complete this project I was able to check 72 million passwords a second, with the MTU of a tcp packet commonly being 1500 bytes, we&rsquo;d be generating 108GB/s of network requests in the best possible case assuming our entire request fits in a tcp packet. Not only are consumer internet speeds far below that, with the advent of global firewall services such as cloudflare your traffic would quickly be identified and blocked. However, with a distributed botnet, it may be possible to achieve similar speeds with thousands or potentially even more systems attacking simultenously.<br /></li>
+<li>No, I think it only heightens the importance of offline password attack protection as it is a much more feasible attack route for potential hackers.<br /></li>
+</ul></li>
+</ol>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: Sat Nov  8 19:44:43 2025</p>
+<p class="author">Author: Jackson Mowry</p>
+<p class="date">Created: 2025-11-08 Sat 20:29</p>
+</div>
+</body>
+</html>

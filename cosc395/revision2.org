@@ -1,0 +1,52 @@
+#+title: Revision 2
+#+author: Jackson Mowry
+#+date: Wed Oct 22 18:24:35 2025
+#+options: toc:nil num:nil \n:t
+
+* Revised Summary of the Article
+
+Title: Embracing the Hairball: An Investigation of Recurrence in Spiking Neural Networks for Control
+Authors: C. D. Schuman and C. P. Rizzo and G. S. Rose and J. S. Plank
+
+This article explores the use of recurrent spiking neural networks (SNNs) for control tasks, emphasizing their advantages over traditional feed-forward networks and their potential in neuromorphic computing. Neuromorphic systems are computational models inspired by the structure and functionality of biological neural systems, aiming to mimic how neurons communicate and process information using discrete spikes. Spiking neural networks are a key component of neuromorphic computing, as they simulate the brain’s ability to process temporal data efficiently.
+
+The study focuses on leveraging recurrence—a mechanism where outputs from neurons are fed back as inputs—to enhance performance in tasks requiring memory and temporal processing. Memory plays a crucial role in such tasks by enabling the network to retain information about past states and use it for future decision-making. If an agent is able to remember where it came from in the past these memories can help guide the decision making process, allowing for long term goals that aid in completing complex tasks.
+
+** Key Points
+*** Why Recurrent Spiking Neural Networks?
+    Traditional neural networks often require a large number of neurons to handle complex tasks, leading to higher power consumption.
+
+    Recurrent SNNs can achieve comparable or superior results with fewer neurons, making them more suitable for low-power applications such as neuromorphic computing.
+
+    Recurrence enables these networks to process temporal information and maintain memory, which is essential for control tasks like balancing or navigation.
+
+*** Challenges with Recurrence:
+    Training recurrent networks is inherently more challenging than training feed-forward ones due to the need for specialized algorithms capable of handling feedback loops.
+
+    Neuromorphic hardware has historically been optimized for feed-forward architectures, which has limited the exploration and implementation of recurrence-based designs.
+
+*** Methods Used:
+    The study employed evolutionary algorithms to train recurrent SNNs:
+        - LEAP: Optimizes parameters for feed-forward networks.
+        - EONS: Evolves both the structure and parameters of recurrent networks.
+    These methods were tested on three control tasks:
+        - Pole Balancing (with and without velocity inputs): A classic control task where a pole must be balanced on a moving cart.
+          - Pole Balancing without velocity inputs is a specific task that requires memory in order to find an optimal solution.
+        - Bipedal Walker (OpenAI Gym): A simulated robot navigating uneven terrain.
+
+*** Results:
+    Recurrent SNNs consistently outperformed feed-forward networks across all tasks, particularly in scenarios requiring memory (e.g., pole balancing without velocity inputs).
+
+    These networks demonstrated better efficiency by achieving high performance with fewer neurons and synapses, highlighting their suitability for resource-constrained environments.
+
+    Visualizations of the best-performing networks revealed highly interconnected “hairball-like” structures that were difficult to interpret but proved effective in solving complex tasks.
+
+*** Future Directions:
+    Extend the application of recurrence-based SNNs to other domains such as anomaly detection and spatiotemporal classification.
+
+    Develop methods to improve the explainability of recurrent connections, facilitating better understanding of their contributions to decision-making processes.
+
+** Conclusion
+Recurrent spiking neural networks show great promise for control tasks by reducing neuron count while improving performance. Their ability to efficiently process temporal information makes them ideal for power-constrained applications like robotics and neuromorphic computing. However, challenges remain in training these networks due to their complex structures and limited support from current hardware. Further research into explainability and broader applications could unlock their full potential.
+
+If you’re unfamiliar with neural networks or machine learning, this research can be understood as an effort to design “brain-like” systems that solve problems more efficiently than traditional computer programs by mimicking how our brains process information over time.

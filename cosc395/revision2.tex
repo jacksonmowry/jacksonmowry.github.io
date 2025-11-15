@@ -1,0 +1,83 @@
+% Created 2025-10-22 Wed 18:42
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Wed Oct 22 18:24:35 2025}
+\title{Revision 2}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={Revision 2},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section*{Revised Summary of the Article}
+\label{sec:org4cb484a}
+
+Title: Embracing the Hairball: An Investigation of Recurrence in Spiking Neural Networks for Control\\
+Authors: C. D. Schuman and C. P. Rizzo and G. S. Rose and J. S. Plank\\
+
+This article explores the use of recurrent spiking neural networks (SNNs) for control tasks, emphasizing their advantages over traditional feed-forward networks and their potential in neuromorphic computing. Neuromorphic systems are computational models inspired by the structure and functionality of biological neural systems, aiming to mimic how neurons communicate and process information using discrete spikes. Spiking neural networks are a key component of neuromorphic computing, as they simulate the brain’s ability to process temporal data efficiently.\\
+
+The study focuses on leveraging recurrence—a mechanism where outputs from neurons are fed back as inputs—to enhance performance in tasks requiring memory and temporal processing. Memory plays a crucial role in such tasks by enabling the network to retain information about past states and use it for future decision-making. If an agent is able to remember where it came from in the past these memories can help guide the decision making process, allowing for long term goals that aid in completing complex tasks.\\
+\subsection*{Key Points}
+\label{sec:org57f30cc}
+\subsubsection*{Why Recurrent Spiking Neural Networks?}
+\label{sec:org1ba7eb3}
+Traditional neural networks often require a large number of neurons to handle complex tasks, leading to higher power consumption.\\
+
+Recurrent SNNs can achieve comparable or superior results with fewer neurons, making them more suitable for low-power applications such as neuromorphic computing.\\
+
+Recurrence enables these networks to process temporal information and maintain memory, which is essential for control tasks like balancing or navigation.\\
+\subsubsection*{Challenges with Recurrence:}
+\label{sec:org2e658e4}
+Training recurrent networks is inherently more challenging than training feed-forward ones due to the need for specialized algorithms capable of handling feedback loops.\\
+
+Neuromorphic hardware has historically been optimized for feed-forward architectures, which has limited the exploration and implementation of recurrence-based designs.\\
+\subsubsection*{Methods Used:}
+\label{sec:orga0574fd}
+The study employed evolutionary algorithms to train recurrent SNNs:\\
+\begin{itemize}
+\item LEAP: Optimizes parameters for feed-forward networks.\\
+\item EONS: Evolves both the structure and parameters of recurrent networks.\\
+\end{itemize}
+These methods were tested on three control tasks:\\
+\begin{itemize}
+\item Pole Balancing (with and without velocity inputs): A classic control task where a pole must be balanced on a moving cart.\\
+\begin{itemize}
+\item Pole Balancing without velocity inputs is a specific task that requires memory in order to find an optimal solution.\\
+\end{itemize}
+\item Bipedal Walker (OpenAI Gym): A simulated robot navigating uneven terrain.\\
+\end{itemize}
+\subsubsection*{Results:}
+\label{sec:orgf93d472}
+Recurrent SNNs consistently outperformed feed-forward networks across all tasks, particularly in scenarios requiring memory (e.g., pole balancing without velocity inputs).\\
+
+These networks demonstrated better efficiency by achieving high performance with fewer neurons and synapses, highlighting their suitability for resource-constrained environments.\\
+
+Visualizations of the best-performing networks revealed highly interconnected “hairball-like” structures that were difficult to interpret but proved effective in solving complex tasks.\\
+\subsubsection*{Future Directions:}
+\label{sec:org10a0c55}
+Extend the application of recurrence-based SNNs to other domains such as anomaly detection and spatiotemporal classification.\\
+
+Develop methods to improve the explainability of recurrent connections, facilitating better understanding of their contributions to decision-making processes.\\
+\subsection*{Conclusion}
+\label{sec:org284b44d}
+Recurrent spiking neural networks show great promise for control tasks by reducing neuron count while improving performance. Their ability to efficiently process temporal information makes them ideal for power-constrained applications like robotics and neuromorphic computing. However, challenges remain in training these networks due to their complex structures and limited support from current hardware. Further research into explainability and broader applications could unlock their full potential.\\
+
+If you’re unfamiliar with neural networks or machine learning, this research can be understood as an effort to design “brain-like” systems that solve problems more efficiently than traditional computer programs by mimicking how our brains process information over time.\\
+\end{document}

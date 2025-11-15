@@ -1,0 +1,66 @@
+% Created 2025-10-22 Wed 18:42
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jackson Mowry}
+\date{Wed Oct 22 18:24:35 2025}
+\title{Review 2}
+\hypersetup{
+ pdfauthor={Jackson Mowry},
+ pdftitle={Review 2},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.2 (Org mode 9.7.11)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\section*{UTVerse Summary of the Article}
+\label{sec:org2c4063d}
+This article investigates the use of recurrent spiking neural networks (SNNs) for control tasks, highlighting their advantages over traditional feed-forward networks. Spiking neural networks are biologically inspired models that mimic how neurons in the brain communicate using discrete spikes. The study focuses on leveraging recurrence—a feature where outputs from neurons are fed back as inputs—to improve performance in tasks requiring memory and temporal processing.
+\subsection*{Key Points:}
+\label{sec:orga15871e}
+\subsubsection*{Why Recurrent Spiking Neural Networks?}
+\label{sec:org7310d7f}
+Traditional neural networks often require a large number of neurons to solve complex tasks.
+Recurrent SNNs can achieve similar or better results with fewer neurons, making them more efficient for low-power applications like neuromorphic computing.
+Recurrence allows these networks to process temporal information and maintain memory, which is crucial for control tasks.
+\subsubsection*{Challenges with Recurrence:}
+\label{sec:org3fd59e3}
+Training recurrent networks is more complex than training feed-forward ones due to the need for specialized algorithms.
+Neuromorphic hardware has historically been optimized for feed-forward architectures, limiting the exploration of recurrence.
+\subsubsection*{Methods Used:}
+\label{sec:org8e54dec}
+The study uses evolutionary algorithms to train recurrent SNNs, specifically:
+    LEAP: Optimizes parameters for feed-forward networks.
+    EONS: Evolves both the structure and parameters of recurrent networks.
+Both methods were tested on three control tasks:
+    Pole Balancing (with and without velocity inputs): A classic task where a pole must be balanced on a moving cart.
+    Bipedal Walker (OpenAI Gym): A simulated robot walker navigating uneven terrain.
+\subsubsection*{Results:}
+\label{sec:org569a0a6}
+Recurrent networks outperformed feed-forward ones in all tasks, especially in scenarios requiring memory (e.g., pole balancing without velocity inputs).
+These networks achieved better performance with fewer neurons and synapses, making them more efficient.
+The study visualized the best-performing networks, showing highly interconnected structures that are difficult to interpret but effective.
+\subsubsection*{Future Directions:}
+\label{sec:org0289bd9}
+Investigate how recurrence can be applied to other tasks like anomaly detection and spatiotemporal classification.
+Improve explainability of recurrent connections to better understand their role in decision-making.
+\subsection*{Conclusion:}
+\label{sec:orge3d0817}
+Recurrent spiking neural networks offer significant advantages for control tasks by reducing the number of neurons required and improving performance. This makes them ideal for power-constrained applications like robotics and neuromorphic computing. However, challenges remain in training these networks and understanding their complex structures.
+If you’re unfamiliar with neural networks or machine learning, think of this research as exploring how “brain-like” systems can solve problems more efficiently than traditional computer programs by mimicking how our brains process information over time.
+\section*{My Analysis of UTVerse Summary}
+\label{sec:orgf7c3d1b}
+Overall I think that UTVerse did a fairly good job at summarizing the contents of the research paper. I appreciate how it specifically seems to focus in on the hardware constraints that both helped inspire the work, but also play a part as a hindrance in implementing the ``hairball'' like networks. The word neuromorphic is used consistently throughout the summary, but is never fully explained. The explanation for a spiking neural network (SNN) is given, which covers most of neuromorphic, therefore I would draw the connection explicitly. Neuromorphic computing underlies almost all of the research in the field, so without a fundamental understanding of the concepts a reader may be left wondering how it is different from traditional ML/AI. The high-level overview of what software and tests were used is concise enough to satisfy most inquiries, while leaving room for explanation with a more technical manager. In addition to calling out the specific task where memory is needed, I would give more detail into the intuition behind memory in the specific context of the task. The summary leaves out important information like the article title and authors list, which would help the reader dive further into the topic. Lastly the results are summarized in consistent manner, which helpfully guides the reader into the conclusion that these types of networks are potentially viable in their specific field.
+\end{document}

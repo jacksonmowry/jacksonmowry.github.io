@@ -1,0 +1,72 @@
+#+title: Password Cracking
+#+author: Jackson Mowry
+#+date: Sat Nov  8 19:44:43 2025
+#+options: toc:nil num:nil \n:t
+
+
+* Cracking Details
+- What tool did you select to use? Why?
+  - To crack all 16 passwords I ended up using a mix of both John the Ripper and Hashcat. I utilized both tools as this allowed to use both of their default rulesets to avoid having to write a ton of my own to cover all permutations of both. Additionally, I read online that Hashcat is often faster, which led me to use the tool. However, in the end I observed similar speeds using both tools.
+- What was your average rate for password checks a second (c/s in JTR)?
+  - On an NVIDIA 4060 I was able to achieve around 12 million checks per second in JTR. On the same 4060 I would get around 13 million checks per second in Hashcat.
+- What guessing strategies did you employ?
+  - My guessing strategies were copied straight from the project writeup, using each of the 4 given password composition rules to guide my choice in ruleset. These ruleset choices were combined with a large english word dictionary available through my operating system's package manager, and the default word lists provided with both tools.
+- List the passwords that you cracked. List the strategy used to crack each of these passwords.
+  - $1$ii13OK6b$j39q6K.6TKBzZzCGxqTH20:41t3rn4t3
+    - Cracking using hashcat, combination of the unix leetspeak ruleset and some custom changes to transform more letters
+  - user2:7OgTHT::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - $1$ZScxtUI7$O38W8SgWrPsvLjl4UA4Og1:14b0r4t0ri35
+    - Cracking using hashcat, combination of the unix leetspeak ruleset and some custom changes to transform more letters
+  - $1$f5Bw0IKt$2u7QmNwYzD7lqArefbYVb/:int3rn4ti0n411y
+    - Cracking using hashcat, combination of the unix leetspeak ruleset and some custom changes to transform more letters
+  - user5:lkyru::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user6:forwarding::::::
+    - Cracked using JTR, word list without modifications
+  - user7:increased::::::
+    - Cracked using JTR, word list without modifications
+  - user8:31iz4b3th::::::
+    - Cracked using JTR, custom leetspeak rules
+  - user9:31w4::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user10:SJ::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user11:2c8zc::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user12:uddg::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user13:c0mp4ni35::::::
+    - Cracked using JTR, custom leetspeak rules
+  - user14:longitude::::::
+    - Cracked using JTR, word list without modifications
+  - user15:ta::::::
+    - Cracked using JTR, Lowercase only
+  - user16:revolutionary::::::
+    - Cracked using JTR, word list without modifications
+  - user17:lr4::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user18:ugrknq::::::
+    - Cracked using JTR, Alnum rule set to lengths between 2-6
+  - user19:cincinnati::::::
+    - Cracked using JTR, word list without modifications
+  - user20:lsv::::::
+    - Cracked using JTR, Lowercase only
+
+* Followup Questions
+1. Assuming that you used your setup for this project alone, how long do you calculate that it would take to crack a 6-character alphanumeric password? Eight characters? Ten characters? Twelve characters? Give exact estimates for either the average time needed to crack a password of the given length and composition, or the max time needed. Show your work.
+   - I utilized 6 NVIDIA 4060 GPUs for this project, which meant an average of 12 million checks per second on a single GPU, or 72 million checks per second all together. Utilizing the =--node= flag in JTR to split work across machines it would take around 13 minutes =(62**6) / 72,000,000 / 60 sec per min= to enumerate all 6 character alphanumeric passwords. Eight would scale to 842 hours, 10 scales to 134918 days, 12 scales to 1420892 years. Same formula for all examples just raising 62 to the power of the length.
+2. Recently, high-end GPUs have revolutionized password cracking. An RTX 3080 (a recent high-end GPU) is able to check 2.5 billion passwords a second using MD5 crypt. Using this guessing rate, estimate how long it would take to crack the passwords described in Question 1.
+   - 6 = 0.27 minutes
+   - 8 = 17.32 hours
+   - 10 = 2775.46 days
+   - 12 = 29229.78 years
+3. Do you think that the password meter is a good indication of actual password security? From the results of your experiment, what is your recommendation for minimum password length? Be creative in your response. Imagine what hardware and resources a potential attacker might have, and briefly justify your assessment of the attacker's capabilities.
+   - The quickest way to increase the time taken to guess a password it to make sure that it is long, assuming a reasonable mix of characters. The 12 character password example from the previous question is a perfect example of this. However, if we take that same 12 character password and reduce it to only using lowercase ASCII letters the time taken to crack drops to a staggering 0.86 years. For this reason while we should encourage users to utilize long passwords, we should also encourage a healthy mix of characters. I believe that password strength bars are an antiquated technique built for an error where utilizing a password manager was so easy. With the ease-of-use of a modern password manager a user shouldn't even have to know a single character of their possibly 36-character long password. If a user is relying on the password bar as a gauge of security they will probably be led to a false conclusion that maximizing one single metric (such a length or character mix) will give a secure password, when in reality true randomness of significant length is the most secure method for creating a password. If we have to give one single number for minimum password length I would simply set it to just over a year of time spent cracking on the most modern gaming GPU with an entirely lowercase password. This is the worst case for password strength on the users end, and the "best" reasonable case for a solo hacker who can afford a modern high-end GPU. This value comes out to 13 characters.
+4. Fedora 14 and other modern Linux distributions use SHA-512 (rather than MD5) for hashing passwords. Does the use of this hashing algorithm improve password security in some way? Why or why not?
+   - Yes, MD5 produces 128-bit digests, which have a vastly smaller space than the 512-bit hashes used in SHA-512. At a minimum this means that 4 times larger hashes have to be computed and checked. Additionally, MD5 has known vulnerabilities and has been cracked before. Lastly, SHA-512 offers much greater preimage attack resistance, making the feasibility of finding a collision much higher.
+5. Does the use of a salt increase password security? Why or why not?
+   - Yes, but only slightly. If a user has access to rainbow tables for a particular hash function and that hash function is being used without a salt, then "cracking" the password is trivial. If instead a salt is being used then the hacker either has to have many different rainbow tables, or more likely they will just begin brute forcing passwords with some of the strategies used in this very project. At the end of the day a salt should always be used as it further complicates the cracking process.
+6. Against any competent system, an online attack of this nature would not be possible due to network lag, timeouts, and throttling by the system administrator. Does this knowledge lessen the importance of offline password attack protection?
+   - If there is any level of competence in the team administrating the site there is no chance an attack like this would be possible. In my quest to complete this project I was able to check 72 million passwords a second, with the MTU of a tcp packet commonly being 1500 bytes, we'd be generating 108GB/s of network requests in the best possible case assuming our entire request fits in a tcp packet. Not only are consumer internet speeds far below that, with the advent of global firewall services such as cloudflare your traffic would quickly be identified and blocked. However, with a distributed botnet, it may be possible to achieve similar speeds with thousands or potentially even more systems attacking simultenously.
+   - No, I think it only heightens the importance of offline password attack protection as it is a much more feasible attack route for potential hackers.
