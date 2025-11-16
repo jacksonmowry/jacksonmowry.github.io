@@ -1,4 +1,11 @@
-#+title: Gcc Perf
+#+HTML_LINK_HOME: ../index.html
+#+HTML_LINK_UP: ../interfaces.html
+#+title: gcc Perf Stat
+#+OPTIONS: toc:nil num:nil html-style:nil timestamp:nil
+#+SETUPFILE: ../retro_dark_nested.theme
+
+* Function Overloading
+#+begin_src shell
 Rendering took 43.784233 seconds
 
  Performance counter stats for 'taskset -c 0 bin/macros 25000 25000 45':
@@ -17,8 +24,11 @@ Rendering took 43.784233 seconds
 
       43.637340000 seconds user
        0.101883000 seconds sys
+#+end_src
 
 
+* Tagged Unions
+#+begin_src shell
 Rendering took 47.901290 seconds
 
  Performance counter stats for 'taskset -c 0 bin/tagged_unions 25000 25000 45':
@@ -37,8 +47,11 @@ Rendering took 47.901290 seconds
 
       47.757205000 seconds user
        0.092881000 seconds sys
+#+end_src
 
 
+* Function Pointers
+#+begin_src shell
 Rendering took 55.646807 seconds
 
  Performance counter stats for 'taskset -c 0 bin/function_pointers 25000 25000 45':
@@ -57,8 +70,11 @@ Rendering took 55.646807 seconds
 
       55.502795000 seconds user
        0.084895000 seconds sys
+#+end_src
 
 
+* Full Interface w/ =vtable=
+#+begin_src shell
 Rendering took 55.199899 seconds
 
  Performance counter stats for 'taskset -c 0 bin/full_interface 25000 25000 45':
@@ -77,3 +93,4 @@ Rendering took 55.199899 seconds
 
       55.034452000 seconds user
        0.106868000 seconds sys
+#+end_src

@@ -19,63 +19,63 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title">Interfaces</h1>
-<div id="outline-container-orgf527ddf" class="outline-2">
-<h2 id="orgf527ddf">What is an interface?</h2>
-<div class="outline-text-2" id="text-orgf527ddf">
+<div id="outline-container-org1ff8340" class="outline-2">
+<h2 id="org1ff8340">What is an interface?</h2>
+<div class="outline-text-2" id="text-org1ff8340">
 <p>
-An interface is a collection of behavior and attributes, allowing the programmer to write code agnostic to which concrete implementation is sitting behind the interface. In that sense the interface acts as a sort of contract for the object. You&rsquo;ll find examples of interfaces everywhere in programming and computer science in general.
+An interface is a collection of behavior and attributes, allowing a programmer to write code that is agnostic to the concrete implementation sitting behind the interface. In that sense the interface acts as a sort of contract for the object. You&rsquo;ll find examples of interfaces everywhere in programming and computer science in general.
 </p>
 
 <p>
-Take for example the UNIX file descriptor. A file descriptor has a very simple interface which we commonly interract with through the system calls <code>close</code>, <code>read</code>, and <code>write</code> (although more do exist). The process of getting a file descriptor changes depends on which type of file you&rsquo;re attempting to open, a pipe is opened with <code>pipe</code>, a regular file with <code>open</code>, or a network socket with <code>socket</code>.
+Take for example the UNIX file descriptor. A file descriptor has a simple interface which we commonly interact with through the system calls <code>close</code>, <code>read</code>, and <code>write</code> (although more do exist). The process of getting a file descriptor changes depends on which type of file you&rsquo;re attempting to open, a pipe is opened with <code>pipe</code>, a regular file with <code>open</code>, or a network socket with <code>socket</code>.
 </p>
 
 <p>
 Going one level deeper the entire virtual file system (VFS) in Linux acts as an interface between programs and the file system. This allows users to write code that can be supported on any Linux system, no matter the choice of file system, or even bulk storage hardware.
 </p>
 </div>
-<div id="outline-container-org822d5eb" class="outline-3">
-<h3 id="org822d5eb">Why use an interface?</h3>
-<div class="outline-text-3" id="text-org822d5eb">
+<div id="outline-container-org7d74c47" class="outline-3">
+<h3 id="org7d74c47">Why use an interface?</h3>
+<div class="outline-text-3" id="text-org7d74c47">
 <p>
 As programmers we like interfaces because they allow us to abstract away implementation specific behavior, instead enabling us to write code against a common interface, making fewer assumptions about the concrete implementation. That last point is especially important, as writing a program against an interface (as long as that interface is kept slim and generic) can lead to an easier time adapting to a new concrete implementation.
 </p>
 </div>
 </div>
-<div id="outline-container-orga79e8ca" class="outline-3">
-<h3 id="orga79e8ca">Why not use an interface?</h3>
-<div class="outline-text-3" id="text-orga79e8ca">
+<div id="outline-container-org135bfdf" class="outline-3">
+<h3 id="org135bfdf">Why not use an interface?</h3>
+<div class="outline-text-3" id="text-org135bfdf">
 <p>
-However, common programming languages implement interfaces in inefficient ways. These inefficieces come in the form of dyanmic dispatch, and run-time type information (RTTI).
+Common high-level programming languages can implement interfaces in inefficient ways. These inefficiencies come in the form of dynamic dispatch, and run-time type information (RTTI).
 </p>
 
 <p>
-In order to get the usability benefits of an interface we generally hold pointers to the interface, instead of directly to the underlying class. This means that at runtime we need some way of knowing which baseclass this interface is representing, and this is accomplished through RTTI, which exposes some information about which class is behind the interface.
+In order to get the usability benefits of an interface we generally hold pointers to the interface, instead of directly to the underlying class. This means that at runtime we need some way of knowing which base class this interface is representing, accomplished through RTTI, which exposes some information about which class is behind the interface.
 </p>
 
 <p>
-While most of the time this isn&rsquo;t a big deal, it can be used in performance negative ways, such as a <code>dynamic_cast</code> in C++, which allows downcasting into a specific class, but only if that class is compatible. This requires checking the types at run-time, which can be an expensive depending on the inheritance hierarcy.
+While most of the time this isn&rsquo;t a big deal, it can be used in performance negative ways, such as a <code>dynamic_cast</code> in C++, which allows down-casting into a specific class, but only if that class is compatible. This requires checking the types at run-time, which can be an expensive depending on the inheritance hierarchy.
 </p>
 
 <p>
-Dynamic dispatch is just saying that we don&rsquo;t know which functions will be called at compile time, meaning at run-time we will decide which functions are called based on some information. This is in contrast to static dispatch, which is able to fully decide at compile-time which functions will be called.
+Dynamic dispatch is just a way of saying that we don&rsquo;t know which functions will be called at compile time, meaning at run-time we will decide which functions to call based on some information. This is in contrast to static dispatch, which is able to fully decide at compile-time which functions will be called.
 </p>
 
 <p>
-From a CPU performance perspective dynamic dispatch is concerning as we&rsquo;re asking the CPU to jump to an address that is only known at run-time. Unlike an uncondition branch, the CPU is unable to perfectly accurately predict where it should execute its next instruction, which can lead to execution stalling, thus slowing our program.
+From a CPU performance perspective dynamic dispatch is concerning as we&rsquo;re asking the CPU to jump to an address that is only known at run-time. Unlike an unconditional branch, the CPU is unable to perfectly accurately predict (instead relying on its branch predictor) where it should execute its next instruction, which can lead to execution stalling, thus slowing our program.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org7972ac5" class="outline-2">
-<h2 id="org7972ac5">How can we use and interface?</h2>
-<div class="outline-text-2" id="text-org7972ac5">
+<div id="outline-container-orge1f92ff" class="outline-2">
+<h2 id="orge1f92ff">How can we use an interface?</h2>
+<div class="outline-text-2" id="text-orge1f92ff">
 <p>
-As we saw above there are both positive and negative aspects to using interfaces. The negatives tend to come from performance, and the positives come from usability. Yet, there is still one more aspect that we haven&rsquo;t talked about, and that is user extensibility. Imagine if your web browser had to be recompiled every time you wanted to add a new browser plugin, not only would that be wasteful, it&rsquo;s also entirely unecessary now that we know about interfaces. As long as each plugin implements a common interface we can simply add it to a list of plugins that will be called into as needed.
+As we saw above there are both positive and negative aspects to using interfaces. The negatives tend to come from performance, and the positives come from usability. Yet, there is still one more aspect that we haven&rsquo;t talked about, and that is user extensibility. Imagine if your web browser required recompilation every time you wanted to add a new browser plugin, not only would that be wasteful, it&rsquo;s also entirely unnecessary now that we know about interfaces. As long as each plugin implements a common interface we can simply add it to a list of plugins that the browser calls as needed.
 </p>
 
 <p>
-In a different way we can talk about extensibility from the programmer perspective. Let&rsquo;s imagine we want to render shapes to the screen, we could attempt to enumerate all possible shapes, but it&rsquo;s very unlikely that makes practical sense. Instead, what if we exposed a shape interface that our drawing program could use, allowing for future programmers to simply add another implementation of the interace. This is exactly the example we&rsquo;ll explore in this article.
+We can also talk about extensibility from the programmer perspective. Let&rsquo;s imagine we want to render shapes to the screen, we could attempt to enumerate all possible shapes, but it&rsquo;s unlikely that makes practical sense. Instead, what if we exposed a shape interface that our drawing program could use, allowing for future programmers to simply add another implementation of the interface. This is exactly the example we&rsquo;ll explore in this article.
 </p>
 
 <p>
@@ -87,294 +87,304 @@ We&rsquo;ll write a simple 2D renderer, capable of producing images like the fol
 We&rsquo;ll walk through varying levels of &ldquo;interfaces&rdquo;, from the least extensible to the most extensible.
 </p>
 </div>
-<div id="outline-container-orgb923102" class="outline-3">
-<h3 id="orgb923102">Base Implementation</h3>
-<div class="outline-text-3" id="text-orgb923102">
+<div id="outline-container-org2c77e5f" class="outline-3">
+<h3 id="org2c77e5f">Base Implementation</h3>
+<div class="outline-text-3" id="text-org2c77e5f">
 <p>
-We&rsquo;ll be making small modifications to this program throughout the article to motivate various uses of interfaces, so it&rsquo;s important to understand what it is doing without any interfaces.
+We&rsquo;ll be making small modifications to this program throughout the article to motivate the uses of interfaces, so it&rsquo;s important to understand what it is doing without any interfaces.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C" id="org7309190"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;math.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdbool.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stddef.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdint.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdio.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;stdlib.h&gt;</span>
-<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #98be65;">&lt;sys/time.h&gt;</span>
+<pre class="src src-C" id="org1e78e22"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">math.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdbool.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stddef.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdint.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdio.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdlib.h</span><span style="color: #51afef;">&gt;</span>
+<span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">sys/time.h</span><span style="color: #51afef;">&gt;</span>
 
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">MIN</span>(<span style="color: #dcaeea;">x</span>, <span style="color: #dcaeea;">y</span>) ((x &lt; y) ? x : y)
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">MAX</span>(<span style="color: #dcaeea;">x</span>, <span style="color: #dcaeea;">y</span>) ((x &gt; y) ? x : y)
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">MIN</span><span style="color: #51afef;">(</span><span style="color: #dcaeea;">x</span>, <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span>x &lt; y<span style="color: #c678dd;">)</span> ? x : y<span style="color: #51afef;">)</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">MAX</span><span style="color: #51afef;">(</span><span style="color: #dcaeea;">x</span>, <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span>x &gt; y<span style="color: #c678dd;">)</span> ? x : y<span style="color: #51afef;">)</span>
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">RGB</span> {
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">RGB</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">uint8_t</span> <span style="color: #dcaeea;">r</span>;
     <span style="color: #ECBE7B;">uint8_t</span> <span style="color: #dcaeea;">g</span>;
     <span style="color: #ECBE7B;">uint8_t</span> <span style="color: #dcaeea;">b</span>;
-} <span style="color: #ECBE7B;">RGB</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">RGB</span>;
 
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">WHITE</span> ((<span style="color: #a9a1e1;">RGB</span>){.r = 255, .b = 255, .g = 255})
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">RED</span> ((<span style="color: #a9a1e1;">RGB</span>){.r = 255, .b = 0, .g = 0})
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">GREEN</span> ((<span style="color: #a9a1e1;">RGB</span>){.r = 0, .b = 0, .g = 255})
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">BLUE</span> ((<span style="color: #a9a1e1;">RGB</span>){.r = 0, .b = 255, .g = 0})
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">MISS_COLOR</span> ((<span style="color: #a9a1e1;">RGB</span>){.r = 160, .g = 200, .b = 255})
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">WHITE</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #c678dd;">){</span>.r = <span style="color: #da8548; font-weight: bold;">255</span>, .b = <span style="color: #da8548; font-weight: bold;">255</span>, .g = <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #c678dd;">}</span><span style="color: #51afef;">)</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">RED</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #c678dd;">){</span>.r = <span style="color: #da8548; font-weight: bold;">255</span>, .b = <span style="color: #da8548; font-weight: bold;">0</span>, .g = <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span><span style="color: #51afef;">)</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">GREEN</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #c678dd;">){</span>.r = <span style="color: #da8548; font-weight: bold;">0</span>, .b = <span style="color: #da8548; font-weight: bold;">0</span>, .g = <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #c678dd;">}</span><span style="color: #51afef;">)</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">BLUE</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #c678dd;">){</span>.r = <span style="color: #da8548; font-weight: bold;">0</span>, .b = <span style="color: #da8548; font-weight: bold;">255</span>, .g = <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span><span style="color: #51afef;">)</span>
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #dcaeea;">MISS_COLOR</span> <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #c678dd;">){</span>.r = <span style="color: #da8548; font-weight: bold;">160</span>, .g = <span style="color: #da8548; font-weight: bold;">200</span>, .b = <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #c678dd;">}</span><span style="color: #51afef;">)</span>
 
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Whiteish at top of screen</span>
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Blue at bottom</span>
-<span style="color: #ECBE7B;">RGB</span> <span style="color: #c678dd;">miss_color</span>(<span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>) {
+<span style="color: #ECBE7B;">RGB</span> <span style="color: #c678dd;">miss_color</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span> = <span style="color: #a9a1e1;">MISS_COLOR</span>;
 
-    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">height_fraction</span> = (y - -1) / 2;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">height_fraction</span> = <span style="color: #c678dd;">(</span>y - -<span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span> / <span style="color: #da8548; font-weight: bold;">2</span>;
 
-    color.r += (255 - 160) * height_fraction;
-    color.g += (255 - 200) * height_fraction;
+    color.r += <span style="color: #c678dd;">(</span><span style="color: #da8548; font-weight: bold;">255</span> - <span style="color: #da8548; font-weight: bold;">160</span><span style="color: #c678dd;">)</span> * height_fraction;
+    color.g += <span style="color: #c678dd;">(</span><span style="color: #da8548; font-weight: bold;">255</span> - <span style="color: #da8548; font-weight: bold;">200</span><span style="color: #c678dd;">)</span> * height_fraction;
 
     <span style="color: #51afef;">return</span> color;
-}
+<span style="color: #51afef;">}</span>
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Square</span> {
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Square</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Half side length</span>
 
     <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span>;
-} <span style="color: #ECBE7B;">Square</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Square</span>;
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Circle</span> {
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Circle</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>;
 
     <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span>;
-} <span style="color: #ECBE7B;">Circle</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Circle</span>;
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">HitRecord</span> {
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span>;
     <span style="color: #ECBE7B;">bool</span> <span style="color: #dcaeea;">hit</span>;
-} <span style="color: #ECBE7B;">HitRecord</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">HitRecord</span>;
 
-<span style="color: #ECBE7B;">Square</span> <span style="color: #c678dd;">square_init</span>(<span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span>) {
-    <span style="color: #51afef;">return</span> (Square){
+<span style="color: #ECBE7B;">Square</span> <span style="color: #c678dd;">square_init</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">return</span> <span style="color: #c678dd;">(</span>Square<span style="color: #c678dd;">){</span>
         .x = x1,
         .y = y1,
         .radius = radius,
 
         .color = color,
-    };
-}
+    <span style="color: #c678dd;">}</span>;
+<span style="color: #51afef;">}</span>
 
-<span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">square_hit</span>(<span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">Square</span>* <span style="color: #dcaeea;">r</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>) {
-    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span> = {0};
+<span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">square_hit</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">Square</span>* <span style="color: #dcaeea;">r</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span> = <span style="color: #c678dd;">{</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span>;
 
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x1</span> = r-&gt;x - r-&gt;radius * aspect_ratio;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x2</span> = r-&gt;x + r-&gt;radius * aspect_ratio;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y1</span> = r-&gt;y - r-&gt;radius;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y2</span> = r-&gt;y + r-&gt;radius;
 
-    <span style="color: #51afef;">if</span> (x &gt;= x1 &amp;&amp; x &lt;= x2 &amp;&amp; y &gt;= y1 &amp;&amp; y &lt;= y2) {
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>x &gt;= x1 &amp;&amp; x &lt;= x2 &amp;&amp; y &gt;= y1 &amp;&amp; y &lt;= y2<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
         hr.color = r-&gt;color;
         hr.hit = <span style="color: #a9a1e1;">true</span>;
-    } <span style="color: #51afef;">else</span> {
-        hr.color = miss_color(x, y);
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        hr.color = miss_color<span style="color: #98be65;">(</span>x, y<span style="color: #98be65;">)</span>;
         hr.hit = <span style="color: #a9a1e1;">false</span>;
-    }
+    <span style="color: #c678dd;">}</span>
 
     <span style="color: #51afef;">return</span> hr;
-}
+<span style="color: #51afef;">}</span>
 
-<span style="color: #ECBE7B;">Circle</span> <span style="color: #c678dd;">circle_init</span>(<span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">r</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span>) {
-    <span style="color: #51afef;">return</span> (Circle){
+<span style="color: #ECBE7B;">Circle</span> <span style="color: #c678dd;">circle_init</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">r</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">return</span> <span style="color: #c678dd;">(</span>Circle<span style="color: #c678dd;">){</span>
         .x = x,
         .y = y,
         .radius = r,
 
         .color = color,
-    };
-}
+    <span style="color: #c678dd;">}</span>;
+<span style="color: #51afef;">}</span>
 
-<span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">circle_hit</span>(<span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">Circle</span>* <span style="color: #dcaeea;">c</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>) {
-    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span> = {0};
+<span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">circle_hit</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">Circle</span>* <span style="color: #dcaeea;">c</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span> = <span style="color: #c678dd;">{</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span>;
 
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Uses the elipse collision formula</span>
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">\frac{(x-h)^2}{r_x^2} + \frac{(y-k)^2}{r_y^2} \leq 1</span>
-    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">lhs</span> = (pow(x - c-&gt;x, 2) / pow(c-&gt;radius * aspect_ratio, 2)) +
-                 (pow(y - c-&gt;y, 2) / pow(c-&gt;radius, 2));
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">lhs</span> = <span style="color: #c678dd;">(</span>pow<span style="color: #98be65;">(</span>x - c-&gt;x, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span> / pow<span style="color: #98be65;">(</span>c-&gt;radius * aspect_ratio, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span> +
+                 <span style="color: #c678dd;">(</span>pow<span style="color: #98be65;">(</span>y - c-&gt;y, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span> / pow<span style="color: #98be65;">(</span>c-&gt;radius, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span>;
 
-    <span style="color: #51afef;">if</span> (lhs &lt;= 1) {
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>lhs &lt;= <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
         hr.color = c-&gt;color;
         hr.hit = <span style="color: #a9a1e1;">true</span>;
-    } <span style="color: #51afef;">else</span> {
-        hr.color = miss_color(x, y);
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        hr.color = miss_color<span style="color: #98be65;">(</span>x, y<span style="color: #98be65;">)</span>;
         hr.hit = <span style="color: #a9a1e1;">false</span>;
-    }
+    <span style="color: #c678dd;">}</span>
 
     <span style="color: #51afef;">return</span> hr;
-}
+<span style="color: #51afef;">}</span>
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>(<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">argc</span>, <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">argv</span>[]) {
-    <span style="color: #51afef;">if</span> (argc != 4) {
-        fprintf(stderr, <span style="color: #98be65;">"usage: %s width height random_seed\n"</span>, argv[0]);
-        <span style="color: #51afef;">return</span> 1;
-    }
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">argc</span>, <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">argv</span><span style="color: #c678dd;">[]</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>argc != <span style="color: #da8548; font-weight: bold;">4</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        fprintf<span style="color: #98be65;">(</span>stderr, <span style="color: #98be65;">"usage: %s width height random_seed\n"</span>, argv<span style="color: #a9a1e1;">[</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #a9a1e1;">]</span><span style="color: #98be65;">)</span>;
+        <span style="color: #51afef;">return</span> <span style="color: #da8548; font-weight: bold;">1</span>;
+    <span style="color: #c678dd;">}</span>
 
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Grab width and height from argv</span>
     <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">width</span>;
     <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">height</span>;
 
-    sscanf(argv[1], <span style="color: #98be65;">"%zu"</span>, &amp;width);
-    sscanf(argv[2], <span style="color: #98be65;">"%zu"</span>, &amp;height);
+    sscanf<span style="color: #c678dd;">(</span>argv<span style="color: #98be65;">[</span><span style="color: #da8548; font-weight: bold;">1</span><span style="color: #98be65;">]</span>, <span style="color: #98be65;">"%zu"</span>, &amp;width<span style="color: #c678dd;">)</span>;
+    sscanf<span style="color: #c678dd;">(</span>argv<span style="color: #98be65;">[</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">]</span>, <span style="color: #98be65;">"%zu"</span>, &amp;height<span style="color: #c678dd;">)</span>;
 
-    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span> = (<span style="color: #ECBE7B;">double</span>)height / (<span style="color: #ECBE7B;">double</span>)width;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span> = <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>height / <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>width;
 
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Grab random seed</span>
     <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">seed</span>;
-    sscanf(argv[3], <span style="color: #98be65;">"%d"</span>, &amp;seed);
-    srand(seed);
+    sscanf<span style="color: #c678dd;">(</span>argv<span style="color: #98be65;">[</span><span style="color: #da8548; font-weight: bold;">3</span><span style="color: #98be65;">]</span>, <span style="color: #98be65;">"%d"</span>, &amp;seed<span style="color: #c678dd;">)</span>;
+    srand<span style="color: #c678dd;">(</span>seed<span style="color: #c678dd;">)</span>;
 
-    <span style="color: #ECBE7B;">Circle</span> <span style="color: #dcaeea;">circles</span>[5] = {
-        circle_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        circle_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        circle_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        circle_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        circle_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-    };
+    <span style="color: #ECBE7B;">Circle</span> <span style="color: #dcaeea;">circles</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">5</span><span style="color: #c678dd;">]</span> = <span style="color: #c678dd;">{</span>
+        circle_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        circle_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        circle_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        circle_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        circle_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+    <span style="color: #c678dd;">}</span>;
 
-    <span style="color: #ECBE7B;">Square</span> <span style="color: #dcaeea;">squares</span>[5] = {
-        square_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        square_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        square_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        square_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        square_init(
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-            (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0, rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-            (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-    };
+    <span style="color: #ECBE7B;">Square</span> <span style="color: #dcaeea;">squares</span><span style="color: #c678dd;">[</span><span style="color: #da8548; font-weight: bold;">5</span><span style="color: #c678dd;">]</span> = <span style="color: #c678dd;">{</span>
+        square_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        square_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        square_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        square_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+        square_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>,
+    <span style="color: #c678dd;">}</span>;
 
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">RENDERING SCENE</span>
 
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Start by writing the PPM image header before writing each pixel</span>
-    printf(<span style="color: #98be65;">"P3\n"</span>); <span style="color: #5B6268;">// </span><span style="color: #5B6268;">PPM w/ ASCII format</span>
-    printf(<span style="color: #98be65;">"%zu %zu\n"</span>, width, height);
-    printf(<span style="color: #98be65;">"255\n"</span>); <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Max value per channel of RGB</span>
+    printf<span style="color: #c678dd;">(</span><span style="color: #98be65;">"P3\n"</span><span style="color: #c678dd;">)</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">PPM w/ ASCII format</span>
+    printf<span style="color: #c678dd;">(</span><span style="color: #98be65;">"%zu %zu\n"</span>, width, height<span style="color: #c678dd;">)</span>;
+    printf<span style="color: #c678dd;">(</span><span style="color: #98be65;">"255\n"</span><span style="color: #c678dd;">)</span>; <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Max value per channel of RGB</span>
 
     <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">timeval</span> <span style="color: #dcaeea;">begin</span>;
-    gettimeofday(&amp;begin, <span style="color: #a9a1e1;">NULL</span>);
+    gettimeofday<span style="color: #c678dd;">(</span>&amp;begin, <span style="color: #a9a1e1;">NULL</span><span style="color: #c678dd;">)</span>;
 
-    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Now loop through each pixel, printing it's values as we go</span>
-    <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">row</span> = 0; row &lt; height; row++) {
-        <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">col</span> = 0; col &lt; width; col++) {
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Now loop through each pixel, printing its values as we go</span>
+    <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">row</span> = <span style="color: #da8548; font-weight: bold;">0</span>; row &lt; height; row++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #51afef;">for</span> <span style="color: #98be65;">(</span><span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">col</span> = <span style="color: #da8548; font-weight: bold;">0</span>; col &lt; width; col++<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
             <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span>;
-            <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">depth</span> = 5 - 1; depth &gt;= 0; depth--) {
+            <span style="color: #51afef;">for</span> <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">depth</span> = <span style="color: #da8548; font-weight: bold;">5</span> - <span style="color: #da8548; font-weight: bold;">1</span>; depth &gt;= <span style="color: #da8548; font-weight: bold;">0</span>; depth--<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
                 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Calculate x/y pixel coords, y is flipped so we can render 0,0</span>
                 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">as the top left corner</span>
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span> = ((<span style="color: #ECBE7B;">double</span>)col / ((<span style="color: #ECBE7B;">double</span>)width / 2) - 1);
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -1 * ((<span style="color: #ECBE7B;">double</span>)row / ((<span style="color: #ECBE7B;">double</span>)height / 2) - 1);
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span> = <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>col / <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span>width / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #c678dd;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>;
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -<span style="color: #da8548; font-weight: bold;">1</span> * <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>row / <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span>height / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #c678dd;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>;
 
-                hr = circle_hit(&amp;circles[depth], aspect_ratio, x, y);
-                <span style="color: #51afef;">if</span> (hr.hit) {
+                hr = circle_hit<span style="color: #51afef;">(</span>&amp;circles<span style="color: #c678dd;">[</span>depth<span style="color: #c678dd;">]</span>, aspect_ratio, x, y<span style="color: #51afef;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>hr.hit<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
                     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We hit something, therefore we can avoid checking any</span>
                     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">other object</span>
                     <span style="color: #51afef;">goto</span> <span style="color: #a9a1e1;">PRINT</span>;
-                }
-            }
+                <span style="color: #51afef;">}</span>
+            <span style="color: #a9a1e1;">}</span>
 
-            <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">depth</span> = 5 - 1; depth &gt;= 0; depth--) {
+            <span style="color: #51afef;">for</span> <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">depth</span> = <span style="color: #da8548; font-weight: bold;">5</span> - <span style="color: #da8548; font-weight: bold;">1</span>; depth &gt;= <span style="color: #da8548; font-weight: bold;">0</span>; depth--<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
                 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Calculate x/y pixel coords, y is flipped so we can render 0,0</span>
                 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">as the top left corner</span>
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span> = ((<span style="color: #ECBE7B;">double</span>)col / ((<span style="color: #ECBE7B;">double</span>)width / 2) - 1);
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -1 * ((<span style="color: #ECBE7B;">double</span>)row / ((<span style="color: #ECBE7B;">double</span>)height / 2) - 1);
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span> = <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>col / <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span>width / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #c678dd;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>;
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -<span style="color: #da8548; font-weight: bold;">1</span> * <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>row / <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span>height / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #c678dd;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #51afef;">)</span>;
 
-                hr = square_hit(&amp;squares[depth], aspect_ratio, x, y);
-                <span style="color: #51afef;">if</span> (hr.hit) {
+                hr = square_hit<span style="color: #51afef;">(</span>&amp;squares<span style="color: #c678dd;">[</span>depth<span style="color: #c678dd;">]</span>, aspect_ratio, x, y<span style="color: #51afef;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>hr.hit<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
                     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We hit something, therefore we can avoid checking any</span>
                     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">other object</span>
                     <span style="color: #51afef;">goto</span> <span style="color: #a9a1e1;">PRINT</span>;
-                }
-            }
+                <span style="color: #51afef;">}</span>
+            <span style="color: #a9a1e1;">}</span>
 
         <span style="color: #a9a1e1;">PRINT</span>:
             <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We've either checked all object and hit nothing, or we broke out</span>
             <span style="color: #5B6268;">// </span><span style="color: #5B6268;">because we hit something Either way we now need to write the</span>
             <span style="color: #5B6268;">// </span><span style="color: #5B6268;">pixel color to our image</span>
-            printf(<span style="color: #98be65;">"%hhu %hhu %hhu\n"</span>, hr.color.r, hr.color.g, hr.color.b);
-        }
-    }
+            printf<span style="color: #a9a1e1;">(</span><span style="color: #98be65;">"%hhu %hhu %hhu\n"</span>, hr.color.r, hr.color.g, hr.color.b<span style="color: #a9a1e1;">)</span>;
+        <span style="color: #98be65;">}</span>
+    <span style="color: #c678dd;">}</span>
 
     <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">timeval</span> <span style="color: #dcaeea;">end</span>;
-    gettimeofday(&amp;end, <span style="color: #a9a1e1;">NULL</span>);
+    gettimeofday<span style="color: #c678dd;">(</span>&amp;end, <span style="color: #a9a1e1;">NULL</span><span style="color: #c678dd;">)</span>;
 
-    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">seconds</span> = ((end.tv_usec + (1000000 * end.tv_sec)) -
-                      (begin.tv_usec + (1000000 * begin.tv_sec))) /
-                     1000000.0;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">seconds</span> = <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span>end.tv_usec + <span style="color: #a9a1e1;">(</span><span style="color: #da8548; font-weight: bold;">1000000</span> * end.tv_sec<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span> -
+                      <span style="color: #98be65;">(</span>begin.tv_usec + <span style="color: #a9a1e1;">(</span><span style="color: #da8548; font-weight: bold;">1000000</span> * begin.tv_sec<span style="color: #a9a1e1;">)</span><span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span> /
+                     <span style="color: #da8548; font-weight: bold;">1000000.0</span>;
 
-    fprintf(stderr, <span style="color: #98be65;">"Rendering took %f seconds\n"</span>, seconds);
-};
+    fprintf<span style="color: #c678dd;">(</span>stderr, <span style="color: #98be65;">"Rendering took %f seconds\n"</span>, seconds<span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>;
 </pre>
 </div>
 
 <p>
 The code above should be compiled and linked with the math library <code>cc base_impl.c -o bin/renderer -lm</code>. If you want to run the example shown above it was rendered with <code>bin/renderer 1920 1080 45 &gt;img/first.ppm</code>, if you can view the <code>.ppm</code> directly that&rsquo;s great! If not you can convert it to a <code>png</code> or <code>jpg</code> which can easily be view almost anywhere.
 </p>
+
+
+<div id="org195702c" class="figure">
+<p><img src="interfaces/img/initial.png" alt="initial.png" />
+</p>
 </div>
-</div>
-</div>
-<div id="outline-container-org57bca78" class="outline-2">
-<h2 id="org57bca78">Function Overloading</h2>
-<div class="outline-text-2" id="text-org57bca78">
+
 <p>
-If all we&rsquo;re after is a more ergonomic programming experience, we can get a few of the benefits of an interface just through function overloading. You&rsquo;ll see this fiarly commonly with math libraries, where operations are defined on both integer and floating-point types, as well as vectors of varying lengths.
+While the above example is a great starting point it&rsquo;s entirely inflexible! Changing the order of shapes within a buffer requires recompilation, and the entire scene is composed of 5 squares and 5 circles. Many toy programs fall into this category, hard-coding their exact behavior for demonstration purposes. While this can be good for getting an initial understanding, the gap between this and a &ldquo;real&rdquo; program isn&rsquo;t too much extra work. After a quick detour to show off function overloading in C we&rsquo;ll come back to this point and make our scenes dynamic!
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org057ba1e" class="outline-2">
+<h2 id="org057ba1e">Function Overloading</h2>
+<div class="outline-text-2" id="text-org057ba1e">
+<p>
+If all we&rsquo;re after is a more ergonomic programming experience, we can get some benefits of an interface just through function overloading. You&rsquo;ll see this commonly with math libraries, which define operations on both integer and floating-point types, as well as vectors of varying lengths.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C++"><span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2</span> {
+<pre class="src src-C++"><span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>;
-};
+<span style="color: #51afef;">}</span>;
 
-<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2I</span> {
+<span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">x</span>;
     <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">y</span>;
-};
+<span style="color: #51afef;">}</span>;
 
-<span style="color: #ECBE7B;">double</span> <span style="color: #c678dd;">vec_dot</span>(<span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span>);
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">vec_dot</span>(<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span>);
+<span style="color: #ECBE7B;">double</span> <span style="color: #c678dd;">vec_dot</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">vec_dot</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
 
-<span style="color: #ECBE7B;">Vec2</span> <span style="color: #c678dd;">vec_add</span>(<span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span>);
-<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #c678dd;">vec_add</span>(<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span>);
+<span style="color: #ECBE7B;">Vec2</span> <span style="color: #c678dd;">vec_add</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
+<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #c678dd;">vec_add</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-    <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span> = (Vec2){.x = 1.2, .y = 3.4};
-    <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span> = (Vec2I){.x = 1, .y = 4};
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span> = <span style="color: #c678dd;">(</span>Vec2<span style="color: #c678dd;">){</span>.x = <span style="color: #da8548; font-weight: bold;">1.2</span>, .y = <span style="color: #da8548; font-weight: bold;">3.4</span><span style="color: #c678dd;">}</span>;
+    <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span> = <span style="color: #c678dd;">(</span>Vec2I<span style="color: #c678dd;">){</span>.x = <span style="color: #da8548; font-weight: bold;">1</span>, .y = <span style="color: #da8548; font-weight: bold;">4</span><span style="color: #c678dd;">}</span>;
 
-    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">a_norm</span> = vec_dot(a, a);
-    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">b_norm</span> = vec_dot(b, b);
-}
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">a_norm</span> = vec_dot<span style="color: #c678dd;">(</span>a, a<span style="color: #c678dd;">)</span>;
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">b_norm</span> = vec_dot<span style="color: #c678dd;">(</span>b, b<span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>
 </pre>
 </div>
 
@@ -383,143 +393,149 @@ Our &ldquo;interface&rdquo; is the collection of basic math operations, which ar
 </p>
 
 <p>
-In C function overloading is not a core part of the language, it was added later in C11 through the <code>_Generic</code> macros. I&rsquo;ve previously covered <code>_Generic</code> <a href="c_generics.html">here</a>, and how its name is slightly misleading. Translating the example above producing the following C code.
+In C function overloading is not a core part of the language, C11 added <code>_Generic</code> which allows users to explicitly specify function overloading. I&rsquo;ve previously covered <code>_Generic</code> <a href="c_generics.html">here</a>, and how its name is slightly misleading. Translating the example above producing the following C code.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2</span> {
+<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>;
     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>;
-} <span style="color: #ECBE7B;">Vec2</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Vec2</span>;
 
-<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2I</span> {
+<span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #51afef;">{</span>
     <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">x</span>;
     <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">y</span>;
-} <span style="color: #ECBE7B;">Vec2I</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Vec2I</span>;
 
-<span style="color: #ECBE7B;">double</span> <span style="color: #c678dd;">vec2_dot</span>(<span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span>);
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">vec2i_dot</span>(<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span>);
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">vec_dot</span>(<span style="color: #dcaeea;">a</span>, <span style="color: #dcaeea;">b</span>)                       \
-    <span style="color: #51afef;">_Generic</span>((a),                           \
+<span style="color: #ECBE7B;">double</span> <span style="color: #c678dd;">vec2_dot</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">vec2i_dot</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">vec_dot</span><span style="color: #51afef;">(</span><span style="color: #dcaeea;">a</span>, <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>                       \
+    <span style="color: #51afef;">_Generic</span><span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span>a<span style="color: #c678dd;">)</span>,                           \
                  <span style="color: #ECBE7B;">Vec2</span>: vec2_dot,            \
-                 <span style="color: #ECBE7B;">Vec2I</span>: vec2i_dot) (a, b)
+                 <span style="color: #ECBE7B;">Vec2I</span>: vec2i_dot<span style="color: #51afef;">)</span> <span style="color: #51afef;">(</span>a, b<span style="color: #51afef;">)</span>
 
-<span style="color: #ECBE7B;">Vec2</span> <span style="color: #c678dd;">vec2_add</span>(<span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span>);
-<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #c678dd;">vec2i_add</span>(<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span>);
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">vec_add</span>(<span style="color: #dcaeea;">a</span>, <span style="color: #dcaeea;">b</span>)                       \
-    <span style="color: #51afef;">_Generic</span>((a),                           \
+<span style="color: #ECBE7B;">Vec2</span> <span style="color: #c678dd;">vec2_add</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
+<span style="color: #ECBE7B;">Vec2I</span> <span style="color: #c678dd;">vec2i_add</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">a</span>, <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>;
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">vec_add</span><span style="color: #51afef;">(</span><span style="color: #dcaeea;">a</span>, <span style="color: #dcaeea;">b</span><span style="color: #51afef;">)</span>                       \
+    <span style="color: #51afef;">_Generic</span><span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span>a<span style="color: #c678dd;">)</span>,                           \
                  <span style="color: #ECBE7B;">Vec2</span>: vec2_add,            \
-                 <span style="color: #ECBE7B;">Vec2I</span>: vec2i_add) (a, b)
+                 <span style="color: #ECBE7B;">Vec2I</span>: vec2i_add<span style="color: #51afef;">)</span> <span style="color: #51afef;">(</span>a, b<span style="color: #51afef;">)</span>
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>() {
-    <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span> = (Vec2){.x = 1.2, .y = 3.4};
-    <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span> = (Vec2I){.x = 1, .y = 4};
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">Vec2</span> <span style="color: #dcaeea;">a</span> = <span style="color: #c678dd;">(</span>Vec2<span style="color: #c678dd;">){</span>.x = <span style="color: #da8548; font-weight: bold;">1.2</span>, .y = <span style="color: #da8548; font-weight: bold;">3.4</span><span style="color: #c678dd;">}</span>;
+    <span style="color: #ECBE7B;">Vec2I</span> <span style="color: #dcaeea;">b</span> = <span style="color: #c678dd;">(</span>Vec2I<span style="color: #c678dd;">){</span>.x = <span style="color: #da8548; font-weight: bold;">1</span>, .y = <span style="color: #da8548; font-weight: bold;">4</span><span style="color: #c678dd;">}</span>;
 
-    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">a_norm</span> = vec_dot(a, a);
-    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">b_norm</span> = vec_dot(b, b);
-}
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">a_norm</span> = vec_dot<span style="color: #c678dd;">(</span>a, a<span style="color: #c678dd;">)</span>;
+    <span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">b_norm</span> = vec_dot<span style="color: #c678dd;">(</span>b, b<span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>
 </pre>
 </div>
 
 <p>
-Not a huge change, but one that can be slightly annoying once our number of implementations for a function increases.
+Not a large change, but one that can be slightly annoying once our number of implementations for a function increases.
 </p>
 </div>
-<div id="outline-container-org2d5171c" class="outline-3">
-<h3 id="org2d5171c">Updating our Renderer</h3>
-<div class="outline-text-3" id="text-org2d5171c">
+<div id="outline-container-org6e9027a" class="outline-3">
+<h3 id="org6e9027a">Updating our Renderer</h3>
+<div class="outline-text-3" id="text-org6e9027a">
 <p>
-The only change function overloading can give us for our use case is removing the <code>square_</code> or <code>circle_</code> from the beginning of the <code>hit</code> functions. Not a huge benefit, but when expanded to many more shapes it could reduce the amount of context a programmer needs to keep around.
+The only change function overloading can give us for our use case is removing the <code>square_</code> or <code>circle_</code> from the beginning of the <code>hit</code> functions. This provides a small readability benefit, but when expanded to more shapes it could reduce the amount of context a programmer needs to keep around.
 </p>
 
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
-<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">hit</span>(<span style="color: #dcaeea;">shape</span>, <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #dcaeea;">x</span>, <span style="color: #dcaeea;">y</span>)                                         \
-    <span style="color: #51afef;">_Generic</span>((shape), Square *: square_hit, Circle *: circle_hit)(             \
-        shape, aspect_ratio, x, y)
+<span style="color: #51afef; font-weight: bold;">#define</span> <span style="color: #c678dd;">hit</span><span style="color: #51afef;">(</span><span style="color: #dcaeea;">shape</span>, <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #dcaeea;">x</span>, <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span>                                         \
+    <span style="color: #51afef;">_Generic</span><span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span>shape<span style="color: #c678dd;">)</span>, Square *: square_hit, Circle *: circle_hit<span style="color: #51afef;">)(</span>             \
+        shape, aspect_ratio, x, y<span style="color: #51afef;">)</span>
 
-<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span>(<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">argc</span>, <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">argv</span>[]) {
+<span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">main</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">argc</span>, <span style="color: #ECBE7B;">char</span>* <span style="color: #dcaeea;">argv</span><span style="color: #c678dd;">[]</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
 
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -1 * ((<span style="color: #ECBE7B;">double</span>)row / ((<span style="color: #ECBE7B;">double</span>)height / 2) - 1);
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -<span style="color: #da8548; font-weight: bold;">1</span> * <span style="color: #c678dd;">(</span><span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span>row / <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span>height / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span>;
 
-                hr = hit(&amp;circles[depth], aspect_ratio, x, y);
-                <span style="color: #51afef;">if</span> (hr.hit) {
+                hr = hit<span style="color: #c678dd;">(</span>&amp;circles<span style="color: #98be65;">[</span>depth<span style="color: #98be65;">]</span>, aspect_ratio, x, y<span style="color: #c678dd;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>hr.hit<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
 
 
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -1 * ((<span style="color: #ECBE7B;">double</span>)row / ((<span style="color: #ECBE7B;">double</span>)height / 2) - 1);
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -<span style="color: #da8548; font-weight: bold;">1</span> * <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span>row / <span style="color: #a9a1e1;">(</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #51afef;">)</span>height / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #98be65;">)</span>;
 
-                hr = hit(&amp;squares[depth], aspect_ratio, x, y);
-                <span style="color: #51afef;">if</span> (hr.hit) {
+                hr = hit<span style="color: #98be65;">(</span>&amp;squares<span style="color: #a9a1e1;">[</span>depth<span style="color: #a9a1e1;">]</span>, aspect_ratio, x, y<span style="color: #98be65;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #98be65;">(</span>hr.hit<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org88caf6e" class="outline-3">
-<h3 id="org88caf6e">Upsides to Function Overloading</h3>
-<div class="outline-text-3" id="text-org88caf6e">
+<div id="outline-container-org6a9b2c1" class="outline-3">
+<h3 id="org6a9b2c1">Upsides to Function Overloading</h3>
+<div class="outline-text-3" id="text-org6a9b2c1">
 <p>
-Function overloading provides native performance, becuase the overloading is really just a bit of syntax-sugar, allowing us to write the same function multiple times, with the compiler picker the correct implementation at compile-time. For hot sections of code (which do not need support for dyanmic types), function overloading should be preferred to any of the other 3 concepts that will be covered in this article.
+Function overloading provides native performance, because the overloading is really just a bit of syntax-sugar, allowing us to write the same function multiple times, with the compiler picker the correct implementation at compile-time. For hot sections of code (which do not need support for dynamic types), function overloading should always be your first choice.
 </p>
 </div>
 </div>
-<div id="outline-container-org1085631" class="outline-3">
-<h3 id="org1085631">Downsides to Function Overloading</h3>
-<div class="outline-text-3" id="text-org1085631">
+<div id="outline-container-org5d24d09" class="outline-3">
+<h3 id="org5d24d09">Downsides to Function Overloading</h3>
+<div class="outline-text-3" id="text-org5d24d09">
 <p>
-The issue with this approach is that we still require separate data structures to store both circles and squares, meaning we cannot address the entire &ldquo;scene&rdquo; as a single array. So while function overloading gains us a bit of developer ergonomics, for this use case it does not gain us any new abilities.
-</p>
-
-<p>
-From a performance perspective this is obviously going to be the best choice, if your program is ok with being locked to these particular constraints, requiring a recompile if any of these function calls need to change, not the best for a dynamic scene renderer.
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-orga69f36d" class="outline-2">
-<h2 id="orga69f36d">Tagged Unions</h2>
-<div class="outline-text-2" id="text-orga69f36d">
-<p>
-We talked about RTTI before and how it can have run-time performance impacts, largely stemming from complicated inheritance structures. If we avoid multiple levels of inheritence this problem basically goes away. So our RTTI should be as simple as possible, constraining us to constant time lookup.
+The issue with this approach is that we still require separate data structures to store both circles and squares, meaning we cannot address the entire &ldquo;scene&rdquo; as a single array. So while function overloading gains us a bit of developer ergonomics, for this use case it does not gain us any new abilities, leaving us with a &ldquo;static&rdquo; scene renderer.
 </p>
 
 <p>
-This can be accomplished using what is known as a <a href="https://en.wikipedia.org/wiki/Tagged_union">tagged union</a>. The data structure is composed of a tag (<code>enum</code>) and a <code>union</code>. In C an <code>enum</code> is just an integer, allowing us to map a human-readable name to a number, which is exactly what we need to constant time lookup. The second part of is a <code>union</code>, which is a data type constructed from a set of types, having storage to hold the largest of its constituient types. A <code>union</code> can hold exactly 1 datatype at a time (ignoring any big manipulation tricks), with access to any of the other datatypes producing possibly undesired results.
+From a performance perspective this is obviously going to be the best choice, if you&rsquo;re OK with a program locked to these particular constraints, requiring a recompile if any of these function calls need to change, not the best for a dynamic scene renderer.
 </p>
 </div>
-<div id="outline-container-org62e412f" class="outline-3">
-<h3 id="org62e412f">Updating Our Renderer</h3>
-<div class="outline-text-3" id="text-org62e412f">
+</div>
+</div>
+<div id="outline-container-orgbd71d70" class="outline-2">
+<h2 id="orgbd71d70">Tagged Unions</h2>
+<div class="outline-text-2" id="text-orgbd71d70">
+<p>
+We talked about RTTI (run-time type information) before and how it can have run-time performance impacts, stemming from complicated inheritance structures. However, if we avoid multiple levels of inheritance this problem all but goes away. Therefore, our implementation of RTTI should be as simple as possible, constraining us to constant time lookup.
+</p>
+
+
+<div id="orgf672dbd" class="figure">
+<p><img src="interfaces/img/tagged_union_diagram.png" alt="tagged_union_diagram.png" />
+</p>
+</div>
+
+<p>
+We can accomplish this using what is known as a <a href="https://en.wikipedia.org/wiki/Tagged_union">tagged union</a>. The data structure is composed of a tag (<code>enum</code>) and a <code>union</code>. In C an <code>enum</code> is just an integer, allowing us to map a human-readable name to a number, which is exactly what we need for constant time lookup. The second part is a <code>union</code>, which is a data type constructed from a set of types, having storage to hold the largest of its constituent types. A <code>union</code> can hold exactly 1 data type at a time (ignoring any bit manipulation or type punning tricks), with access to any of the other data types producing possibly undesired (yet <a href="https://stackoverflow.com/a/11996970">defined</a>) results.
+</p>
+</div>
+<div id="outline-container-orgffd2e20" class="outline-3">
+<h3 id="orgffd2e20">Updating Our Renderer</h3>
+<div class="outline-text-3" id="text-orgffd2e20">
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span> {
-    <span style="color: #51afef;">enum</span> { <span style="color: #dcaeea;">SQUARE</span>, <span style="color: #dcaeea;">CIRCLE</span> } <span style="color: #dcaeea;">tag</span>;
-    <span style="color: #51afef;">union</span> {
+<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">enum</span> <span style="color: #c678dd;">{</span> <span style="color: #dcaeea;">SQUARE</span>, <span style="color: #dcaeea;">CIRCLE</span> <span style="color: #c678dd;">}</span> <span style="color: #dcaeea;">tag</span>;
+    <span style="color: #51afef;">union</span> <span style="color: #c678dd;">{</span>
         <span style="color: #ECBE7B;">Square</span> <span style="color: #dcaeea;">s</span>;
         <span style="color: #ECBE7B;">Circle</span> <span style="color: #dcaeea;">c</span>;
-    } <span style="color: #dcaeea;">shape</span>;
-} <span style="color: #ECBE7B;">Shape</span>;
+    <span style="color: #c678dd;">}</span> <span style="color: #dcaeea;">shape</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Shape</span>;
 </pre>
 </div>
 
 <p>
-Hopefully you can now see that we can utilize the <code>enum</code> to select which field of the <code>union</code> is active, providing us a primitve form of RTTI, allowing us to then operate on the data store within the <code>union</code>. Now that we have RTTI we can utilize dynamic dispatch, granting us much more flexibility in our renderer.
+Hopefully you can now see that we can utilize the <code>enum</code> to select which field of the <code>union</code> is active, providing us a primitive form of RTTI. The power of RTTI is that it allows us to utilize dynamic dispatch, granting us much more flexibility in our renderer.
 </p>
 
 <p>
-In the above example we&rsquo;re utilizing the same <code>Circle</code> and <code>Square</code> structures as the initial example, with <code>SQUARE</code> being equal to 0 and <code>CIRCLE</code> being equal to 1. At run-time we can now combine the tag (indicating the currently held type) with the value allowing us to select which function to call.
+In the above example we&rsquo;re utilizing the same <code>Circle</code> and <code>Square</code> structures as the initial example, with <code>SQUARE</code> being equal to 0 and <code>CIRCLE</code> being equal to 1. At run-time we can now use the tag (indicating the currently held type) to decide which function to call.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">hit</span>(<span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">s</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>) {
-    <span style="color: #51afef;">switch</span> (s-&gt;tag) {
+<pre class="src src-C"><span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">hit</span><span style="color: #51afef;">(</span><span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">s</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">switch</span> <span style="color: #c678dd;">(</span>s-&gt;tag<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
     <span style="color: #51afef;">case</span> <span style="color: #a9a1e1;">SQUARE</span>:
-        <span style="color: #51afef;">return</span> square_hit(&amp;s-&gt;shape.s, aspect_ratio, x, y);
+        <span style="color: #51afef;">return</span> square_hit<span style="color: #98be65;">(</span>&amp;s-&gt;shape.s, aspect_ratio, x, y<span style="color: #98be65;">)</span>;
     <span style="color: #51afef;">case</span> <span style="color: #a9a1e1;">CIRCLE</span>:
-        <span style="color: #51afef;">return</span> circle_hit(&amp;s-&gt;shape.c, aspect_ratio, x, y);
-    }
-}
+        <span style="color: #51afef;">return</span> circle_hit<span style="color: #98be65;">(</span>&amp;s-&gt;shape.c, aspect_ratio, x, y<span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+<span style="color: #51afef;">}</span>
 </pre>
 </div>
 
@@ -528,49 +544,49 @@ Adding more shapes to our system is now as simple as defining a struct to hold t
 </p>
 
 <p>
-At this point we haven&rsquo;t really gained a ton over our previous example, we actually need to store these <code>Shape</code> objects within the same datastructure to see the full benefits. On that note, we can now create a single initializer to make our lifes easier moving forward.
+At this point we haven&rsquo;t really gained a ton over our previous example, we actually need to store these <code>Shape</code> objects within the same data structure to see the full benefits. On that note, we can now create a single initializer to make our lives easier moving forward.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C"><span style="color: #ECBE7B;">Shape</span> <span style="color: #c678dd;">shape_random</span>() {
-    <span style="color: #51afef;">if</span> (rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> &lt; 0.5) {
+<pre class="src src-C"><span style="color: #ECBE7B;">Shape</span> <span style="color: #c678dd;">shape_random</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>rand<span style="color: #98be65;">()</span> / <span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> &lt; <span style="color: #da8548; font-weight: bold;">0.5</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
         <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Make circle</span>
-        <span style="color: #51afef;">return</span> (Shape){
+        <span style="color: #51afef;">return</span> <span style="color: #98be65;">(</span>Shape<span style="color: #98be65;">){</span>
             .tag = <span style="color: #a9a1e1;">CIRCLE</span>,
-            .shape.c = circle_init(
-                (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-                (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-                rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-                (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        };
-    } <span style="color: #51afef;">else</span> {
+            .shape.c = circle_init<span style="color: #a9a1e1;">(</span>
+                <span style="color: #51afef;">(</span>rand<span style="color: #c678dd;">()</span> / <span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #c678dd;">)</span><span style="color: #51afef;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+                <span style="color: #51afef;">(</span>rand<span style="color: #c678dd;">()</span> / <span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #c678dd;">)</span><span style="color: #51afef;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+                rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+                <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #51afef;">){</span>.r = rand<span style="color: #c678dd;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #c678dd;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #c678dd;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #51afef;">}</span><span style="color: #a9a1e1;">)</span>,
+        <span style="color: #98be65;">}</span>;
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
         <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Make square</span>
-        <span style="color: #51afef;">return</span> (Shape){
+        <span style="color: #51afef;">return</span> <span style="color: #98be65;">(</span>Shape<span style="color: #98be65;">){</span>
             .tag = <span style="color: #a9a1e1;">SQUARE</span>,
-            .shape.s = square_init(
-                (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-                (rand() / (<span style="color: #a9a1e1;">RAND_MAX</span> / 2.0)) - 1.0,
-                rand() / (<span style="color: #ECBE7B;">double</span>)<span style="color: #a9a1e1;">RAND_MAX</span> / 4,
-                (<span style="color: #a9a1e1;">RGB</span>){.r = rand() % 255, .g = rand() % 255, .b = rand() % 255}),
-        };
-    }
-}
+            .shape.s = square_init<span style="color: #a9a1e1;">(</span>
+                <span style="color: #51afef;">(</span>rand<span style="color: #c678dd;">()</span> / <span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #c678dd;">)</span><span style="color: #51afef;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+                <span style="color: #51afef;">(</span>rand<span style="color: #c678dd;">()</span> / <span style="color: #c678dd;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #c678dd;">)</span><span style="color: #51afef;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+                rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+                <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #51afef;">){</span>.r = rand<span style="color: #c678dd;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #c678dd;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #c678dd;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #51afef;">}</span><span style="color: #a9a1e1;">)</span>,
+        <span style="color: #98be65;">}</span>;
+    <span style="color: #c678dd;">}</span>
+<span style="color: #51afef;">}</span>
 </pre>
 </div>
 
 <p>
-The <code>shape_random</code> function creates either a <code>Square</code> or a <code>Circle</code> depending on some value known at run-time, which in this case is a simple random number. We can now create an entire scene of <code>Shape</code> objects.
+The <code>shape_random</code> function creates either a <code>Square</code> or a <code>Circle</code> depending on some value known at run-time, which in this case is a simple random number. We&rsquo;ll utilize this initializer to create an entire scene of <code>Shape</code> objects.
 </p>
 
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
-    <span style="color: #c678dd;">srand</span>(seed);
+    <span style="color: #c678dd;">srand</span><span style="color: #51afef;">(</span>seed<span style="color: #51afef;">)</span>;
 
-    <span style="color: #ECBE7B;">Shape</span> <span style="color: #dcaeea;">scene</span>[10];
-    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">scene_size</span> = 10;
-    <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">i</span> = 0; i &lt; scene_size; i++) {
-        scene[i] = shape_random();
-    }
+    <span style="color: #ECBE7B;">Shape</span> <span style="color: #dcaeea;">scene</span><span style="color: #51afef;">[</span><span style="color: #da8548; font-weight: bold;">10</span><span style="color: #51afef;">]</span>;
+    <span style="color: #51afef;">const</span> <span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">scene_size</span> = <span style="color: #da8548; font-weight: bold;">10</span>;
+    <span style="color: #51afef;">for</span> <span style="color: #51afef;">(</span><span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; scene_size; i++<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+        scene<span style="color: #c678dd;">[</span>i<span style="color: #c678dd;">]</span> = shape_random<span style="color: #c678dd;">()</span>;
+    <span style="color: #51afef;">}</span>
 
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">RENDERING SCENE</span>
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
@@ -578,356 +594,912 @@ The <code>shape_random</code> function creates either a <code>Square</code> or a
 </div>
 
 <p>
-Lastly, we now need to use our new <code>hit</code> function to calculate collisions with any of the <code>Shape</code> objects within our scene.
+Lastly, we need to use our new <code>hit</code> function to calculate collisions with any of the <code>Shape</code> objects within our scene.
 </p>
 
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Now loop through each pixel, printing it's values as we go</span>
-    <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">row</span> = 0; row &lt; height; row++) {
-        <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">col</span> = 0; col &lt; width; col++) {
+    <span style="color: #51afef;">for</span> <span style="color: #51afef;">(</span><span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">row</span> = <span style="color: #da8548; font-weight: bold;">0</span>; row &lt; height; row++<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+        <span style="color: #51afef;">for</span> <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">size_t</span> <span style="color: #dcaeea;">col</span> = <span style="color: #da8548; font-weight: bold;">0</span>; col &lt; width; col++<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
             <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span>;
-            <span style="color: #51afef;">for</span> (<span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">depth</span> = scene_size - 1; depth &gt;= 0; depth--) {
+            <span style="color: #51afef;">for</span> <span style="color: #98be65;">(</span><span style="color: #ECBE7B;">int</span> <span style="color: #dcaeea;">depth</span> = scene_size - <span style="color: #da8548; font-weight: bold;">1</span>; depth &gt;= <span style="color: #da8548; font-weight: bold;">0</span>; depth--<span style="color: #98be65;">)</span> <span style="color: #98be65;">{</span>
                 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Calculate x/y pixel coords, y is flipped so we can render 0,0</span>
                 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">as the top left corner</span>
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span> = ((<span style="color: #ECBE7B;">double</span>)col / ((<span style="color: #ECBE7B;">double</span>)width / 2) - 1);
-                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -1 * ((<span style="color: #ECBE7B;">double</span>)row / ((<span style="color: #ECBE7B;">double</span>)height / 2) - 1);
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span> = <span style="color: #a9a1e1;">(</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #51afef;">)</span>col / <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>width / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #51afef;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #a9a1e1;">)</span>;
+                <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span> = -<span style="color: #da8548; font-weight: bold;">1</span> * <span style="color: #a9a1e1;">(</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #51afef;">)</span>row / <span style="color: #51afef;">(</span><span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #c678dd;">)</span>height / <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #51afef;">)</span> - <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #a9a1e1;">)</span>;
 
-                hr = hit(&amp;scene[depth], aspect_ratio, x, y);
-                <span style="color: #51afef;">if</span> (hr.hit) {
+                hr = hit<span style="color: #a9a1e1;">(</span>&amp;scene<span style="color: #51afef;">[</span>depth<span style="color: #51afef;">]</span>, aspect_ratio, x, y<span style="color: #a9a1e1;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #a9a1e1;">(</span>hr.hit<span style="color: #a9a1e1;">)</span> <span style="color: #a9a1e1;">{</span>
                     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">We hit something, therefore we can avoid checking any</span>
                     <span style="color: #5B6268;">// </span><span style="color: #5B6268;">other object</span>
                     <span style="color: #51afef;">break</span>;
-                }
-            }
+                <span style="color: #a9a1e1;">}</span>
+            <span style="color: #98be65;">}</span>
 <span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-orge8ada02" class="outline-3">
-<h3 id="orge8ada02">Upsides to Tagged Unions</h3>
-<div class="outline-text-3" id="text-orge8ada02">
+<div id="outline-container-orgb6d8a56" class="outline-3">
+<h3 id="orgb6d8a56">Upsides to Tagged Unions</h3>
+<div class="outline-text-3" id="text-orgb6d8a56">
 <p>
-We&rsquo;re finally able to treat the entire scene as one set of homogenous objects, simplifying the interactions to a simple <code>hit</code> function call. At run-time, <code>hit</code> then decides which of the specialized <code>circle_hit</code> or <code>square_hit</code> functions to call. This allows our entire program to be much more flexible, even permitting changing the scene the scene at run-time, without having to recompile any code.
+We&rsquo;re finally able to treat the entire scene as one set of homogeneous objects, simplifying the interactions to a simple <code>hit</code> function call. At run-time <code>hit</code> then decides which of the specialized <code>circle_hit</code> or <code>square_hit</code> functions to call. This allows our entire program to be much more flexible, even permitting changing the scene at run-time, without having to recompile any code.
 </p>
+
+
+<div id="orgde3846c" class="figure">
+<p><img src="interfaces/img/tagged_union.png" alt="tagged_union.png" />
+</p>
+</div>
 
 <p>
 If you need dynamic dispatch with minimal overhead, tagged unions are the way to go. Let&rsquo;s look at the generated assembly to see why.
 </p>
-
+</div>
+</div>
+<div id="outline-container-org7357db3" class="outline-3">
+<h3 id="org7357db3">Generated Assembly for <code>hit</code></h3>
+<div class="outline-text-3" id="text-org7357db3">
 <div class="org-src-container">
 <pre class="src src-asm"><span style="color: #c678dd;">hit</span>:
-        <span style="color: #51afef;">lw</span>      a5,0(a0)
-        <span style="color: #51afef;">addi</span>    sp,sp,-16
+        <span style="color: #51afef;">lw</span>      a5,<span style="color: #da8548; font-weight: bold;">0</span>(a0)
         <span style="color: #51afef;">beq</span>     a5,zero,.L2
-        <span style="color: #51afef;">li</span>      a4,1
+        <span style="color: #51afef;">li</span>      a4,<span style="color: #da8548; font-weight: bold;">1</span>
         <span style="color: #51afef;">beq</span>     a5,a4,.L3
-        <span style="color: #51afef;">addi</span>    sp,sp,16
         <span style="color: #51afef;">jr</span>      ra
 <span style="color: #c678dd;">.L2</span>:
-        <span style="color: #51afef;">addi</span>    a0,a0,8
-        <span style="color: #51afef;">addi</span>    sp,sp,16
+        <span style="color: #51afef;">addi</span>    a0,a0,<span style="color: #da8548; font-weight: bold;">8</span>
         <span style="color: #51afef;">tail</span>    square_hit
 <span style="color: #c678dd;">.L3</span>:
-        <span style="color: #51afef;">addi</span>    a0,a0,8
-        <span style="color: #51afef;">addi</span>    sp,sp,16
+        <span style="color: #51afef;">addi</span>    a0,a0,<span style="color: #da8548; font-weight: bold;">8</span>
         <span style="color: #51afef;">tail</span>    circle_hit
 </pre>
 </div>
-</div>
-</div>
-<div id="outline-container-org5b7ba2b" class="outline-3">
-<h3 id="org5b7ba2b">Downsides to Tagged Unions</h3>
-<div class="outline-text-3" id="text-org5b7ba2b">
+
 <p>
-While tagged unions provide the closest thing to function overloading in terms of performance, they only offer marginal gains in terms of developer ergonomics. Tagged unions are so performant because they centralize the function dispatch to a single location, with a single memory load providing the tag to decide which function to call. This centralization is also the reason that it&rsquo;s not a very extensible solution.
+Looking at the <code>hit</code> dispatch function we see 3 basic blocks of instructions. Remember that the <code>hit</code> function has type signature <code>HitRecord hit(const Shape* s, double aspect_ratio, double x, double y)</code>, and we can see that the first instruction (<code>lw</code>) is loading that tag of our tagged union into a register. In this simple example we can see that the compiler decided to transform our <code>switch</code> statement into an <code>if-else</code> chain.
 </p>
 
 <p>
-If we want to add more shapes in the future we not only have to provide a structure to hold the data (along with the functions to interract with this data), we also have to modify the tagged union stucture (and its associated dispatch functions) to add the new tag. For a small codebase where the interface is easily exposed, this isn&rsquo;t too much of a problem, but it isn&rsquo;t always feasible to expose an interface to 3rd party developers.
+The first branch checks if the tag is 0 (<code>SQUARE</code>), if so we jump to <code>.L2</code>. When we jump to <code>.L2</code> we bump the original <code>Shape*</code> pointer forward by 8 bytes so that it points at the beginning of the union, then we can finally call the <code>square_hit</code> function.
 </p>
 
 <p>
-Imagine our 2D renderer as an open source project, we currently support rendering squares and circles. If another developer comes along and want to add support for triangles they&rsquo;d have to modify our source code directly, and if we don&rsquo;t want to add their triangles, they&rsquo;d be forced to fork the code and maintain their own version with support for triangles.
+If we&rsquo;re not a <code>Square</code> we then load the immediate value <code>1</code> (<code>CIRCLE</code>), and again branch to the associated <code>Circle</code> code if equal.
 </p>
 
 <p>
-While this example is a little extreme we can simplify it further to a single developer team. Having to rewrite your disptach function each time means that developers are less likely to be able to be fully atonomous, as they have to all modify a central implementation. This isn&rsquo;t the biggest issue in the world, but it starts to get into the tradeoffs of developer ergonomics versus application performance.
+If neither of the above circle/square cases match we restore the stack and return nothing. We can ignore this case for now, assuming we always call the function with a valid shape. Ignoring the final section that we will never execute, <code>hit</code> consists of 8 instructions, with 2 branches to locations within the function, and 2 function calls.
+</p>
+</div>
+</div>
+<div id="outline-container-org6516ed4" class="outline-3">
+<h3 id="org6516ed4">Downsides to Tagged Unions</h3>
+<div class="outline-text-3" id="text-org6516ed4">
+<p>
+While tagged unions provide the closest thing to function overloading in terms of performance, they only offer marginal gains in terms of developer ergonomics. Tagged unions are quick because they centralize the function dispatch to a single location, with a single memory load providing the tag to decide which function to call. This centralization is also the reason that it&rsquo;s not an extensible solution.
+</p>
+
+<p>
+If we want to add more shapes in the future we not only have to provide a structure to hold the data (along with the functions to interact with this data), we also have to modify the tagged union structure (and its associated dispatch functions) to add the new tag. For a small code base where the interface is easily exposed, this isn&rsquo;t too much of a problem, but it isn&rsquo;t always feasible to expose an interface to 3rd party developers.
+</p>
+
+<p>
+Imagine our 2D renderer as an open source project, we currently support rendering squares and circles. If another developer comes along and wants to add support for triangles they&rsquo;d have to modify our source code directly, and if we don&rsquo;t want to add their triangles, they&rsquo;d be forced to fork the code and maintain their own version with support for triangles.
+</p>
+
+<p>
+While this example is a little extreme we can simplify it further to a single developer team. Having to rewrite your dispatch function each time means that developers are less likely to be fully autonomous, as they have to modify a central implementation. This isn&rsquo;t the biggest issue, but it exposes the trade-offs of developer ergonomics versus application performance.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org9dd1fc7" class="outline-2">
-<h2 id="org9dd1fc7">Function Pointers</h2>
-<div class="outline-text-2" id="text-org9dd1fc7">
+<div id="outline-container-orge1ca0cf" class="outline-2">
+<h2 id="orge1ca0cf">Function Pointers</h2>
+<div class="outline-text-2" id="text-orge1ca0cf">
 <p>
 How can we provide much more flexibility to developers want to implement our interface? The answer is through function pointers.
 </p>
 
 <p>
-In C we can provide the address of any function as a function pointer, which as a type signature equal to that of the function. Function pointers allow us to dynamically execute a section of code
+In C we can provide the address of any function as a function pointer, which as a type signature equal to that of the function. Function pointers allow us to dynamically execute a section of code depending on a value that may only be known at run-time. We&rsquo;ll see why I say &ldquo;may&rdquo; a little bit later once we look at the generated assembly.
+</p>
+</div>
+<div id="outline-container-org8ec6121" class="outline-3">
+<h3 id="org8ec6121">Updating Our Renderer</h3>
+<div class="outline-text-3" id="text-org8ec6121">
+<p>
+The first step in updating our renderer is to change the <code>Shape</code> structure defined in the previous section. We will be moving the fields of <code>Square</code> and <code>Circle</code> into the <code>Shape</code> struct, as well as adding a function pointer (or method) to the structure.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>;
+
+    <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span>;
+
+    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">(</span>*<span style="color: #c678dd;">hit</span><span style="color: #c678dd;">)(</span><span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">state</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>,
+                     <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Shape</span>;
+</pre>
+</div>
+
+
+<div id="org852bd26" class="figure">
+<p><img src="interfaces/img/function_pointer_diagram.png" alt="function_pointer_diagram.png" />
+</p>
+</div>
+
+<p>
+This way of defining an interface means that each instance of the <code>shape</code> interface, will also carry the entire implementation of that specific shape. It will be helpful to look at the definitions of <code>square_init</code> and <code>circle_init</code> to see this in practice.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">Shape</span> <span style="color: #c678dd;">square_init</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">return</span> <span style="color: #c678dd;">(</span>Shape<span style="color: #c678dd;">){</span>
+        .x = x1,
+        .y = y1,
+        .radius = radius,
+
+        .color = color,
+
+        .hit = square_hit,
+    <span style="color: #c678dd;">}</span>;
+<span style="color: #51afef;">}</span>
+
+<span style="color: #ECBE7B;">Shape</span> <span style="color: #c678dd;">circle_init</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">r</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    assert<span style="color: #c678dd;">(</span>x &gt;= -<span style="color: #da8548; font-weight: bold;">1</span> &amp;&amp; x &lt;= <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span>;
+    assert<span style="color: #c678dd;">(</span>y &gt;= -<span style="color: #da8548; font-weight: bold;">1</span> &amp;&amp; y &lt;= <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #51afef;">return</span> <span style="color: #c678dd;">(</span>Shape<span style="color: #c678dd;">){</span>
+        .x = x,
+        .y = y,
+        .radius = r,
+
+        .color = color,
+
+        .hit = circle_hit,
+    <span style="color: #c678dd;">}</span>;
+<span style="color: #51afef;">}</span>
+
+<span style="color: #ECBE7B;">Shape</span> <span style="color: #c678dd;">shape_random</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>rand<span style="color: #98be65;">()</span> / <span style="color: #98be65;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #98be65;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> &lt; <span style="color: #da8548; font-weight: bold;">0.5</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Make circle</span>
+        <span style="color: #51afef;">return</span> circle_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Make square</span>
+        <span style="color: #51afef;">return</span> square_init<span style="color: #98be65;">(</span>
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>,
+            <span style="color: #a9a1e1;">(</span>rand<span style="color: #51afef;">()</span> / <span style="color: #51afef;">(</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">2.0</span><span style="color: #51afef;">)</span><span style="color: #a9a1e1;">)</span> - <span style="color: #da8548; font-weight: bold;">1.0</span>, rand<span style="color: #a9a1e1;">()</span> / <span style="color: #a9a1e1;">(</span><span style="color: #ECBE7B;">double</span><span style="color: #a9a1e1;">)</span><span style="color: #a9a1e1;">RAND_MAX</span> / <span style="color: #da8548; font-weight: bold;">4</span>,
+            <span style="color: #a9a1e1;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #a9a1e1;">){</span>.r = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .g = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span>, .b = rand<span style="color: #51afef;">()</span> % <span style="color: #da8548; font-weight: bold;">255</span><span style="color: #a9a1e1;">}</span><span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Each of the initialization functions now returns a <code>Shape</code> with the same data as before, assigning the correct <code>hit</code> implementation depending on which shape we&rsquo;re creating. Let&rsquo;s look at how the <code>square_hit</code> and <code>circle_hit</code> functions have changed.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">square_hit</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">self</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span> = <span style="color: #c678dd;">{</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span>;
+
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x1</span> = self-&gt;x - self-&gt;radius * aspect_ratio;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x2</span> = self-&gt;x + self-&gt;radius * aspect_ratio;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y1</span> = self-&gt;y - self-&gt;radius;
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y2</span> = self-&gt;y + self-&gt;radius;
+
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>x &gt;= x1 &amp;&amp; x &lt;= x2 &amp;&amp; y &gt;= y1 &amp;&amp; y &lt;= y2<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        hr.color = self-&gt;color;
+        hr.hit = <span style="color: #a9a1e1;">true</span>;
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        hr.color = miss_color<span style="color: #98be65;">(</span>x, y<span style="color: #98be65;">)</span>;
+        hr.hit = <span style="color: #a9a1e1;">false</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">return</span> hr;
+<span style="color: #51afef;">}</span>
+
+<span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">circle_hit</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">self</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #dcaeea;">hr</span> = <span style="color: #c678dd;">{</span><span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">}</span>;
+
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">Uses the elipse collision formula</span>
+    <span style="color: #5B6268;">// </span><span style="color: #5B6268;">\frac{(x-h)^2}{r_x^2} + \frac{(y-k)^2}{r_y^2} \leq 1</span>
+    <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">lhs</span> = <span style="color: #c678dd;">(</span>pow<span style="color: #98be65;">(</span>x - self-&gt;x, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span> / pow<span style="color: #98be65;">(</span>self-&gt;radius * aspect_ratio, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span> +
+                 <span style="color: #c678dd;">(</span>pow<span style="color: #98be65;">(</span>y - self-&gt;y, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span> / pow<span style="color: #98be65;">(</span>self-&gt;radius, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span>;
+
+    <span style="color: #51afef;">if</span> <span style="color: #c678dd;">(</span>lhs &lt;= <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">{</span>
+        hr.color = self-&gt;color;
+        hr.hit = <span style="color: #a9a1e1;">true</span>;
+    <span style="color: #c678dd;">}</span> <span style="color: #51afef;">else</span> <span style="color: #c678dd;">{</span>
+        hr.color = miss_color<span style="color: #98be65;">(</span>x, y<span style="color: #98be65;">)</span>;
+        hr.hit = <span style="color: #a9a1e1;">false</span>;
+    <span style="color: #c678dd;">}</span>
+
+    <span style="color: #51afef;">return</span> hr;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Each <code>hit</code> function now takes a <code>Shape*</code> pointer, which by convention we name <code>self</code>. Any behavior specific to an individual shape has remained with its <code>hit</code> implementation, with shapes now sharing the data held within the <code>Shape</code> structure.
 </p>
 
 <p>
-Finally a System Open to Extension, Function Pointers or &ldquo;Methods&rdquo;
+The last change needed is calling each shape&rsquo;s associated hit function through it&rsquo;s function pointer.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
+                <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">object</span> = &amp;scene<span style="color: #51afef;">[</span>depth<span style="color: #51afef;">]</span>;
+
+                hr = object-&gt;hit<span style="color: #51afef;">(</span>&amp;scene<span style="color: #c678dd;">[</span>depth<span style="color: #c678dd;">]</span>, aspect_ratio, x, y<span style="color: #51afef;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>hr.hit<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
+</pre>
+</div>
+
+<p>
+Because we store each function pointer within the structure, we can simply reference that pointer, and call it providing the specific arguments, including the <code>self</code> pointer.
 </p>
 </div>
 </div>
-<div id="outline-container-orga77f4ff" class="outline-2">
-<h2 id="orga77f4ff">The Final Step, Full Interfaces w/ Virtual Functions and Private Data</h2>
-</div>
+<div id="outline-container-org05a9ad8" class="outline-3">
+<h3 id="org05a9ad8">Upsides to Function Pointers</h3>
+<div class="outline-text-3" id="text-org05a9ad8">
+<p>
+Transitioning our code to function pointers didn&rsquo;t require changing much of the code, but it grants us much more flexibility than either of the previous versions.
+</p>
 
-<div id="outline-container-org3955351" class="outline-2">
-<h2 id="org3955351">Perf Stat</h2>
-<div class="outline-text-2" id="text-org3955351">
+<p>
+Now, a developer can quickly add a shape that fulfills our interface without requiring any changes to the central code. In fact, there is now no central code, only the structure definition for <code>Shape</code> counting as &ldquo;central&rdquo;. We&rsquo;ve now enabled a developer add support for a <code>Triangle</code> class, which would have required significant code changes previously.
+</p>
+
+<p>
+As the renderer developer I no longer have to concern myself with shapes at all, aside from calling their associated <code>hit</code> function.
+</p>
 </div>
-<div id="outline-container-org09d7ec7" class="outline-3">
-<h3 id="org09d7ec7">clang</h3>
-<div class="outline-text-3" id="text-org09d7ec7">
-<ul class="org-ul">
-<li>All compiled with <code>-O3 -ffast-math -DNDEBUG -march=native</code></li>
-</ul>
 </div>
-<div id="outline-container-org8aa464d" class="outline-4">
-<h4 id="org8aa464d">_Generic</h4>
-<div class="outline-text-4" id="text-org8aa464d">
+<div id="outline-container-orge50523a" class="outline-3">
+<h3 id="orge50523a">Generated Assembly for <code>hit</code></h3>
+<div class="outline-text-3" id="text-orge50523a">
+<p>
+Writing a simple <code>hit</code> wrapper allows us to analyze the generated assembly for this subroutine.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./macros 25000 25000 45'</span>:
-
-         42,634.16 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         3,353,869      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">78.666 K/sec</span>
-           495,377      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">14.77% of all cache refs</span>
-   181,939,819,796      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.267 GHz</span>
-   920,751,937,825      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">5.06  insn per cycle</span>
-   168,772,772,629      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.959 G/sec</span>
-         7,990,689      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      42.647552981 seconds time elapsed
-
-      42.496754000 seconds user
-       0.099880000 seconds sys
+<pre class="src src-asm"><span style="color: #c678dd;">hit</span>:
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">32</span>(a0)
+        <span style="color: #51afef;">addi</span>    sp,sp,-16
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">16</span>
+        <span style="color: #51afef;">jr</span>      a5
 </pre>
 </div>
+
+<p>
+At first glance it looks like a lot less code, but upon closer inspection we&rsquo;re jumping to an address held within a register. This is much different than jumping to a label directly (as would happen with a function call), as it can be difficult for a CPU to predict which path to take at run-time. When we get to performance analysis section we&rsquo;ll see how this impacts overall run-time.
+</p>
 </div>
-</div>
-<div id="outline-container-orgad07e14" class="outline-4">
-<h4 id="orgad07e14">Tagged Unions</h4>
-<div class="outline-text-4" id="text-orgad07e14">
+<div id="outline-container-orgf9a5547" class="outline-4">
+<h4 id="orgf9a5547">A Quick Aside on Monomorphization</h4>
+<div class="outline-text-4" id="text-orgf9a5547">
+<p>
+If you like the ergonomics of an interface, but can&rsquo;t handle the performance impacts of dynamic dispatch, you may be able to have the benefits of function pointers, and the performance of overloading.
+</p>
+
+<p>
+We&rsquo;ll look at the following small code snippet which utilizes our latest interface with function pointers.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./tagged_unions 25000 25000 45'</span>:
+<pre class="src src-C"><span style="color: #ECBE7B;">int</span> <span style="color: #c678dd;">small_render</span><span style="color: #51afef;">()</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">Shape</span> <span style="color: #dcaeea;">square</span> = square_init<span style="color: #c678dd;">(</span><span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #98be65;">){}</span><span style="color: #c678dd;">)</span>;
+    <span style="color: #ECBE7B;">Shape</span> <span style="color: #dcaeea;">circle</span> = circle_init<span style="color: #c678dd;">(</span><span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #98be65;">(</span><span style="color: #a9a1e1;">RGB</span><span style="color: #98be65;">){}</span><span style="color: #c678dd;">)</span>;
 
-         45,668.72 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         3,913,224      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">85.687 K/sec</span>
-           556,658      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">14.23% of all cache refs</span>
-   195,846,335,985      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.288 GHz</span>
-   977,444,730,182      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.99  insn per cycle</span>
-   181,378,314,686      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.972 G/sec</span>
-         7,280,282      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      45.681773138 seconds time elapsed
-
-      45.512557000 seconds user
-       0.116862000 seconds sys
+    square.hit<span style="color: #c678dd;">(</span>&amp;square, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">)</span>;
+    circle.hit<span style="color: #c678dd;">(</span>&amp;circle, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span>, <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #c678dd;">)</span>;
+<span style="color: #51afef;">}</span>
 </pre>
 </div>
-</div>
-</div>
-<div id="outline-container-orgeb6b1f8" class="outline-4">
-<h4 id="orgeb6b1f8">Function Pointers</h4>
-<div class="outline-text-4" id="text-orgeb6b1f8">
+
+<p>
+We&rsquo;re passing 0 for all parameters to simplify the generated assembly. Let&rsquo;s look at the generated assembly when using <code>-Os</code>.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./function_pointers 25000 25000 45'</span>:
-
-         57,732.83 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         7,198,730      cpu_atom/cache-references/       <span style="color: #5B6268;">#  </span><span style="color: #5B6268;">124.690 K/sec</span>
-         1,482,189      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">20.59% of all cache refs</span>
-   244,457,704,688      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.234 GHz</span>
- 1,190,331,976,407      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.87  insn per cycle</span>
-   192,561,656,924      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.335 G/sec</span>
-         7,793,756      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      57.753686140 seconds time elapsed
-
-      57.547411000 seconds user
-       0.118548000 seconds sys
+<pre class="src src-asm"><span style="color: #c678dd;">small_render</span>:
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">addi</span>    sp,sp,-112
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">2</span>(sp)
+        <span style="color: #51afef;">ld</span>      a1,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">16</span>
+        <span style="color: #51afef;">sd</span>      ra,<span style="color: #da8548; font-weight: bold;">104</span>(sp)
+        <span style="color: #51afef;">call</span>    square_init
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">10</span>(sp)
+        <span style="color: #51afef;">ld</span>      a1,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">56</span>
+        <span style="color: #51afef;">call</span>    circle_init
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">48</span>(sp)
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">16</span>
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">jalr</span>    a5
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">88</span>(sp)
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">16</span>
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">jalr</span>    a5
+        <span style="color: #51afef;">ld</span>      ra,<span style="color: #da8548; font-weight: bold;">104</span>(sp)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">112</span>
+        <span style="color: #51afef;">jr</span>      ra
 </pre>
 </div>
-</div>
-</div>
-<div id="outline-container-org39ab0e8" class="outline-4">
-<h4 id="org39ab0e8">Full Interface</h4>
-<div class="outline-text-4" id="text-org39ab0e8">
+
+<p>
+We can see that after initialization we use the same mechanism as before to load the function pointer into a register before jumping to it an executing the associated code. Compiling with <code>-O3</code> enables further optimizations that can call the <code>hit</code> functions directly.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-shell">Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./full_interface 25000 25000 45'</span>:
-
-         61,107.39 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-        10,555,999      cpu_atom/cache-references/       <span style="color: #5B6268;">#  </span><span style="color: #5B6268;">172.745 K/sec</span>
-         2,832,319      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">26.83% of all cache refs</span>
-   244,742,833,210      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.005 GHz</span>
- 1,196,227,332,390      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.89  insn per cycle</span>
-   192,601,498,838      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.152 G/sec</span>
-         8,553,721      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      61.136820225 seconds time elapsed
-
-      60.853145000 seconds user
-       0.141385000 seconds sys
+<pre class="src src-asm"><span style="color: #c678dd;">small_render</span>:
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">addi</span>    sp,sp,-80
+        <span style="color: #51afef;">lui</span>     a5,<span style="color: #dcaeea;">%hi</span>(square_hit)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">addi</span>    a5,a5,<span style="color: #dcaeea;">%lo</span>(square_hit)
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">24</span>
+        <span style="color: #51afef;">sd</span>      ra,<span style="color: #da8548; font-weight: bold;">72</span>(sp)
+        <span style="color: #51afef;">fsd</span>     fa2,<span style="color: #da8548; font-weight: bold;">24</span>(sp)
+        <span style="color: #51afef;">fsd</span>     fa2,<span style="color: #da8548; font-weight: bold;">32</span>(sp)
+        <span style="color: #51afef;">fsd</span>     fa2,<span style="color: #da8548; font-weight: bold;">40</span>(sp)
+        <span style="color: #51afef;">sd</span>      a5,<span style="color: #da8548; font-weight: bold;">56</span>(sp)
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">48</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">50</span>(sp)
+        <span style="color: #51afef;">call</span>    square_hit
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">mv</span>      a5,a0
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">24</span>
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">sw</span>      a5,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">call</span>    circle_hit
+        <span style="color: #51afef;">ld</span>      ra,<span style="color: #da8548; font-weight: bold;">72</span>(sp)
+        <span style="color: #51afef;">sw</span>      a0,<span style="color: #da8548; font-weight: bold;">16</span>(sp)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">80</span>
+        <span style="color: #51afef;">jr</span>      ra
 </pre>
 </div>
-</div>
-</div>
-</div>
-<div id="outline-container-org6329ff5" class="outline-3">
-<h3 id="org6329ff5">gcc</h3>
-<div class="outline-text-3" id="text-org6329ff5">
-</div>
-<div id="outline-container-org8a57dd5" class="outline-4">
-<h4 id="org8a57dd5">_Generic</h4>
-<div class="outline-text-4" id="text-org8a57dd5">
+
+<p>
+Unless you really like the ergonomics of doing this, at least in C it doesn&rsquo;t make sense. However, this same concept applies in other high level languages such as C++ which can perform monomorphization to virtual function calls if the compiler can trace their concrete implementations during the compilation process. While we&rsquo;re here, let&rsquo;s look if a similar transformation can is applied to our tagged union solution.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./macros 25000 25000 45'</span>:
-
-         42,189.36 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         3,911,535      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">92.714 K/sec</span>
-           645,378      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">16.50% of all cache refs</span>
-   179,106,409,864      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.245 GHz</span>
-   905,969,236,128      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">5.06  insn per cycle</span>
-   171,515,418,406      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.065 G/sec</span>
-         6,874,501      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      42.203639471 seconds time elapsed
-
-      42.037233000 seconds user
-       0.112808000 seconds sys
+<pre class="src src-asm"><span style="color: #c678dd;">small_render</span>:
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">addi</span>    sp,sp,-128
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">40</span>
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">sd</span>      ra,<span style="color: #da8548; font-weight: bold;">120</span>(sp)
+        <span style="color: #51afef;">sd</span>      zero,<span style="color: #da8548; font-weight: bold;">40</span>(sp)
+        <span style="color: #51afef;">sd</span>      zero,<span style="color: #da8548; font-weight: bold;">48</span>(sp)
+        <span style="color: #51afef;">sd</span>      zero,<span style="color: #da8548; font-weight: bold;">56</span>(sp)
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">64</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">66</span>(sp)
+        <span style="color: #51afef;">sd</span>      zero,<span style="color: #da8548; font-weight: bold;">80</span>(sp)
+        <span style="color: #51afef;">sd</span>      zero,<span style="color: #da8548; font-weight: bold;">88</span>(sp)
+        <span style="color: #51afef;">sd</span>      zero,<span style="color: #da8548; font-weight: bold;">96</span>(sp)
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">104</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">106</span>(sp)
+        <span style="color: #51afef;">call</span>    square_hit
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">sext.w</span>  a0,a0
+        <span style="color: #51afef;">sw</span>      a0,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">80</span>
+        <span style="color: #51afef;">call</span>    circle_hit
+        <span style="color: #51afef;">ld</span>      ra,<span style="color: #da8548; font-weight: bold;">120</span>(sp)
+        <span style="color: #51afef;">sext.w</span>  a0,a0
+        <span style="color: #51afef;">sw</span>      a0,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">128</span>
+        <span style="color: #51afef;">jr</span>      ra
 </pre>
 </div>
-</div>
-</div>
-<div id="outline-container-orga122072" class="outline-4">
-<h4 id="orga122072">Tagged Unions</h4>
-<div class="outline-text-4" id="text-orga122072">
+
+<p>
+Even on <code>-Os</code> the compiler is able to monomorphize the function call, and it gets even more shocking when using <code>-O3</code>. The compiler entirely ignores any function call and simply traces through the entire call chain to produce the final results at compile-time.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./tagged_unions 25000 25000 45'</span>:
-
-         46,621.87 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         3,039,209      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">65.188 K/sec</span>
-           391,259      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">12.87% of all cache refs</span>
-   200,598,977,032      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.303 GHz</span>
-   973,522,677,240      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.85  insn per cycle</span>
-   182,737,284,137      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.920 G/sec</span>
-         7,887,028      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      46.634116027 seconds time elapsed
-
-      46.489584000 seconds user
-       0.092880000 seconds sys
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org9c06da2" class="outline-4">
-<h4 id="org9c06da2">Function Pointers</h4>
-<div class="outline-text-4" id="text-org9c06da2">
-<div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./function_pointers 25000 25000 45'</span>:
-
-         54,491.19 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         4,185,089      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">76.803 K/sec</span>
-           573,192      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">13.70% of all cache refs</span>
-   233,665,852,695      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.288 GHz</span>
- 1,196,963,355,076      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">5.12  insn per cycle</span>
-   205,138,323,224      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.765 G/sec</span>
-         7,897,653      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      54.505833943 seconds time elapsed
-
-      54.344657000 seconds user
-       0.098882000 seconds sys
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org9ce8ea4" class="outline-4">
-<h4 id="org9ce8ea4">Full Interface</h4>
-<div class="outline-text-4" id="text-org9ce8ea4">
-<div class="org-src-container">
-<pre class="src src-shell"> Performance counter stats for <span style="color: #98be65;">'taskset -c 0 ./full_interface 25000 25000 45'</span>:
-
-         56,663.69 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
-         7,523,181      cpu_atom/cache-references/       <span style="color: #5B6268;">#  </span><span style="color: #5B6268;">132.769 K/sec</span>
-         1,773,856      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">23.58% of all cache refs</span>
-   237,060,047,864      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.184 GHz</span>
- 1,202,979,147,957      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">5.07  insn per cycle</span>
-   205,166,117,978      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.621 G/sec</span>
-         8,470,190      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
-
-      56.684210992 seconds time elapsed
-
-      56.472638000 seconds user
-       0.113353000 seconds sys
+<pre class="src src-asm"><span style="color: #c678dd;">small_render</span>:
+        <span style="color: #51afef;">addi</span>    sp,sp,-32
+        <span style="color: #51afef;">li</span>      a4,<span style="color: #da8548; font-weight: bold;">16777216</span>
+        <span style="color: #51afef;">li</span>      a5,<span style="color: #da8548; font-weight: bold;">16769024</span>
+        <span style="color: #51afef;">sw</span>      a4,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">addi</span>    a5,a5,<span style="color: #da8548; font-weight: bold;">975</span>
+        <span style="color: #51afef;">sw</span>      a5,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">32</span>
+        <span style="color: #51afef;">jr</span>      ra
 </pre>
 </div>
 </div>
 </div>
 </div>
+<div id="outline-container-org7541534" class="outline-3">
+<h3 id="org7541534">Downsides to Function Pointers</h3>
+<div class="outline-text-3" id="text-org7541534">
+<p>
+The biggest downside to function pointers is they are an indirect branch, which requires accurate prediction to take advantage of speculative execution keeping the CPU&rsquo;s pipeline full. For our small example where we iterate through the scene in a consistent order a branch predictor doesn&rsquo;t have too hard of a job knowing which function to execute.
+</p>
+
+<p>
+With a larger code base, and more implementations of our interface, we&rsquo;d likely see further slowdowns as the branch predictors job gets harder.
+</p>
+
+<p>
+Another downside to this specific implementation of function pointers is that we&rsquo;ve coupled the implementation of an object with each instance of that object. For example, each <code>Square</code> created with <code>square_init</code> has to carry around a pointer for each function in the interface. So our random scenes likely have 5 duplicate <code>square_hit</code> pointers, and 5 duplicate <code>circle_hit</code> pointers.
+</p>
+
+<p>
+C++ solves this (at least in the simple single inheritance case) by creating a <code>vtable</code> for each implementation of an interface, and then each instance of that class would have a single pointer to the vtable. This is the common case of the <a href="https://en.wikipedia.org/wiki/Space%E2%80%93time_tradeoff">space versus time trade off</a> that we often see in computer science.
+</p>
+
+<p>
+Having each instance hold the function pointers likely increases execution speed, while also increasing the size of each instance. In contrast, storing function pointers in a <code>vtable</code> requires a second level of indirection, possibly slowing execution while making each instance much smaller.
+</p>
 </div>
-<div id="outline-container-org34b3666" class="outline-2">
-<h2 id="org34b3666">RISC-V Runtimes</h2>
-<div class="outline-text-2" id="text-org34b3666">
-<ul class="org-ul">
-<li>All compiled with <code>-O3 -march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt -ffast-math -DNDEBUG -static -flto</code></li>
-<li>Each was run 25 times</li>
-<li>clang doesn&rsquo;t appear to be supported</li>
-<li>Milk-V Jupiter w/ Spacemit K1 (8 X60 cores) 16GB Ram</li>
-</ul>
 </div>
-<div id="outline-container-org9722432" class="outline-3">
-<h3 id="org9722432">gcc</h3>
-<div class="outline-text-3" id="text-org9722432">
+</div>
+<div id="outline-container-org85a1c25" class="outline-2">
+<h2 id="org85a1c25">Full Interface w/ a <code>vtable</code></h2>
+<div class="outline-text-2" id="text-org85a1c25">
+<p>
+Finally, we arrive at the full interface implementation in C. The main differences from the previous example is that we&rsquo;ve moved the function pointers into their own <code>vtable</code>, and we now have each implementation of the class holding its own fields, potentially allowing for private data.
+</p>
+</div>
+<div id="outline-container-org2882825" class="outline-3">
+<h3 id="org2882825">Updating Our Renderer</h3>
+<div class="outline-text-3" id="text-org2882825">
+<p>
+First we need to update our <code>Shape</code> structure to reference the new dispatch <code>vtable</code>, as well as a <code>void*</code> to hold and data associated to the instance.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">void</span>* <span style="color: #dcaeea;">state</span>;
+
+    <span style="color: #51afef;">const</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">vtable</span> <span style="color: #c678dd;">{</span>
+        <span style="color: #ECBE7B;">HitRecord</span> <span style="color: #98be65;">(</span>*<span style="color: #c678dd;">hit</span><span style="color: #98be65;">)(</span><span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">self</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>,
+                         <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #98be65;">)</span>;
+        <span style="color: #ECBE7B;">void</span> <span style="color: #98be65;">(</span>*<span style="color: #c678dd;">deinit</span><span style="color: #98be65;">)(</span><span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">self</span><span style="color: #98be65;">)</span>;
+    <span style="color: #c678dd;">}</span>* <span style="color: #dcaeea;">vtable</span>;
+<span style="color: #51afef;">}</span> <span style="color: #ECBE7B;">Shape</span>;
+</pre>
+</div>
+
+<p>
+The <code>vtable</code> can be declared either outside of inside the <code>Shape</code> structure, as long as it is visible outside so that each implementation can reference it. Also note that the <code>vtable</code> is marked as <code>const</code>, which in combination with marking each of the implementation vtables <code>const</code> will allow the compiler to better optimize our code.
+</p>
+
+
+<div id="org53878dd" class="figure">
+<p><img src="interfaces/img/full_interface_diagram.png" alt="full_interface_diagram.png" />
+</p>
+</div>
+
+<p>
+You&rsquo;ll also notice that we had to add a <code>deinit</code> method to our interface. This is because each implementation of the interface now holds onto its own private data, which could be differently sized based upon the implementation. This <code>deinit</code> method allows a specific implementation a chance to clean up any resources it may hold on to. In this example the <code>deinit</code> methods free the memory allocated in the <code>init</code> function.
+</p>
+
+<p>
+Next we can update our <code>Square</code> and <code>Circle</code> implementations, which requires forward declaring each of the &ldquo;methods&rdquo; as we&rsquo;ll see (the code for <code>Circles</code> requires the same transformation, therefore it is not shown).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">HitRecord</span> <span style="color: #c678dd;">square_hit</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">self</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">aspect_ratio</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y</span><span style="color: #51afef;">)</span>;
+<span style="color: #ECBE7B;">void</span> <span style="color: #c678dd;">square_deinit</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">self</span><span style="color: #51afef;">)</span>;
+
+<span style="color: #51afef;">static</span> <span style="color: #51afef;">const</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">vtable</span> <span style="color: #dcaeea;">square_vtable</span> =
+    <span style="color: #51afef;">(</span><span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">vtable</span><span style="color: #51afef;">){</span>.hit = square_hit, .deinit = square_deinit<span style="color: #51afef;">}</span>;
+
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">Definitions for square_hit and square_deinit below</span>
+</pre>
+</div>
+
+<p>
+Then we can update the <code>square_init</code> function to create a new instance of the <code>Shape</code> struct.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #ECBE7B;">Shape</span> <span style="color: #c678dd;">square_init</span><span style="color: #51afef;">(</span><span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">x1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">y1</span>, <span style="color: #ECBE7B;">double</span> <span style="color: #dcaeea;">radius</span>, <span style="color: #ECBE7B;">RGB</span> <span style="color: #dcaeea;">color</span><span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+    <span style="color: #ECBE7B;">SquareState</span>* <span style="color: #dcaeea;">s</span> = <span style="color: #c678dd;">(</span><span style="color: #ECBE7B;">SquareState</span>*<span style="color: #c678dd;">)</span>malloc<span style="color: #c678dd;">(</span><span style="color: #51afef;">sizeof</span><span style="color: #98be65;">(</span>*s<span style="color: #98be65;">)</span><span style="color: #c678dd;">)</span>;
+    *s = <span style="color: #c678dd;">(</span>SquareState<span style="color: #c678dd;">){</span>
+        .x = x1,
+        .y = y1,
+        .half_side_length = radius,
+        .color = color,
+    <span style="color: #c678dd;">}</span>;
+
+    <span style="color: #51afef;">return</span> <span style="color: #c678dd;">(</span>Shape<span style="color: #c678dd;">){</span>
+        .state = s,
+        .vtable = &amp;square_vtable,
+    <span style="color: #c678dd;">}</span>;
+<span style="color: #51afef;">}</span>
+</pre>
+</div>
+
+<p>
+Note that we reference the same <code>square_vtable</code> for each square that we instantiate. This reduces the size of each square, as we&rsquo;re trading off another level of indirection for a small structure. Speaking of the second level of indirection, we can see that with our last change needed to the renderer.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-C"><span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
+                <span style="color: #ECBE7B;">Shape</span>* <span style="color: #dcaeea;">object</span> = &amp;scene<span style="color: #51afef;">[</span>depth<span style="color: #51afef;">]</span>;
+
+                hr = object-&gt;vtable-&gt;hit<span style="color: #51afef;">(</span>&amp;scene<span style="color: #c678dd;">[</span>depth<span style="color: #c678dd;">]</span>, aspect_ratio, x, y<span style="color: #51afef;">)</span>;
+                <span style="color: #51afef;">if</span> <span style="color: #51afef;">(</span>hr.hit<span style="color: #51afef;">)</span> <span style="color: #51afef;">{</span>
+<span style="color: #5B6268;">// </span><span style="color: #5B6268;">...</span>
+</pre>
+</div>
+
+<p>
+We changed <code>object-&gt;hit()</code> to <code>object-&gt;vtable-&gt;hit()</code>, and we&rsquo;ll see the performance impacts of this shortly.
+</p>
+</div>
+</div>
+<div id="outline-container-org9930c11" class="outline-3">
+<h3 id="org9930c11">Upsides to Full Interfaces w/ a <code>vtable</code></h3>
+<div class="outline-text-3" id="text-org9930c11">
+<p>
+By splitting our &ldquo;methods&rdquo; and data into 2 separate objects we gained the ability to have private data that is specific to a class. Whether this is a desired feature is up to you. Full interfaces are also now a constant size, with a <code>void*</code> pointer to internal data, and <code>vtable*</code> to our methods.
+</p>
+
+<p>
+This is the most flexible version of our <code>Shape</code> interface that we&rsquo;ve seen so far, allowing each implementation to have entirely separate data and behavior.
+</p>
+</div>
+</div>
+<div id="outline-container-org9343e37" class="outline-3">
+<h3 id="org9343e37">Generated Assembly for <code>hit</code></h3>
+<div class="outline-text-3" id="text-org9343e37">
+<p>
+The generated assembly makes the second level of indirection obvious as we see an initial load to get the <code>vtable*</code> pointer, and then a second load for the <code>hit</code> function pointer.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-asm"><span style="color: #c678dd;">hit</span>:
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">8</span>(a0)
+        <span style="color: #51afef;">addi</span>    sp,sp,-16
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">0</span>(a5)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">16</span>
+        <span style="color: #51afef;">jr</span>      a5
+</pre>
+</div>
+
+<p>
+We can also check if the compiler is able to monomorphize our code as it did in the previous 2 examples.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-asm"><span style="color: #c678dd;">small_render</span>:
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">addi</span>    sp,sp,-80
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">2</span>(sp)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">ld</span>      a0,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">sd</span>      ra,<span style="color: #da8548; font-weight: bold;">72</span>(sp)
+        <span style="color: #51afef;">call</span>    square_init
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">sh</span>      zero,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">sb</span>      zero,<span style="color: #da8548; font-weight: bold;">10</span>(sp)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">sd</span>      a0,<span style="color: #da8548; font-weight: bold;">32</span>(sp)
+        <span style="color: #51afef;">ld</span>      a0,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">sd</span>      a1,<span style="color: #da8548; font-weight: bold;">40</span>(sp)
+        <span style="color: #51afef;">call</span>    circle_init
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">40</span>(sp)
+        <span style="color: #51afef;">sd</span>      a0,<span style="color: #da8548; font-weight: bold;">48</span>(sp)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">0</span>(a5)
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">32</span>
+        <span style="color: #51afef;">sd</span>      a1,<span style="color: #da8548; font-weight: bold;">56</span>(sp)
+        <span style="color: #51afef;">jalr</span>    a5
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">56</span>(sp)
+        <span style="color: #51afef;">fmv.d.x</span> fa2,zero
+        <span style="color: #51afef;">sw</span>      a0,<span style="color: #da8548; font-weight: bold;">16</span>(sp)
+        <span style="color: #51afef;">ld</span>      a5,<span style="color: #da8548; font-weight: bold;">0</span>(a5)
+        <span style="color: #51afef;">fmv.d</span>   fa1,fa2
+        <span style="color: #51afef;">fmv.d</span>   fa0,fa2
+        <span style="color: #51afef;">addi</span>    a0,sp,<span style="color: #da8548; font-weight: bold;">32</span>
+        <span style="color: #51afef;">jalr</span>    a5
+        <span style="color: #51afef;">ld</span>      ra,<span style="color: #da8548; font-weight: bold;">72</span>(sp)
+        <span style="color: #51afef;">sw</span>      a0,<span style="color: #da8548; font-weight: bold;">24</span>(sp)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">80</span>
+        <span style="color: #51afef;">jr</span>      ra
+</pre>
+</div>
+
+<p>
+Sadly, with <code>-Os</code> optimizations the compiler is no longer able to trace its way through our call chain to monomorphize our function. That&rsquo;s not to say that it will never be possible, but each level of indirection makes the compilers job harder. Again, using <code>-O3</code> the compiler can trace the calls, and replaces the values with their computed results.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-asm"><span style="color: #c678dd;">small_render</span>:
+        <span style="color: #51afef;">addi</span>    sp,sp,-32
+        <span style="color: #51afef;">li</span>      a4,<span style="color: #da8548; font-weight: bold;">16777216</span>
+        <span style="color: #51afef;">li</span>      a5,<span style="color: #da8548; font-weight: bold;">16769024</span>
+        <span style="color: #51afef;">sw</span>      a4,<span style="color: #da8548; font-weight: bold;">0</span>(sp)
+        <span style="color: #51afef;">addi</span>    a5,a5,<span style="color: #da8548; font-weight: bold;">975</span>
+        <span style="color: #51afef;">sw</span>      a5,<span style="color: #da8548; font-weight: bold;">8</span>(sp)
+        <span style="color: #51afef;">addi</span>    sp,sp,<span style="color: #da8548; font-weight: bold;">32</span>
+        <span style="color: #51afef;">jr</span>      ra
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org79c1577" class="outline-3">
+<h3 id="org79c1577">Downsides to Full Interfaces w/ a <code>vtable</code></h3>
+<div class="outline-text-3" id="text-org79c1577">
+<p>
+For our final interface implementation the downsides come in terms of performance. Having 2 levels of indirection on each method call certainly adds cache pressure, and will likely slow down execution.
+</p>
+
+<p>
+However, other than performance, this is a good model for working in teams, especially when the user of this interface does not need to care about implementation internals.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgfbfd404" class="outline-2">
+<h2 id="orgfbfd404">Performance Analysis</h2>
+<div class="outline-text-2" id="text-orgfbfd404">
+<p>
+The following are results from rendering a 25000x25000 image with seed <code>45</code>. All examples were compiled with <code>-O3 -ffast-math -DNDEBUG -march=native -flto -static</code>. Results were measured on a 12th Gen Intel Core i5-12400F. The individual <code>perf stat</code> outputs for each compiler can be found under <a href="interfaces/gcc_perf.html">interfaces/gcc_perf.html</a> and <a href="interfaces/clang_perf.html">interfaces/clang_perf.html</a>.
+</p>
+</div>
+<div id="outline-container-org9195cb3" class="outline-3">
+<h3 id="org9195cb3">x86-64 Desktop Computer</h3>
+<div class="outline-text-3" id="text-org9195cb3">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
 <colgroup>
 <col  class="org-left" />
 
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
 <col  class="org-right" />
 
 <col  class="org-right" />
 </colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Compiler</th>
+<th scope="col" class="org-left">Implementation</th>
+<th scope="col" class="org-right">Execution Time</th>
+<th scope="col" class="org-right">Cache References K/sec</th>
+<th scope="col" class="org-right">Cache Miss %</th>
+<th scope="col" class="org-right">Instructions per Cycle</th>
+<th scope="col" class="org-right">Branches G/sec</th>
+<th scope="col" class="org-right">Branch Miss %</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<td class="org-left">Program</td>
-<td class="org-right">Mean</td>
-<td class="org-right">Std. dev.</td>
+<td class="org-left">gcc</td>
+<td class="org-left">Function Overloading</td>
+<td class="org-right">43.79</td>
+<td class="org-right">61.410</td>
+<td class="org-right">13.50%</td>
+<td class="org-right">4.75</td>
+<td class="org-right">3.932</td>
+<td class="org-right">0.0040%</td>
 </tr>
 
 <tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Tagged Unions</td>
+<td class="org-right">47.90</td>
+<td class="org-right">60.166</td>
+<td class="org-right">14.18%</td>
+<td class="org-right">4.75</td>
+<td class="org-right">3.905</td>
+<td class="org-right">0.0041%</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Function Pointers</td>
+<td class="org-right">55.65</td>
+<td class="org-right">65.672</td>
+<td class="org-right">14.38%</td>
+<td class="org-right">4.97</td>
+<td class="org-right">3.699</td>
+<td class="org-right">0.0037%</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Full Interface</td>
+<td class="org-right">55.20</td>
+<td class="org-right">65.170</td>
+<td class="org-right">13.16%</td>
+<td class="org-right">5.04</td>
+<td class="org-right">3.728</td>
+<td class="org-right">0.0038%</td>
+</tr>
+
+<tr>
+<td class="org-left">clang</td>
+<td class="org-left">Function Overloading</td>
+<td class="org-right">41.94</td>
+<td class="org-right">61.633</td>
+<td class="org-right">12.36%</td>
+<td class="org-right">5.05</td>
+<td class="org-right">4.001</td>
+<td class="org-right">0.0033%</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Tagged Unions</td>
+<td class="org-right">43.35</td>
+<td class="org-right">59.334</td>
+<td class="org-right">11.06%</td>
+<td class="org-right">5.13</td>
+<td class="org-right">4.067</td>
+<td class="org-right">0.0031%</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Function Pointers</td>
+<td class="org-right">57.00</td>
+<td class="org-right">57.593</td>
+<td class="org-right">12.90%</td>
+<td class="org-right">4.80</td>
+<td class="org-right">3.390</td>
+<td class="org-right">0.0037%</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Full Interface</td>
+<td class="org-right">57.24</td>
+<td class="org-right">59.900</td>
+<td class="org-right">12.02%</td>
+<td class="org-right">4.84</td>
+<td class="org-right">3.376</td>
+<td class="org-right">0.0038%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+As we would expect, our 4 implementations decrease in performance as they get more complicated and abstract. The key highlights are that moving from an entirely static implementation (function overloading) to our first dynamic method (tagged unions) only incurs a 9% performance decrease under <code>gcc</code>, and a 3.5% decrease with <code>clang</code>. If your program requires some form of dynamic dispatch and is performance sensitive, tagged unions are likely the way to go.
+</p>
+
+<p>
+Interestingly the difference between a pure function pointer implementation and the full interface is marginal, even going the way of the full interface when compiled using <code>gcc</code>. However, either implementation creates slowdowns between 15-25%, something to keep in mind when utilizing similar constructs in languages that hide these implementation details from you.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb493207" class="outline-3">
+<h3 id="orgb493207">RISC-V Desktop Computer</h3>
+<div class="outline-text-3" id="text-orgb493207">
+<p>
+Unfortunately, the RISC-V computer I have access to currently does not support <code>perf</code> on its latest kernel. However, we can still analyze performance by looking at time to render, which should give us a point of comparison across the 4 different implementations. All the examples in this case were compiled with the following command, and times reported are for rendering a 3840x2160 image, again with seed 45.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">gcc <span style="color: #98be65;">\</span>
+    -O3 <span style="color: #98be65;">\</span>
+    -march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt <span style="color: #98be65;">\</span>
+    -ffast-math <span style="color: #98be65;">\</span>
+    -DNDEBUG <span style="color: #98be65;">\</span>
+    -static <span style="color: #98be65;">\</span>
+    -flto <span style="color: #98be65;">\</span>
+    file.c <span style="color: #98be65;">\</span>
+    -o binary
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Program</th>
+<th scope="col" class="org-right">Mean</th>
+<th scope="col" class="org-right">Std. dev.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
 <td class="org-left">Generic</td>
-<td class="org-right">7.072459</td>
-<td class="org-right">0.014700</td>
+<td class="org-right">7.112632</td>
+<td class="org-right">0.016333</td>
 </tr>
 
 <tr>
 <td class="org-left">Tagged Unions</td>
-<td class="org-right">8.697393</td>
-<td class="org-right">0.004785</td>
+<td class="org-right">8.591887</td>
+<td class="org-right">0.020454</td>
 </tr>
 
 <tr>
 <td class="org-left">Function Pointers</td>
-<td class="org-right">13.174680</td>
-<td class="org-right">0.011866</td>
+<td class="org-right">13.136117</td>
+<td class="org-right">0.038011</td>
 </tr>
 
 <tr>
 <td class="org-left">Full Interface</td>
-<td class="org-right">13.251248</td>
-<td class="org-right">0.011911</td>
+<td class="org-right">13.164754</td>
+<td class="org-right">0.011364</td>
 </tr>
 </tbody>
 </table>
+
+<p>
+The performance differences here are much more pronounced, with the shift from tagged unions to function pointers (35%) being much larger than before. As a point of comparison rendering this same scene of the Intel processor mentions above takes around 0.62 seconds. On lower power hardware it is common to see these kinds of gaps when utilizing higher level language constructs such as dynamic dispatch.
+</p>
 </div>
+</div>
+</div>
+<div id="outline-container-org794eaf5" class="outline-2">
+<h2 id="org794eaf5">Conclusions</h2>
+<div class="outline-text-2" id="text-org794eaf5">
+<p>
+Hopefully you&rsquo;re now that you&rsquo;ve seen the inner workings of an interface you can make more informed decisions about which type of dynamic dispatch you should be using in your upcoming project.
+</p>
+
+<p>
+Assuming dynamic dispatch is an absolute requirement, tagged unions will give you the highest performance at the cost of slightly worse developer ergonomics. However, if performance is a secondary or even tertiary concern, utilizing a full interface can provide an environment where working with other developers is more easily facilitated through the extensibility an interface provides.
+</p>
 </div>
 </div>
 </div>

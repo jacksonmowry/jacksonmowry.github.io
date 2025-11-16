@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clang Perf Stat</title>
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+/* Base */html,body {    background-color: #222;    min-height: 100%;    line-height: 1.5;}body {    color: #fafafa;    font-family: "Courier New";}::selection {    background-color:  #2ecc40;    color: white;}/* Responsive content positioning */@media only screen and (min-width: 1020px) /* Large screens */{    body{        padding: 10vh 20vw;    }}@media only screen and (max-width: 1020px) and (min-width: 750px) /* Small screens */{    body{        padding: 5vh 10vw;    }}@media only screen and (max-width: 750px) /* Small screens */{    body{        padding: 2vh 5vw;    }}/* Headers */h1{font-size: 2.5rem;}h2{font-size: 1.7rem;}h1 > .subtitle, h3, h4, h5, h6{color: #999; font-size: 1.3rem;}.title{    margin-bottom: 2.5rem;}/* Padding & Margin */* {margin: 0; padding: 0;}pre, blockquote, ul, ol, p, table{    margin: 1rem 0;}h1, h2{margin-top: 2rem; line-height: 2rem;}h3, h4, h5, h6{margin-top: 1rem;}/* Links  */a, a:visited {    color: #01ff70;    text-decoration: underline;}a:hover, a:focus, a:active {    color: #2ecc40;}/* Code */pre {    font-family: "Courier New";    padding: .5rem;    background-color: #333;    padding: 0.5rem;    border-radius: 0.2rem;    font-size: 0.9rem;    color: #EEE;    overflow-x: auto;}.org-keyword{    color: #01ff70;}.org-rainbow-delimiters-depth-1{    color: #2ecc40;}.org-rainbow-delimiters-depth-2{    color: #01ff70;}/* Blockquotes */blockquote {    border-left: 3px solid #01ff70;    padding-left: 1rem;}li{    list-style-position: inside;}/* Tags */.tag{    margin-top: 0.5rem;    display: block;    color: white;    font-size: var(--font-size-xsmall);}.tag > span{		font-weight: 400;    font-size: 0.8rem;    background-color: #444;    text-transform: uppercase;    border-radius: 2px;    width: fit-content;    height: auto;    padding: 1px 5px;}/* Keywords */.todo{    color: #2ecc40;}.done{    color: #444;}/* Overflows */.outline-text-2, .outline-text-3, .outline-text-4{	  max-width: 100%;	  overflow-x: auto;}/* Table */tr:nth-child(even) {    background-color: #333;}th, td{    padding: 0.5rem;    text-align: center;}.underline{    text-decoration: underline;}img{    max-width: 100%;    height: auto;} pre.example{color: white; overflow-x: hidden; white-space: pre-wrap;} .example:hover{ color: white;} /*h3,h4,h5,h6{text-decoration: underline;}*/ code{background-color: white; padding: .08em .4em; color: black; border-radius: 6px; margin: 0 .1em; font-size: 120%;} #postamble { font-size: 80%; color: gray; margin-top: 2rem;}
+</style>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="../interfaces.html"> UP </a>
+ |
+ <a accesskey="H" href="../index.html"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title">Clang Perf Stat</h1>
+<div id="outline-container-orgc1fd378" class="outline-2">
+<h2 id="orgc1fd378">Function Overloading</h2>
+<div class="outline-text-2" id="text-orgc1fd378">
+<div class="org-src-container">
+<pre class="src src-shell">Rendering took <span style="color: #da8548; font-weight: bold;">41.939673</span> seconds
+
+ Performance counter stats for <span style="color: #98be65;">'taskset -c 0 bin/macros 25000 25000 45'</span>:
+
+         41,930.73 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
+               <span style="color: #da8548; font-weight: bold;">879</span>      context-switches                 <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">20.963 /sec</span>
+                <span style="color: #da8548; font-weight: bold;">95</span>      page-faults                      <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">2.266 /sec</span>
+         2,584,299      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">61.633 K/sec</span>
+           319,517      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">12.36% of all cache refs</span>
+   180,031,398,024      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.294 GHz</span>
+   908,300,805,573      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">5.05  insn per cycle</span>
+   167,769,617,728      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.001 G/sec</span>
+         5,529,642      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
+
+      <span style="color: #da8548; font-weight: bold;">41.941391670</span> seconds time elapsed
+
+      <span style="color: #da8548; font-weight: bold;">41.806041000</span> seconds user
+       <span style="color: #da8548; font-weight: bold;">0.090899000</span> seconds sys
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgf53b59b" class="outline-2">
+<h2 id="orgf53b59b">Tagged Unions</h2>
+<div class="outline-text-2" id="text-orgf53b59b">
+<div class="org-src-container">
+<pre class="src src-shell">Rendering took <span style="color: #da8548; font-weight: bold;">43.351390</span> seconds
+
+ Performance counter stats for <span style="color: #98be65;">'taskset -c 0 bin/tagged_unions 25000 25000 45'</span>:
+
+         43,341.40 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
+               <span style="color: #da8548; font-weight: bold;">927</span>      context-switches                 <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">21.388 /sec</span>
+                <span style="color: #da8548; font-weight: bold;">96</span>      page-faults                      <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">2.215 /sec</span>
+         2,571,628      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">59.334 K/sec</span>
+           284,405      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">11.06% of all cache refs</span>
+   185,659,265,660      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.284 GHz</span>
+   951,987,133,791      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">5.13  insn per cycle</span>
+   176,260,613,985      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.067 G/sec</span>
+         5,396,832      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
+
+      <span style="color: #da8548; font-weight: bold;">43.352041997</span> seconds time elapsed
+
+      <span style="color: #da8548; font-weight: bold;">43.188512000</span> seconds user
+       <span style="color: #da8548; font-weight: bold;">0.117866000</span> seconds sys
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgabd1f8e" class="outline-2">
+<h2 id="orgabd1f8e">Function Pointers</h2>
+<div class="outline-text-2" id="text-orgabd1f8e">
+<div class="org-src-container">
+<pre class="src src-shell">Rendering took <span style="color: #da8548; font-weight: bold;">56.994361</span> seconds
+
+ Performance counter stats for <span style="color: #98be65;">'taskset -c 0 bin/function_pointers 25000 25000 45'</span>:
+
+         56,981.51 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
+             1,156      context-switches                 <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">20.287 /sec</span>
+                <span style="color: #da8548; font-weight: bold;">96</span>      page-faults                      <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.685 /sec</span>
+         3,281,726      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">57.593 K/sec</span>
+           423,344      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">12.90% of all cache refs</span>
+   245,051,757,753      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.301 GHz</span>
+ 1,175,233,745,370      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.80  insn per cycle</span>
+   193,167,651,675      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.390 G/sec</span>
+         7,224,762      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
+
+      <span style="color: #da8548; font-weight: bold;">56.995016411</span> seconds time elapsed
+
+      <span style="color: #da8548; font-weight: bold;">56.833206000</span> seconds user
+       <span style="color: #da8548; font-weight: bold;">0.103878000</span> seconds sys
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org99a75a3" class="outline-2">
+<h2 id="org99a75a3">Full Interface w/ <code>vtable</code></h2>
+<div class="outline-text-2" id="text-org99a75a3">
+<div class="org-src-container">
+<pre class="src src-shell">Rendering took <span style="color: #da8548; font-weight: bold;">57.234389</span> seconds
+
+ Performance counter stats for <span style="color: #98be65;">'taskset -c 0 bin/full_interface 25000 25000 45'</span>:
+
+         57,221.06 msec task-clock                       <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.000 CPUs utilized</span>
+             1,217      context-switches                 <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">21.268 /sec</span>
+                <span style="color: #da8548; font-weight: bold;">95</span>      page-faults                      <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">1.660 /sec</span>
+         3,427,529      cpu_atom/cache-references/       <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">59.900 K/sec</span>
+           412,096      cpu_atom/cache-misses/           <span style="color: #5B6268;">#   </span><span style="color: #5B6268;">12.02% of all cache refs</span>
+   245,395,383,555      cpu_atom/cycles/                 <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.289 GHz</span>
+ 1,186,582,924,623      cpu_atom/instructions/           <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">4.84  insn per cycle</span>
+   193,168,062,532      cpu_atom/branches/               <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">3.376 G/sec</span>
+         7,289,256      cpu_atom/branch-misses/          <span style="color: #5B6268;">#    </span><span style="color: #5B6268;">0.00% of all branches</span>
+
+      <span style="color: #da8548; font-weight: bold;">57.235054925</span> seconds time elapsed
+
+      <span style="color: #da8548; font-weight: bold;">57.077464000</span> seconds user
+       <span style="color: #da8548; font-weight: bold;">0.098894000</span> seconds sys
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
