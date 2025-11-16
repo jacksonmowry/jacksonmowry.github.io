@@ -55,7 +55,7 @@ typedef struct Circle {
 } Circle;
 
 typedef struct Shape {
-    enum { SQUARE, CIRCLE } type;
+    enum { SQUARE, CIRCLE } tag;
     union {
         Square s;
         Circle c;
@@ -138,9 +138,10 @@ HitRecord circle_hit(const Circle* c, double aspect_ratio, double x, double y) {
 }
 
 HitRecord hit(const Shape* s, double aspect_ratio, double x, double y) {
-    if (s->type == SQUARE) {
+    switch (s->tag) {
+    case SQUARE:
         return square_hit(&s->shape.s, aspect_ratio, x, y);
-    } else {
+    case CIRCLE:
         return circle_hit(&s->shape.c, aspect_ratio, x, y);
     }
 }
@@ -149,7 +150,7 @@ Shape shape_random() {
     if (rand() / (double)RAND_MAX < 0.5) {
         // Make circle
         return (Shape){
-            .type = CIRCLE,
+            .tag = CIRCLE,
             .shape.c = circle_init(
                 (rand() / (RAND_MAX / 2.0)) - 1.0,
                 (rand() / (RAND_MAX / 2.0)) - 1.0,
@@ -159,7 +160,7 @@ Shape shape_random() {
     } else {
         // Make square
         return (Shape){
-            .type = SQUARE,
+            .tag = SQUARE,
             .shape.s = square_init(
                 (rand() / (RAND_MAX / 2.0)) - 1.0,
                 (rand() / (RAND_MAX / 2.0)) - 1.0,

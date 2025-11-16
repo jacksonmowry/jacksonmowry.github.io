@@ -46,10 +46,18 @@ typedef struct HitRecord {
 typedef struct Shape {
     void* state;
 
-    HitRecord (*hit)(struct Shape* self, double aspect_ratio, double x,
-                     double y);
-    void (*deinit)(struct Shape* self);
+    const struct vtable {
+        HitRecord (*hit)(struct Shape* self, double aspect_ratio, double x,
+                         double y);
+        void (*deinit)(struct Shape* self);
+    }* vtable;
 } Shape;
+
+HitRecord square_hit(Shape* self, double aspect_ratio, double x, double y);
+void square_deinit(Shape* self);
+
+static const struct vtable square_vtable =
+    (struct vtable){.hit = square_hit, .deinit = square_deinit};
 
 typedef struct SquareState {
     double x;
@@ -83,22 +91,31 @@ HitRecord square_hit(Shape* self, double aspect_ratio, double x, double y) {
     return hr;
 }
 
+void square_deinit(Shape* self) { free(self->state); }
+
 Shape square_init(double x1, double y1, double radius, RGB color) {
     assert(x1 >= -1 && x1 <= 1);
     assert(y1 >= -1 && y1 <= 1);
 
     SquareState* s = (SquareState*)malloc(sizeof(*s));
     *s = (SquareState){
-        .x = x1, .y = y1, .half_side_length = radius, .color = color};
+        .x = x1,
+        .y = y1,
+        .half_side_length = radius,
+        .color = color,
+    };
 
     return (Shape){
         .state = s,
-
-        .hit = square_hit,
+        .vtable = &square_vtable,
     };
 }
 
-void square_deinit(Shape* self) { free(self->state); }
+HitRecord circle_hit(Shape* self, double aspect_ratio, double x, double y);
+void circle_deinit(Shape* self);
+
+static const struct vtable circle_vtable =
+    (struct vtable){.hit = circle_hit, .deinit = circle_deinit};
 
 typedef struct CircleState {
     double x;
@@ -137,12 +154,16 @@ Shape circle_init(double x, double y, double r, RGB color) {
     assert(y >= -1 && y <= 1);
 
     CircleState* s = (CircleState*)malloc(sizeof(*s));
-    *s = (CircleState){.x = x, .y = y, .radius = r, .color = color};
+    *s = (CircleState){
+        .x = x,
+        .y = y,
+        .radius = r,
+        .color = color,
+    };
 
     return (Shape){
         .state = s,
-
-        .hit = circle_hit,
+        .vtable = &circle_vtable,
     };
 }
 
@@ -215,7 +236,7 @@ int main(int argc, char* argv[]) {
                 double y = -1 * ((double)row / ((double)height / 2) - 1);
                 Shape* object = &scene[depth];
 
-                hr = object->hit(&scene[depth], aspect_ratio, x, y);
+                hr = object->vtable->hit(&scene[depth], aspect_ratio, x, y);
                 if (hr.hit) {
                     // We hit something, therefore we can avoid checking any
                     // other object
