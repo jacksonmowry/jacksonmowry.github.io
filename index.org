@@ -13,6 +13,8 @@ Bryson Gullett and *Jackson Mowry* and James S. Plank and Luke Whatley and Charl
 [[https://neuromorphic.eecs.utk.edu/publications/2025-07-29-generating-spiking-neural-network-code-libraries-for-embedded-systems][Framework Embedder Paper]]
 
 * Articles
+** Interfaces in C
+[[file:interfaces.org][Interfaces in C]]
 ** Going Phone-/less/
 [[file:phone-less.org][Going Phone-/less/]]
 ** Effectively Simulating a Neuromorphic System
