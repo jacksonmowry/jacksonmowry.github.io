@@ -19,9 +19,9 @@
  <a accesskey="H" href="index.html"> HOME </a>
 </div><div id="content" class="content">
 <h1 class="title">Interfaces</h1>
-<div id="outline-container-org1ff8340" class="outline-2">
-<h2 id="org1ff8340">What is an interface?</h2>
-<div class="outline-text-2" id="text-org1ff8340">
+<div id="outline-container-orgf163633" class="outline-2">
+<h2 id="orgf163633">What is an interface?</h2>
+<div class="outline-text-2" id="text-orgf163633">
 <p>
 An interface is a collection of behavior and attributes, allowing a programmer to write code that is agnostic to the concrete implementation sitting behind the interface. In that sense the interface acts as a sort of contract for the object. You&rsquo;ll find examples of interfaces everywhere in programming and computer science in general.
 </p>
@@ -34,17 +34,17 @@ Take for example the UNIX file descriptor. A file descriptor has a simple interf
 Going one level deeper the entire virtual file system (VFS) in Linux acts as an interface between programs and the file system. This allows users to write code that can be supported on any Linux system, no matter the choice of file system, or even bulk storage hardware.
 </p>
 </div>
-<div id="outline-container-org7d74c47" class="outline-3">
-<h3 id="org7d74c47">Why use an interface?</h3>
-<div class="outline-text-3" id="text-org7d74c47">
+<div id="outline-container-orgf808c4a" class="outline-3">
+<h3 id="orgf808c4a">Why use an interface?</h3>
+<div class="outline-text-3" id="text-orgf808c4a">
 <p>
 As programmers we like interfaces because they allow us to abstract away implementation specific behavior, instead enabling us to write code against a common interface, making fewer assumptions about the concrete implementation. That last point is especially important, as writing a program against an interface (as long as that interface is kept slim and generic) can lead to an easier time adapting to a new concrete implementation.
 </p>
 </div>
 </div>
-<div id="outline-container-org135bfdf" class="outline-3">
-<h3 id="org135bfdf">Why not use an interface?</h3>
-<div class="outline-text-3" id="text-org135bfdf">
+<div id="outline-container-orga8f4e61" class="outline-3">
+<h3 id="orga8f4e61">Why not use an interface?</h3>
+<div class="outline-text-3" id="text-orga8f4e61">
 <p>
 Common high-level programming languages can implement interfaces in inefficient ways. These inefficiencies come in the form of dynamic dispatch, and run-time type information (RTTI).
 </p>
@@ -67,9 +67,9 @@ From a CPU performance perspective dynamic dispatch is concerning as we&rsquo;re
 </div>
 </div>
 </div>
-<div id="outline-container-orge1f92ff" class="outline-2">
-<h2 id="orge1f92ff">How can we use an interface?</h2>
-<div class="outline-text-2" id="text-orge1f92ff">
+<div id="outline-container-org7594572" class="outline-2">
+<h2 id="org7594572">How can we use an interface?</h2>
+<div class="outline-text-2" id="text-org7594572">
 <p>
 As we saw above there are both positive and negative aspects to using interfaces. The negatives tend to come from performance, and the positives come from usability. Yet, there is still one more aspect that we haven&rsquo;t talked about, and that is user extensibility. Imagine if your web browser required recompilation every time you wanted to add a new browser plugin, not only would that be wasteful, it&rsquo;s also entirely unnecessary now that we know about interfaces. As long as each plugin implements a common interface we can simply add it to a list of plugins that the browser calls as needed.
 </p>
@@ -87,15 +87,15 @@ We&rsquo;ll write a simple 2D renderer, capable of producing images like the fol
 We&rsquo;ll walk through varying levels of &ldquo;interfaces&rdquo;, from the least extensible to the most extensible.
 </p>
 </div>
-<div id="outline-container-org2c77e5f" class="outline-3">
-<h3 id="org2c77e5f">Base Implementation</h3>
-<div class="outline-text-3" id="text-org2c77e5f">
+<div id="outline-container-orga82a563" class="outline-3">
+<h3 id="orga82a563">Base Implementation</h3>
+<div class="outline-text-3" id="text-orga82a563">
 <p>
 We&rsquo;ll be making small modifications to this program throughout the article to motivate the uses of interfaces, so it&rsquo;s important to understand what it is doing without any interfaces.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-C" id="org1e78e22"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">math.h</span><span style="color: #51afef;">&gt;</span>
+<pre class="src src-C" id="org9a6c09a"><span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">math.h</span><span style="color: #51afef;">&gt;</span>
 <span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdbool.h</span><span style="color: #51afef;">&gt;</span>
 <span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stddef.h</span><span style="color: #51afef;">&gt;</span>
 <span style="color: #51afef; font-weight: bold;">#include</span> <span style="color: #51afef;">&lt;</span><span style="color: #98be65;">stdint.h</span><span style="color: #51afef;">&gt;</span>
@@ -343,7 +343,7 @@ The code above should be compiled and linked with the math library <code>cc base
 </p>
 
 
-<div id="org195702c" class="figure">
+<div id="org09c94ac" class="figure">
 <p><img src="interfaces/img/initial.png" alt="initial.png" />
 </p>
 </div>
@@ -354,9 +354,9 @@ While the above example is a great starting point it&rsquo;s entirely inflexible
 </div>
 </div>
 </div>
-<div id="outline-container-org057ba1e" class="outline-2">
-<h2 id="org057ba1e">Function Overloading</h2>
-<div class="outline-text-2" id="text-org057ba1e">
+<div id="outline-container-org863b25a" class="outline-2">
+<h2 id="org863b25a">Function Overloading</h2>
+<div class="outline-text-2" id="text-org863b25a">
 <p>
 If all we&rsquo;re after is a more ergonomic programming experience, we can get some benefits of an interface just through function overloading. You&rsquo;ll see this commonly with math libraries, which define operations on both integer and floating-point types, as well as vectors of varying lengths.
 </p>
@@ -435,9 +435,9 @@ In C function overloading is not a core part of the language, C11 added <code>_G
 Not a large change, but one that can be slightly annoying once our number of implementations for a function increases.
 </p>
 </div>
-<div id="outline-container-org6e9027a" class="outline-3">
-<h3 id="org6e9027a">Updating our Renderer</h3>
-<div class="outline-text-3" id="text-org6e9027a">
+<div id="outline-container-org069bbfa" class="outline-3">
+<h3 id="org069bbfa">Updating our Renderer</h3>
+<div class="outline-text-3" id="text-org069bbfa">
 <p>
 The only change function overloading can give us for our use case is removing the <code>square_</code> or <code>circle_</code> from the beginning of the <code>hit</code> functions. This provides a small readability benefit, but when expanded to more shapes it could reduce the amount of context a programmer needs to keep around.
 </p>
@@ -467,17 +467,17 @@ The only change function overloading can give us for our use case is removing th
 </div>
 </div>
 </div>
-<div id="outline-container-org6a9b2c1" class="outline-3">
-<h3 id="org6a9b2c1">Upsides to Function Overloading</h3>
-<div class="outline-text-3" id="text-org6a9b2c1">
+<div id="outline-container-org57b00a0" class="outline-3">
+<h3 id="org57b00a0">Upsides to Function Overloading</h3>
+<div class="outline-text-3" id="text-org57b00a0">
 <p>
 Function overloading provides native performance, because the overloading is really just a bit of syntax-sugar, allowing us to write the same function multiple times, with the compiler picker the correct implementation at compile-time. For hot sections of code (which do not need support for dynamic types), function overloading should always be your first choice.
 </p>
 </div>
 </div>
-<div id="outline-container-org5d24d09" class="outline-3">
-<h3 id="org5d24d09">Downsides to Function Overloading</h3>
-<div class="outline-text-3" id="text-org5d24d09">
+<div id="outline-container-org835a1ca" class="outline-3">
+<h3 id="org835a1ca">Downsides to Function Overloading</h3>
+<div class="outline-text-3" id="text-org835a1ca">
 <p>
 The issue with this approach is that we still require separate data structures to store both circles and squares, meaning we cannot address the entire &ldquo;scene&rdquo; as a single array. So while function overloading gains us a bit of developer ergonomics, for this use case it does not gain us any new abilities, leaving us with a &ldquo;static&rdquo; scene renderer.
 </p>
@@ -488,15 +488,15 @@ From a performance perspective this is obviously going to be the best choice, if
 </div>
 </div>
 </div>
-<div id="outline-container-orgbd71d70" class="outline-2">
-<h2 id="orgbd71d70">Tagged Unions</h2>
-<div class="outline-text-2" id="text-orgbd71d70">
+<div id="outline-container-orgab8a9e4" class="outline-2">
+<h2 id="orgab8a9e4">Tagged Unions</h2>
+<div class="outline-text-2" id="text-orgab8a9e4">
 <p>
 We talked about RTTI (run-time type information) before and how it can have run-time performance impacts, stemming from complicated inheritance structures. However, if we avoid multiple levels of inheritance this problem all but goes away. Therefore, our implementation of RTTI should be as simple as possible, constraining us to constant time lookup.
 </p>
 
 
-<div id="orgf672dbd" class="figure">
+<div id="orgb6e0553" class="figure">
 <p><img src="interfaces/img/tagged_union_diagram.png" alt="tagged_union_diagram.png" />
 </p>
 </div>
@@ -505,9 +505,9 @@ We talked about RTTI (run-time type information) before and how it can have run-
 We can accomplish this using what is known as a <a href="https://en.wikipedia.org/wiki/Tagged_union">tagged union</a>. The data structure is composed of a tag (<code>enum</code>) and a <code>union</code>. In C an <code>enum</code> is just an integer, allowing us to map a human-readable name to a number, which is exactly what we need for constant time lookup. The second part is a <code>union</code>, which is a data type constructed from a set of types, having storage to hold the largest of its constituent types. A <code>union</code> can hold exactly 1 data type at a time (ignoring any bit manipulation or type punning tricks), with access to any of the other data types producing possibly undesired (yet <a href="https://stackoverflow.com/a/11996970">defined</a>) results.
 </p>
 </div>
-<div id="outline-container-orgffd2e20" class="outline-3">
-<h3 id="orgffd2e20">Updating Our Renderer</h3>
-<div class="outline-text-3" id="text-orgffd2e20">
+<div id="outline-container-orgb02113b" class="outline-3">
+<h3 id="orgb02113b">Updating Our Renderer</h3>
+<div class="outline-text-3" id="text-orgb02113b">
 <div class="org-src-container">
 <pre class="src src-C"><span style="color: #51afef;">typedef</span> <span style="color: #51afef;">struct</span> <span style="color: #ECBE7B;">Shape</span> <span style="color: #51afef;">{</span>
     <span style="color: #51afef;">enum</span> <span style="color: #c678dd;">{</span> <span style="color: #dcaeea;">SQUARE</span>, <span style="color: #dcaeea;">CIRCLE</span> <span style="color: #c678dd;">}</span> <span style="color: #dcaeea;">tag</span>;
@@ -621,15 +621,15 @@ Lastly, we need to use our new <code>hit</code> function to calculate collisions
 </div>
 </div>
 </div>
-<div id="outline-container-orgb6d8a56" class="outline-3">
-<h3 id="orgb6d8a56">Upsides to Tagged Unions</h3>
-<div class="outline-text-3" id="text-orgb6d8a56">
+<div id="outline-container-org8fd7509" class="outline-3">
+<h3 id="org8fd7509">Upsides to Tagged Unions</h3>
+<div class="outline-text-3" id="text-org8fd7509">
 <p>
 We&rsquo;re finally able to treat the entire scene as one set of homogeneous objects, simplifying the interactions to a simple <code>hit</code> function call. At run-time <code>hit</code> then decides which of the specialized <code>circle_hit</code> or <code>square_hit</code> functions to call. This allows our entire program to be much more flexible, even permitting changing the scene at run-time, without having to recompile any code.
 </p>
 
 
-<div id="orgde3846c" class="figure">
+<div id="orgf870689" class="figure">
 <p><img src="interfaces/img/tagged_union.png" alt="tagged_union.png" />
 </p>
 </div>
@@ -639,9 +639,9 @@ If you need dynamic dispatch with minimal overhead, tagged unions are the way to
 </p>
 </div>
 </div>
-<div id="outline-container-org7357db3" class="outline-3">
-<h3 id="org7357db3">Generated Assembly for <code>hit</code></h3>
-<div class="outline-text-3" id="text-org7357db3">
+<div id="outline-container-orgc888ffd" class="outline-3">
+<h3 id="orgc888ffd">Generated Assembly for <code>hit</code></h3>
+<div class="outline-text-3" id="text-orgc888ffd">
 <div class="org-src-container">
 <pre class="src src-asm"><span style="color: #c678dd;">hit</span>:
         <span style="color: #51afef;">lw</span>      a5,<span style="color: #da8548; font-weight: bold;">0</span>(a0)
@@ -675,9 +675,9 @@ If neither of the above circle/square cases match we restore the stack and retur
 </p>
 </div>
 </div>
-<div id="outline-container-org6516ed4" class="outline-3">
-<h3 id="org6516ed4">Downsides to Tagged Unions</h3>
-<div class="outline-text-3" id="text-org6516ed4">
+<div id="outline-container-orgc066517" class="outline-3">
+<h3 id="orgc066517">Downsides to Tagged Unions</h3>
+<div class="outline-text-3" id="text-orgc066517">
 <p>
 While tagged unions provide the closest thing to function overloading in terms of performance, they only offer marginal gains in terms of developer ergonomics. Tagged unions are quick because they centralize the function dispatch to a single location, with a single memory load providing the tag to decide which function to call. This centralization is also the reason that it&rsquo;s not an extensible solution.
 </p>
@@ -696,9 +696,9 @@ While this example is a little extreme we can simplify it further to a single de
 </div>
 </div>
 </div>
-<div id="outline-container-orge1ca0cf" class="outline-2">
-<h2 id="orge1ca0cf">Function Pointers</h2>
-<div class="outline-text-2" id="text-orge1ca0cf">
+<div id="outline-container-org8ebc56a" class="outline-2">
+<h2 id="org8ebc56a">Function Pointers</h2>
+<div class="outline-text-2" id="text-org8ebc56a">
 <p>
 How can we provide much more flexibility to developers want to implement our interface? The answer is through function pointers.
 </p>
@@ -707,9 +707,9 @@ How can we provide much more flexibility to developers want to implement our int
 In C we can provide the address of any function as a function pointer, which as a type signature equal to that of the function. Function pointers allow us to dynamically execute a section of code depending on a value that may only be known at run-time. We&rsquo;ll see why I say &ldquo;may&rdquo; a little bit later once we look at the generated assembly.
 </p>
 </div>
-<div id="outline-container-org8ec6121" class="outline-3">
-<h3 id="org8ec6121">Updating Our Renderer</h3>
-<div class="outline-text-3" id="text-org8ec6121">
+<div id="outline-container-org75d4592" class="outline-3">
+<h3 id="org75d4592">Updating Our Renderer</h3>
+<div class="outline-text-3" id="text-org75d4592">
 <p>
 The first step in updating our renderer is to change the <code>Shape</code> structure defined in the previous section. We will be moving the fields of <code>Square</code> and <code>Circle</code> into the <code>Shape</code> struct, as well as adding a function pointer (or method) to the structure.
 </p>
@@ -729,7 +729,7 @@ The first step in updating our renderer is to change the <code>Shape</code> stru
 </div>
 
 
-<div id="org852bd26" class="figure">
+<div id="org0c1b92f" class="figure">
 <p><img src="interfaces/img/function_pointer_diagram.png" alt="function_pointer_diagram.png" />
 </p>
 </div>
@@ -852,9 +852,9 @@ Because we store each function pointer within the structure, we can simply refer
 </p>
 </div>
 </div>
-<div id="outline-container-org05a9ad8" class="outline-3">
-<h3 id="org05a9ad8">Upsides to Function Pointers</h3>
-<div class="outline-text-3" id="text-org05a9ad8">
+<div id="outline-container-org058cbd0" class="outline-3">
+<h3 id="org058cbd0">Upsides to Function Pointers</h3>
+<div class="outline-text-3" id="text-org058cbd0">
 <p>
 Transitioning our code to function pointers didn&rsquo;t require changing much of the code, but it grants us much more flexibility than either of the previous versions.
 </p>
@@ -868,9 +868,9 @@ As the renderer developer I no longer have to concern myself with shapes at all,
 </p>
 </div>
 </div>
-<div id="outline-container-orge50523a" class="outline-3">
-<h3 id="orge50523a">Generated Assembly for <code>hit</code></h3>
-<div class="outline-text-3" id="text-orge50523a">
+<div id="outline-container-org6247fac" class="outline-3">
+<h3 id="org6247fac">Generated Assembly for <code>hit</code></h3>
+<div class="outline-text-3" id="text-org6247fac">
 <p>
 Writing a simple <code>hit</code> wrapper allows us to analyze the generated assembly for this subroutine.
 </p>
@@ -888,9 +888,9 @@ Writing a simple <code>hit</code> wrapper allows us to analyze the generated ass
 At first glance it looks like a lot less code, but upon closer inspection we&rsquo;re jumping to an address held within a register. This is much different than jumping to a label directly (as would happen with a function call), as it can be difficult for a CPU to predict which path to take at run-time. When we get to performance analysis section we&rsquo;ll see how this impacts overall run-time.
 </p>
 </div>
-<div id="outline-container-orgf9a5547" class="outline-4">
-<h4 id="orgf9a5547">A Quick Aside on Monomorphization</h4>
-<div class="outline-text-4" id="text-orgf9a5547">
+<div id="outline-container-org5d4f8ad" class="outline-4">
+<h4 id="org5d4f8ad">A Quick Aside on Monomorphization</h4>
+<div class="outline-text-4" id="text-org5d4f8ad">
 <p>
 If you like the ergonomics of an interface, but can&rsquo;t handle the performance impacts of dynamic dispatch, you may be able to have the benefits of function pointers, and the performance of overloading.
 </p>
@@ -1044,9 +1044,9 @@ Even on <code>-Os</code> the compiler is able to monomorphize the function call,
 </div>
 </div>
 </div>
-<div id="outline-container-org7541534" class="outline-3">
-<h3 id="org7541534">Downsides to Function Pointers</h3>
-<div class="outline-text-3" id="text-org7541534">
+<div id="outline-container-org852cc28" class="outline-3">
+<h3 id="org852cc28">Downsides to Function Pointers</h3>
+<div class="outline-text-3" id="text-org852cc28">
 <p>
 The biggest downside to function pointers is they are an indirect branch, which requires accurate prediction to take advantage of speculative execution keeping the CPU&rsquo;s pipeline full. For our small example where we iterate through the scene in a consistent order a branch predictor doesn&rsquo;t have too hard of a job knowing which function to execute.
 </p>
@@ -1069,16 +1069,16 @@ Having each instance hold the function pointers likely increases execution speed
 </div>
 </div>
 </div>
-<div id="outline-container-org85a1c25" class="outline-2">
-<h2 id="org85a1c25">Full Interface w/ a <code>vtable</code></h2>
-<div class="outline-text-2" id="text-org85a1c25">
+<div id="outline-container-org7f51f99" class="outline-2">
+<h2 id="org7f51f99">Full Interface w/ a <code>vtable</code></h2>
+<div class="outline-text-2" id="text-org7f51f99">
 <p>
 Finally, we arrive at the full interface implementation in C. The main differences from the previous example is that we&rsquo;ve moved the function pointers into their own <code>vtable</code>, and we now have each implementation of the class holding its own fields, potentially allowing for private data.
 </p>
 </div>
-<div id="outline-container-org2882825" class="outline-3">
-<h3 id="org2882825">Updating Our Renderer</h3>
-<div class="outline-text-3" id="text-org2882825">
+<div id="outline-container-org0fbe53c" class="outline-3">
+<h3 id="org0fbe53c">Updating Our Renderer</h3>
+<div class="outline-text-3" id="text-org0fbe53c">
 <p>
 First we need to update our <code>Shape</code> structure to reference the new dispatch <code>vtable</code>, as well as a <code>void*</code> to hold and data associated to the instance.
 </p>
@@ -1101,7 +1101,7 @@ The <code>vtable</code> can be declared either outside of inside the <code>Shape
 </p>
 
 
-<div id="org53878dd" class="figure">
+<div id="orgf4f9215" class="figure">
 <p><img src="interfaces/img/full_interface_diagram.png" alt="full_interface_diagram.png" />
 </p>
 </div>
@@ -1166,9 +1166,9 @@ We changed <code>object-&gt;hit()</code> to <code>object-&gt;vtable-&gt;hit()</c
 </p>
 </div>
 </div>
-<div id="outline-container-org9930c11" class="outline-3">
-<h3 id="org9930c11">Upsides to Full Interfaces w/ a <code>vtable</code></h3>
-<div class="outline-text-3" id="text-org9930c11">
+<div id="outline-container-org8d331dd" class="outline-3">
+<h3 id="org8d331dd">Upsides to Full Interfaces w/ a <code>vtable</code></h3>
+<div class="outline-text-3" id="text-org8d331dd">
 <p>
 By splitting our &ldquo;methods&rdquo; and data into 2 separate objects we gained the ability to have private data that is specific to a class. Whether this is a desired feature is up to you. Full interfaces are also now a constant size, with a <code>void*</code> pointer to internal data, and <code>vtable*</code> to our methods.
 </p>
@@ -1178,9 +1178,9 @@ This is the most flexible version of our <code>Shape</code> interface that we&rs
 </p>
 </div>
 </div>
-<div id="outline-container-org9343e37" class="outline-3">
-<h3 id="org9343e37">Generated Assembly for <code>hit</code></h3>
-<div class="outline-text-3" id="text-org9343e37">
+<div id="outline-container-org4b3429a" class="outline-3">
+<h3 id="org4b3429a">Generated Assembly for <code>hit</code></h3>
+<div class="outline-text-3" id="text-org4b3429a">
 <p>
 The generated assembly makes the second level of indirection obvious as we see an initial load to get the <code>vtable*</code> pointer, and then a second load for the <code>hit</code> function pointer.
 </p>
@@ -1261,9 +1261,9 @@ Sadly, with <code>-Os</code> optimizations the compiler is no longer able to tra
 </div>
 </div>
 </div>
-<div id="outline-container-org79c1577" class="outline-3">
-<h3 id="org79c1577">Downsides to Full Interfaces w/ a <code>vtable</code></h3>
-<div class="outline-text-3" id="text-org79c1577">
+<div id="outline-container-org526f821" class="outline-3">
+<h3 id="org526f821">Downsides to Full Interfaces w/ a <code>vtable</code></h3>
+<div class="outline-text-3" id="text-org526f821">
 <p>
 For our final interface implementation the downsides come in terms of performance. Having 2 levels of indirection on each method call certainly adds cache pressure, and will likely slow down execution.
 </p>
@@ -1274,16 +1274,16 @@ However, other than performance, this is a good model for working in teams, espe
 </div>
 </div>
 </div>
-<div id="outline-container-orgfbfd404" class="outline-2">
-<h2 id="orgfbfd404">Performance Analysis</h2>
-<div class="outline-text-2" id="text-orgfbfd404">
+<div id="outline-container-org401724a" class="outline-2">
+<h2 id="org401724a">Performance Analysis</h2>
+<div class="outline-text-2" id="text-org401724a">
 <p>
 The following are results from rendering a 25000x25000 image with seed <code>45</code>. All examples were compiled with <code>-O3 -ffast-math -DNDEBUG -march=native -flto -static</code>. Results were measured on a 12th Gen Intel Core i5-12400F. The individual <code>perf stat</code> outputs for each compiler can be found under <a href="interfaces/gcc_perf.html">interfaces/gcc_perf.html</a> and <a href="interfaces/clang_perf.html">interfaces/clang_perf.html</a>.
 </p>
 </div>
-<div id="outline-container-org9195cb3" class="outline-3">
-<h3 id="org9195cb3">x86-64 Desktop Computer</h3>
-<div class="outline-text-3" id="text-org9195cb3">
+<div id="outline-container-org042fbaf" class="outline-3">
+<h3 id="org042fbaf">x86-64 Desktop Computer</h3>
+<div class="outline-text-3" id="text-org042fbaf">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -1418,9 +1418,9 @@ Interestingly the difference between a pure function pointer implementation and 
 </p>
 </div>
 </div>
-<div id="outline-container-orgb493207" class="outline-3">
-<h3 id="orgb493207">RISC-V Desktop Computer</h3>
-<div class="outline-text-3" id="text-orgb493207">
+<div id="outline-container-orge8afcbb" class="outline-3">
+<h3 id="orge8afcbb">RISC-V Desktop Computer</h3>
+<div class="outline-text-3" id="text-orge8afcbb">
 <p>
 Unfortunately, the RISC-V computer I have access to currently does not support <code>perf</code> on its latest kernel. However, we can still analyze performance by looking at time to render, which should give us a point of comparison across the 4 different implementations. All the examples in this case were compiled with the following command, and times reported are for rendering a 3840x2160 image, again with seed 45.
 </p>
@@ -1490,9 +1490,9 @@ The performance differences here are much more pronounced, with the shift from t
 </div>
 </div>
 </div>
-<div id="outline-container-org794eaf5" class="outline-2">
-<h2 id="org794eaf5">Conclusions</h2>
-<div class="outline-text-2" id="text-org794eaf5">
+<div id="outline-container-org42def17" class="outline-2">
+<h2 id="org42def17">Conclusions</h2>
+<div class="outline-text-2" id="text-org42def17">
 <p>
 Hopefully you&rsquo;re now that you&rsquo;ve seen the inner workings of an interface you can make more informed decisions about which type of dynamic dispatch you should be using in your upcoming project.
 </p>
