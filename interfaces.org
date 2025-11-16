@@ -1,5 +1,12 @@
 #+title: Interfaces
 
+* Why Do We Like Interfaces?
+* 2D Graphics Renderer
+* Purely Superficial Interface, Function Overloading, "Static Dispatch"
+* Our First Dynamic Dispatch System, Tagged Unions, Still Locked Down
+* Finally a System Open to Extension, Function Pointers or "Methods"
+* The Final Step, Full Interfaces w/ Virtual Functions and Private Data
+
 * Perf Stat
 ** clang
 - All compiled with =-O3 -ffast-math -DNDEBUG -march=native=
@@ -146,3 +153,15 @@ Performance counter stats for 'taskset -c 0 ./full_interface 25000 25000 45':
       56.472638000 seconds user
        0.113353000 seconds sys
 #+end_src
+
+* RISC-V Runtimes
+- All compiled with =-O3 -march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt -ffast-math -DNDEBUG -static -flto=
+- Each was run 25 times
+- clang doesn't appear to be supported
+- Milk-V Jupiter w/ Spacemit K1 (8 X60 cores) 16GB Ram
+** gcc
+| Program           |      Mean | Std. dev. |
+| Generic           |  7.072459 |  0.014700 |
+| Tagged Unions     |  8.697393 |  0.004785 |
+| Function Pointers | 13.174680 |  0.011866 |
+| Full Interface    | 13.251248 |  0.011911 |
