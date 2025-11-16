@@ -1124,7 +1124,7 @@ Performance counter stats for 'taskset -c 0 ./full_interface 25000 25000 45':
 - Milk-V Jupiter w/ Spacemit K1 (8 X60 cores) 16GB Ram
 *** gcc
 | Program           |      Mean | Std. dev. |
-| Generic           |  7.072459 |  0.014700 |
-| Tagged Unions     |  8.697393 |  0.004785 |
-| Function Pointers | 13.174680 |  0.011866 |
-| Full Interface    | 13.251248 |  0.011911 |
+| Generic           |  7.112632 |  0.016333 |
+| Tagged Unions     |  8.591887 |  0.020454 |
+| Function Pointers | 13.136117 |  0.038011 |
+| Full Interface    | 13.164754 |  0.011364 |

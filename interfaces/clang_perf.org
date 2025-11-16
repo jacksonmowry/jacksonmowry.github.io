@@ -1,0 +1,79 @@
+#+title: Clang Perf
+Rendering took 41.939673 seconds
+
+ Performance counter stats for 'taskset -c 0 bin/macros 25000 25000 45':
+
+         41,930.73 msec task-clock                       #    1.000 CPUs utilized
+               879      context-switches                 #   20.963 /sec
+                95      page-faults                      #    2.266 /sec
+         2,584,299      cpu_atom/cache-references/       #   61.633 K/sec
+           319,517      cpu_atom/cache-misses/           #   12.36% of all cache refs
+   180,031,398,024      cpu_atom/cycles/                 #    4.294 GHz
+   908,300,805,573      cpu_atom/instructions/           #    5.05  insn per cycle
+   167,769,617,728      cpu_atom/branches/               #    4.001 G/sec
+         5,529,642      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      41.941391670 seconds time elapsed
+
+      41.806041000 seconds user
+       0.090899000 seconds sys
+
+
+Rendering took 43.351390 seconds
+
+ Performance counter stats for 'taskset -c 0 bin/tagged_unions 25000 25000 45':
+
+         43,341.40 msec task-clock                       #    1.000 CPUs utilized
+               927      context-switches                 #   21.388 /sec
+                96      page-faults                      #    2.215 /sec
+         2,571,628      cpu_atom/cache-references/       #   59.334 K/sec
+           284,405      cpu_atom/cache-misses/           #   11.06% of all cache refs
+   185,659,265,660      cpu_atom/cycles/                 #    4.284 GHz
+   951,987,133,791      cpu_atom/instructions/           #    5.13  insn per cycle
+   176,260,613,985      cpu_atom/branches/               #    4.067 G/sec
+         5,396,832      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      43.352041997 seconds time elapsed
+
+      43.188512000 seconds user
+       0.117866000 seconds sys
+
+
+Rendering took 56.994361 seconds
+
+ Performance counter stats for 'taskset -c 0 bin/function_pointers 25000 25000 45':
+
+         56,981.51 msec task-clock                       #    1.000 CPUs utilized
+             1,156      context-switches                 #   20.287 /sec
+                96      page-faults                      #    1.685 /sec
+         3,281,726      cpu_atom/cache-references/       #   57.593 K/sec
+           423,344      cpu_atom/cache-misses/           #   12.90% of all cache refs
+   245,051,757,753      cpu_atom/cycles/                 #    4.301 GHz
+ 1,175,233,745,370      cpu_atom/instructions/           #    4.80  insn per cycle
+   193,167,651,675      cpu_atom/branches/               #    3.390 G/sec
+         7,224,762      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      56.995016411 seconds time elapsed
+
+      56.833206000 seconds user
+       0.103878000 seconds sys
+
+
+Rendering took 57.234389 seconds
+
+ Performance counter stats for 'taskset -c 0 bin/full_interface 25000 25000 45':
+
+         57,221.06 msec task-clock                       #    1.000 CPUs utilized
+             1,217      context-switches                 #   21.268 /sec
+                95      page-faults                      #    1.660 /sec
+         3,427,529      cpu_atom/cache-references/       #   59.900 K/sec
+           412,096      cpu_atom/cache-misses/           #   12.02% of all cache refs
+   245,395,383,555      cpu_atom/cycles/                 #    4.289 GHz
+ 1,186,582,924,623      cpu_atom/instructions/           #    4.84  insn per cycle
+   193,168,062,532      cpu_atom/branches/               #    3.376 G/sec
+         7,289,256      cpu_atom/branch-misses/          #    0.00% of all branches
+
+      57.235054925 seconds time elapsed
+
+      57.077464000 seconds user
+       0.098894000 seconds sys
