@@ -19,7 +19,7 @@ int write_prop(const char* file, uint32_t width, uint32_t height,
     fwrite(&height, 2, 1, fp);
 
     size_t bytes_written = 0;
-    interval inter_val = (interval){.min = 0.000, .max = 0.999};
+    Interval inter_val = (Interval){.min = 0.000, .max = 0.999};
 
     for (size_t i = 0; i < width * height; i++) {
         int r =

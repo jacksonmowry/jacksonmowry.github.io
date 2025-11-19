@@ -16,10 +16,10 @@ typedef struct {
         };
     };
     enum { LAMBERTIAN, METAL, DIELECTRIC } type;
-} material;
+} Material;
 
-material material_make_lambertian(Pixel albedo);
-material material_make_metal(Pixel albedo);
+Material material_make_lambertian(Pixel albedo);
+Material material_make_metal(Pixel albedo);
 
-bool scatter(material* m, const Ray* r, const hit_record* rec,
-             Pixel* attenuation, Ray* scattered);
+bool material_scatter(Material* m, const Ray* r, const HitRecord* rec,
+                      Pixel* attenuation, Ray* scattered);

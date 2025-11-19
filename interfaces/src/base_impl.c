@@ -189,6 +189,8 @@ int main(int argc, char* argv[]) {
     struct timeval begin;
     gettimeofday(&begin, NULL);
 
+    RGB pixels[height][width];
+
     // Now loop through each pixel, printing it's values as we go
     for (size_t row = 0; row < height; row++) {
         for (size_t col = 0; col < width; col++) {
@@ -221,11 +223,13 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-        PRINT:
+        PRINT:;
             // We've either checked all object and hit nothing, or we broke out
             // because we hit something Either way we now need to write the
             // pixel color to our image
-            printf("%hhu %hhu %hhu\n", hr.color.r, hr.color.g, hr.color.b);
+            /* printf("%hhu %hhu %hhu\n", hr.color.r, hr.color.g, hr.color.b);
+             */
+            pixels[row][col] = hr.color;
         }
     }
 

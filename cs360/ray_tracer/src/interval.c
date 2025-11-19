@@ -2,17 +2,17 @@
 #include <math.h>
 #include <stdbool.h>
 
-double interval_size(const interval i) { return i.max - i.min; }
+double interval_size(const Interval i) { return i.max - i.min; }
 
-bool interval_contains(const interval i, double x) {
+bool interval_contains(const Interval i, double x) {
     return i.min <= x && x <= i.max;
 }
 
-bool interval_surrounds(const interval i, double x) {
+bool interval_surrounds(const Interval i, double x) {
     return i.min < x && x < i.max;
 }
 
-double interval_clamp(interval i, double x) {
+double interval_clamp(Interval i, double x) {
     if (x < i.min) {
         return i.min;
     }

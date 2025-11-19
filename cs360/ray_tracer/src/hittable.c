@@ -6,7 +6,7 @@
 
 // sets the hit record normal vector
 // NOTE: the parameter 'outward_normal' is assumed to have unit length
-void set_face_normal(hit_record* record, const Ray r,
+void set_face_normal(HitRecord* record, const Ray r,
                      const Vec3 outward_normal) {
     record->front_face = vec3_dot(r.direction, outward_normal) < 0;
     record->normal =
@@ -15,7 +15,7 @@ void set_face_normal(hit_record* record, const Ray r,
 
 // `hit` checks if a provded ray collides with the object within the given
 // interval `i`
-bool hit(hittable hittable, const Ray r, interval i, hit_record* record) {
+bool hit(Hittable hittable, const Ray r, Interval i, HitRecord* record) {
     switch (hittable.type) {
     case SPHERE: {
         Vec3 oc = vec3_sub(hittable.center, r.origin);

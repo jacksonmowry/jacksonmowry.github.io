@@ -1,0 +1,25 @@
+#+title: Hw Blockchain
+#+author: Jackson Mowry
+#+date: Tue Nov 18 14:22:30 2025
+#+options: toc:nil num:nil \n:t
+
+* Article Findings
+  After reading the article I found 3 new pieces of information that furthered my understanding of blockchain as concept. Off-chain stapling is a concept that Dr. Ruoti has covered briefly in class, but within this article I learned about the use of a 3rd-part oracle. This is a concept makes sense, and understandably is hard to implement in practice. Second, I learned about electronic voting, and the challenges that come with it. I understand that voting in itself is already a hard concept, but seeing the new challenges that come with utilizing blockchain was enlightening. The issue with using blockchain for voting is that we now put the effort of keeping information secure on each individual, which may not be a desired state. Lastly, the legality aspects of blockchain are interesting from the perspective that it aims to be a trustless and ungoverned system, controlled only by the algorithms that define it. Yet, governments are unlikely to want to system like that to run free, and therefore they can often be shut down or banned in certain areas.
+
+* IBM Blockchain
+- What problem does the system try to solve?
+  - Their blockchain is meant to add efficient and transparency in other people's business transactions. The goal is to increase the trust between different businesses through increased traceability and by removing potentially complicated steps from each task.
+- How does the system use blockchain technology?
+  - The system uses blockchain built on their Hyperledger Fabric. This fabric is a shared chain with the ability to keep certain data private. Their choice of "work" is not a proof of work, but instead relying on specific authorized nodes to perform the transactions.
+- Based on what you read in the survey and learned in class, is blockchain technology appropriate for this system? Why or why not?
+  - This may be a good use of blockchain from a marketing perspective. IBM seems to market this as a one size-fits-all solution for B2B transactions, yet the same problems always arise in the real world. There is still no off-chain system ensuring that these agreed upon transactions are actually acted upon appropriately.
+
+* Axie Infinity
+- What problem does the system try to solve?
+  - Axie attempts to solve the issue of actual item ownership in videos games. Traditionally players may own cosmetics, but their use is governed by the developers, who can change them at any time. Additionally, Axie offers players a way to earn money from playing the game.
+- How does the system use blockchain tech?
+  - All of the characters in the game are their own NFTs, meaning they can be traded, sold, or bought separate from the game.
+  - Within the game there are also 2 types of tokens which can be traded outside the game.
+  - They use the Ronin a side chain of Ethereum the developers of the game created.
+- Based on what you read in the survey and learned in class, is blockchain technology appropriate for this system? Why or why not?
+  - Their model of granting individual ownership of in game items makes a bit more sense than other NFT uses as their is no real separation between the attestation of the thing and the thing itself. Outside of that there is no real reason to use blockchain for this project, and it's use has notably caused hackers to target the game. The entire game could have easily been implemented without a blockchain, it was likely included to increase the novelty factor and not for a legitimate purpose.

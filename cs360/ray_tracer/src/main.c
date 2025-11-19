@@ -19,8 +19,8 @@
 #include <time.h>
 #include <unistd.h>
 
-VECTOR_PROTOTYPE(material)
-VECTOR(material)
+VECTOR_PROTOTYPE(Material)
+VECTOR(Material)
 
 int main(int argc, char* argv[]) {
     char* file_format = NULL;
@@ -124,22 +124,22 @@ int main(int argc, char* argv[]) {
     }
     srand(seed);
 
-    hittable_list hl = {.objects = vector_hittable_init(5)};
+    HittableList hl = {.objects = vector_Hittable_init(5)};
 
-    material* material_ground = malloc(sizeof(material));
+    Material* material_ground = malloc(sizeof(Material));
     if (!material_ground) {
         perror("malloc");
         return 1;
     }
     *material_ground =
-        (material){.type = LAMBERTIAN,
+        (Material){.type = LAMBERTIAN,
                    .albedo = (Pixel){.r = 0.5, .g = 0.5, .b = 0.5},
                    .fuzz = 0};
     hittable_list_add(&hl,
-                      (hittable){.type = SPHERE,
+                      (Hittable){.type = SPHERE,
                                  .center = (Vec3){.x = 0, .y = -1000, .z = 0},
                                  .radius = 1000,
-                                 .mat = (struct material*)material_ground});
+                                 .mat = (struct Material*)material_ground});
 
     for (int i = -11; i < 11; i++) {
         for (int j = -11; j < 11; j++) {
@@ -154,113 +154,113 @@ int main(int argc, char* argv[]) {
                 if (choose_material < 0.8) {
                     // Diffuse
                     Pixel albedo = vec3_mul(vec3_random(), vec3_random());
-                    material* sphere_material = malloc(sizeof(material));
+                    Material* sphere_material = malloc(sizeof(Material));
                     if (!sphere_material) {
                         perror("malloc");
                         return 1;
                     }
                     *sphere_material =
-                        (material){.albedo = albedo, .type = LAMBERTIAN};
+                        (Material){.albedo = albedo, .type = LAMBERTIAN};
 
                     hittable_list_add(
                         &hl,
-                        (hittable){.type = SPHERE,
+                        (Hittable){.type = SPHERE,
                                    .center = center,
                                    .radius = 0.2,
-                                   .mat = (struct material*)(sphere_material)});
+                                   .mat = (struct Material*)(sphere_material)});
                 } else if (choose_material < 0.95) {
                     // Metal
                     Pixel albedo = vec3_random_params(0.5, 1);
                     double fuzz = random_double_min_max(0, 0.5);
-                    material* sphere_material = malloc(sizeof(material));
+                    Material* sphere_material = malloc(sizeof(Material));
                     if (!sphere_material) {
                         perror("malloc");
                         return 1;
                     }
-                    *sphere_material = (material){
+                    *sphere_material = (Material){
                         .albedo = albedo, .fuzz = fuzz, .type = METAL};
 
                     hittable_list_add(
                         &hl,
-                        (hittable){.type = SPHERE,
+                        (Hittable){.type = SPHERE,
                                    .center = center,
                                    .radius = 0.2,
-                                   .mat = (struct material*)(sphere_material)});
+                                   .mat = (struct Material*)(sphere_material)});
                 } else {
                     // Glass
                     double refraction_index = 1.5;
-                    material* sphere_material = malloc(sizeof(material));
+                    Material* sphere_material = malloc(sizeof(Material));
                     if (!sphere_material) {
                         perror("malloc");
                         return 1;
                     }
                     *sphere_material =
-                        (material){.refraction_index = refraction_index,
+                        (Material){.refraction_index = refraction_index,
                                    .type = DIELECTRIC};
 
                     hittable_list_add(
                         &hl,
-                        (hittable){.type = SPHERE,
+                        (Hittable){.type = SPHERE,
                                    .center = center,
                                    .radius = 0.2,
-                                   .mat = (struct material*)(sphere_material)});
+                                   .mat = (struct Material*)(sphere_material)});
                 }
             }
         }
     }
 
     // Fixed 1
-    material* sphere_material_fixed1 = malloc(sizeof(material));
+    Material* sphere_material_fixed1 = malloc(sizeof(Material));
     if (!sphere_material_fixed1) {
         perror("malloc");
         return 1;
     }
     *sphere_material_fixed1 =
-        (material){.refraction_index = 1.5, .type = DIELECTRIC};
+        (Material){.refraction_index = 1.5, .type = DIELECTRIC};
     hittable_list_add(
-        &hl, (hittable){.type = SPHERE,
+        &hl, (Hittable){.type = SPHERE,
                         .center = (Vec3){.x = 0, .y = 1, .z = 0},
                         .radius = 1.0,
-                        .mat = (struct material*)sphere_material_fixed1});
+                        .mat = (struct Material*)sphere_material_fixed1});
     // Fixed 2
-    material* sphere_material_fixed2 = malloc(sizeof(material));
+    Material* sphere_material_fixed2 = malloc(sizeof(Material));
     if (!sphere_material_fixed2) {
         perror("malloc");
         return 1;
     }
     *sphere_material_fixed2 =
-        (material){.albedo = (Pixel){.r = 0.4, .g = 0.2, .b = 0.1},
+        (Material){.albedo = (Pixel){.r = 0.4, .g = 0.2, .b = 0.1},
                    .type = LAMBERTIAN,
                    .fuzz = 0};
     hittable_list_add(
-        &hl, (hittable){.type = SPHERE,
+        &hl, (Hittable){.type = SPHERE,
                         .center = (Vec3){.x = -4, .y = 1, .z = 0},
                         .radius = 1.0,
-                        .mat = (struct material*)sphere_material_fixed2});
+                        .mat = (struct Material*)sphere_material_fixed2});
     // Fixed 3
-    material* sphere_material_fixed3 = malloc(sizeof(material));
+    Material* sphere_material_fixed3 = malloc(sizeof(Material));
     if (!sphere_material_fixed3) {
         perror("malloc");
         return 1;
     }
     *sphere_material_fixed3 =
-        (material){.albedo = (Pixel){.r = 0.7, .g = 0.6, .b = 0.5},
+        (Material){.albedo = (Pixel){.r = 0.7, .g = 0.6, .b = 0.5},
                    .fuzz = 0,
                    .type = METAL};
     hittable_list_add(
-        &hl, (hittable){.type = SPHERE,
+        &hl, (Hittable){.type = SPHERE,
                         .center = (Vec3){.x = 4, .y = 1, .z = 0},
                         .radius = 1.0,
-                        .mat = (struct material*)sphere_material_fixed3});
+                        .mat = (struct Material*)sphere_material_fixed3});
 
-    camera cam = camera_initialize(width, height);
+    Camera cam = camera_initialize(width, height);
     camera_render(cam, &hl, file_name, write, threads);
 
     for (size_t i = 0; i < hl.objects.len; i++) {
         free(hl.objects.array[i].mat);
     }
 
-    vector_hittable_free(hl.objects);
+    vector_Hittable_free(hl.objects);
 
     if (dl_handle) {
         dlclose(dl_handle);

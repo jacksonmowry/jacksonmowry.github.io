@@ -13,11 +13,9 @@ int main() {
     cl_uint num_platforms;
     cl_int i = -1;
     cl_int err = -1;
-    cl_int platform_index = -1;
 
     char* ext_data;
     size_t ext_size;
-    const char icd_ext[] = "cl_khr_icd";
 
     err = clGetPlatformIDs(1, NULL, &num_platforms);
     if (err < 0) {
@@ -28,7 +26,9 @@ int main() {
     platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
     clGetPlatformIDs(num_platforms, platforms, NULL);
 
-    for (i = 0; i < num_platforms; i++) {
+    printf("We have %u platforms\n", num_platforms);
+
+    for (i = 0; i < (cl_int)num_platforms; i++) {
         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, 0, NULL,
                                 &ext_size);
         if (err < 0) {
@@ -37,22 +37,24 @@ int main() {
         }
 
         ext_data = (char*)malloc(ext_size);
-        clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, ext_size, ext_data, NULL);
-        printf("Platform %d supports extensions: %s\n", i , ext_data);
+        clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, ext_size,
+                          ext_data, NULL);
+        printf("Platform %d supports extensions: %s\n", i, ext_data);
 
-        if (strstr(ext_data, icd_ext) != NULL) {
-            free(ext_data);
-            platform_index = i;
-            break;
-        }
         free(ext_data);
+
+        cl_device_id device_id;
+        cl_uint num_devices;
+        err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 1, &device_id,
+                             &num_devices);
+        char buf[256];
+        size_t buf_len;
+        err = clGetDeviceInfo(device_id, CL_DEVICE_NAME, 8, buf, &buf_len);
+
+        buf[buf_len] = 0;
+        puts(buf);
     }
 
-    if (platform_index > -1) {
-        printf("Platform %d supports the %s extension.\n", platform_index, icd_ext);
-    } else {
-        printf("No platforms support the %s extension\n", icd_ext);
-    }
     free(platforms);
     return 0;
 }

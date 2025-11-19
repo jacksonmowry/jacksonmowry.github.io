@@ -21,7 +21,7 @@ int write_ppm(const char* file, uint32_t width, uint32_t height,
     fprintf(fp, "255\n");
 
     size_t bytes_written = 0;
-    interval i = (interval){.min = 0.000, .max = 0.999};
+    Interval i = (Interval){.min = 0.000, .max = 0.999};
 
     for (int64_t row = 0; row < height; row++) {
         for (size_t col = 0; col < width; col++) {

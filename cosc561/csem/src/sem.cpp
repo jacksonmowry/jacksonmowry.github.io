@@ -34,8 +34,8 @@ extern "C" {
 
 extern "C" {
 void yyerror(const char *err) {
-    fprintf(stderr, "Error: %s\n", err);
-    exit(1);
+  fprintf(stderr, "Error: %s\n", err);
+  exit(1);
 }
 }
 
@@ -50,6 +50,7 @@ using llvm::BasicBlock;
 using llvm::BranchInst;
 using llvm::Constant;
 using llvm::ConstantAggregateZero;
+using llvm::ConstantFP;
 using llvm::ConstantInt;
 using llvm::Function;
 using llvm::FunctionType;
@@ -79,29 +80,29 @@ static std::unique_ptr<Module> TheModule;
 
 template <typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args &&...args) {
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
 static int label_index = 0;
 int relexpr = 0;
 
 struct loopscope {
-    struct sem_rec *breaks;
-    struct sem_rec *conts;
+  struct sem_rec *breaks;
+  struct sem_rec *conts;
 } lscopes[MAXLOOPNEST];
 
 static int looplevel = 0;
 struct loopscope *looptop = (struct loopscope *)NULL;
 
 struct labelnode {
-    const char *id; /* label string    */
-    BasicBlock *bb; /* basic block for label */
+  const char *id; /* label string    */
+  BasicBlock *bb; /* basic block for label */
 } labels[MAXLABELS];
 
 struct gotonode {
-    const char *id;     /* label string in goto statement */
-    BranchInst *branch; /* branch to temporary label */
-} gotos[MAXGOTOS];      /* list of gotos to be backpatched */
+  const char *id;     /* label string in goto statement */
+  BranchInst *branch; /* branch to temporary label */
+} gotos[MAXGOTOS];    /* list of gotos to be backpatched */
 
 int numgotos = 0;    /* number of gotos to be backpatched */
 int numlabelids = 0; /* total label ids in function */
@@ -110,21 +111,21 @@ int numlabelids = 0; /* total label ids in function */
  * startloopscope - start the scope for a loop
  */
 void startloopscope() {
-    looptop = &lscopes[looplevel++];
-    if (looptop > lscopes + MAXLOOPNEST) {
-        fprintf(stderr, "loop nest too great\n");
-        exit(1);
-    }
-    looptop->breaks = (struct sem_rec *)NULL;
-    looptop->conts = (struct sem_rec *)NULL;
+  looptop = &lscopes[looplevel++];
+  if (looptop > lscopes + MAXLOOPNEST) {
+    fprintf(stderr, "loop nest too great\n");
+    exit(1);
+  }
+  looptop->breaks = (struct sem_rec *)NULL;
+  looptop->conts = (struct sem_rec *)NULL;
 }
 
 /*
  * endloopscope - end the scope for a loop
  */
 void endloopscope() {
-    looplevel--;
-    looptop--;
+  looplevel--;
+  looptop--;
 }
 
 std::string new_label() { return ("L" + std::to_string(label_index++)); }
@@ -132,27 +133,27 @@ std::string new_label() { return ("L" + std::to_string(label_index++)); }
 BasicBlock *create_tmp_label() { return BasicBlock::Create(TheContext); }
 
 BasicBlock *create_named_label(std::string label) {
-    Function *curr_func = Builder.GetInsertBlock()->getParent();
-    BasicBlock *new_block = BasicBlock::Create(TheContext, label, curr_func);
-    return new_block;
+  Function *curr_func = Builder.GetInsertBlock()->getParent();
+  BasicBlock *new_block = BasicBlock::Create(TheContext, label, curr_func);
+  return new_block;
 }
 
 /*
  * convert an internal csem type (s_type or i_type) to an LLVM Type*
  */
 Type *get_llvm_type(int type) {
-    switch (type & ~(T_ARRAY | T_ADDR)) {
-    case T_INT:
-        return Type::getInt32Ty(TheContext);
-        break;
-    case T_DOUBLE:
-        return Type::getDoubleTy(TheContext);
-        break;
-    default:
-        fprintf(stderr, "get_llvm_type: invalid type %x\n", type);
-        exit(1);
-        break;
-    }
+  switch (type & ~(T_ARRAY | T_ADDR)) {
+  case T_INT:
+    return Type::getInt32Ty(TheContext);
+    break;
+  case T_DOUBLE:
+    return Type::getDoubleTy(TheContext);
+    break;
+  default:
+    fprintf(stderr, "get_llvm_type: invalid type %x\n", type);
+    exit(1);
+    break;
+  }
 }
 
 /*
@@ -166,42 +167,46 @@ Type *get_llvm_type(int type) {
  * BranchInst::setSuccessor(unsigned, BasicBlock*)
  */
 void backpatch(struct sem_rec *rec, void *bb) {
-    unsigned i;
-    BranchInst *br_inst;
+  unsigned i;
+  BranchInst *br_inst;
 
-    if ((br_inst = llvm::dyn_cast<BranchInstr>((Value *)rec->s_value))) {
-        for (i = 0; i < br_inst->getNumSuccessor(); i++) {
-            if (br_inst->getSuccessor(i) == ((BasicBlock *)rec->s_bb)) {
-                br_inst->setSuccessor(i, (BasicBlock *)bb);
-            }
+  while (rec) {
+    if ((br_inst = llvm::dyn_cast<BranchInst>((Value *)rec->s_value))) {
+      for (i = 0; i < br_inst->getNumSuccessors(); i++) {
+        if (br_inst->getSuccessor(i) == ((BasicBlock *)rec->s_bb)) {
+          br_inst->setSuccessor(i, (BasicBlock *)bb);
         }
+      }
     } else {
-        fprintf(stderr, "error: backpatch with non-branch instruction\n");
-        exit(1);
+      fprintf(stderr, "error: backpatch with non-branch instruction\n");
+      exit(1);
     }
+
+    rec = rec->s_link;
+  }
 }
 
 /*
  * Global allocations. Globals are initialized to 0.
  */
 void global_alloc(struct id_entry *p, int width) {
-    string name(p->i_name);
-    GlobalVariable *var;
-    Type *type;
-    Constant *init;
+  string name(p->i_name);
+  GlobalVariable *var;
+  Type *type;
+  Constant *init;
 
-    if (p->i_type & T_ARRAY) {
-        type = ArrayType::get(get_llvm_type(p->i_type), width);
-        init = ConstantAggregateZero::get(type);
-    } else {
-        type = get_llvm_type(p->i_type);
-        init = ConstantInt::get(get_llvm_type(T_INT), 0);
-    }
+  if (p->i_type & T_ARRAY) {
+    type = ArrayType::get(get_llvm_type(p->i_type), width);
+    init = ConstantAggregateZero::get(type);
+  } else {
+    type = get_llvm_type(p->i_type);
+    init = ConstantInt::get(get_llvm_type(T_INT), 0);
+  }
 
-    TheModule->getOrInsertGlobal(name, type);
-    var = TheModule->getNamedGlobal(name);
-    var->setInitializer(init);
-    p->i_value = (void *)var;
+  TheModule->getOrInsertGlobal(name, type);
+  var = TheModule->getNamedGlobal(name);
+  var->setInitializer(init);
+  p->i_value = (void *)var;
 }
 
 /*
@@ -216,8 +221,18 @@ void global_alloc(struct id_entry *p, int width) {
  * IRBuilder::CreateCall(Function *, ArrayRef<Value*>)
  */
 struct sem_rec *call(char *f, struct sem_rec *args) {
-    fprintf(stderr, "sem: call not implemented\n");
-    return ((struct sem_rec *)NULL);
+  struct id_entry *entry = lookup(f, 0);
+  Function *func = (Function *)entry->i_value;
+
+  vector<Value *> f_args;
+  while (args) {
+    f_args.push_back((Value *)args->s_value);
+    args = args->s_link;
+  }
+
+  return s_node(Builder.CreateCall(func, f_args), entry->i_type);
+
+  return ((struct sem_rec *)NULL);
 }
 
 /*
@@ -230,40 +245,13 @@ struct sem_rec *call(char *f, struct sem_rec *args) {
  * None
  */
 struct sem_rec *ccand(struct sem_rec *e1, void *m, struct sem_rec *e2) {
-    fprintf(stderr, "sem: ccand not implemented\n");
-    return ((struct sem_rec *)NULL);
-}
+  backpatch(e1->s_true, m);
 
-/*
- * ccexpr - convert arithmetic expression to logical expression
- *
- * Grammar:
- * cexpr -> expr                  { $$ = ccexpr($1); }
- *
- * IRBuilder::CreateICmpNE(Value *, Value *)
- * IRBuilder::CreateFCmpONE(Value *, Value *)
- * IRBuilder::CreateCondBr(Value *, BasicBlock *, BasicBlock *)
- *
- *
- */
-struct sem_rec *ccexpr(struct sem_rec *e) {
-    BasicBlock *tmp_true, *tmp_false;
-    Value *val;
+  sem_rec *and_rec = new sem_rec;
+  and_rec->s_true = e2->s_true;
+  and_rec->s_false = merge(e1->s_false, e2->s_false);
 
-    tmp_true = create_tmp_label();
-    tmp_false = create_tmp_label();
-    val = Builder.CreateCondBr((Value *)e->s_value, tmp_true, tmp_false);
-
-    // We're wrapping up the branch instruction with both the true and false
-    // label
-    // At another point we're going to have the semantic record, and the real
-    // labels where we should branch
-    // At that point we'll replace the tmp label with the real label
-    return (node((void *)NULL, (void *)NULL, 0, (struct sem_rec *)NULL,
-                 node(val, tmp_true, 0, (struct sem_rec *)NULL,
-                      (struct sem_rec *)NULL, (struct sem_rec *)NULL)),
-            (node(val, tmp_false, 0, (struct sem_rec *)NULL,
-                  (struct sem_rec *)NULL, (sctruct sem_rec *)NULL)));
+  return and_rec;
 }
 
 /*
@@ -276,8 +264,11 @@ struct sem_rec *ccexpr(struct sem_rec *e) {
  * None
  */
 struct sem_rec *ccnot(struct sem_rec *e) {
-    fprintf(stderr, "sem: ccnot not implemented\n");
-    return ((struct sem_rec *)NULL);
+  sem_rec *tmp = e->s_true;
+  e->s_true = e->s_false;
+  e->s_false = tmp;
+
+  return e;
 }
 
 /*
@@ -290,8 +281,54 @@ struct sem_rec *ccnot(struct sem_rec *e) {
  * None
  */
 struct sem_rec *ccor(struct sem_rec *e1, void *m, struct sem_rec *e2) {
-    fprintf(stderr, "sem: ccor not implemented\n");
-    return NULL;
+  backpatch(e1->s_false, m);
+
+  sem_rec *or_rec = new sem_rec;
+  or_rec->s_true = merge(e1->s_true, e2->s_true);
+  or_rec->s_false = e2->s_false;
+
+  return or_rec;
+}
+
+/*
+ * ccexpr - convert arithmetic expression to logical expression
+ *
+ * Grammar:
+ * cexpr -> expr                  { $$ = ccexpr($1); }
+ *
+ * IRBuilder::CreateICmpNE(Value *, Value *)
+ * IRBuilder::CreateFCmpONE(Value *, Value *)
+ * IRBuilder::CreateCondBr(Value *, BasicBlock *, BasicBlock *)
+ */
+struct sem_rec *ccexpr(struct sem_rec *e) {
+  BasicBlock *tmp_true, *tmp_false;
+  Value *val;
+
+  tmp_true = create_tmp_label();
+  tmp_false = create_tmp_label();
+
+  if (e->s_type == (T_INT | T_DOUBLE)) {
+    val = Builder.CreateCondBr((Value *)e->s_value, tmp_true, tmp_false);
+  } else {
+    bool fp = e->s_type & T_DOUBLE;
+    Value *truthy;
+    if (fp) {
+      Value *zero = ConstantFP::get(get_llvm_type(T_DOUBLE), 0);
+      truthy = Builder.CreateFCmpONE((Value *)e->s_value, zero);
+    } else {
+      sem_rec *zero = con(0);
+      truthy =
+          Builder.CreateICmpNE((Value *)e->s_value, (Value *)zero->s_value);
+    }
+
+    val = Builder.CreateCondBr((Value *)truthy, tmp_true, tmp_false);
+  }
+
+  return (node((void *)NULL, (void *)NULL, 0, (struct sem_rec *)NULL,
+               (node(val, tmp_true, 0, (struct sem_rec *)NULL,
+                     (struct sem_rec *)NULL, (struct sem_rec *)NULL)),
+               (node(val, tmp_false, 0, (struct sem_rec *)NULL,
+                     (struct sem_rec *)NULL, (struct sem_rec *)NULL))));
 }
 
 /*
@@ -302,35 +339,28 @@ struct sem_rec *ccor(struct sem_rec *e1, void *m, struct sem_rec *e2) {
  *
  * LLVM API calls:
  * ConstantInt::get(Type*, int)
- *
- * Takes in a long long which is the actual constant that is being passed in
- * Therefore we do not support floating point constants
  */
 struct sem_rec *con(long long x) {
-    int length;
-    struct id_entry *entry;
-    char *xstr;
+  int length;
+  struct id_entry *entry;
+  char *xstr;
 
-    length = snprintf(NULL, 0, "%lld", x);
-    xstr = (char *)malloc(length + 1);
-    if (!xstr) {
-        fprintf(stderr, "out of memory\n");
-    }
-    snprintf(xstr, length + 1, "%lld", x);
+  length = snprintf(NULL, 0, "%lld", x);
+  xstr = (char *)malloc(length + 1);
+  if (!xstr) {
+    fprintf(stderr, "out of memory\n");
+  }
+  snprintf(xstr, length + 1, "%lld", x);
 
-    // Install if the string is not there
-    if ((entry = lookup(xstr, 0)) == NULL) {
-        entry = install(xstr, 0);
-        entry->i_type = T_INT;
-        entry->i_scope = GLOBAL;
-        entry->i_defined = 1;
-    }
+  if ((entry = lookup(xstr, 0)) == NULL) {
+    entry = install(xstr, 0);
+    entry->i_type = T_INT;
+    entry->i_scope = GLOBAL;
+    entry->i_defined = 1;
+  }
 
-    entry->i_value = (void *)ConstantInt::get(get_llvm_type(T_INT), (int)x);
-    return (s_node((void *)entry->i_value, entry->i_type));
-
-    fprintf(stderr, "sem: remainder of con not implemented\n");
-    return ((struct sem_rec *)NULL);
+  entry->i_value = (void *)ConstantInt::get(get_llvm_type(T_INT), (int)x);
+  return (s_node((void *)entry->i_value, entry->i_type));
 }
 
 /*
@@ -343,8 +373,17 @@ struct sem_rec *con(long long x) {
  * None
  */
 void dobreak() {
-    fprintf(stderr, "sem: dobreak not implemented\n");
+  sem_rec *ptr = looptop->breaks;
+  if (!ptr) {
+    looptop->breaks = n();
     return;
+  }
+
+  while (ptr->s_link) {
+    ptr = ptr->s_link;
+  }
+
+  ptr->s_link = n();
 }
 
 /*
@@ -357,37 +396,62 @@ void dobreak() {
  * None
  */
 void docontinue() {
-    fprintf(stderr, "sem: docontinue not implemented\n");
+  sem_rec *ptr = looptop->conts;
+  if (!ptr) {
+    looptop->conts = n();
     return;
+  }
+
+  while (ptr->s_link) {
+    ptr = ptr->s_link;
+  }
+
+  ptr->s_link = n();
 }
 
 /*
  * dodo - do statement
  *
  * Grammar:
- * stmt -> DO m s lblstmt WHILE '(' m cexpr ')' ';' m
+ * stmt -> DO m1 s lblstmt WHILE '(' m2 cexpr ')' ';' m3
  *                { dodo($2, $7, $8, $11); }
  *
  * LLVM API calls:
  * None
  */
 void dodo(void *m1, void *m2, struct sem_rec *cond, void *m3) {
-    fprintf(stderr, "sem: dodo not implemented\n");
-    return;
+  backpatch(cond->s_true, m1);
+  backpatch(cond->s_false, m3);
+
+  backpatch(looptop->breaks, m3);
+  backpatch(looptop->conts, m2);
+
+  endloopscope();
+
+  return;
 }
 
 /*
  * dofor - for statement
  *
  * Grammar:
- * stmt -> FOR '(' expro ';' m cexpro ';' m expro n ')' m s lblstmt n m
+ * stmt -> FOR '(' expro ';' m1 cexpro ';' m2 expro n1 ')' m3 s lblstmt n2 m4
  *               { dofor($5, $6, $8, $10, $12, $15, $16); }
  *
  */
 void dofor(void *m1, struct sem_rec *cond, void *m2, struct sem_rec *n1,
            void *m3, struct sem_rec *n2, void *m4) {
-    fprintf(stderr, "sem: dofor not implemented\n");
-    return;
+  backpatch(cond->s_true, m3);
+  backpatch(cond->s_false, m4);
+  backpatch(n2, m2);
+  backpatch(n1, m1);
+
+  backpatch(looptop->breaks, m4);
+  backpatch(looptop->conts, m2);
+
+  endloopscope();
+
+  return;
 }
 
 /*
@@ -400,8 +464,19 @@ void dofor(void *m1, struct sem_rec *cond, void *m2, struct sem_rec *n1,
  * IRBuilder::CreateBr(BasicBlock *)
  */
 void dogoto(char *id) {
-    fprintf(stderr, "sem: dogoto not implemented\n");
-    return;
+  // Attempt to find an already existing label
+  for (int i = 0; i < numlabelids; i++) {
+    labelnode ln = labels[i];
+
+    if (!strcmp(ln.id, id)) {
+      // Found a match, generate a fulfilled branch
+      Builder.CreateBr(ln.bb);
+      return;
+    }
+  }
+
+  // Otherwise we haven't seen this branch yet, generate a placeholder
+  gotos[numgotos++] = {strdup(id), Builder.CreateBr(create_tmp_label())};
 }
 
 /*
@@ -413,15 +488,10 @@ void dogoto(char *id) {
  *
  * LLVM API calls:
  * None
- *
- * When you get to an if statement we've done everything else, now we take the
- * sem_rec returned by cexpr and then the labels correspoinding to the two 'm'
- * things
- * Now we replace tmp labels with real labels, i.e. back patching
  */
-void doif(struct sem_rec *cond, void *m1, void *m2 {
-    backpatch(cond->s_true, m1);
-    backpatch(cond->s_false, m2);
+void doif(struct sem_rec *cond, void *m1, void *m2) {
+  backpatch(cond->s_true, m1);
+  backpatch(cond->s_false, m2);
 }
 
 /*
@@ -436,8 +506,11 @@ void doif(struct sem_rec *cond, void *m1, void *m2 {
  */
 void doifelse(struct sem_rec *cond, void *m1, struct sem_rec *n, void *m2,
               void *m3) {
-    fprintf(stderr, "sem: doifelse not implemented\n");
-    return;
+  backpatch(cond->s_true, m1);
+  backpatch(n, m3);
+  backpatch(cond->s_false, m2);
+
+  return;
 }
 
 /*
@@ -452,15 +525,19 @@ void doifelse(struct sem_rec *cond, void *m1, struct sem_rec *n, void *m2,
  * IRBuilder::CreateRet(Value *);
  */
 void doret(struct sem_rec *e) {
-    fprintf(stderr, "sem: doret not implemented\n");
+  if (!e) {
+    Builder.CreateRetVoid();
     return;
+  }
+
+  Builder.CreateRet(((Value *)e->s_value));
 }
 
 /*
  * dowhile - while statement
  *
  * Grammar:
- * stmt -> WHILE '(' m cexpr ')' m s lblstmt n m
+ * stmt -> WHILE '(' m1 cexpr ')' m2 s lblstmt n m3
  *                { dowhile($3, $4, $6, $9, $10); }
  *
  * LLVM API calls:
@@ -468,8 +545,16 @@ void doret(struct sem_rec *e) {
  */
 void dowhile(void *m1, struct sem_rec *cond, void *m2, struct sem_rec *n,
              void *m3) {
-    fprintf(stderr, "sem: dowhile not implemented\n");
-    return;
+  backpatch(cond->s_true, m2);
+  backpatch(cond->s_false, m3);
+  backpatch(n, m1);
+
+  backpatch(looptop->breaks, m3);
+  backpatch(looptop->conts, m1);
+
+  endloopscope();
+
+  return;
 }
 
 /*
@@ -482,8 +567,17 @@ void dowhile(void *m1, struct sem_rec *cond, void *m2, struct sem_rec *n,
  * None
  */
 struct sem_rec *exprs(struct sem_rec *l, struct sem_rec *e) {
-    fprintf(stderr, "sem: exprs not implemented\n");
-    return ((struct sem_rec *)NULL);
+  if (l == NULL) {
+    return e;
+  }
+
+  struct sem_rec *p = l;
+  while (p->s_link != NULL) {
+    p = p->s_link;
+  }
+  p->s_link = e;
+
+  return l;
 }
 
 /*
@@ -493,65 +587,65 @@ struct sem_rec *exprs(struct sem_rec *l, struct sem_rec *e) {
  * fhead -> fname fargs '{' dcls  { fhead($1); }
  */
 void fhead(struct id_entry *p) {
-    Type *func_type, *var_type;
-    Value *arr_size;
-    vector<Type *> func_args;
-    GlobalValue::LinkageTypes linkage;
-    FunctionType *FT;
-    Function *F;
-    BasicBlock *B;
-    int i;
-    struct id_entry *v;
+  Type *func_type, *var_type;
+  Value *arr_size;
+  vector<Type *> func_args;
+  GlobalValue::LinkageTypes linkage;
+  FunctionType *FT;
+  Function *F;
+  BasicBlock *B;
+  int i;
+  struct id_entry *v;
 
-    /* get function return type */
-    func_type = get_llvm_type(p->i_type);
+  /* get function return type */
+  func_type = get_llvm_type(p->i_type);
 
-    /* get function argument types */
-    for (i = 0; i < formalnum; i++) {
-        func_args.push_back(get_llvm_type(formalvars[i]->i_type));
-    }
+  /* get function argument types */
+  for (i = 0; i < formalnum; i++) {
+    func_args.push_back(get_llvm_type(formalvars[i]->i_type));
+  }
 
-    FT = FunctionType::get(func_type, ArrayRef(func_args), false);
+  FT = FunctionType::get(func_type, ArrayRef(func_args), false);
 
-    /* linkage is external if function is main */
-    linkage = (strcmp(p->i_name, "main") == 0) ? Function::ExternalLinkage
-                                               : Function::InternalLinkage;
+  /* linkage is external if function is main */
+  linkage = (strcmp(p->i_name, "main") == 0) ? Function::ExternalLinkage
+                                             : Function::InternalLinkage;
 
-    F = Function::Create(FT, linkage, p->i_name, TheModule.get());
-    p->i_value = (void *)F;
+  F = Function::Create(FT, linkage, p->i_name, TheModule.get());
+  p->i_value = (void *)F;
 
-    B = BasicBlock::Create(TheContext, "", F);
-    Builder.SetInsertPoint(B);
+  B = BasicBlock::Create(TheContext, "", F);
+  Builder.SetInsertPoint(B);
 
-    /*
-     * Allocate instances of each parameter and local so they can be referenced
-     * and mutated.
-     */
-    i = 0;
-    for (auto &arg : F->args()) {
+  /*
+   * Allocate space for parameters and store the value that was passed in
+   * into the allocated space.
+   */
+  i = 0;
+  for (auto &arg : F->args()) {
 
-        v = formalvars[i++];
-        arg.setName(v->i_name);
-        var_type = get_llvm_type(v->i_type);
-        arr_size = (v->i_width > 1)
-                       ? (ConstantInt::get(get_llvm_type(T_INT), v->i_width))
-                       : NULL;
+    v = formalvars[i++];
+    arg.setName(v->i_name);
+    var_type = get_llvm_type(v->i_type);
+    arr_size = (v->i_width > 1)
+                   ? (ConstantInt::get(get_llvm_type(T_INT), v->i_width))
+                   : NULL;
 
-        v->i_value = Builder.CreateAlloca(var_type, arr_size, arg.getName());
-        Builder.CreateStore(&arg, (Value *)v->i_value);
-    }
+    v->i_value = Builder.CreateAlloca(var_type, arr_size, arg.getName());
+    Builder.CreateStore(&arg, (Value *)v->i_value);
+  }
 
-    /* Create the instance of stack memory for each local variable */
-    for (i = 0; i < localnum; i++) {
-        v = localvars[i];
-        var_type = get_llvm_type(v->i_type);
-        arr_size = (v->i_width > 1)
-                       ? (ConstantInt::get(get_llvm_type(T_INT), v->i_width))
-                       : NULL;
+  /* Create the instance of stack memory for each local variable */
+  for (i = 0; i < localnum; i++) {
+    v = localvars[i];
+    var_type = get_llvm_type(v->i_type);
+    arr_size = (v->i_width > 1)
+                   ? (ConstantInt::get(get_llvm_type(T_INT), v->i_width))
+                   : NULL;
 
-        v->i_value =
-            Builder.CreateAlloca(var_type, arr_size, std::string(v->i_name));
-    }
+    v->i_value =
+        Builder.CreateAlloca(var_type, arr_size, std::string(v->i_name));
+  }
 }
 
 /*
@@ -562,30 +656,30 @@ void fhead(struct id_entry *p) {
  * fname -> ID                    { $$ = fname(T_INT, $1); }
  */
 struct id_entry *fname(int t, char *id) {
-    struct id_entry *entry = lookup(id, 0);
+  struct id_entry *entry = lookup(id, 0);
 
-    // add function to hash table if it doesn't exist
-    if (!entry) {
-        entry = install(id, 0);
-    }
+  // add function to hash table if it doesn't exist
+  if (!entry) {
+    entry = install(id, 0);
+  }
 
-    // cannot have two functions of the same name
-    if (entry->i_defined) {
-        yyerror("cannot declare function more than once");
-    }
+  // cannot have two functions of the same name
+  if (entry->i_defined) {
+    yyerror("cannot declare function more than once");
+  }
 
-    entry->i_type = t;
-    entry->i_scope = GLOBAL;
-    entry->i_defined = true;
+  entry->i_type = t;
+  entry->i_scope = GLOBAL;
+  entry->i_defined = true;
 
-    // need to enter the block to let hash table do internal work
-    enterblock();
-    // then need to reset argument count variables
+  // need to enter the block to let hash table do internal work
+  enterblock();
+  // then need to reset argument count variables
 
-    formalnum = 0;
-    localnum = 0;
+  formalnum = 0;
+  localnum = 0;
 
-    return entry;
+  return entry;
 }
 
 /*
@@ -595,9 +689,9 @@ struct id_entry *fname(int t, char *id) {
  * func -> fhead stmts '}'       { ftail(); }
  */
 void ftail() {
-    numgotos = 0;
-    numlabelids = 0;
-    leaveblock();
+  numgotos = 0;
+  numlabelids = 0;
+  leaveblock();
 }
 
 /*
@@ -609,28 +703,21 @@ void ftail() {
  *
  * LLVM API calls:
  * None
- *
- * Insert ID in symbol table, and then returns semantic record, which a pointer
- * to that identifier
  */
 struct sem_rec *id(char *x) {
-    struct id_entry *entry;
+  // TODO still need to handle indexing I guess? Or maybe that's handled
+  // differently?
+  struct id_entry *entry;
 
-    // There must be a symbol associated with the string 'x', otherwise we
-    // install it into the symbol table
-    if ((entry = lookup(x, 0)) == NULL) {
-        yyerror("undeclared identifier");
-        entry = install(x, -1);
-        entry->i_type = T_INT;
-        entry->i_scope = LOCAL;
-        entry->i_defined = 1;
-    }
+  if ((entry = lookup(x, 0)) == NULL) {
+    yyerror("undeclared identifier");
+    entry = install(x, -1);
+    entry->i_type = T_INT;
+    entry->i_scope = LOCAL;
+    entry->i_defined = 1;
+  }
 
-    // Pull its type and also OR in ADDR type
-    return (s_node((void *)entry->i_value, entry->i_type | T_ADDR));
-
-    // fprintf(stderr, "sem: remainder of id not implemented\n");
-    // return ((struct sem_rec *)NULL);
+  return (s_node((void *)entry->i_value, entry->i_type | T_ADDR));
 }
 
 /*
@@ -644,8 +731,13 @@ struct sem_rec *id(char *x) {
  * IRBuilder::CreateGEP(Type, Value *, ArrayRef<Value*>)
  */
 struct sem_rec *indx(struct sem_rec *x, struct sem_rec *i) {
-    fprintf(stderr, "sem: indx not implemented\n");
-    return ((struct sem_rec *)NULL);
+  vector<Value *> indicies;
+  indicies.push_back((Value *)i->s_value);
+  Value *ptr =
+      Builder.CreateGEP(get_llvm_type((x->s_type & T_INT) ? T_INT : T_DOUBLE),
+                        (Value *)x->s_value, indicies);
+
+  return s_node(ptr, (x->s_type & T_INT) ? T_INT : T_DOUBLE);
 }
 
 /*
@@ -667,8 +759,30 @@ struct sem_rec *indx(struct sem_rec *x, struct sem_rec *i) {
  * BranchInst::setSuccessor(unsigned, BasicBlock*)
  */
 void labeldcl(const char *id) {
-    fprintf(stderr, "sem: labeldcl not implemented\n");
-    return;
+  BasicBlock *bb = create_named_label("userlbl_" + std::string(id));
+
+  BasicBlock *current_insert_point = Builder.GetInsertBlock();
+  if (current_insert_point->getTerminator() == NULL) {
+    Builder.CreateBr(bb);
+  }
+
+  Builder.SetInsertPoint(bb);
+
+  labels[numlabelids++] = {id, bb};
+
+  // Check if we have any outstanding gotos that need patching
+  for (int i = 0; i < numgotos; i++) {
+    gotonode gn = gotos[i];
+    if (!strcmp(gn.id, id)) {
+      // Match
+      gn.branch->setSuccessor(0, bb);
+
+      // swap remove
+      std::swap(gotos[i], gotos[numgotos - 1]);
+      numgotos--;
+      i--;
+    }
+  }
 }
 
 /*
@@ -683,23 +797,19 @@ void labeldcl(const char *id) {
  * BasicBlock::getTerminator()
  * IRBuilder::CreateBr(BasicBlock*)
  * IRBuilder::SetInsertPoint(BasicBlock*)
- *
- * M's correspond to TRUE labels
  */
 void *m() {
-    BasicBlock *bb;
+  BasicBlock *bb;
 
-    std::string label = new_label();
-    bb = create_named_label(label);
+  std::string label = new_label();
+  bb = create_named_label(label);
 
-    // If we don't already have a terminating instruction create one
-    // Either a branch/goto or a return
-    if (Builder.GetInsertBlock()->getTerminator() == NULL) {
-        Builder.CreateBr(bb);
-    }
+  if (Builder.GetInsertBlock()->getTerminator() == NULL) {
+    Builder.CreateBr(bb);
+  }
 
-    Builder.SetInsertPoint(bb);
-    return (void *)bb;
+  Builder.SetInsertPoint(bb);
+  return (void *)bb;
 }
 
 /*
@@ -709,8 +819,9 @@ void *m() {
  * IRBuilder::CreateBr(BasicBlock *)
  */
 struct sem_rec *n() {
-    fprintf(stderr, "sem: n not implemented\n");
-    return NULL;
+  BasicBlock *jump = create_tmp_label();
+  return node(Builder.CreateBr(jump), jump, 0, (struct sem_rec *)NULL,
+              (struct sem_rec *)NULL, (struct sem_rec *)NULL);
 }
 
 /*
@@ -721,26 +832,106 @@ struct sem_rec *n() {
  * IRBuilder::CreateNot(Value *)
  * IRBuilder::CreateNeg(Value *)
  * IRBuilder::CreateFNeg(Value *)
- *
- * For unary operators, which in the in class example we're using as an implicit
- * dereference of an LVAL
  */
 struct sem_rec *op1(const char *op, struct sem_rec *y) {
-    struct sem_rec *rec;
-    if (*op == '@') {
-        // Make sure it's not an array
-        if (!(y->s_type & T_ARRAY)) {
-            y->s_type &= ~T_ADDR; // Unset addr type
-            rec = s_node(Builder.CreateLoad(get_llvm_type(y->s_type),
-                                            ((Value *)y->s_value)),
-                         y->s_type);
-
-            return rec;
-        }
+  struct sem_rec *rec;
+  if (op[0] == '@') {
+    if (!(y->s_type & T_ARRAY)) {
+      y->s_type &= ~T_ADDR;
+      rec = s_node(
+          Builder.CreateLoad(get_llvm_type(y->s_type), ((Value *)y->s_value)),
+          y->s_type);
+    } else {
+      rec = s_node(y->s_value, T_ADDR);
     }
+  } else if (op[0] == '-') {
+    bool fp = y->s_type & T_DOUBLE;
+    rec = s_node(fp ? Builder.CreateFNeg((Value *)y->s_value)
+                    : Builder.CreateNeg((Value *)y->s_value),
+                 y->s_type);
+  } else if (op[0] == '~') {
+    rec = s_node(Builder.CreateNot((Value *)y->s_value), T_INT);
+  }
+  return rec;
+}
 
-    // fprintf(stderr, "sem: op1 not implemented\n");
-    // return ((struct sem_rec *)NULL);
+enum class SMOpcode {
+  SMASSIGN,
+  SMADD,
+  SMSUB,
+  SMMUL,
+  SMDIV,
+  SMMOD,
+  SMBIT_AND,
+  SMBIT_OR,
+  SMBIT_XOR,
+  SMBIT_SHL,
+  SMBIT_SHR
+};
+
+sem_rec *separate_method(SMOpcode op, struct sem_rec *x, struct sem_rec *y,
+                         bool assign) {
+  // Assignment changes the casting rules
+  if (assign) {
+    if ((x->s_type & T_INT) && (y->s_type & T_DOUBLE)) {
+      y = cast(y, T_INT);
+    } else if ((x->s_type & T_DOUBLE) && (y->s_type & T_INT)) {
+      y = cast(y, T_DOUBLE);
+    }
+  } else {
+    if ((x->s_type & T_INT) && (y->s_type & T_DOUBLE)) {
+      x = cast(x, T_DOUBLE);
+    } else if ((x->s_type & T_DOUBLE) && (y->s_type & T_INT)) {
+      y = cast(y, T_DOUBLE);
+    }
+  }
+
+  bool fp = (x->s_type & T_DOUBLE) || (y->s_type & T_DOUBLE);
+  Value *val;
+
+  switch (op) {
+  case SMOpcode::SMASSIGN:
+    val = (Value *)y->s_value;
+    break;
+  case SMOpcode::SMADD:
+    val = fp ? Builder.CreateFAdd((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateAdd((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMSUB:
+    val = fp ? Builder.CreateFSub((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateSub((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMMUL:
+    val = fp ? Builder.CreateFMul((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateMul((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMDIV:
+    val = fp ? Builder.CreateFDiv((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateSDiv((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMMOD:
+    val = Builder.CreateSRem((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMBIT_AND:
+    val = Builder.CreateAnd((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMBIT_OR:
+    val = Builder.CreateOr((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMBIT_XOR:
+    val = Builder.CreateXor((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMBIT_SHL:
+    val = Builder.CreateShl((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  case SMOpcode::SMBIT_SHR:
+    val = Builder.CreateAShr((Value *)x->s_value, (Value *)y->s_value);
+    break;
+  default:
+    assert(false);
+  }
+
+  return s_node((void *)val, fp ? T_DOUBLE : T_INT);
 }
 
 /*
@@ -766,8 +957,23 @@ struct sem_rec *op1(const char *op, struct sem_rec *y) {
  * IRBuilder::CreateAShr(Value *, Value *)
  */
 struct sem_rec *op2(const char *op, struct sem_rec *x, struct sem_rec *y) {
-    fprintf(stderr, "sem: op2 not implemented\n");
-    return NULL;
+  struct sem_rec *rec;
+
+  if (op[0] == '+') {
+    rec = separate_method(SMOpcode::SMADD, x, y, false);
+  } else if (op[0] == '-') {
+    rec = separate_method(SMOpcode::SMSUB, x, y, false);
+  } else if (op[0] == '*') {
+    rec = separate_method(SMOpcode::SMMUL, x, y, false);
+  } else if (op[0] == '/') {
+    rec = separate_method(SMOpcode::SMSUB, x, y, false);
+  } else if (op[0] == '%') {
+    rec = separate_method(SMOpcode::SMMOD, x, y, false);
+  } else {
+    rec = opb(op, x, y);
+  }
+
+  return rec;
 }
 
 /*
@@ -778,8 +984,21 @@ struct sem_rec *op2(const char *op, struct sem_rec *x, struct sem_rec *y) {
  * API calls for this method.
  */
 struct sem_rec *opb(const char *op, struct sem_rec *x, struct sem_rec *y) {
-    fprintf(stderr, "sem: opb not implemented\n");
-    return ((struct sem_rec *)NULL);
+  struct sem_rec *rec;
+
+  if (op[0] == '|') {
+    rec = separate_method(SMOpcode::SMBIT_OR, x, y, false);
+  } else if (op[0] == '&') {
+    rec = separate_method(SMOpcode::SMBIT_AND, x, y, false);
+  } else if (op[0] == '^') {
+    rec = separate_method(SMOpcode::SMBIT_XOR, x, y, false);
+  } else if (op[0] == '>' && op[1] == '>') {
+    rec = separate_method(SMOpcode::SMBIT_SHR, x, y, false);
+  } else if (op[0] == '<' && op[1] == '<') {
+    rec = separate_method(SMOpcode::SMBIT_SHL, x, y, false);
+  }
+
+  return rec;
 }
 
 /*
@@ -806,21 +1025,40 @@ struct sem_rec *opb(const char *op, struct sem_rec *x, struct sem_rec *y) {
  * IRBuilder::CreateFCmpOGT(Value *, Value *)
  * IRBuilder::CreateICmpSGE(Value *, Value *)
  * IRBuilder::CreateFCmpOGE(Value *, Value *)
- *
- * Perform the actual comparison
  */
 struct sem_rec *rel(const char *op, struct sem_rec *x, struct sem_rec *y) {
-    Value *val;
-    if (*op == '<') {
-        if (x->s_type == T_INT && y->type == T_INT) {
-            val =
-                Builder.CreateICmpSLT((Value *)x->s_value, (Value *)y->s_value);
-        }
-    }
+  Value *val;
+  bool fp = x->s_type == T_DOUBLE || y->s_type == T_DOUBLE;
 
-    return (ccexpr(s_node((void *)val, T_INT)));
-    // fprintf(stderr, "sem: rel not implemented\n");
-    // return ((struct sem_rec *)NULL);
+  if (x->s_type == T_INT && y->s_type == T_DOUBLE) {
+    x = cast(x, T_DOUBLE);
+  } else if (x->s_type == T_DOUBLE && y->s_type == T_INT) {
+    y = cast(y, T_DOUBLE);
+  }
+
+  if (op[0] == '<' && op[1] == '=') {
+    val = fp ? Builder.CreateFCmpOLE((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateICmpSLE((Value *)x->s_value, (Value *)y->s_value);
+  } else if (op[0] == '<') {
+    val = fp ? Builder.CreateFCmpOLT((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateICmpSLT((Value *)x->s_value, (Value *)y->s_value);
+  } else if (op[0] == '>' && op[1] == '=') {
+    val = fp ? Builder.CreateFCmpOGE((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateICmpSGE((Value *)x->s_value, (Value *)y->s_value);
+  } else if (op[0] == '>') {
+    val = fp ? Builder.CreateFCmpOGT((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateICmpSGT((Value *)x->s_value, (Value *)y->s_value);
+  } else if (op[0] == '=') {
+    val = fp ? Builder.CreateFCmpOEQ((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateICmpEQ((Value *)x->s_value, (Value *)y->s_value);
+  } else if (op[0] == '!') {
+    val = fp ? Builder.CreateFCmpONE((Value *)x->s_value, (Value *)y->s_value)
+             : Builder.CreateICmpNE((Value *)x->s_value, (Value *)y->s_value);
+  }
+
+  // I'm marking these values as a weird type so they can be handled
+  // differently in ccexpr
+  return (ccexpr(s_node((void *)val, T_INT | T_DOUBLE)));
 }
 
 /*
@@ -831,8 +1069,17 @@ struct sem_rec *rel(const char *op, struct sem_rec *x, struct sem_rec *y) {
  * IRBuilder::CreateFPToSI(Value *, Type *)
  */
 struct sem_rec *cast(struct sem_rec *y, int t) {
-    fprintf(stderr, "sem: cast not implemented\n");
-    return ((struct sem_rec *)NULL);
+  if (t == T_DOUBLE) {
+    return s_node(Builder.CreateCast(Instruction::SIToFP, (Value *)y->s_value,
+                                     get_llvm_type(T_DOUBLE)),
+                  T_DOUBLE);
+  } else if (t == T_INT) {
+    return s_node(Builder.CreateCast(Instruction::FPToSI, (Value *)y->s_value,
+                                     get_llvm_type(T_INT)),
+                  T_INT);
+  }
+
+  return ((struct sem_rec *)NULL);
 }
 
 /*
@@ -860,8 +1107,40 @@ struct sem_rec *cast(struct sem_rec *y, int t) {
  * IRBuilder::CreateStore(Value *, Value *)
  */
 struct sem_rec *assign(const char *op, struct sem_rec *x, struct sem_rec *y) {
-    fprintf(stderr, "sem: assign not implemented\n");
-    return ((struct sem_rec *)NULL);
+  struct sem_rec *rec;
+  if (strlen(op) == 0) {
+    rec = separate_method(SMOpcode::SMASSIGN, x, y, true);
+  } else {
+    sem_rec *v =
+        s_node(Builder.CreateLoad(
+                   get_llvm_type((x->s_type & T_INT) ? T_INT : T_DOUBLE),
+                   (Value *)x->s_value),
+               x->s_type);
+
+    if (op[0] == '|') {
+      rec = separate_method(SMOpcode::SMBIT_OR, v, y, true);
+    } else if (op[0] == '&') {
+      rec = separate_method(SMOpcode::SMBIT_AND, v, y, true);
+    } else if (op[0] == '<' && op[1] == '<') {
+      rec = separate_method(SMOpcode::SMBIT_SHL, v, y, true);
+    } else if (op[0] == '>' && op[1] == '>') {
+      rec = separate_method(SMOpcode::SMBIT_SHR, v, y, true);
+    } else if (op[0] == '+') {
+      rec = separate_method(SMOpcode::SMADD, v, y, true);
+    } else if (op[0] == '-') {
+      rec = separate_method(SMOpcode::SMSUB, v, y, true);
+    } else if (op[0] == '*') {
+      rec = separate_method(SMOpcode::SMMUL, v, y, true);
+    } else if (op[0] == '/') {
+      rec = separate_method(SMOpcode::SMSUB, v, y, true);
+    } else if (op[0] == '%') {
+      rec = separate_method(SMOpcode::SMMOD, v, y, true);
+    }
+  }
+
+  Builder.CreateStore((Value *)rec->s_value, (Value *)x->s_value);
+
+  return ((struct sem_rec *)rec);
 }
 
 /*
@@ -874,8 +1153,7 @@ struct sem_rec *assign(const char *op, struct sem_rec *x, struct sem_rec *y) {
  * IRBuilder::CreateGlobalStringPtr(char *)
  */
 struct sem_rec *genstring(char *s) {
-    fprintf(stderr, "sem: genstring not implemented\n");
-    return (struct sem_rec *)NULL;
+  return s_node(Builder.CreateGlobalStringPtr(s), T_STR);
 }
 
 /*
@@ -883,26 +1161,25 @@ struct sem_rec *genstring(char *s) {
  * variable arguments
  */
 void declare_print() {
-    struct id_entry *entry;
-    FunctionType *var_arg;
-    Value *F;
-    std::string fname = "print";
+  struct id_entry *entry;
+  FunctionType *var_arg;
+  Value *F;
+  std::string fname = "print";
 
-    /* Add print to our internal data structure */
-    var_arg = FunctionType::get(
-        IntegerType::getInt32Ty(TheContext),
-        PointerType::get(Type::getInt8Ty(TheContext), 0), true);
-    F = TheModule->getOrInsertFunction(fname, var_arg).getCallee();
+  /* Add print to our internal data structure */
+  var_arg =
+      FunctionType::get(IntegerType::getInt32Ty(TheContext),
+                        PointerType::get(Type::getInt8Ty(TheContext), 0), true);
+  F = TheModule->getOrInsertFunction(fname, var_arg).getCallee();
 
-    entry = install(slookup(fname.c_str()), 0);
-    entry->i_type = T_INT | T_PROC;
-    entry->i_value = (void *)F;
+  entry = install(slookup(fname.c_str()), 0);
+  entry->i_type = T_INT | T_PROC;
+  entry->i_value = (void *)F;
 }
 
 void init_IR() {
-    TheModule = make_unique<Module>("<stdin>", TheContext);
-    declare_print();
+  TheModule = make_unique<Module>("<stdin>", TheContext);
+  declare_print();
 }
 
-void emit_IR() {
-    TheModule->print(outs(), nullptr); }
+void emit_IR() { TheModule->print(outs(), nullptr); }

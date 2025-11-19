@@ -11,20 +11,21 @@
 
 // `ray_color` returns the RGB Pixels describing the color at the closest
 // collision point
-Pixel ray_color(camera c, const Ray* r, int max_depth,
-                const hittable_list* world) {
+Pixel ray_color(Camera c, const Ray* r, int max_depth,
+                const HittableList* world) {
     if (max_depth <= 0) {
         return (Vec3){0};
     }
 
-    hit_record rec;
+    HitRecord rec;
 
-    if (hittable_list_hit(*world, r, (interval){.min = 0.001, .max = INFINITY},
+    if (hittable_list_hit(*world, r, (Interval){.min = 0.001, .max = INFINITY},
                           &rec)) {
         Ray scattered;
         Pixel attenuation;
 
-        if (scatter((material*)rec.mat, r, &rec, &attenuation, &scattered)) {
+        if (material_scatter((Material*)rec.mat, r, &rec, &attenuation,
+                             &scattered)) {
             return vec3_mul(attenuation,
                             ray_color(c, &scattered, max_depth - 1, world));
         }
@@ -39,8 +40,8 @@ Pixel ray_color(camera c, const Ray* r, int max_depth,
 
 // `camera_initialize` sets up some defaults, and sets the scenes width and
 // height
-camera camera_initialize(int width, int height) {
-    camera c;
+Camera camera_initialize(int width, int height) {
+    Camera c;
     c.width = width;
     c.height = height;
     // NOTE You can change the image "quality" with the following line
@@ -94,8 +95,8 @@ camera camera_initialize(int width, int height) {
 }
 
 typedef struct Shared {
-    camera c;
-    const hittable_list* world;
+    Camera c;
+    const HittableList* world;
     Pixel* pixels;
     pthread_mutex_t* mutex;
     int* row;
@@ -132,7 +133,7 @@ void* worker(void* arg) {
 
 // `camera_render` takes in an entire scene `world`, the camera `c`, and an
 // output file to render to
-void camera_render(camera c, const hittable_list* world, const char* file_name,
+void camera_render(Camera c, const HittableList* world, const char* file_name,
                    int (*write)(const char* file, uint32_t width,
                                 uint32_t height, const Pixel pixels[]),
                    int num_threads) {
@@ -167,14 +168,14 @@ Vec3 sample_square(void) {
         .x = random_double() - 0.5, .y = random_double() - 0.5, .z = 0};
 }
 
-Vec3 defocus_disk_sample(camera c) {
+Vec3 defocus_disk_sample(Camera c) {
     Vec3 p = vec3_random_in_unit_disk();
     return vec3_add(c.camera_center,
                     vec3_add(vec3_mul_dbl(c.defocus_disk_u, p.x),
                              vec3_mul_dbl(c.defocus_disk_v, p.y)));
 }
 
-Ray camera_get_ray(camera c, int i, int j) {
+Ray camera_get_ray(Camera c, int i, int j) {
     Vec3 offset = sample_square();
     Vec3 pixel_sample =
         vec3_add(c.pixel00_location,

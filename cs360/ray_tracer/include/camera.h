@@ -31,13 +31,13 @@ typedef struct {
     Vec3 u;
     Vec3 v;
     Vec3 w;
-} camera;
+} Camera;
 
-void camera_render(camera c, const hittable_list* world, const char* file_name,
+void camera_render(Camera c, const HittableList* world, const char* file_name,
                    int (*write)(const char* file, uint32_t width,
                                 uint32_t height, const Pixel pixels[]),
                    int num_threads);
-camera camera_initialize(int width, int height);
-Pixel ray_color(camera c, const Ray* r, int max_depth,
-                const hittable_list* world);
-Ray camera_get_ray(camera c, int i, int j);
+Camera camera_initialize(int width, int height);
+Pixel camera_ray_color(Camera c, const Ray* r, int max_depth,
+                       const HittableList* world);
+Ray camera_get_ray(Camera c, int i, int j);

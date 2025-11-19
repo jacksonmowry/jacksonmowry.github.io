@@ -5,30 +5,27 @@
 #include "vec3.h"
 #include <stdbool.h>
 
-struct material;
+struct Material;
 
 typedef struct {
     Vec3 p;
     Vec3 normal;
     double t;
     bool front_face;
-    struct material* mat;
-} hit_record;
+    struct Material* mat;
+} HitRecord;
 
-void set_face_normal(hit_record* record, const Ray r,
-                     const Vec3 outward_normal);
-
-struct material;
+void set_face_normal(HitRecord* record, const Ray r, const Vec3 outward_normal);
 
 typedef struct {
     union {
         struct {
             Vec3 center;
             double radius;
-            struct material* mat;
+            struct Material* mat;
         };
     };
     enum { SPHERE } type;
-} hittable;
+} Hittable;
 
-bool hit(hittable h, const Ray, interval i, hit_record* record);
+bool hit(Hittable h, const Ray, Interval i, HitRecord* record);

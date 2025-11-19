@@ -5,14 +5,14 @@
 #include "ray.h"
 #include "vector.h"
 
-VECTOR_PROTOTYPE(hittable)
+VECTOR_PROTOTYPE(Hittable)
 
 typedef struct {
-    vector_hittable objects;
-} hittable_list;
+    vector_Hittable objects;
+} HittableList;
 
-void hittable_list_clear(hittable_list* hl);
-void hittable_list_add(hittable_list* hl, hittable h);
+void hittable_list_clear(HittableList* hl);
+void hittable_list_add(HittableList* hl, Hittable h);
 
-bool hittable_list_hit(hittable_list hl, const Ray* r, interval i,
-                       hit_record* record);
+bool hittable_list_hit(HittableList hl, const Ray* r, Interval i,
+                       HitRecord* record);

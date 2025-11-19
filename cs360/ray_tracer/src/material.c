@@ -4,14 +4,14 @@
 #include <math.h>
 #include <stdint.h>
 
-material material_make_lambertian(Pixel albedo) {
-    return (material){.albedo = albedo, .type = LAMBERTIAN};
+Material material_make_lambertian(Pixel albedo) {
+    return (Material){.albedo = albedo, .type = LAMBERTIAN};
 }
-material material_make_metal(Pixel albedo) {
-    return (material){.albedo = albedo, .type = METAL};
+Material material_make_metal(Pixel albedo) {
+    return (Material){.albedo = albedo, .type = METAL};
 }
 
-static double reflectance(double cosine, double refraction_index) {
+static double material_reflectance(double cosine, double refraction_index) {
     double r0 = (1 - refraction_index) / (1 + refraction_index);
     r0 = r0 * r0;
     return r0 + (1 - r0) * pow((1 - cosine), 5);
@@ -19,8 +19,8 @@ static double reflectance(double cosine, double refraction_index) {
 
 // `scatter` takes a material `m` and ray `r` then calculates the ray bounce
 // properties depending on hit angle
-bool scatter(material* m, const Ray* r, const hit_record* rec,
-             Pixel* attenuation, Ray* scattered) {
+bool material_scatter(Material* m, const Ray* r, const HitRecord* rec,
+                      Pixel* attenuation, Ray* scattered) {
     if (m) {
         switch (m->type) {
         case LAMBERTIAN: {
@@ -59,7 +59,7 @@ bool scatter(material* m, const Ray* r, const hit_record* rec,
             Vec3 direction;
 
             if (cannot_refract ||
-                reflectance(cos_theta, ri) > random_double()) {
+                material_reflectance(cos_theta, ri) > random_double()) {
                 direction = vec3_reflect(unit_direction, rec->normal);
             } else {
                 direction = vec3_refract(unit_direction, rec->normal, ri);

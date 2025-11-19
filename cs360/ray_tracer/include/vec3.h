@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-typedef struct {
+typedef struct Vec3 {
     union {
         struct {
             double x;
