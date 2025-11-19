@@ -5,8 +5,9 @@
 #include <sys/time.h>
 
 int main(int argc, char *argv[]) {
-  if (argc != 4) {
-    fprintf(stderr, "usage: %s neurons max_incoming seed\n", argv[0]);
+  if (argc != 5) {
+    fprintf(stderr, "usage: %s neurons max_incoming seed tracked_timesteps\n",
+            argv[0]);
     return 1;
   }
 
@@ -17,35 +18,40 @@ int main(int argc, char *argv[]) {
   int neurons;
   int max_incoming;
   int seed;
+  int tracked_timesteps;
   sscanf(argv[1], "%d", &neurons);
   sscanf(argv[2], "%d", &max_incoming);
   sscanf(argv[3], "%d", &seed);
+  sscanf(argv[4], "%d", &tracked_timesteps);
 
   srand(seed);
 
-  const uint matrix_size = neurons * max_incoming; // size of vectors
+  const uint synapse_matrix_size = neurons * max_incoming; // size of vectors
+  const uint charge_matrix_size =
+      neurons * tracked_timesteps; // size of vectors
 
   Memory<uint32_t> synapse_firing_matrix(
-      device, matrix_size); // allocate memory on both host and device
-  Memory<float> synapse_weight_matrix(device, matrix_size);
-  // Neuron 1  | 0 1 2 3 4 5 (Has 5 incoming synapses with weights 0-5)
-  // Neuron 2  | 0 1 2       (Has 3 incoming synapses with weights 0-2)
-  // ...
-  Memory<uint16_t> synapse_delay_matrix(device, matrix_size);
+      device, synapse_matrix_size); // allocate memory on both host and device
+  Memory<float> synapse_weight_matrix(device, synapse_matrix_size);
+  Memory<uint16_t> synapse_delay_matrix(device, synapse_matrix_size);
 
   Memory<uint16_t> incoming_synapses_vector(device, neurons);
   Memory<float> neuron_charge_vector(device, neurons);
+  Memory<float> neuron_charge_matrix(
+      device, charge_matrix_size); // Rows are timesteps, cols are neurons
   Memory<float> neuron_threshold_vector(device, neurons);
   Memory<float> neuron_min_potential_vector(device, neurons);
   Memory<uint16_t> neuron_fire_count_vector(device, neurons);
+  Memory<float> neuron_fired_vector(device, neurons);
 
   Kernel neuron_leak_kernel(device, neurons, "neuron_leak_kernel",
                             neuron_charge_vector, neuron_threshold_vector,
                             neuron_min_potential_vector);
-  Kernel synapse_kernel(device, matrix_size, max_incoming, "synapse_kernel",
-                        synapse_firing_matrix, synapse_weight_matrix,
-                        incoming_synapses_vector, neuron_charge_vector);
-  Kernel neuron_firing_kernel(device, matrix_size, max_incoming,
+  Kernel synapse_kernel(device, synapse_matrix_size, max_incoming,
+                        "synapse_kernel", synapse_firing_matrix,
+                        synapse_weight_matrix, incoming_synapses_vector,
+                        neuron_charge_vector);
+  Kernel neuron_firing_kernel(device, synapse_matrix_size, max_incoming,
                               "neuron_firing_kernel", neuron_charge_vector,
                               neuron_threshold_vector, synapse_delay_matrix,
                               synapse_firing_matrix, incoming_synapses_vector,

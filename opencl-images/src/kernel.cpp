@@ -3,90 +3,89 @@ string opencl_c_container() {
   return R( // ########################## begin of OpenCL C code
             // ####################################################################
 
-      kernel void img_kernel(uint width, uint height, uint num_shapes,
-                             global float *x, global float *y, global float *r,
-                             global bool *type, global uchar4 *color,
-                             global uchar4 *pixels) {
-        const uint n = get_global_id(0);
-        const float aspect_ratio = (float)height / (float)width;
+      // kernel void img_kernel(uint width, uint height, uint num_shapes,
+      //                        global float *x, global float *y, global float
+      //                        *r, global bool *type, global uchar4 *color,
+      //                        global uchar4 *pixels) {
+      //   const uint n = get_global_id(0);
+      //   const float aspect_ratio = (float)height / (float)width;
 
-        const uint local_x = n % width;
-        const uint local_y = n / width;
+      //   const uint local_x = n % width;
+      //   const uint local_y = n / width;
 
-        const float x_coord = ((float)local_x / ((float)width / 2) - 1);
-        const float y_coord = -1 * ((float)local_y / ((float)height / 2) - 1);
+      //   const float x_coord = ((float)local_x / ((float)width / 2) - 1);
+      //   const float y_coord = -1 * ((float)local_y / ((float)height / 2) -
+      //   1);
 
-        uchar4 pixel_color;
-        pixel_color.x = 160;
-        pixel_color.y = 200;
-        pixel_color.z = 255;
+      //   uchar4 pixel_color;
+      //   pixel_color.x = 160;
+      //   pixel_color.y = 200;
+      //   pixel_color.z = 255;
 
-        float height_fraction = (y_coord + 1) / 2;
+      //   float height_fraction = (y_coord + 1) / 2;
 
-        pixel_color.x += (255 - 160) * height_fraction;
-        pixel_color.y += (255 - 200) * height_fraction;
+      //   pixel_color.x += (255 - 160) * height_fraction;
+      //   pixel_color.y += (255 - 200) * height_fraction;
 
-        for (int depth = num_shapes - 1; depth >= 0; depth--) {
-          if (type[depth]) {
-            // Square
-            if (fabs(x_coord - x[depth]) <= r[depth] * aspect_ratio &&
-                fabs(y_coord - y[depth]) <= r[depth]) {
-              pixel_color = color[depth];
-              break;
-            }
-          } else {
-            // Circle
-            float lhs =
-                (pow(x_coord - x[depth], 2) / pow(r[depth] * aspect_ratio, 2)) +
-                (pow(y_coord - y[depth], 2) / pow(r[depth], 2));
+      //   for (int depth = num_shapes - 1; depth >= 0; depth--) {
+      //     if (type[depth]) {
+      //       // Square
+      //       if (fabs(x_coord - x[depth]) <= r[depth] * aspect_ratio &&
+      //           fabs(y_coord - y[depth]) <= r[depth]) {
+      //         pixel_color = color[depth];
+      //         break;
+      //       }
+      //     } else {
+      //       // Circle
+      //       float lhs =
+      //           (pow(x_coord - x[depth], 2) / pow(r[depth] * aspect_ratio,
+      //           2)) + (pow(y_coord - y[depth], 2) / pow(r[depth], 2));
 
-            if (lhs <= 1) {
-              pixel_color = color[depth];
-              break;
-            }
-          }
-        }
+      //       if (lhs <= 1) {
+      //         pixel_color = color[depth];
+      //         break;
+      //       }
+      //     }
+      //   }
 
-        pixels[n] = pixel_color;
-      }
+      //   pixels[n] = pixel_color;
+      // }
 
-      kernel void neuron_leak_kernel(
-          global float *neuron_charge_vector,
-          global float *neuron_threshold_vector,
-          global float *neuron_min_potential_vector) {
-        const uint o = get_group_id(0); // Which neuron
+      // kernel void neuron_leak_kernel(
+      //     global float *neuron_charge_vector,
+      //     global float *neuron_threshold_vector,
+      //     global float *neuron_min_potential_vector) {
+      //   const uint o = get_group_id(0); // Which neuron
 
-        neuron_charge_vector[o] =
-            max(neuron_min_potential_vector[o], neuron_charge_vector[o]);
-      }
+      //   neuron_charge_vector[o] =
+      //       max(neuron_min_potential_vector[o], neuron_charge_vector[o]);
+      // }
 
-      kernel void synapse_kernel(global uint * firing_matrix,
-                                 global float *weight_matrix,
-                                 global ushort *incoming_synapses_vector,
-                                 global float *neuron_charge_vector) {
-        const uint o = get_group_id(0); // Which neuron
-        const uint m = get_local_id(0); // Which synapse of the neuron
-        const uint max_incoming = get_local_size(0);
+      // kernel void synapse_kernel(global uint * firing_matrix,
+      //                            global float *weight_matrix,
+      //                            global ushort *incoming_synapses_vector,
+      //                            global float *neuron_charge_vector) {
+      //   const uint o = get_group_id(0); // Which neuron
+      //   const uint m = get_local_id(0); // Which synapse of the neuron
+      //   const uint max_incoming = get_local_size(0);
 
-        if (m > incoming_synapses_vector[(o * max_incoming) + m]) {
-          return;
-        }
+      //   if (m > incoming_synapses_vector[(o * max_incoming) + m]) {
+      //     return;
+      //   }
 
-        firing_matrix[(o * max_incoming) + m] >>= 1;
-        const float charge = (firing_matrix[(o * max_incoming) + m] & 1)
-                                 ? weight_matrix[(o * max_incoming) + m]
-                                 : 0;
+      //   firing_matrix[(o * max_incoming) + m] >>= 1;
+      //   const float charge = (firing_matrix[(o * max_incoming) + m] & 1)
+      //                            ? weight_matrix[(o * max_incoming) + m]
+      //                            : 0;
 
-        const float charge_update = work_group_reduce_add(charge);
+      //   const float charge_update = work_group_reduce_add(charge);
 
-        if (m == 0) {
-          neuron_charge_vector[o] += charge_update;
-        }
-      }
+      //   if (m == 0) {
+      //     neuron_charge_vector[o] += charge_update;
+      //   }
+      // }
 
-      // The super kernel uses a charge table, and must be run after the leak
-      // kernel
-      // kernel void neuron_super_kernel(global float *neuron_charge_vector,
+      // ernel void neuron_firing_kernel(global float *neuron_charge_vector,
       //                                 global float *neuron_threshold_vector,
       //                                 global ushort *synapse_delay_matrix,
       //                                 global uint *synapse_firing_matrix,
@@ -94,9 +93,12 @@ string opencl_c_container() {
       //                                 *incoming_synapses_vector, global
       //                                 ushort *neuron_fire_count_vector) {
       //   const uint o = get_group_id(0); // Which neuron
+      //   const uint m = get_local_id(0); // Which synapse of the neuron
+      //   const uint max_incoming = get_local_size(0);
+      //   const uint idx = (o * max_incoming) + m;
 
-      //   for (uint i = 0; i < incoming_synapses_vector[o]; i++) {
-      //     if (neuron_charge_matrix[()])
+      //   if (m > incoming_synapses_vector[idx]) {
+      //     return;
       //   }
 
       //   if (neuron_charge_vector[o] < neuron_threshold_vector[o]) {
@@ -111,31 +113,76 @@ string opencl_c_container() {
       //   }
       // }
 
-      kernel void neuron_firing_kernel(
-          global float *neuron_charge_vector,
+      kernel void neuron_leak_fired_kernel(
+          uint tracked_timesteps, uint neurons, global uint * current_timestep,
+          global float *neuron_charge_matrix,
           global float *neuron_threshold_vector,
-          global ushort *synapse_delay_matrix,
-          global uint *synapse_firing_matrix,
-          global ushort *incoming_synapses_vector,
+          global float *neuron_min_potential_vector,
+          global bool *neuron_fired_vector,
           global ushort *neuron_fire_count_vector) {
-        const uint o = get_group_id(0); // Which neuron
-        const uint m = get_local_id(0); // Which synapse of the neuron
-        const uint max_incoming = get_local_size(0);
-        const uint idx = (o * max_incoming) + m;
+        const uint o = get_global_id(0); // Which neuron
 
-        if (m > incoming_synapses_vector[idx]) {
+        if (o >= neurons) {
           return;
         }
 
-        if (neuron_charge_vector[o] < neuron_threshold_vector[o]) {
+        const uint idx =
+            ((current_timestep[0] % tracked_timesteps) * neurons) + o;
+
+        // Min potential check
+        neuron_charge_matrix[idx] =
+            max(neuron_min_potential_vector[o], neuron_charge_matrix[idx]);
+
+        // Fired check
+        const bool fired =
+            neuron_charge_matrix[idx] >= neuron_threshold_vector[o];
+        neuron_fired_vector[o] = fired;
+        neuron_fire_count_vector[o] += fired;
+
+        // If we don't fire do carry over
+        // TODO we need a neuron leak vector
+        if (!fired) {
+          neuron_charge_matrix[(idx + neurons) %
+                               (neurons * tracked_timesteps)] +=
+              neuron_charge_matrix[idx];
+        }
+
+        neuron_charge_matrix[idx] = 0;
+      }
+
+      // The super kernel uses a charge table, and must be run after the leak
+      // kernel
+      kernel void neuron_super_kernel(
+          global uint * current_timestep, uint neurons, uint tracked_timesteps,
+          uint max_incoming, global float *neuron_charge_matrix,
+          global float *synapse_weight_matrix,
+          global ushort *synapse_delay_matrix,
+          global ushort *synapse_from_matrix,
+          global ushort *incoming_synapses_vector,
+          global bool *neuron_fired_vector) {
+        const uint o = get_global_id(0); // Which neuron
+
+        if (o >= neurons) {
           return;
         }
 
-        synapse_firing_matrix[idx] |= 1 << synapse_delay_matrix[idx];
+        for (uint i = 0; i < incoming_synapses_vector[o]; i++) {
+          const uint synapse_matrix_index = (o * max_incoming) + i;
+          const ushort delay = synapse_delay_matrix[synapse_matrix_index];
+          const float weight = synapse_weight_matrix[synapse_matrix_index];
+          const uint destination_timestep =
+              (current_timestep[0] + delay) % tracked_timesteps;
 
-        if (m == 0) {
-          neuron_fire_count_vector[o]++;
-          neuron_charge_vector[o] = 0;
+          if (neuron_fired_vector[synapse_from_matrix[synapse_matrix_index]]) {
+            neuron_charge_matrix[(destination_timestep * neurons) + o] +=
+                weight;
+          }
+        }
+      }
+
+      kernel void increment_timestep(global uint * current_timestep) {
+        if (get_global_id(0) == 0) {
+          current_timestep[0]++;
         }
       }
 
