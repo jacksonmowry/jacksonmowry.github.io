@@ -119,7 +119,8 @@ string opencl_c_container() {
           global float *neuron_threshold_vector,
           global float *neuron_min_potential_vector,
           global bool *neuron_fired_vector,
-          global ushort *neuron_fire_count_vector) {
+          global uint *neuron_fire_count_vector,
+          global bool *neuron_leak_vector) {
         const uint o = get_global_id(0); // Which neuron
 
         if (o >= neurons) {
@@ -141,7 +142,7 @@ string opencl_c_container() {
 
         // If we don't fire do carry over
         // TODO we need a neuron leak vector
-        if (!fired) {
+        if (!fired && !neuron_leak_vector[o]) {
           neuron_charge_matrix[(idx + neurons) %
                                (neurons * tracked_timesteps)] +=
               neuron_charge_matrix[idx];

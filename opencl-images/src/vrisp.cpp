@@ -39,8 +39,9 @@ int main(int argc, char *argv[]) {
       device, charge_matrix_size); // Rows are timesteps, cols are neurons
   Memory<float> neuron_threshold_vector(device, neurons);
   Memory<float> neuron_min_potential_vector(device, neurons);
-  Memory<uint16_t> neuron_fire_count_vector(device, neurons);
+  Memory<uint32_t> neuron_fire_count_vector(device, neurons);
   Memory<bool> neuron_fired_vector(device, neurons);
+  Memory<bool> neuron_leak_vector(device, neurons);
 
   Memory<uint32_t> current_timestep(device, 1);
   current_timestep[0] = 0;
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
       device, neurons, "neuron_leak_fired_kernel", tracked_timesteps, neurons,
       current_timestep, neuron_charge_matrix, neuron_threshold_vector,
       neuron_min_potential_vector, neuron_fired_vector,
-      neuron_fire_count_vector);
+      neuron_fire_count_vector, neuron_leak_vector);
   Kernel neuron_super_kernel(
       device, neurons, "neuron_super_kernel", current_timestep, neurons,
       tracked_timesteps, max_incoming, neuron_charge_matrix,
@@ -63,6 +64,7 @@ int main(int argc, char *argv[]) {
     neuron_threshold_vector[i] = rand() / (double)RAND_MAX;
     neuron_min_potential_vector[i] = 0;
     neuron_fire_count_vector[i] = 0;
+    neuron_leak_vector[i] = 0;
 
     for (size_t j = 0; j < incoming_synapses_vector[i]; j++) {
       synapse_weight_matrix[(i * max_incoming) + j] =
@@ -139,9 +141,10 @@ int main(int argc, char *argv[]) {
   neuron_min_potential_vector.write_to_device();
   neuron_fire_count_vector.write_to_device();
   neuron_fired_vector.write_to_device();
+  neuron_leak_vector.write_to_device();
   current_timestep.write_to_device();
 
-  for (size_t i = 0; i < 10000; i++) {
+  for (size_t i = 0; i < 100000; i++) {
     neuron_leak_fired_kernel.run();
     neuron_super_kernel.run();       // run add_kernel on the device
     increment_timestep_kernel.run(); // run add_kernel on the device
