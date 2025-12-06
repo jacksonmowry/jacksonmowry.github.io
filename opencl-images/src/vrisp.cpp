@@ -146,8 +146,8 @@ int main(int argc, char *argv[]) {
 
   for (size_t i = 0; i < 100000; i++) {
     neuron_leak_fired_kernel.run();
-    neuron_super_kernel.run();       // run add_kernel on the device
-    increment_timestep_kernel.run(); // run add_kernel on the device
+    neuron_super_kernel.run();
+    increment_timestep_kernel.run();
   }
 
   neuron_charge_matrix
@@ -164,6 +164,7 @@ int main(int argc, char *argv[]) {
                    1000000.0;
 
   fprintf(stderr, "Run took %f seconds\n", seconds);
+  fprintf(stderr, "Run took %f seconds per frame\n", seconds / 100000);
 
   printf("We processed %u timesteps\n\n", current_timestep[0]);
 

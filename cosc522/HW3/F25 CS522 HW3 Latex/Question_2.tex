@@ -1,0 +1,266 @@
+
+\section{{Neural Net Programming [50 pts]}}
+\label{sec:code}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.8]{img/tiled_mnist.png}
+    \caption{Random Images of Each of 10 classes in Fashion-MNIST}
+    \label{fig:grid}
+\end{figure}
+
+Your goal in this assignment is to label images of fashion articles by implementing a neural network from scratch. You will implement all of the functions needed to initialize, train, evaluate, and make predictions with the network. \textbf{Important: You must use PyTorch to complete this assignment. However, you are not allowed to directly use builtin PyTorch modules (e.g., nn.Linear, nn.Sigmoid, nn.Softmax, etc...) for the module implementations. Same for the corresponding forward() and backward() function implementations.)}
+
+The Fashion-MNIST dataset is comprised of 70,000 images of fashion articles and their respective labels. There are 60,000 training images and 10,000 test images, all of which are 28 pixels by 28 pixels. The images belong to the following 10 categories -- [T-shirt, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot].
+
+\paragraph{Dataset format} In the file \texttt{nn\_implementation\_code/base\_experiment.py} there are lines for downloading the dataset and converting it to the \texttt{torch.data.Dataset} format. More information about \texttt{torch.data.Dataset} and \texttt{torch.data.Dataloader} can be found in \href{https://pytorch.org/tutorials/beginner/basics/data_tutorial.html}{this tutorial}; you may use these classes to operate with data and batches.
+
+\subsection*{\textcolor{blue}{Model Definition}}
+\subsubsection*{\textcolor{purple}{Preliminaries}}
+In this section, you will implement a single-hidden-layer neural network with a sigmoid activation function for the hidden layer, and a softmax on the output layer. For this particular problem, the input vectors $\xv$ are of length $M = 28\times 28$, the hidden layer $\zv$ consist of $D$ hidden units, and the output layer $\hat{\yv}$ represents a probability distribution over the $K = 10$ classes. In other words, each element $\hat{y}_k$ of the output vector $\hat{\yv}$ represents the probability of $\xv$ belonging to the class $k$. 
+
+Following the notation from the written section we have:
+\begin{itemize}
+    \item For the output layer:
+    \begin{gather*}
+         \hat{y}_k = \frac{\exp(b_k)}{\sum_{l=1}^K \exp(b_l)},\quad k\in\{1,\dots,K\},\quad (\text{softmax activation})\\[3mm]
+         b_k =  \beta_{k,0} + \sum_{j=1}^D \beta_{kj} z_j,\quad k\in\{1,\dots,K\},\quad (\text{pre-activation})
+    \end{gather*}    
+    \item For the hidden layer:
+    \begin{gather*}
+        z_j = \frac{1}{1+\exp(-a_j)},\quad j\in\{1,\dots,D\},\quad (\sigma-\text{activation})\\[3mm]
+        a_j = \alpha_{j,0} + \sum_{i=1}^M \alpha_{ji} x_i,\quad j\in\{1,\dots,D\},\quad (\text{pre-activation})
+    \end{gather*}        
+\end{itemize}
+
+
+It is possible to compactly express this model by assuming that $x_0=1$ is a bias feature on the input and that $z_0=1$ is also fixed. In this way, we have two parameter matrices $\alphav \in \Rb^{D \times (M+1)}$ and $\betav \in \Rb^{K \times (D+1)}$. The extra $0$th column of each matrix (i.e. $\alphav_{\cdot,0}$ and $\betav_{\cdot,0}$) hold the bias parameters. With these considerations we have,
+
+\begin{gather*}
+\hat{y}_k = \frac{\exp(b_k)}{\sum_{l=1}^K \exp(b_l)},\quad k\in\{1,\dots,K\}
+\\[3mm]
+b_k =  \sum_{j=0}^D \beta_{kj} z_j,\quad k\in\{1,\dots,K\}
+\\[3mm]
+z_j = \frac{1}{1+\exp(-a_j)},\quad j\in\{1,\dots,D\}
+\\[3mm]
+a_j = \sum_{i=0}^M \alpha_{ji} x_i,\quad j\in\{1,\dots,D\}
+\end{gather*}
+
+\subsubsection*{\textcolor{purple}{Objective function}}
+Since the output corresponds to a probabilistic distribution over the $K$ classes, the objective (cost) function we will use for training our neural network is the \textcolor{magenta}{average cross entropy},
+\begin{gather}
+\label{eq:celoss}
+J(\alphav, \betav)= - \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^{K} y_k^{(n)} \log (\hat{y}^{(n)}_k)
+\end{gather}
+over the training dataset,
+\begin{gather*}
+\Dc = \{ (\xv^{(n)}, \yv^{(n)})\}, \quad\text{for $n\in\{1,\ldots N\}$} 
+\end{gather*}
+
+
+In Equation~\eqref{eq:celoss}, $\textcolor{magenta}{J}$ is a function of the model parameters $\alphav$ and $\betav$ because $\hat{y}^{(n)}_k$ is implicitly a function of $\xv^{(n)}$, $\alphav$, and $\betav$ since it is the output of the neural network applied to $\xv^{(n)}$. As before, $\hat{y}^{(n)}_k$ and $y_k^{(n)}$ present the $k$-th component of $\hat{\yv}^{(n)}$ and $\yv^{(n)}$ respectively.
+
+
+To train the network, you should optimize this objective function using \textcolor{magenta}{stochastic gradient descent (SGD)}, where the gradient of the parameters for each training example is computed via \textcolor{magenta}{backpropagation}, though typically you should shuffle your data during SGD you are \textbf{not} to do so here, and instead you are to train through the dataset in the order it is given.
+
+\subsection*{\textcolor{blue}{Implementation}}
+\label{sec:model}
+
+To proceed, you are provided with the following guide. This is recommended but absolutely not required.
+
+\subsubsection*{\textcolor{purple}{Defining layers}}
+
+Just to recap, your network architecture should look like the following:
+ \texttt{Linear}$\rightarrow$ \texttt{Sigmoid} $\rightarrow$ \texttt{Linear} $\rightarrow$ \texttt{Softmax}.
+ The size of the input is 784. The first linear layer can have 785 nodes to include bias term. The final (output) layer should have 10 nodes (one corresponding to each integer from 0 - 9). The hidden layer will have D = 256 nodes (excluding bias term).
+
+
+\textbf{Again, you are not allowed to directly use built-in PyTorch modules (e.g.,
+nn.Linear, nn.Sigmoid, nn.Softmax, etc...) for the module implementations}. Instead,
+you should complete the methods defined for you all in \texttt{custom\_functions.py} to
+implement your own versions of these layers.
+    
+\textbf{Be aware of computing issues!} $\log(x)$ is problematic when $x\rightarrow0$. Similarly $exp(x)$ may overflow
+when it is huge. Think of using $\log$ to avoid some exponential calculations and dividing both numerator and denominator by a large value to avoid overflowing:
+$$\frac{e^{x_i}}{\sum e^{x_j}} = \frac{e^{x_i-b}}{\sum e^{x_j-b}}$$
+
+
+\subsubsection*{\textcolor{purple}{Pseudo-code for Training Loop}}
+\begin{lstlisting}
+For epoch in epochs:
+	for x, y in train_x, train_y:
+		Pass x through all the forward layers and get the loss
+		Pass the output though all the backward layers
+		Update weights and biases
+	compute the average training loss for the epoch
+	compute test loss
+	compute test accuracy
+\end{lstlisting}
+
+You can follow the steps mentioned above or approach it any other way. 
+
+\subsubsection*{\textcolor{purple}{Important Tips}}
+\begin{itemize}
+    \item The training loss you report, should not be aggregated throughout an epoch, rather you should compute the loss on the whole training set at the end of each epoch.
+    % \item The final loss value to report when asked should be averaged across all batches.
+    \item When performing mini-batch gradient descent, you should take the mean of the loss within a batch before applying the update.
+    \item Do NOT shuffle the training or test data, as we simply want more stability when looking at different student submissions. 
+\end{itemize}
+
+\subsection*{\textcolor{blue}{Programming Submission}}
+\textbf{NOTE: Use the following hyper-parameters:
+\begin{itemize}
+    \item Learning rate = 0.01
+    \item Number of epochs = 15
+    \item Width of hidden layer = 256 (excluding bias)
+    \item (Q1-Q2 only) Batch size = 1
+\end{itemize}}
+
+For initializing the network's weights, we will use the \textbf{Xavier (Glorot) Uniform Initialization} strategy. This is a common and effective method for networks using \texttt{sigmoid} activations, as it helps keep the signal variance stable during forward and backward passes. You can find the official PyTorch documentation for this function here: \href{https://pytorch.org/docs/stable/nn.init.html\#torch.nn.init.xavier\_uniform\_}{\texttt{torch.nn.init.xavier\_uniform\_}}. All biases will be initialized to zero.
+
+Below is a code example demonstrating how to initialize weight and bias tensors.
+
+\begin{verbatim}
+# import initialization function and define layer dimensions
+import torch.nn.init as init
+n_inputs = 784
+n_hidden = 256
+
+# Create empty tensors 
+W1 = torch.empty(n_inputs, n_hidden)
+b1 = torch.empty(n_hidden)
+# Apply Xavier uniform initialization for weight matrix and set the bias to zero
+init.xavier_uniform_(W1)
+init.zeros_(b1)
+
+\end{verbatim}
+ 
+%We have provided the outputs of first five nodes of each layer and the updated weights for the first data point in the first epoch in the folder \texttt{check}. Use these to verify your implementation.
+
+Based on the information above, answer the questions below:
+
+\begin{enumerate}
+
+
+    
+
+    \item \textbf{[6 pts]} List the average test loss at the end of each epoch. Report numbers till 4 places of decimal.
+
+    \begin{tcolorbox}[fit,height=3cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+Epoch 1/15,  Test Loss: 0.4668
+Epoch 2/15,  Test Loss: 0.4271
+Epoch 3/15,  Test Loss: 0.4058
+Epoch 4/15,  Test Loss: 0.3918
+Epoch 5/15,  Test Loss: 0.3813
+Epoch 6/15,  Test Loss: 0.3731
+Epoch 7/15,  Test Loss: 0.3665
+Epoch 8/15,  Test Loss: 0.3612
+Epoch 9/15,  Test Loss: 0.3569
+Epoch 10/15, Test Loss: 0.3534
+Epoch 11/15, Test Loss: 0.3507
+Epoch 12/15, Test Loss: 0.3485
+Epoch 13/15, Test Loss: 0.3470
+Epoch 14/15, Test Loss: 0.3460
+Epoch 15/15, Test Loss: 0.3453
+        \end{tcolorbox}
+        
+
+    
+    \item \textbf{[6 pts]} List the test accuracy at the end of each epoch. Report numbers till 4 places of decimal.
+
+    \begin{tcolorbox}[fit,height=3cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+Epoch 1/15, Test Accuracy: 83.15\%
+Epoch 2/15, Test Accuracy: 84.8\%
+Epoch 3/15, Test Accuracy: 85.63\%
+Epoch 4/15, Test Accuracy: 86.17\%
+Epoch 5/15, Test Accuracy: 86.56\%
+Epoch 6/15, Test Accuracy: 86.88\%
+Epoch 7/15, Test Accuracy: 87.13\%
+Epoch 8/15, Test Accuracy: 87.33\%
+Epoch 9/15, Test Accuracy: 87.51\%
+Epoch 10/15, Test Accuracy: 87.69\%
+Epoch 11/15, Test Accuracy: 87.7\%
+Epoch 12/15, Test Accuracy: 87.79\%
+Epoch 13/15, Test Accuracy: 87.83\%
+Epoch 14/15, Test Accuracy: 88.01\%
+Epoch 15/15, Test Accuracy: 88.04\%
+    \end{tcolorbox}
+        
+    
+    \item \textbf{[7 pts]} For the experiments until now, we were using stochastic gradient descent (SGD) i.e. batch size = 1. We will now train our model on batches of data i.e. a mini-batch gradient descent. Run the model for 50 epochs with a batch size of 5, and report the average final training loss and the test accuracy. Report numbers till 4 places of decimal.
+
+    
+    \begin{tcolorbox}[fit,height=1cm, width=5cm, blank, borderline={1pt}{-2pt}]
+    Training Loss: 0.2331
+    \end{tcolorbox}
+    \begin{tcolorbox}[fit,height=1cm, width=5cm, blank, borderline={1pt}{-2pt}]
+    Test Accuracy: 0.3357
+    \end{tcolorbox}
+
+    \clearpage
+    \item \textbf{[7 pts]} For the model trained for 50 epochs, display the confusion matrix for both the training and test sets. In the plot, you should have \emph{true labels} on the y-axis and \emph{predicted labels} on the x-axis. For example, the second entry in the fourth row should show the count for the number of times class 3 was wrongly predicted as 1.
+    
+    \begin{tcolorbox}[fit,height=8cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    \includegraphics[scale=0.8]{img/conf.png}
+    \end{tcolorbox}
+    
+    
+    \item \textbf{[3 pts]} For each class, display the first data point in the test dataset that was wrongly classified.
+
+    \begin{tcolorbox}[fit,height=3cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    \includegraphics[scale=0.8]{img/first_miss.png}
+    \end{tcolorbox}
+    
+    
+    \clearpage
+    \item \textbf{[8 pts]} In this section, we will experiment with different batch sizes. For each batch size in [10, 50, 100], run your model for 50 epochs. Plot two graphs of epoch vs loss, one each for training and test loss, which have the epoch number on the x-axis and the loss value on the y-axis.  Please make sure your graphs are properly labeled and include a legend showing the color for each batch size.
+    
+    \begin{tcolorbox}[fit,height=8cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+    \includegraphics[scale=0.8]{img/batch_size.png}
+    \end{tcolorbox}
+
+    
+    \item \textbf{[6 pts]} Based on the plots in the previous part, what do you observe about the effect of increasing batch sizes? How does this relate to the learning rate? (Explain in 1-2 lines)
+
+    \begin{tcolorbox}[fit,height=2cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+      Larger batch sizes show slower convergence, which makes sense as we're averaging out the gradients over a larger number of data pointers. Naively I would assume that a larger batch size could tolerate a higher learning rate, as the smoothing factor of a large batch size would ensure the updates are generally moving in the right direction.
+    \end{tcolorbox}
+        
+        
+    \clearpage
+    \item  \textbf{[7 pts]} Now we want to give you a chance to experiment with the model by exploring the hyper-parameters of a neural network. Produce a pair of plots similar to that of the one requested in the batch size experiment, by varying a different hyperparameter in the network. Experiment with at least 3 different values for the hyperparameter that you decide to modify. For your experiment, you must,
+
+    \begin{enumerate}[label=(\alph*)]
+        \item describe the hyperparameter you varied
+        \item list the values you set the hyperparameter to
+        \item detail the setting of all the other hyperparameters, and
+        \item analyze your results in terms of the hyperparameter that you varied.
+    \end{enumerate}
+    
+    For your reference here are some hyperparameters which you can change:
+    \begin{itemize}
+        \item Learning Rate
+        \item Width of Hidden Layer
+        \item Different weight initialization
+    \end{itemize}
+    
+     You may choose any reasonable batch size and number of epochs for this question, just make sure to specify all design decisions you make. This question is for learning so feel free to experiment with whatever hyperparameter you wish to, as long you can provide a reasonable explanation for the observed behavior in the graphs.
+    
+    \begin{tcolorbox}[fit,height=10cm, width=0.95\textwidth, blank, borderline={1pt}{-2pt}]
+      I varied the hidden layer size.\\
+      The hyperparameter was varied between [8,16,32,64,128,256,512].\\
+      Learning rate was 0.01, epochs was 50, batch size was 10.\\
+      Overall I was surprised at how little the impact was from changing the hidden layer size. Increasing beyond our original 256 size had little impact, and on the lower end it was only obvious once we dropped below 32 on our hidden layer size.
+    \includegraphics[scale=0.8]{img/experiment.png}
+    \end{tcolorbox}
+    
+    
+
+\end{enumerate}
+
+
+
+
+
+
+

@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-12-01 Mon 18:18 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Usable Key Management Pt. 2</title>
+<meta name="author" content="Jackson Mowry" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Usable Key Management Pt. 2</h1>
+<div id="outline-container-orgcf8c7e9" class="outline-2">
+<h2 id="orgcf8c7e9">Section 1—Activity 1</h2>
+<div class="outline-text-2" id="text-orgcf8c7e9">
+</div>
+<div id="outline-container-org73e496d" class="outline-3">
+<h3 id="org73e496d">How long did it take you to complete this activity?</h3>
+<div class="outline-text-3" id="text-org73e496d">
+<p>
+10 Minutes<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org3139327" class="outline-3">
+<h3 id="org3139327">What steps did you take to complete the activity?</h3>
+<div class="outline-text-3" id="text-org3139327">
+<ul class="org-ul">
+<li>Include details about anything you attempted that ultimately did not work.<br /></li>
+<li>Include screenshots if you think that would be helpful.<br /></li>
+</ul>
+
+<p>
+I exported my gpg private key, copied it over to hydra, installed the key, and enabled commit signing.<br />
+<code>gpg --export-secret-keys --armor YOUR_KEY_ID &gt; private-key.asc</code><br />
+</p>
+</div>
+</div>
+<div id="outline-container-org349f6d1" class="outline-3">
+<h3 id="org349f6d1">Identify the tools you used.</h3>
+<div class="outline-text-3" id="text-org349f6d1">
+<ul class="org-ul">
+<li>Also, include details about any tools you ultimately abandoned.<br />
+<ul class="org-ul">
+<li>Describe what went well with these tools and what was challenging.<br /></li>
+</ul></li>
+</ul>
+
+<p>
+I used the same tools as part 1, just the gpg &amp; git command line tools. Both tools were easy to use and I had no issues.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgf900b79" class="outline-3">
+<h3 id="orgf900b79">Describe what information sources you used and how helpful (or unhelpful) they were.</h3>
+<div class="outline-text-3" id="text-orgf900b79">
+<ul class="org-ul">
+<li>Why did you need to use them?<br /></li>
+<li>Why were they helpful (or unhelpful)?<br /></li>
+</ul>
+
+<p>
+I needed to look up the correct set of flags to export my private key, which I found at <a href="https://gist.github.com/luckygoswami/3f7cd9a2a7787314d44290941f0665f3">https://gist.github.com/luckygoswami/3f7cd9a2a7787314d44290941f0665f3</a>.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org67bdbc6" class="outline-3">
+<h3 id="org67bdbc6">To complete this activity, you could either copy your private key to the new machine or generate a new key pair for the new machine. Which approach did you choose? Why?</h3>
+<div class="outline-text-3" id="text-org67bdbc6">
+<p>
+Answer the following questions:<br />
+</p>
+<ul class="org-ul">
+<li>What were the easiest one or two steps in setting up Git commit signing on a second device? Why were they the easiest?<br />
+<ul class="org-ul">
+<li>The easiest step was exporting my gpg private key. This was the easiest as I copied a command.<br /></li>
+</ul></li>
+<li>What were the hardest one or two steps in setting up Git commit signing on a second device? Why were they the hardest?<br />
+<ul class="org-ul">
+<li>The hardest step was copying my gpg key over because UTK requires me to use a VPN in order to be able to SSH onto a computer.<br /></li>
+</ul></li>
+<li>What would you change about the process for setting up Git commit signing on a second device, if anything?<br />
+<ul class="org-ul">
+<li>Nothing needs to change in my opinion.<br /></li>
+</ul></li>
+</ul>
+<p>
+Answer the after-scenario questionnaire (ASQ) by indicating how much you agree with the following statements on a scale of 1 (strongly disagree) to 7 (strongly agree).<br />
+</p>
+<ul class="org-ul">
+<li>Overall, I am satisfied with the ease of setting up and using commit signing on a second device.<br />
+<ul class="org-ul">
+<li>7<br /></li>
+</ul></li>
+<li>Overall, I am satisfied with the amount of time it took to set up and use Git commit signing on a second device.<br />
+<ul class="org-ul">
+<li>7<br /></li>
+</ul></li>
+<li>Overall, I am satisfied with the support information (online help, messages, documentation) I found when setting up and using commit signing on a second device.<br />
+<ul class="org-ul">
+<li>7<br /></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org827e5d2" class="outline-3">
+<h3 id="org827e5d2">Provide any other feedback you have about this activity or Git commit signing on a second device.</h3>
+<div class="outline-text-3" id="text-org827e5d2">
+<p>
+I have no other feedback.<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org795cc39" class="outline-2">
+<h2 id="org795cc39">Section 2—Activity 2</h2>
+<div class="outline-text-2" id="text-org795cc39">
+</div>
+<div id="outline-container-org62451ec" class="outline-3">
+<h3 id="org62451ec">Did you identify any commits that you think are problematic?</h3>
+<div class="outline-text-3" id="text-org62451ec">
+<ul class="org-ul">
+<li>If so, what was problematic about that commit?<br /></li>
+<li>Provide these details for each commit you believe is problematic.<br /></li>
+</ul>
+
+<p>
+On either end of the commit list we have 2 commits that are both years apart from the rest of the commits. I find this suspicious, and would suspect that these commits have had their dates modified.<br />
+Within the bulk of the commits we have most commits showing as verified and properly signed, mixed in with a few unverified commits, and some that are not signed. The commits from Dr. Ruoti seem to be the most problematic as there is never a signing key associated with his commits. Additionally, individual commits from both John and Abubakar are not signed, which does not instill confidence that these commits are legitimate. Ultimately, it would be up to the developer choosing to consume this library to enact their own policy according to the level of risk they are willing to take in 3rd party code.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgec015f5" class="outline-3">
+<h3 id="orgec015f5">How long did it take you to complete this activity?</h3>
+<div class="outline-text-3" id="text-orgec015f5">
+<p>
+10 minutes.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org4e10a75" class="outline-3">
+<h3 id="org4e10a75">What steps did you take to complete the activity?</h3>
+<div class="outline-text-3" id="text-org4e10a75">
+<ul class="org-ul">
+<li>Include details about anything you attempted that ultimately did not work.<br /></li>
+<li>Include screenshots if you think that would be helpful.<br /></li>
+</ul>
+
+<p>
+I cloned the repo, added the developers keys to my local store of keys, and then ran <code>git log --show-signature</code>.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orge2c59cb" class="outline-3">
+<h3 id="orge2c59cb">Identify the tools you used.</h3>
+<div class="outline-text-3" id="text-orge2c59cb">
+<ul class="org-ul">
+<li>Also, include details about any tools you ultimately abandoned.<br /></li>
+<li>Describe what went well with these tools and what was challenging.<br /></li>
+</ul>
+
+<p>
+I used the git cli.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org9f74652" class="outline-3">
+<h3 id="org9f74652">Describe what information sources you used and how helpful (or unhelpful) they were.</h3>
+<div class="outline-text-3" id="text-org9f74652">
+<ul class="org-ul">
+<li>Why did you need to use them?<br /></li>
+<li>Why were they helpful (or unhelpful)?<br /></li>
+</ul>
+
+<p>
+I did not need any external sources.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgca6bffe" class="outline-3">
+<h3 id="orgca6bffe">-Answer the following questions:</h3>
+<div class="outline-text-3" id="text-orgca6bffe">
+<ul class="org-ul">
+<li>What were the easiest one or two steps in analyzing the Git commit history? Why were they the easiest?<br />
+<ul class="org-ul">
+<li>The easiest was cloning the git repo, this is something I do almost daily so it is easy.<br /></li>
+</ul></li>
+<li>What were the hardest one or two steps in analyzing the Git commit history? Why were they the hardest?<br />
+<ul class="org-ul">
+<li>The hardest part was adding the developers keys to my local store, because I initially forgot where those keys live.<br /></li>
+</ul></li>
+<li>What would you change about the process of analyzing the Git commit history, if anything?<br />
+<ul class="org-ul">
+<li>Nothing.<br /></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgce2e8f0" class="outline-3">
+<h3 id="orgce2e8f0">Answer the after-scenario questionnaire (ASQ) by indicating how much you agree with the following statements on a scale of 1 (strongly disagree) to 7 (strongly agree).</h3>
+<div class="outline-text-3" id="text-orgce2e8f0">
+<ul class="org-ul">
+<li>Overall, I am satisfied with the ease of analyzing the Git commit history.<br />
+<ul class="org-ul">
+<li>7<br /></li>
+</ul></li>
+<li>Overall, I am satisfied with the amount of time it took to analyzing the Git commit history.<br />
+<ul class="org-ul">
+<li>7<br /></li>
+</ul></li>
+<li>Overall, I am satisfied with the support information (online help, messages, documentation) I found when analyzing the Git commit history.<br />
+<ul class="org-ul">
+<li>7<br /></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org186262c" class="outline-3">
+<h3 id="org186262c">Provide any other feedback you have about this activity or analyzing Git commit histories.</h3>
+<div class="outline-text-3" id="text-org186262c">
+<p>
+None.<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orge44372a" class="outline-2">
+<h2 id="orge44372a">Section 3—Semester-long reflection</h2>
+<div class="outline-text-2" id="text-orge44372a">
+</div>
+<div id="outline-container-org445802b" class="outline-3">
+<h3 id="org445802b">For this section, please reflect on your experience using Git commit signing in the second half of the semester.</h3>
+<div class="outline-text-3" id="text-org445802b">
+<p>
+Git commit signing is something that I have been doing for a few years now so the entire process was familiar to me. I think it&rsquo;s a good experience, especially with the guidance from your choice of git hosting provider guiding you along the way.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgcd29f2b" class="outline-3">
+<h3 id="orgcd29f2b">Where did you store your private key? How was it secured?</h3>
+<div class="outline-text-3" id="text-orgcd29f2b">
+<p>
+My private key was stored password protected on my laptop.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgb718218" class="outline-3">
+<h3 id="orgb718218">Did you change anything about how you signed commits throughout the second half of the semester? If so, what changes did you make? Why did you make those changes?</h3>
+<div class="outline-text-3" id="text-orgb718218">
+<p>
+I did not, I chose the correct method the first time around.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org35d3d29" class="outline-3">
+<h3 id="org35d3d29">Do you plan to start signing your Git commits outside of this class? Why or why not?</h3>
+<div class="outline-text-3" id="text-org35d3d29">
+<p>
+Yes, I will continue to sign my commits outside of the class. I like to provide my collaborators with the confidence that I am truly the one creating commits.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org4ca0dc1" class="outline-3">
+<h3 id="org4ca0dc1">Answer the system usability scale (SUS) questions by indicating how much you agree with the following statements on a scale of 1 (strongly agree) to 5 (strongly disagree).</h3>
+<div class="outline-text-3" id="text-org4ca0dc1">
+<ul class="org-ul">
+<li>I think that I would have no problem using Git commit signing frequently.<br />
+<ul class="org-ul">
+<li>5<br /></li>
+</ul></li>
+<li>I found using Git commit signing unnecessarily complex.<br />
+<ul class="org-ul">
+<li>1<br /></li>
+</ul></li>
+<li>I thought that using Git commit signing was easy.<br />
+<ul class="org-ul">
+<li>5<br /></li>
+</ul></li>
+<li>I think that I would need the support of a technical support staff to use Git commit signing in the future.<br />
+<ul class="org-ul">
+<li>1<br /></li>
+</ul></li>
+<li>I found the various functions for using Git commit signing to be well-integrated.<br />
+<ul class="org-ul">
+<li>5<br /></li>
+</ul></li>
+<li>I thought there was too much inconsistency in using Git commit signing.<br />
+<ul class="org-ul">
+<li>1<br /></li>
+</ul></li>
+<li>I would imagine that most people would learn to use Git commit signing very quickly.<br />
+<ul class="org-ul">
+<li>4<br /></li>
+</ul></li>
+<li>I found using Git commit signing to be very cumbersome.<br />
+<ul class="org-ul">
+<li>1<br /></li>
+</ul></li>
+<li>I felt very confident using Git commit signing.<br />
+<ul class="org-ul">
+<li>5<br /></li>
+</ul></li>
+<li>I needed to learn a lot of things before I could get going with using Git commit signing.<br />
+<ul class="org-ul">
+<li>1<br /></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgebb6c4f" class="outline-3">
+<h3 id="orgebb6c4f">Answer the following questions:</h3>
+<div class="outline-text-3" id="text-orgebb6c4f">
+<ul class="org-ul">
+<li>What were the easiest steps to set up Git commit signing, sign a commit, or verify a commit? Why were they the easiest?<br />
+<ul class="org-ul">
+<li>The easiest step was to verify a commit, which can be accomplished using <code>git log --show-signature</code>. This is a fairly simple command to remember, and it can be set as a default using your git config.<br /></li>
+</ul></li>
+<li>What were the hardest one or two steps in setting up Git commit signing, signing a commit, or verifying a commit? Why were they the hardest?<br />
+<ul class="org-ul">
+<li>The hardest step was remembering to configure git to enable automatic commit signing. I found this the hardest as the git cli flags for config options are not intuitive.<br /></li>
+</ul></li>
+<li>What would you change about the setup process, if anything?<br />
+<ul class="org-ul">
+<li>If more steps could be automated that would be great, likely during an OS install or something similar.<br /></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgdbeb580" class="outline-3">
+<h3 id="orgdbeb580">How did the usability of setting up git commit signing compare to the usability of using it throughout the second half of the semester?</h3>
+<div class="outline-text-3" id="text-orgdbeb580">
+<p>
+Using it throughout the second half of the semester was easy, and I didn&rsquo;t any change in complexity.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org9b2ddbb" class="outline-3">
+<h3 id="org9b2ddbb">Provide any other feedback you have about Git commit signing.</h3>
+<div class="outline-text-3" id="text-org9b2ddbb">
+<p>
+None.<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org874c904" class="outline-2">
+<h2 id="org874c904">Section 4—Thought exercises</h2>
+<div class="outline-text-2" id="text-org874c904">
+<p>
+In this section, you will complete several thought exercises. You will receive full credit for whatever you put down. I&rsquo;m not looking for you to get the &ldquo;right&rdquo; answer, but rather for you to share your thoughts based on what you&rsquo;ve learned this semester and your experiences using Git commit signing.<br />
+</p>
+</div>
+<div id="outline-container-orgf41f1d6" class="outline-3">
+<h3 id="orgf41f1d6">Are there any security benefits or drawbacks to using Git commit signing as compared to unsigned commits? If so, what are they?</h3>
+<div class="outline-text-3" id="text-orgf41f1d6">
+<p>
+Assuming (as with all cryptography) that the secrecy of the keys is kept fully secure git commit signing guarantees that the actual author associated with the commit was the one that wrote it. For safety/security critical code bases this is an extremely important fact, and therefore signing provides a benefit in these situations. Additionally, in larger open source projects git commit signing can help to instill confidence that a contributor is really who they say they are, assuming a network of trust is in place.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgee5f677" class="outline-3">
+<h3 id="orgee5f677">To use Git commit signing on multiple devices, you could either synchronize your existing signing key to the new machine or generate a new signing key for that machine. Each of these approaches has different potential security implications. What do you think the security benefits or drawbacks of each approach are?</h3>
+<div class="outline-text-3" id="text-orgee5f677">
+<p>
+Copying keys between machines exposes the potential for a broader attack surface, as you are sharing a single key. This means that if any of the copies is exposed, they are all exposed. However, this does make sharing your public keys with others much easier, as they only have to have a single key for you.<br />
+</p>
+
+<p>
+On the other hand, having individual keys per machine reduces the risk of being wholly compromised from a single attack, but it greatly increases the complexity of managing public keys.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orga63bdf3" class="outline-3">
+<h3 id="orga63bdf3">If you were to lose your Git signing private key, what would you need to do to continue signing commits? Are there any security concerns with your proposed workflow? If so, how could they be addressed (you can answer that you don&rsquo;t know)?</h3>
+<div class="outline-text-3" id="text-orga63bdf3">
+<p>
+You would need to generate a new key, that would then be distributed to all relevant parties. At the same time you should also ensure that your other key is &ldquo;forgotten&rdquo; so that if someone else manages to recover it, they cannot use it to continue impersonating you. The security concern is that a bad actor could just as easily compromise some other piece of your security chain, and use that to convince your network that their new key is yours.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgc64882a" class="outline-3">
+<h3 id="orgc64882a">If you were to have your Git signing private key stolen, what would you need to do to ensure the security of your repository? Are there any security concerns with your proposed workflow? If so, how could they be addressed (you can answer that you don&rsquo;t know)?</h3>
+<div class="outline-text-3" id="text-orgc64882a">
+<p>
+You would need to revoke the use of that key as soon as possible. The security concern is if that key was used elsewhere you would need to ensure its use is blocked on every platform.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-org75e8cc3" class="outline-3">
+<h3 id="org75e8cc3">Consider an open source project that&rsquo;s widely used, and attackers would like to get their code into this repository. What might attackers try to do to compromise that repository? What practices would you recommend that developers of this repo take to ensure that no malicious commits are added to their codebase?</h3>
+<div class="outline-text-3" id="text-org75e8cc3">
+<p>
+As an attacker I would choose to play the long game where I initially submit good-faith pull requests to build trust with the maintainers of a project. After this trust had been established I would then take some piece of code that I was responsible for and rewrite it to insert my malicious code, knowing that I have the most authority over this area of the code.<br />
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: Mon Dec  1 17:19:09 2025</p>
+<p class="author">Author: Jackson Mowry</p>
+<p class="date">Created: 2025-12-01 Mon 18:18</p>
+</div>
+</body>
+</html>

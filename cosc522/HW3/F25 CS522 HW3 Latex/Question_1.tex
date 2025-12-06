@@ -1,0 +1,357 @@
+\section{Neural Nets: Written Questions [50 pts]}
+\label{sec:written}
+
+\textbf{Note:} We strongly encourage you to do the written part of this homework before the programming, as it will help you gain familiarity with the calculations you will have to code up in the programming section. We suggest that for each of these problems, you write out the equation required to calculate each value in terms of the variables we created ($a_j, z_j, b_k$, etc.) before you calculate the numerical value.
+
+\textbf{Note:} For all questions which require numerical answers, round up your final answers to four decimal places. For integers, you may drop trailing zeros.
+
+ \begin{figure}[h]
+        \centering
+        \includegraphics[height=9cm]{img/network.png}
+        \caption{A One Hidden Layer Neural Network}
+        \label{fig:oneHL}
+    \end{figure}
+
+\subsubsection*{\textcolor{purple}{Network Overview}}
+Consider the neural network with one hidden layer shown in Figure \ref{fig:oneHL}. The input layer consists of 6 features $\xv = [x_1,...,x_6]^T$, the hidden layer has 4  nodes $\zv = [z_1,...,z_4]^T$, and the output layer is $\hat{\yv} = [\hat{y}_1, \hat{y}_2, \hat{y}_3]^T$ that sums to one over 3 classes. We also add a bias to the input, $x_0 = 1$ and the hidden layer $z_0 = 1$, both of which are fixed to $1$.
+
+
+We adopt the following notation:
+\begin{enumerate}
+    \item Let \textcolor{magenta}{$\boldsymbol{\alpha}$} be the matrix of weights from the inputs to the hidden layer.
+    \item Let \textcolor{magenta}{$\boldsymbol{\beta}$} be the matrix of weights from the hidden layer to the output layer.
+    \item Let \textcolor{magenta}{$\alpha_{j,i}$} represent the weight going \textit{to} the node $z_j$ in the hidden layer \textit{from} the node $x_i$ in the input layer (e.g. $\alpha_{1,2}$ is the weight from $x_2$ to $z_1$)
+    \item Let \textcolor{magenta}{$\boldsymbol{\beta}_{k,j}$} represent the weight going \textit{to} the node $y_k$ in the output layer \textit{from} the node $z_j$ in the hidden layer.
+    \item We will use a \emph{sigmoid activation function (\textcolor{magenta}{$\sigma$})} for the hidden layer and a \emph{softmax} for the output layer. 
+\end{enumerate}
+
+\subsubsection*{\textcolor{purple}{Network Details}}
+Equivalently, we define each of the following. 
+
+The input:
+\begin{align}
+\xv=[x_1,x_2,x_3,x_4,x_5,x_6]^T
+\end{align}
+
+Linear combination at first (hidden) layer:
+\begin{equation}
+\label{eq:a_j}
+a_j= \alpha_{j,0} + \sum_{i=1}^6 \alpha_{j,i}x_i,\quad j \in \{1,\ldots,4\}
+\end{equation}
+
+Activation at first (hidden) layer:
+\begin{align}
+\label{eq:z_j}
+z_j &= \sigma(a_j) = \frac{1}{1+\exp(-a_j)},\quad  j \in \{1,\ldots,4\}
+\end{align}
+
+Linear combination at second (output) layer:
+\begin{equation}
+\label{eq:b_k}
+b_k = \beta_{k,0} + \sum_{j=1}^4 \beta_{k,j}z_j,\quad  k \in \{1,\ldots,3\}
+\end{equation}
+
+Activation at second (output) layer:
+\begin{equation}
+\hat{y}_k = \frac{\exp(b_k)}{\sum\limits_{l=1}^3 \exp(b_l)},\quad  k \in \{1,\ldots,3\}
+\end{equation}
+
+Note that the linear combination equations can be written equivalently as the product of the weight matrix with the input vector. We can even fold in the bias term $\alpha_0$ by thinking of $x_0 = 1$, and fold in $\beta_0$ by thinking of $z_0 = 1$.
+
+\subsubsection*{\textcolor{purple}{Loss}}
+
+We will use cross entropy loss, $\ell(\hat{\yv},\yv)$. If $\yv$ represents our target (true) output, which will be a \textcolor{purple}{one-hot vector} representing the correct class, and $\hat{\yv}$ represents the output of the network, the loss is calculated as (note that the $\log$ terms are in base $e$):
+\begin{equation}
+\label{eq:cross_entropy_loss}
+   \ell(\hat{\yv},\yv) = - \sum_{k=1}^3 y_k \log(\hat{y}_k)
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%
+
+\begin{enumerate}
+\item \textbf{[12 pts]} In the following questions you will derive the matrix and vector forms of the previous equations which define our neural network. These are what you should hope to program in order to avoid excessive loops and large run times.\\
+When working these out it is important to keep track of the vector and matrix dimensions in order for you to easily identify what is and isn't a valid multiplication. Suppose you are given a training example: $\xv^{(1)}=[x_1,x_2,x_3,x_4,x_5,x_6]^T$ with \textbf{label class 2}, so $\yv^{(1)}=[0,1,0]^T$. We initialize the network weights as:
+\begin{center}
+$$\boldsymbol{\alpha^*}=
+    \begin{bmatrix}
+    \alpha_{1,1} & \alpha_{1,2} & \alpha_{1,3} & \alpha_{1,4} & \alpha_{1,5} & \alpha_{1,6} \\
+    \alpha_{2,1} & \alpha_{2,2} & \alpha_{2,3} & \alpha_{2,4} & \alpha_{2,5} & \alpha_{2,6} \\
+    \alpha_{3,1} & \alpha_{3,2} & \alpha_{3,3} & \alpha_{3,4} & \alpha_{3,5} & \alpha_{3,6} \\
+    \alpha_{4,1} & \alpha_{4,2} & \alpha_{4,3} & \alpha_{4,4} & \alpha_{4,5} & \alpha_{4,6}
+    \end{bmatrix}$$
+    
+$$\boldsymbol{\beta^*}=
+    \begin{bmatrix}
+    \beta_{1,1} & \beta_{1,2} & \beta_{1,3} & \beta_{1,4} \\
+    \beta_{2,1} & \beta_{2,2} & \beta_{2,3} & \beta_{2,4} \\
+    \beta_{3,1} & \beta_{3,2} & \beta_{3,3} & \beta_{3,4}
+    \end{bmatrix}
+$$
+\end{center}
+    
+We want to also consider the bias term and the weights on the bias terms (${\alpha}_{j,0}$ and ${\beta}_{k,0})$. To account for these we can add a new column to the beginning of our initial weight matrices. 
+
+$$\boldsymbol{\alpha}=
+    \begin{bmatrix}
+    \textcolor{blue}{\alpha_{1,0}} & \alpha_{1,1} & \alpha_{1,2} & \alpha_{1,3} & \alpha_{1,4} & \alpha_{1,5} & \alpha_{1,6} \\
+    \textcolor{blue}{\alpha_{2,0}} & \alpha_{2,1} & \alpha_{2,2} & \alpha_{2,3} & \alpha_{2,4} & \alpha_{2,5} & \alpha_{2,6} \\
+    \textcolor{blue}{\alpha_{3,0}} & \alpha_{3,1} & \alpha_{3,2} & \alpha_{3,3} & \alpha_{3,4} & \alpha_{3,5} & \alpha_{3,6} \\
+    \textcolor{blue}{\alpha_{4,0}} & \alpha_{4,1} & \alpha_{4,2} & \alpha_{4,0} & \alpha_{4,4} & \alpha_{4,5} & \alpha_{4,6}
+    \end{bmatrix}$$
+    
+$$\boldsymbol{\beta}=
+    \begin{bmatrix}
+    \textcolor{blue}{\beta_{1,0}} & \beta_{1,1} & \beta_{1,2} & \beta_{1,3} & \beta_{1,4} \\
+    \textcolor{blue}{\beta_{2,0}} & \beta_{2,1} & \beta_{2,2} & \beta_{2,3} & \beta_{2,4} \\
+    \textcolor{blue}{\beta_{3,0}} & \beta_{3,1} & \beta_{3,2} & \beta_{3,3} & \beta_{3,4}
+    \end{bmatrix}$$
+
+    And we can set our first value of our input vectors to always be 1 ($x_0^{(i)} = 1$), so our input becomes: $$\xv^{(1)}=[\textcolor{blue}{1},x_1,x_2,x_3,x_4,x_5,x_6]^T$$
+    
+    
+    \begin{enumerate}
+        \item \textbf{[2 pt]} By examining the shapes of the initial weight matrices, how many neurons do we have in the first hidden layer of the neural network? (Not including the bias neuron)
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          6
+        \end{tcolorbox}
+        
+        \item \textbf{[2 pt]} How many output neurons will our neural network have?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          3
+        \end{tcolorbox}
+        
+        \item \textbf{[2 pt]} What is the vector $\av$ whose elements are made up of the entries $a_j$ in equation (\ref{eq:a_j}). Write your answer in terms of $\alphav$ and $\xv^{(1)}$.
+        
+        
+        \begin{tcolorbox}[fit,height=1cm, width=4cm, blank, borderline={1pt}{-2pt}]
+          $\alphav xv^{(1)}$ % Simple matrix-vector multiplication
+        \end{tcolorbox}
+
+        
+        \item \textbf{[2 pt]} What is the vector $\zv$ whose elements are made up of the entries $z_j$ in equation (\ref{eq:z_j})? Write your answer in terms of $\av$.
+        
+        \begin{tcolorbox}[fit,height=1cm, width=4cm, blank, borderline={1pt}{-2pt}]
+          $\sigma(av)$
+        \end{tcolorbox}
+        
+        
+        \item \textbf{[2 pt]} \textbf{Select one:} We cannot take the matrix multiplication of our weights $\betav$ and our vector $\zv$ since they are not compatible shapes. Which of the following would allow us to take the matrix multiplication of $\betav$ and $\zv$ such that the entries of the vector $\bv = \betav\zv$ are equivalent to the values of $b_k$ in equation (\ref{eq:b_k})? 
+        
+        \begin{list}{}
+        \item $\circle$ Remove the last column of $\betav$
+        \item $\circle$ Remove the first row of $\zv$
+        \item $\CIRCLE$ Append a value of 1 to be the first entry of $\zv$
+        \item $\circle$ Append an additional column of 1's to be the first column of $\betav$ 
+        \item $\circle$ Append a row of 1's to be the first row of $\betav$ 
+        \item $\circle$ Take the transpose of $\betav$
+        \end{list}
+        
+        
+        
+        \item \textbf{[2 pt]} What are the entries of the output vector $\hat{\yv}$? Your answer should be written in terms of $b_1,b_2,b_3$.
+        
+        \begin{tcolorbox}[fit,height=4cm, width=15cm, blank, borderline={1pt}{-2pt}]
+          $\hat{\yv}=[\frac{exp(b_1)}{\sum_{i=1}^{3}exp(b_i)},\frac{exp(b_2)}{\sum_{i=1}^{3}exp(b_i)},\frac{exp(b_3)}{\sum_{i=1}^{3}exp(b_i)}]$
+        \end{tcolorbox}
+
+        
+        
+    \end{enumerate} 
+
+\item \textbf{[14 pts]} We will now derive the matrix and vector forms for the backpropagation algorithm.
+
+$$\frac{d\ell}{d\alphav} = 
+    \begin{bmatrix}
+        \adj{\alpha_{10}} & \adj{\alpha_{11}} & \dots  & \adj{\alpha_{1M}} \\
+        \adj{\alpha_{20}} & \adj{\alpha_{21}} & \dots  & \adj{\alpha_{2M}} \\
+        \vdots      & \vdots      & \ddots & \vdots \\
+        \adj{\alpha_{D0}} & \adj{\alpha_{D1}} & \dots  & \adj{\alpha_{DM}}
+    \end{bmatrix}$$
+
+
+
+
+Recall that $\ell$ is our loss function defined in equation (\ref{eq:cross_entropy_loss})
+    
+    \begin{enumerate}
+        \item \textbf{[2 pt]} The derivative of the softmax function with respect to $b_k$ is as follows:
+        $$\frac{d\hat{y}_l}{db_k} = \hat{y}_l(\Ib[k=l]-\hat{y}_k)$$ 
+        where $\Ib[k=l]$ is an indicator function such that if $k=l$ then it it returns value 1 and 0 otherwise. 
+        Using this, write the derivative $\frac{d\ell}{db_k}$ in a smart way such that you do not need this indicator function. Write your solutions in terms of $\hat{y}_k,y_k$.
+        
+        
+        \begin{tcolorbox}[fit,height=2cm, width=12cm, blank, borderline={1pt}{-2pt}]
+          $\frac{d\hat{y}_l}{db_k} = \hat{y}_k - y_k$
+        \end{tcolorbox}
+        
+        
+        
+        \item \textbf{[2 pt]} What are the elements of the vector $\frac{d\ell}{db}$? (Recall that  $\yv^{(1)}=[0,1,0]^T$)
+        
+        
+        \begin{tcolorbox}[fit,height=1cm, width=6cm, blank, borderline={1pt}{-2pt}]
+          $[\hat{y}_1, \hat{y}_2-1, \hat{y}_3]$
+        \end{tcolorbox}
+
+        
+        
+        \item \textbf{[2 pt]} What is the derivative $\frac{d\ell}{d\beta}$? Your answer should be in terms of $\frac{d\ell}{d\bv}$ and $\zv$.
+        
+        
+        \begin{tcolorbox}[fit,height=3cm, width=12cm, blank, borderline={1pt}{-2pt}]
+          $(\frac{dl}{d\bv}zv^T$
+        \end{tcolorbox}
+        
+        
+        
+        
+        \item \textbf{[2 pt]} Explain in one short sentance why must we go back to using the matrix $\betav^*$ (The matrix $\betav$ without the first column of ones) when calculating the matrix $\frac{d\ell}{d\alpha}$?
+        
+        
+        \begin{tcolorbox}[fit,height=1cm, width=15cm, blank, borderline={1pt}{-2pt}]
+          The bias term is disconnected from any neurons in our hidden layer, therefore it should not be included in computing the gradient for our weight matrix connecting the input and hidden layer.
+        \end{tcolorbox}
+
+        
+        
+        
+        \item \textbf{[2 pt]} What is the derivative $\frac{d\ell}{d\zv}$? Your answer should be in terms of $\frac{d\ell}{d\bv}$ and $\betav^*$
+        
+        
+        \begin{tcolorbox}[fit,height=3cm, width=12cm, blank, borderline={1pt}{-2pt}]
+          $\frac{dl}{d\bv} = \beta^{*T}\frac{dl}{d\bv}$
+        \end{tcolorbox}
+        
+        
+        
+        \newpage
+        \item \textbf{[2 pt]} What is the derivative $\frac{d\ell}{d\av}$ in terms of $\frac{d\ell}{d\zv}$ and $\zv$
+        
+        
+        \begin{tcolorbox}[fit,height=3cm, width=12cm, blank, borderline={1pt}{-2pt}]
+          $\frac{dl}{da} = \frac{dl}{dz} \cdot z \cdot (1-z)$
+        \end{tcolorbox}
+
+        
+        
+        \item \textbf{[2 pt]} What is the matrix $\frac{d\ell}{d\alpha}$? Your answer should be in terms of $\frac{d\ell}{d\av}$ and $x^{(1)}$.
+        
+        
+        \begin{tcolorbox}[fit,height=3cm, width=12cm, blank, borderline={1pt}{-2pt}]
+          $\frac{dl}{d\alpha} = \frac{dl}{da}(\xv^{(1)})^T$
+        \end{tcolorbox}
+
+
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection*{\textcolor{purple}{Prediction}}
+When doing prediction, we will predict the \textcolor{purple}{$\argmax$} of the output layer. For example, if $\hat{\yv}$ is such that $\hat{y}_1=0.3,~ \hat{y}_2=0.2,~ \hat{y}_3=0.5$ we would predict class 3 for the input $\xv$. If the true class from the training data $\xv$ was $2$ we would have a \textcolor{purple}{one-hot vector} $\yv$ with values $y_1=0$,~ $y_2=1$,~ $y_3=0$.
+    
+\item \textcolor{black}{\textbf{[16 pts]}}
+     We initialize the weights as:
+\begin{center}
+$$\boldsymbol{\alpha^*}=
+    \begin{bmatrix}
+    2 & 1 & -1 & -1 & 0 & -2 \\
+    0 & 1 & 0 & -1 & 1 & 3 \\
+    -1 & 2 & 1 & 3 & 1 & -1 \\
+    1 & 3 & 4 & 2 & -1 & 2
+    \end{bmatrix}$$
+$$\boldsymbol{\beta^*}=
+    \begin{bmatrix}
+    2 & -2 & 2 & 1 \\
+    3 & -1 & 1 & 2 \\
+    0 & -1 & 0 & 1
+    \end{bmatrix}
+$$
+\end{center}
+    
+And weights on the bias terms (${\alpha}_{j,0}$ and ${\beta}_{j,0})$ are initialized to 1.
+    
+    You are given a training example $\xv^{(1)}=[1,0,1,0,1,0]^T$ with label class 2, so $\yv^{(1)}=[0,1,0]^T$. Using the initial weights, run the feed forward of the network over this training example (without rounding during the calculation) and then answer the following questions. 
+    %In your responses, round to four decimal places---if the answer is an integer you need not include trailing zeros. 
+    
+    \begin{enumerate}
+        \item \textbf{[2 pt]} What is the value of $a_1$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          2
+        \end{tcolorbox}
+
+        
+        \item \textbf{[2 pt]} What is the value of $z_1$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          0.8808
+        \end{tcolorbox}
+
+        \item \textbf{[2 pt]} What is the value of $a_3$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          2
+        \end{tcolorbox}
+
+        
+        \item \textbf{[2 pt]} What is the value of $z_3$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          0.8808
+        \end{tcolorbox}
+
+        \item \textbf{[2 pt]} What is the value of $b_2$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          22
+        \end{tcolorbox}
+
+        \item \textbf{[2 pt]} What is the value of $\hat{y}_2$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          0.8588
+        \end{tcolorbox}
+
+        \item \textbf{[2 pt]} Which class value we would predict on this training example?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          2
+        \end{tcolorbox}
+
+        \item \textbf{[2 pt]} What is the value of the total loss on this training example?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          0.1522
+        \end{tcolorbox}
+
+    \end{enumerate}
+    
+\item \textcolor{black}{\textbf{[8 pts]}} Now use the results of the previous question to run backpropagation over the network and update the weights. Use the learning rate $\eta=1$. 
+    
+    Do your backpropagation calculations without any rounding then answer the following questions: (in your final responses round to four decimal places)
+    
+     \begin{enumerate}
+        \item \textbf{[2 pt]} What is the updated value of ${\beta}_{2,1}$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          -0.0083
+        \end{tcolorbox}
+        
+        \item \textbf{[3 pt]} What is the updated weight of the hidden layer bias term applied to $y_1$ (i.e. ${\beta}_{1,0}$)?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          1.1412
+        \end{tcolorbox}
+
+        \clearpage
+        \item \textbf{[3 pt]} What is the updated value of ${\alpha}_{3,4}$?
+        
+        \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
+          2
+        \end{tcolorbox}
+
+    \end{enumerate}
+
+\end{enumerate}

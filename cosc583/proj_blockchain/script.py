@@ -37,7 +37,7 @@ block_3 = '000000324573fd068fe621fd187451ba2fbca5f7ec06b365a5b21a36449ddd2a'
 # Quote 4
 quote_4 = 'Argue with idiots, and you become an idiot. If you compete with slaves you become a slave. -- Paul Graham and Norbert Weiner, respectively'
 
-nonce = 0
+nonce = 11668658
 
 while True:
     x = sha256(bytes.fromhex(block_3) + int_to_be(nonce) + str_encode(quote_4)).digest()
@@ -46,4 +46,4 @@ while True:
         print(f"Nonce: {nonce}")
         print(f"block hash {sha256(bytes.fromhex(block_3) + int_to_be(nonce) + str_encode(quote_4)).hexdigest()}")
         break
-    nonce += 1
+    nonce += 2

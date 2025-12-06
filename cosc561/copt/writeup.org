@@ -1,0 +1,195 @@
+#+title: =copt= Writeup
+#+author: Jackson Mowry
+#+date: Fri Dec  5 18:07:21 2025
+#+options: toc:t \n:t
+
+* Optimization Details
+** Matrix Initialization
+For the matrix initialization subroutine I found that eliminating function calls to helper functions (i.e. =check= and =set=) provided a significant speed up.
+
+Originally my plan was to use the =register= keyword for all local variables. Utilizing =register= tells the compiler to store our values directly in registers, avoiding writing them to memory when possible. When using =-O0= we're inhibiting the compiler from applying these register optimizations automatically, therefore adding it explicitly enables the compiler to generate more efficient assembly.
+
+Additionally, I found a small speed up from computing the index of the matrix row and final column before access each matrix, which avoids duplicate computation of the final index. Without this "memoization" the compiler generates duplicate instructions when generating the address for =mat1= and =mat2=.
+
+#+begin_src asm
+.L4:
+        // mat1
+        mov     eax, ebx                // Duplicate 1
+        imul    eax, r12d               // Duplicate 2
+        add     eax, r13d               // Duplicate 3
+        cdqe                            // Duplicate 4
+        sal     rax, 2                  // Duplicate 5
+        add     rax, r14               
+        mov     DWORD PTR [rax], ebx
+        // mat 2
+        mov     eax, ebx                // Duplicate 1
+        imul    eax, r12d               // Duplicate 2
+        add     eax, r13d               // Duplicate 3
+        cdqe                            // Duplicate 4
+        sal     rax, 2                  // Duplicate 5
+        lea     rdx, [r15+rax]
+        lea     eax, [rbx+1]
+        mov     DWORD PTR [rdx], eax
+#+end_src
+
+With "memoization" we get the following assembly.
+
+#+begin_src asm
+.L4:
+        // Memoized index computation
+        mov     eax, edi
+        lea     r14d, [rax+r13]
+        // mat1
+        movsx   rax, r14d               // Duplicate 1
+        sal     rax, 2                  // Duplicate 2
+        add     rax, r15
+        mov     DWORD PTR [rax], ebx
+        // mat2
+        movsx   rax, r14d               // Duplicate 1
+        sal     rax, 2                  // Duplicate 2
+        mov     rcx, rsi
+        lea     rdx, [rcx+rax]
+        lea     eax, [rbx+1]
+        mov     DWORD PTR [rdx], eax
+#+end_src
+
+However, once I began looking at the assembly I realized this was still doing some duplicate work. I then decided to try and utilize =memset= to solve the problem, though eventually switched to =wmemset= as will be discussed in the following section. This provided a speed improvement from around 7.9x over the unoptimized implementation, to 10.9x the unoptimized subroutine.
+
+*** Challenges
+=memset= only works on bytes, therefore =wmemset= has to be used to work with 4 bytes at once. This is a hacky and non-portable solution, as =wchar_t= is 4 bytes on Linux/Mac, and only 2 bytes on Windoze.
+
+** Array Initialization
+Array initialization is a typical serial loop with no dependencies across iterations, therefore the most straightforward optimization is to unroll the loop to take advantage of the ILP available within our processor. I decided to unroll the loop 16 times, though didn't test values smaller or larger than 16. In addition to loop unrolling I am also prefetching 64 bytes ahead of where we're working at the top of each loop, allowing the cache to hopefully be filled by the time we move to the next row. 
+
+In additional to the above major optimizations I replaced all constants and math operations with efficient left shifts, something the compiler would do for us if optimizations were enabled.
+*** Challenges
+Because the loop is manually unrolled we need to ensure and input lengths that are not a multiple of 16 are handled correctly. This is often referred to as the "strip-mining" technique, with one main loop performing the unrolled body, and a second smaller loop handling the remainder in a scalar manner.
+** Factorial
+Factorial is once again a serial loop (after rewriting the recursive call into a loop), through this time we have a carry-over dependency, meaning loop unrolling would still create a serial chain. However, I was able to achieve a significant speed improvement just by using the register keyword on all local variables. This allows for the branch comparison and accumulator multiplication to avoid writing/reading to/from memory. Again I prefetch the result memory address before the loop begins to ensure it is resident in cache.
+*** Challenges
+There were no real challenged for this implementation, through I avoided loop unrolling which could have added additional complexity.
+** Matrix Multiplication
+I applied the same rough set of optimizations to matrix multiplication, namely the =register= keyword, and memoizing matrix index computations. These two optimizations alone were enough to grant a sizeable speed up. 
+*** Challenges
+No challenges for optimizing matrix multiplication.
+
+* Comparison of Results
+** =-O0=
+When compiling with =-O0= my programs beat the reference executable on all 4 benchmarks. The largest delta is for matrix initialization with the reference benchmark showing a 2.65x speedup and my optimizations yielding a 10x speedup. Our closest delta is in the matrix multiplication, 1.54x for the reference, and 2.0x for mine. This makes sense as I performed minimal optimizations for matrix multiplication to keep the code as readable and simple as possible.
+*** =copt_O0=
+#+begin_src shell
+jmowry4:hydra4 ~/copt> bash test.sh copt_O0                                                                                            <-  5:49PM
+Running MATRIX_INIT with n = 3000 loop = 200
+
+UNOPTIMIZED(ms):       16200.0
+OPTIMIZED(ms):          1617.0
+SPEEDUP:                  10.0
+
+Running ARRAY_INIT with n = 300000 loop = 20000
+
+UNOPTIMIZED(ms):       20866.0
+OPTIMIZED(ms):          4100.0
+SPEEDUP:                   5.1
+
+Running FACTORIAL with n = 20 loop = 200000000
+
+UNOPTIMIZED(ms):       23083.0
+OPTIMIZED(ms):          3317.0
+SPEEDUP:                   7.0
+
+Running MATRIX_MULTIPLY with n = 1600 loop = 1
+
+UNOPTIMIZED(ms):       33084.0
+OPTIMIZED(ms):         16800.0
+SPEEDUP:                   2.0
+#+end_src
+*** =copt_O0_ref=
+#+begin_src shell
+jmowry4:hydra4 ~/copt> bash test.sh copt_O0_ref                                                                                        <-  5:50PM
+Running MATRIX_INIT with n = 3000 loop = 200
+
+UNOPTIMIZED(ms):       16216.0
+OPTIMIZED(ms):          6117.0
+SPEEDUP:                  2.65
+
+Running ARRAY_INIT with n = 300000 loop = 20000
+
+UNOPTIMIZED(ms):       20966.0
+OPTIMIZED(ms):          6200.0
+SPEEDUP:                  3.38
+
+Running FACTORIAL with n = 20 loop = 200000000
+
+UNOPTIMIZED(ms):       23533.0
+OPTIMIZED(ms):         10083.0
+SPEEDUP:                  2.33
+
+Running MATRIX_MULTIPLY with n = 1600 loop = 1
+
+UNOPTIMIZED(ms):       32967.0
+OPTIMIZED(ms):         21384.0
+SPEEDUP:                  1.54
+#+end_src
+** =-O3=
+As I expected, turning optimizations up to =-O3= negates many of the performance benefits from my optimized solution. This is because my optimizations have likely made the compilers job harder, as it can no longer work with straight forward, easy to analyze loops.
+
+It appears that the reference solution observes some of the same pitfalls as my optimizations, only deviating on array initialization and matrix multiplication. My array initialization code manually unrolled a loop 16 times, which likely hindered the compilers ability to optimize this section of code. My matrix multiplication code did not use common optimizations like swapping loop order, or chunking, thereby making little to no different in the generated assembly when optimizations were enabled.
+*** =copt_O3=
+#+begin_src shell
+jmowry4:hydra4 ~/copt> bash test.sh copt_O3                                                                                                                                                                                                                                            <-  5:52PM
+Running MATRIX_INIT with n = 3000 loop = 200
+
+UNOPTIMIZED(ms):        1533.0
+OPTIMIZED(ms):          1516.0
+SPEEDUP:                   1.0
+
+Running ARRAY_INIT with n = 300000 loop = 20000
+
+UNOPTIMIZED(ms):         933.0
+OPTIMIZED(ms):          3983.0
+SPEEDUP:                   0.2
+
+Running FACTORIAL with n = 20 loop = 200000000
+
+UNOPTIMIZED(ms):        2050.0
+OPTIMIZED(ms):          2016.0
+SPEEDUP:                   1.0
+
+Running MATRIX_MULTIPLY with n = 1600 loop = 1
+
+UNOPTIMIZED(ms):        7150.0
+OPTIMIZED(ms):          7150.0
+SPEEDUP:                   1.0
+#+end_src
+*** =copt_O3_ref=
+#+begin_src shell
+jmowry4:hydra4 ~/copt> bash test.sh copt_O3_ref                                                                                                                                                                                                                                        <-  5:53PM
+Running MATRIX_INIT with n = 3000 loop = 200
+
+UNOPTIMIZED(ms):        1550.0
+OPTIMIZED(ms):          1517.0
+SPEEDUP:                  1.02
+
+Running ARRAY_INIT with n = 300000 loop = 20000
+
+UNOPTIMIZED(ms):         933.0
+OPTIMIZED(ms):          1700.0
+SPEEDUP:                  0.55
+
+Running FACTORIAL with n = 20 loop = 200000000
+
+UNOPTIMIZED(ms):        1966.0
+OPTIMIZED(ms):          1917.0
+SPEEDUP:                  1.03
+
+Running MATRIX_MULTIPLY with n = 1600 loop = 1
+
+UNOPTIMIZED(ms):        7216.0
+OPTIMIZED(ms):          1617.0
+SPEEDUP:                  4.46
+#+end_src
+** What Optimizations are Effective and Where?
+** Why Does =-O3= Hurt Some Optimizations?
+** What Optimizations Are Unaffected or Benefited by =-O3=?
+
+#  LocalWords:  memoization unoptimized
