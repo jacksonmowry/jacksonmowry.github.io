@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-12-05 Fri 19:21 -->
+<!-- 2025-12-06 Sat 13:26 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>=copt= Writeup</title>
@@ -201,69 +201,69 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org57d9080">1. Optimization Details</a>
+<li><a href="#org794fd00">1. Optimization Details</a>
 <ul>
-<li><a href="#orgb5e9dea">1.1. Matrix Initialization</a>
+<li><a href="#orgae0fc0a">1.1. Matrix Initialization</a>
 <ul>
-<li><a href="#org2e2cf93">1.1.1. Challenges</a></li>
+<li><a href="#orga72b8a5">1.1.1. Challenges</a></li>
 </ul>
 </li>
-<li><a href="#orgec695a5">1.2. Array Initialization</a>
+<li><a href="#org4ca152c">1.2. Array Initialization</a>
 <ul>
-<li><a href="#orgc9a1557">1.2.1. Challenges</a></li>
+<li><a href="#org1da88ca">1.2.1. Challenges</a></li>
 </ul>
 </li>
-<li><a href="#orgeb33fa5">1.3. Factorial</a>
+<li><a href="#orgb43ed19">1.3. Factorial</a>
 <ul>
-<li><a href="#org5ee90e2">1.3.1. Challenges</a></li>
+<li><a href="#org2e3347d">1.3.1. Challenges</a></li>
 </ul>
 </li>
-<li><a href="#orgc9d7ed5">1.4. Matrix Multiplication</a>
+<li><a href="#org078fa11">1.4. Matrix Multiplication</a>
 <ul>
-<li><a href="#org73f84e0">1.4.1. Challenges</a></li>
+<li><a href="#orgda1f4d2">1.4.1. Challenges</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org6e4ae17">2. Comparison of Results</a>
+<li><a href="#org3cc2946">2. Comparison of Results</a>
 <ul>
-<li><a href="#org31cdb44">2.1. <code>-O0</code></a>
+<li><a href="#org2315954">2.1. <code>-O0</code></a>
 <ul>
-<li><a href="#org9bf20fb">2.1.1. <code>copt_O0</code></a></li>
-<li><a href="#org5044f93">2.1.2. <code>copt_O0_ref</code></a></li>
+<li><a href="#org5bfc8a1">2.1.1. <code>copt_O0</code></a></li>
+<li><a href="#org5fa8818">2.1.2. <code>copt_O0_ref</code></a></li>
 </ul>
 </li>
-<li><a href="#orga69d868">2.2. <code>-O3</code></a>
+<li><a href="#org1504032">2.2. <code>-O3</code></a>
 <ul>
-<li><a href="#orgfbc6862">2.2.1. <code>copt_O3</code></a></li>
-<li><a href="#orgf9de206">2.2.2. <code>copt_O3_ref</code></a></li>
+<li><a href="#org07564bb">2.2.1. <code>copt_O3</code></a></li>
+<li><a href="#org6680a54">2.2.2. <code>copt_O3_ref</code></a></li>
 </ul>
 </li>
-<li><a href="#org02ccd8b">2.3. What Optimizations are Effective and Where?</a></li>
-<li><a href="#org942759a">2.4. Why Does <code>-O3</code> Hurt Some Optimizations?</a></li>
-<li><a href="#orgb6d9826">2.5. What Optimizations Are Unaffected or Benefited by <code>-O3</code>?</a></li>
+<li><a href="#org037e66a">2.3. What Optimizations are Effective and Where?</a></li>
+<li><a href="#org05d78cb">2.4. Why Does <code>-O3</code> Hurt Some Optimizations?</a></li>
+<li><a href="#orgb55ecc9">2.5. What Optimizations Are Unaffected or Benefited by <code>-O3</code>?</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org57d9080" class="outline-2">
-<h2 id="org57d9080"><span class="section-number-2">1.</span> Optimization Details</h2>
+<div id="outline-container-org794fd00" class="outline-2">
+<h2 id="org794fd00"><span class="section-number-2">1.</span> Optimization Details</h2>
 <div class="outline-text-2" id="text-1">
 </div>
-<div id="outline-container-orgb5e9dea" class="outline-3">
-<h3 id="orgb5e9dea"><span class="section-number-3">1.1.</span> Matrix Initialization</h3>
+<div id="outline-container-orgae0fc0a" class="outline-3">
+<h3 id="orgae0fc0a"><span class="section-number-3">1.1.</span> Matrix Initialization</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
-For the matrix initialization subroutine I found that eliminating function calls to helper functions (i.e. <code>check</code> and <code>set</code>) provided a significant speed up.<br />
+For the matrix initialization subroutine I found that eliminating function calls to helper functions (i.e. <code>check</code> and <code>set</code>) provided a significant speed-up.<br />
 </p>
 
 <p>
-Originally my plan was to use the <code>register</code> keyword for all local variables. Utilizing <code>register</code> tells the compiler to store our values directly in registers, avoiding writing them to memory when possible. When using <code>-O0</code> we&rsquo;re inhibiting the compiler from applying these register optimizations automatically, therefore adding it explicitly enables the compiler to generate more efficient assembly.<br />
+Originally my plan was to use the <code>register</code> keyword for all local variables. Utilizing <code>register</code> tells the compiler to store our values directly in registers, avoiding writing them to memory when possible. When using <code>-O0</code> we&rsquo;re inhibiting the compiler from applying these register optimizations automatically, therefore adding it explicitly re-enables the compiler to generate more efficient assembly.<br />
 </p>
 
 <p>
-Additionally, I found a small speed up from computing the index of the matrix row and final column before access each matrix, which avoids duplicate computation of the final index. Without this &ldquo;memoization&rdquo; the compiler generates duplicate instructions when generating the address for <code>mat1</code> and <code>mat2</code>.<br />
+Additionally, I found a small speed up from computing the index of the matrix row and final column before accessing each matrix, helping to avoid duplicate computation of the final index. Without this &ldquo;memoization&rdquo; the compiler generates duplicate instructions when generating the address for <code>mat1</code> and <code>mat2</code>.<br />
 </p>
 
 <div class="org-src-container">
@@ -316,8 +316,8 @@ With &ldquo;memoization&rdquo; we get the following assembly.<br />
 However, once I began looking at the assembly I realized this was still doing some duplicate work. I then decided to try and utilize <code>memset</code> to solve the problem, though eventually switched to <code>wmemset</code> as will be discussed in the following section. This provided a speed improvement from around 7.9x over the unoptimized implementation, to 10.9x the unoptimized subroutine.<br />
 </p>
 </div>
-<div id="outline-container-org2e2cf93" class="outline-4">
-<h4 id="org2e2cf93"><span class="section-number-4">1.1.1.</span> Challenges</h4>
+<div id="outline-container-orga72b8a5" class="outline-4">
+<h4 id="orga72b8a5"><span class="section-number-4">1.1.1.</span> Challenges</h4>
 <div class="outline-text-4" id="text-1-1-1">
 <p>
 <code>memset</code> only works on bytes, therefore <code>wmemset</code> has to be used to work with 4 bytes at once. This is a hacky and non-portable solution, as <code>wchar_t</code> is 4 bytes on Linux/Mac, and only 2 bytes on Windoze.<br />
@@ -325,104 +325,108 @@ However, once I began looking at the assembly I realized this was still doing so
 </div>
 </div>
 </div>
-<div id="outline-container-orgec695a5" class="outline-3">
-<h3 id="orgec695a5"><span class="section-number-3">1.2.</span> Array Initialization</h3>
+<div id="outline-container-org4ca152c" class="outline-3">
+<h3 id="org4ca152c"><span class="section-number-3">1.2.</span> Array Initialization</h3>
 <div class="outline-text-3" id="text-1-2">
 <p>
 Array initialization is a typical serial loop with no dependencies across iterations, therefore the most straightforward optimization is to unroll the loop to take advantage of the ILP available within our processor. I decided to unroll the loop 16 times, though didn&rsquo;t test values smaller or larger than 16. In addition to loop unrolling I am also prefetching 64 bytes ahead of where we&rsquo;re working at the top of each loop, allowing the cache to hopefully be filled by the time we move to the next row.<br />
 </p>
 
 <p>
-In additional to the above major optimizations I replaced all constants and math operations with efficient left shifts, something the compiler would do for us if optimizations were enabled.<br />
+In addition to the above major optimizations I replaced all constants and math operations with efficient left shifts by immediate values, something the compiler would do for us if optimizations were enabled.<br />
 </p>
 </div>
-<div id="outline-container-orgc9a1557" class="outline-4">
-<h4 id="orgc9a1557"><span class="section-number-4">1.2.1.</span> Challenges</h4>
+<div id="outline-container-org1da88ca" class="outline-4">
+<h4 id="org1da88ca"><span class="section-number-4">1.2.1.</span> Challenges</h4>
 <div class="outline-text-4" id="text-1-2-1">
 <p>
-Because the loop is manually unrolled we need to ensure and input lengths that are not a multiple of 16 are handled correctly. This is often referred to as the &ldquo;strip-mining&rdquo; technique, with one main loop performing the unrolled body, and a second smaller loop handling the remainder in a scalar manner.<br />
+Because the loop is manually unrolled we need to ensure that input lengths not divisible by 16 are handled correctly. This is often referred to as the &ldquo;strip-mining&rdquo; technique, with one main loop performing the unrolled body, and a second smaller loop handling the remainder in a scalar manner.<br />
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-orgeb33fa5" class="outline-3">
-<h3 id="orgeb33fa5"><span class="section-number-3">1.3.</span> Factorial</h3>
+<div id="outline-container-orgb43ed19" class="outline-3">
+<h3 id="orgb43ed19"><span class="section-number-3">1.3.</span> Factorial</h3>
 <div class="outline-text-3" id="text-1-3">
 <p>
 Factorial is once again a serial loop (after rewriting the recursive call into a loop), through this time we have a carry-over dependency, meaning loop unrolling would still create a serial chain. However, I was able to achieve a significant speed improvement just by using the register keyword on all local variables. This allows for the branch comparison and accumulator multiplication to avoid writing/reading to/from memory. Again I prefetch the result memory address before the loop begins to ensure it is resident in cache.<br />
 </p>
 </div>
-<div id="outline-container-org5ee90e2" class="outline-4">
-<h4 id="org5ee90e2"><span class="section-number-4">1.3.1.</span> Challenges</h4>
+<div id="outline-container-org2e3347d" class="outline-4">
+<h4 id="org2e3347d"><span class="section-number-4">1.3.1.</span> Challenges</h4>
 <div class="outline-text-4" id="text-1-3-1">
 <p>
-There were no real challenged for this implementation, through I avoided loop unrolling which could have added additional complexity.<br />
+There were no real challenges for this implementation, through I avoided loop unrolling which could have added additional complexity.<br />
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-orgc9d7ed5" class="outline-3">
-<h3 id="orgc9d7ed5"><span class="section-number-3">1.4.</span> Matrix Multiplication</h3>
+<div id="outline-container-org078fa11" class="outline-3">
+<h3 id="org078fa11"><span class="section-number-3">1.4.</span> Matrix Multiplication</h3>
 <div class="outline-text-3" id="text-1-4">
 <p>
-I applied the same rough set of optimizations to matrix multiplication, namely the <code>register</code> keyword, and memoizing matrix index computations. These two optimizations alone were enough to grant a sizeable speed up.<br />
+I applied the same rough set of optimizations to matrix multiplication, namely the <code>register</code> keyword, and memoizing matrix index computations. These two optimizations alone were enough to grant around a 2.0x speed up.<br />
+</p>
+
+<p>
+From there I reordered the 2 inner loops to have better memory access patterns, in the hopes to exploit the spatial locality of the problem to achieve a further speed up. This final optimization gives a total speed up of 3.0x over the unoptimized implementation.<br />
 </p>
 </div>
-<div id="outline-container-org73f84e0" class="outline-4">
-<h4 id="org73f84e0"><span class="section-number-4">1.4.1.</span> Challenges</h4>
+<div id="outline-container-orgda1f4d2" class="outline-4">
+<h4 id="orgda1f4d2"><span class="section-number-4">1.4.1.</span> Challenges</h4>
 <div class="outline-text-4" id="text-1-4-1">
 <p>
-No challenges for optimizing matrix multiplication.<br />
+Reordering the 2 inner loops required changing where we zero out the correct cell(s) of the result matrix. To achieve correct behavior I use a <code>memset</code> to 0 on each row the result matrix.<br />
 </p>
 </div>
 </div>
 </div>
 </div>
-<div id="outline-container-org6e4ae17" class="outline-2">
-<h2 id="org6e4ae17"><span class="section-number-2">2.</span> Comparison of Results</h2>
+<div id="outline-container-org3cc2946" class="outline-2">
+<h2 id="org3cc2946"><span class="section-number-2">2.</span> Comparison of Results</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org31cdb44" class="outline-3">
-<h3 id="org31cdb44"><span class="section-number-3">2.1.</span> <code>-O0</code></h3>
+<div id="outline-container-org2315954" class="outline-3">
+<h3 id="org2315954"><span class="section-number-3">2.1.</span> <code>-O0</code></h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
-When compiling with <code>-O0</code> my programs beat the reference executable on all 4 benchmarks. The largest delta is for matrix initialization with the reference benchmark showing a 2.65x speedup and my optimizations yielding a 10x speedup. Our closest delta is in the matrix multiplication, 1.54x for the reference, and 2.0x for mine. This makes sense as I performed minimal optimizations for matrix multiplication to keep the code as readable and simple as possible.<br />
+When compiling with <code>-O0</code> my programs beat the reference executable on all 4 benchmarks. The largest delta is for matrix initialization with the reference benchmark showing a 2.65x speed up and my optimizations yielding a 11.1x speed up. Our closest delta is in the array initialization, 3.38x for the reference, and 5.1x for mine. This makes sense as my manual loop unrolling can only improve the performance up until the processors&rsquo; throughput limit.<br />
 </p>
 </div>
-<div id="outline-container-org9bf20fb" class="outline-4">
-<h4 id="org9bf20fb"><span class="section-number-4">2.1.1.</span> <code>copt_O0</code></h4>
+<div id="outline-container-org5bfc8a1" class="outline-4">
+<h4 id="org5bfc8a1"><span class="section-number-4">2.1.1.</span> <code>copt_O0</code></h4>
 <div class="outline-text-4" id="text-2-1-1">
 <div class="org-src-container">
-<pre class="src src-shell">jmowry4:hydra4 ~/copt&gt; bash test.sh copt_O0                                                                                            &lt;-  5:49PM
+<pre class="src src-shell">jmowry4:hydra4 ~/copt&gt; bash test.sh copt_O0                                                                                                                                                                                      &lt;-  7:02AM
 Running MATRIX_INIT with n = 3000 loop = 200
 
-<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       16200.0
-<span style="color: #c678dd;">OPTIMIZED</span>(ms):          1617.0
-SPEEDUP:                  10.0
+<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       16216.0
+<span style="color: #c678dd;">OPTIMIZED</span>(ms):          1467.0
+SPEEDUP:                  11.1
 
 Running ARRAY_INIT with n = 300000 loop = 20000
 
-<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       20866.0
+<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       20983.0
 <span style="color: #c678dd;">OPTIMIZED</span>(ms):          4100.0
 SPEEDUP:                   5.1
 
 Running FACTORIAL with n = 20 loop = 200000000
 
-<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       23083.0
-<span style="color: #c678dd;">OPTIMIZED</span>(ms):          3317.0
-SPEEDUP:                   7.0
+<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       24600.0
+<span style="color: #c678dd;">OPTIMIZED</span>(ms):          3766.0
+SPEEDUP:                   6.5
 
 Running MATRIX_MULTIPLY with n = 1600 loop = 1
 
-<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       33084.0
-<span style="color: #c678dd;">OPTIMIZED</span>(ms):         16800.0
-SPEEDUP:                   2.0
+<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):       31700.0
+<span style="color: #c678dd;">OPTIMIZED</span>(ms):         10617.0
+SPEEDUP:                   3.0
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org5044f93" class="outline-4">
-<h4 id="org5044f93"><span class="section-number-4">2.1.2.</span> <code>copt_O0_ref</code></h4>
+<div id="outline-container-org5fa8818" class="outline-4">
+<h4 id="org5fa8818"><span class="section-number-4">2.1.2.</span> <code>copt_O0_ref</code></h4>
 <div class="outline-text-4" id="text-2-1-2">
 <div class="org-src-container">
 <pre class="src src-shell">jmowry4:hydra4 ~/copt&gt; bash test.sh copt_O0_ref                                                                                        &lt;-  5:50PM
@@ -454,26 +458,26 @@ SPEEDUP:                  1.54
 </div>
 </div>
 </div>
-<div id="outline-container-orga69d868" class="outline-3">
-<h3 id="orga69d868"><span class="section-number-3">2.2.</span> <code>-O3</code></h3>
+<div id="outline-container-org1504032" class="outline-3">
+<h3 id="org1504032"><span class="section-number-3">2.2.</span> <code>-O3</code></h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
-As I expected, turning optimizations up to <code>-O3</code> negates many of the performance benefits from my optimized solution. This is because my optimizations have likely made the compilers job harder, as it can no longer work with straight forward, easy to analyze loops.<br />
+As I expected, turning optimizations up to <code>-O3</code> negates the performance benefits from my optimized solutions. This is because my optimizations have likely made the compilers job harder, as it can no longer work with straight forward, easy to analyze loops.<br />
 </p>
 
 <p>
-It appears that the reference solution observes some of the same pitfalls as my optimizations, only deviating on array initialization and matrix multiplication. My array initialization code manually unrolled a loop 16 times, which likely hindered the compilers ability to optimize this section of code. My matrix multiplication code did not use common optimizations like swapping loop order, or chunking, thereby making little to no different in the generated assembly when optimizations were enabled.<br />
+It appears that the reference solution observes some of the same pitfalls as my optimizations, only deviating on array initialization and matrix multiplication. My array initialization code manually unrolled a loop 16 times, which likely hindered the compilers&rsquo; ability to optimize this section of code. My matrix multiplication code did not use common optimizations like chunking, thereby making little to no difference in the generated assembly when optimizations were enabled.<br />
 </p>
 </div>
-<div id="outline-container-orgfbc6862" class="outline-4">
-<h4 id="orgfbc6862"><span class="section-number-4">2.2.1.</span> <code>copt_O3</code></h4>
+<div id="outline-container-org07564bb" class="outline-4">
+<h4 id="org07564bb"><span class="section-number-4">2.2.1.</span> <code>copt_O3</code></h4>
 <div class="outline-text-4" id="text-2-2-1">
 <div class="org-src-container">
-<pre class="src src-shell">jmowry4:hydra4 ~/copt&gt; bash test.sh copt_O3                                                                                                                                                                                                                                            &lt;-  5:52PM
+<pre class="src src-shell">jmowry4:hydra4 ~/copt&gt; bash test.sh copt_O3                                                                                                                                                                                      &lt;-  7:03AM
 Running MATRIX_INIT with n = 3000 loop = 200
 
-<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):        1533.0
-<span style="color: #c678dd;">OPTIMIZED</span>(ms):          1516.0
+<span style="color: #c678dd;">UNOPTIMIZED</span>(ms):        1516.0
+<span style="color: #c678dd;">OPTIMIZED</span>(ms):          1517.0
 SPEEDUP:                   1.0
 
 Running ARRAY_INIT with n = 300000 loop = 20000
@@ -491,14 +495,14 @@ SPEEDUP:                   1.0
 Running MATRIX_MULTIPLY with n = 1600 loop = 1
 
 <span style="color: #c678dd;">UNOPTIMIZED</span>(ms):        7150.0
-<span style="color: #c678dd;">OPTIMIZED</span>(ms):          7150.0
+<span style="color: #c678dd;">OPTIMIZED</span>(ms):          7183.0
 SPEEDUP:                   1.0
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-orgf9de206" class="outline-4">
-<h4 id="orgf9de206"><span class="section-number-4">2.2.2.</span> <code>copt_O3_ref</code></h4>
+<div id="outline-container-org6680a54" class="outline-4">
+<h4 id="org6680a54"><span class="section-number-4">2.2.2.</span> <code>copt_O3_ref</code></h4>
 <div class="outline-text-4" id="text-2-2-2">
 <div class="org-src-container">
 <pre class="src src-shell">jmowry4:hydra4 ~/copt&gt; bash test.sh copt_O3_ref                                                                                                                                                                                                                                        &lt;-  5:53PM
@@ -530,15 +534,48 @@ SPEEDUP:                  4.46
 </div>
 </div>
 </div>
-<div id="outline-container-org02ccd8b" class="outline-3">
-<h3 id="org02ccd8b"><span class="section-number-3">2.3.</span> What Optimizations are Effective and Where?</h3>
+<div id="outline-container-org037e66a" class="outline-3">
+<h3 id="org037e66a"><span class="section-number-3">2.3.</span> What Optimizations are Effective and Where?</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+In general the most effective optimization (when compiling with <code>-O0</code>) is the use of the <code>register</code> keyword. When the compiler generates unoptimized code it typically stores local variables on the stack, which leads to unnecessary load/store instruction. If we instead instruct the compiler to leave these local variables in registers we can achieve a large speed-up. However, this optimization is far less effective under some real-world conditions. One example is a subroutine that uses a large number local variables, which would cause the compiler to &ldquo;spill&rdquo; our <code>register</code> values onto the stack. Another situation where <code>register</code> would not be helpful is when compiling with higher levels of optimization, as the compiler is able to apply this transformation automatically. The use of <code>register</code> helps when local variables are accessed frequently, such as arithmetic accumulators, or loop iterators.<br />
+</p>
+
+<p>
+The next key optimization is to remove naive uses of arithmetic operators, and fold in compile-time known constants. When compiling with optimizations the compiler can generate the optimal sequence of instructions for code of the form <code>x = y * 8</code>. However, without optimizations the compiler will sometimes choose to use an <code>imul</code> instruction directly. On 10th generation Intel CPU we can execute at most 1 <code>imul</code> instruction per cycle, whereas up to 2 <code>shl</code> instructions can execute per cycle (assuming our operands are of type register, and immediate, as they are in this example). Having said that, the optimal assembly sequence is neither an <code>imul</code> nor a <code>shl</code>, it would instead be a <code>lea</code> instruction. Unlike <code>imul</code> and <code>shl</code>, <code>lea</code> execute on multiple ports, allowing for more ILP, while maintaining the ability to execute 2 independent computations in the same cycle.<br />
+</p>
+
+<p>
+Lastly, the most complex optimization that I performed is loop unrolling, and transforming recursive functions into loops. This is a more complex optimization as it requires &ldquo;bookkeeping&rdquo; to ensure the results are consistent with the non-unrolled version. Loop unrolling is a common optimization that compilers will make when using higher levels of optimization, so performing it manually at <code>-O0</code> is a good choice. At a high level this optimization allows the CPU to execute more instructions at once by keeping the pipeline full, and reducing the total number of branch instructions.<br />
+</p>
 </div>
-<div id="outline-container-org942759a" class="outline-3">
-<h3 id="org942759a"><span class="section-number-3">2.4.</span> Why Does <code>-O3</code> Hurt Some Optimizations?</h3>
 </div>
-<div id="outline-container-orgb6d9826" class="outline-3">
-<h3 id="orgb6d9826"><span class="section-number-3">2.5.</span> What Optimizations Are Unaffected or Benefited by <code>-O3</code>?</h3>
+<div id="outline-container-org05d78cb" class="outline-3">
+<h3 id="org05d78cb"><span class="section-number-3">2.4.</span> Why Does <code>-O3</code> Hurt Some Optimizations?</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+My array initialization optimization was the only one hurt by enabling <code>-O3</code> optimizations, and I believe this comes down to the manual loop unrolling. My manually unrolled loop generates a complex assembly routine, totaling ~400 instructions. The naive implementation generates a sequence of only ~40 instructions, with the compiler only choosing to unroll the loop 2 times, while using a vectorization width of 4, resulting in 8 indices processed per loop iteration.<br />
+</p>
+
+<p>
+While large unroll widths can be helpful, they can also hurt performance as they generate more instructions, placing more pressure on the L1i cache, and potentially the CPU&rsquo;s own μop cache.<br />
+</p>
+</div>
+</div>
+<div id="outline-container-orgb55ecc9" class="outline-3">
+<h3 id="orgb55ecc9"><span class="section-number-3">2.5.</span> What Optimizations Are Unaffected or Benefited by <code>-O3</code>?</h3>
 <div class="outline-text-3" id="text-2-5">
+<p>
+One optimization that is unaffected by <code>-O3</code> is the use of <code>register</code>, which makes sense as the compiler is more than smart enough to automatically mark local variables as <code>register</code> without the explicit direction of the programmer.<br />
+</p>
+
+<p>
+Another optimization would be the transformation from a recursive function into an iterative loop, such as the factorial subroutine. Looking at the generated assembly for the unoptimized version compiled with <code>-O3</code> we see that the compiler correctly identified that it could transform this tail recursive function into an iterative one.<br />
+</p>
+
+<p>
+None of my own optimizations benefited from switching to <code>-O3</code>. The only optimization that I expected to benefit from <code>-O3</code> was the reordering of loops in the matrix multiplication, however this did not turn out to be the case. Looking at the assembly generated it turns out that the compiler was able to make the optimization for us, thereby negating any benefit from my manual reordering.<br />
+</p>
 </div>
 </div>
 </div>
@@ -546,7 +583,7 @@ SPEEDUP:                  4.46
 <div id="postamble" class="status">
 <p class="date">Date: Fri Dec  5 18:07:21 2025</p>
 <p class="author">Author: Jackson Mowry</p>
-<p class="date">Created: 2025-12-05 Fri 19:21</p>
+<p class="date">Created: 2025-12-06 Sat 13:26</p>
 </div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-#+LaTeX_CLASS: org-plain-latex
+#+LaTeX_CLASS: article
 #+LaTeX_CLASS_OPTIONS: [letterpaper, 11pt]
 #+LATEX_HEADER: \usepackage{lmodern} % Ensures we have the right font
 
