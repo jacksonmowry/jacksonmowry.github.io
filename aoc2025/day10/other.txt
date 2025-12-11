@@ -1,0 +1,8 @@
+pkg load xlinprog;
+A=[1,1,1,0;1,0,1,1;1,0,1,1;1,1,0,0;1,1,1,0;0,0,1,0];
+b=[10;11;11;5;10;5];
+f=[1,1,1,1];
+lb=[0,0,0,0,0,0];
+intcon=1:4;
+[x,fval,exitflag,output]=intlinprog(f,intcon,[],[],A,b,lb);
+disp(x)
