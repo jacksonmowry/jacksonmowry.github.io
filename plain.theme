@@ -1,0 +1,301 @@
+#+HTML_HEAD: <script>
+#+HTML_HEAD: class MultipleChoiceQuiz extends HTMLElement {
+#+HTML_HEAD:     constructor() {
+#+HTML_HEAD:         super();
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     connectedCallback() {
+#+HTML_HEAD:         const shadow = this.attachShadow({ mode: "open" });
+#+HTML_HEAD: 
+#+HTML_HEAD:         const answers = JSON.parse(`${this.getAttribute("answers")}`);
+#+HTML_HEAD:         let elements = [];
+#+HTML_HEAD: 
+#+HTML_HEAD:         for (let i = 0; i < answers.length; i++) {
+#+HTML_HEAD:             let outer_div = document.createElement("div");
+#+HTML_HEAD:             outer_div.style.display = "flex";
+#+HTML_HEAD: 
+#+HTML_HEAD:             let label = document.createElement("label");
+#+HTML_HEAD:             label.setAttribute("for", `quiz-${i}`);
+#+HTML_HEAD:             label.style.width = "50%";
+#+HTML_HEAD:             label.style.display = "block";
+#+HTML_HEAD:             label.textContent = answers[i];
+#+HTML_HEAD: 
+#+HTML_HEAD:             let input = document.createElement("input");
+#+HTML_HEAD:             input.type = "radio";
+#+HTML_HEAD:             input.name = "answer";
+#+HTML_HEAD:             input.id = `quiz-${i}`;
+#+HTML_HEAD:             
+#+HTML_HEAD:             if (i === 0) {
+#+HTML_HEAD:                 input.value = "correct";
+#+HTML_HEAD:             } else {
+#+HTML_HEAD:                 input.value = "incorrect";
+#+HTML_HEAD:             }
+#+HTML_HEAD: 
+#+HTML_HEAD:             outer_div.appendChild(label);
+#+HTML_HEAD:             outer_div.appendChild(input);
+#+HTML_HEAD: 
+#+HTML_HEAD:             elements.push(outer_div);
+#+HTML_HEAD:         }
+#+HTML_HEAD: 
+#+HTML_HEAD:         let legend = document.createElement("legend");
+#+HTML_HEAD:         legend.textContent = this.getAttribute("question");
+#+HTML_HEAD: 
+#+HTML_HEAD:         let fieldset = document.createElement("fieldset");
+#+HTML_HEAD:         fieldset.name = "quiz";
+#+HTML_HEAD:         fieldset.id = "quiz";
+#+HTML_HEAD:         fieldset.style.display = "flex";
+#+HTML_HEAD:         fieldset.style.flexDirection = "column";
+#+HTML_HEAD:         fieldset.addEventListener("change", () => {
+#+HTML_HEAD:             elements.map((e) => Array.from(e.children))
+#+HTML_HEAD:                 .filter((a) => a.length !== 0)
+#+HTML_HEAD:                 .forEach((e) => {
+#+HTML_HEAD:                     if (e[1].checked) {
+#+HTML_HEAD:                         if (e[1].value === 'correct') {
+#+HTML_HEAD:                             e[0].style.color = 'green'
+#+HTML_HEAD:                         } else {
+#+HTML_HEAD:                             e[0].style.color = 'red'
+#+HTML_HEAD:                         }
+#+HTML_HEAD:                     } else {
+#+HTML_HEAD:                         e[0].style.color = 'black'
+#+HTML_HEAD:                     }
+#+HTML_HEAD:                 }) 
+#+HTML_HEAD:         });
+#+HTML_HEAD: 
+#+HTML_HEAD: 
+#+HTML_HEAD:         fieldset.appendChild(legend);
+#+HTML_HEAD:         let shuffled_elements = elements
+#+HTML_HEAD:             .map(value => ({ value, sort: Math.random() }))
+#+HTML_HEAD:             .sort((a, b) => a.sort - b.sort)
+#+HTML_HEAD:             .map(({ value }) => value)
+#+HTML_HEAD:         shuffled_elements.forEach((e) => fieldset.appendChild(e));
+#+HTML_HEAD: 
+#+HTML_HEAD:         const style = document.createElement("style");
+#+HTML_HEAD:         style.textContent = `
+#+HTML_HEAD:             div:hover {
+#+HTML_HEAD:                 background: #EEE;
+#+HTML_HEAD:             }
+#+HTML_HEAD:         `;
+#+HTML_HEAD:         shadow.appendChild(style);
+#+HTML_HEAD: 
+#+HTML_HEAD:         shadow.appendChild(fieldset);
+#+HTML_HEAD:     }
+#+HTML_HEAD: }
+#+HTML_HEAD: 
+#+HTML_HEAD: customElements.define("multiple-choice-quiz", MultipleChoiceQuiz);
+#+HTML_HEAD:
+#+HTML_HEAD: class WithLineNumbers extends HTMLElement {
+#+HTML_HEAD:     counter;
+#+HTML_HEAD:     rows;
+#+HTML_HEAD:     data;
+#+HTML_HEAD:     current_line;
+#+HTML_HEAD: 
+#+HTML_HEAD:     back_button;
+#+HTML_HEAD:     forward_button;
+#+HTML_HEAD: 
+#+HTML_HEAD:     stack_frames;
+#+HTML_HEAD:     locals;
+#+HTML_HEAD:     args;
+#+HTML_HEAD:     
+#+HTML_HEAD:     constructor() {
+#+HTML_HEAD:         super()
+#+HTML_HEAD:         this.counter = 0;
+#+HTML_HEAD:         this.rows = [];
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     highlightRows() {
+#+HTML_HEAD:         this.current_line.textContent = this.data.steps[this.counter].line;
+#+HTML_HEAD:         const line_number = this.data.steps[this.counter].line.split(":")[1] - 1;
+#+HTML_HEAD:         for (let i = 0; i < this.rows.length; i++) {
+#+HTML_HEAD:             if (line_number == i) {
+#+HTML_HEAD:                 this.rows[i].classList.add("highlight");
+#+HTML_HEAD:             } else {
+#+HTML_HEAD:                 this.rows[i].classList.remove("highlight");
+#+HTML_HEAD:             }
+#+HTML_HEAD:         }
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     move(direction) {
+#+HTML_HEAD:         if (direction === 1 && this.counter < this.data.steps.length - 1) {
+#+HTML_HEAD:             this.counter++;
+#+HTML_HEAD:         } else if (direction === -1 && this.counter > 0) {
+#+HTML_HEAD:             this.counter--;
+#+HTML_HEAD:         }
+#+HTML_HEAD: 
+#+HTML_HEAD:         this.back_button.disabled = false;
+#+HTML_HEAD:         this.forward_button.disabled = false;
+#+HTML_HEAD:         if (this.counter === 0) {
+#+HTML_HEAD:             this.back_button.disabled = true;
+#+HTML_HEAD:         } else if (this.counter === this.data.steps.length - 1) {
+#+HTML_HEAD:             this.forward_button.disabled = true;
+#+HTML_HEAD:         }
+#+HTML_HEAD: 
+#+HTML_HEAD:         this.stack_frames.replaceChildren(...this.createStackFrames());
+#+HTML_HEAD:         this.locals.replaceChildren(...this.createLocals());
+#+HTML_HEAD:         this.args.replaceChildren(...this.createArgs());
+#+HTML_HEAD: 
+#+HTML_HEAD:         this.highlightRows();
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     parseTypeNameValue(str) {
+#+HTML_HEAD:         return {
+#+HTML_HEAD:             type: str.split(" ")[0].replace("(", "").replace(")", ""),
+#+HTML_HEAD:             name: str.split(" ")[1],
+#+HTML_HEAD:             value: str.split(" ").slice(2).join(" "),
+#+HTML_HEAD:         };
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     createStackFrames() {
+#+HTML_HEAD:         return this.data.steps[this.counter].stack_frames.map((x) => {
+#+HTML_HEAD:             const split = x.split(" ");
+#+HTML_HEAD: 
+#+HTML_HEAD:             let stack_line = document.createElement("div");
+#+HTML_HEAD:             stack_line.style.fontSize = "14px";
+#+HTML_HEAD:             stack_line.textContent = split.slice(0,2).join(" ") + " " + split[3].split("`")[1];
+#+HTML_HEAD: 
+#+HTML_HEAD:             return stack_line;
+#+HTML_HEAD:         });
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     createLocals() {
+#+HTML_HEAD:         return this.data.steps[this.counter].locals.map((x) => {
+#+HTML_HEAD:             let local_line = document.createElement("div");
+#+HTML_HEAD:             local_line.style.fontSize = "14px";
+#+HTML_HEAD:             const parsed = this.parseTypeNameValue(x);
+#+HTML_HEAD:             local_line.textContent = `${parsed.type} ${parsed.name} ${parsed.value}`;
+#+HTML_HEAD: 
+#+HTML_HEAD:             return local_line;
+#+HTML_HEAD:         });
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     createArgs() {
+#+HTML_HEAD:         return this.data.steps[this.counter].args.map((x) => {
+#+HTML_HEAD:             let local_line = document.createElement("div");
+#+HTML_HEAD:             local_line.textContent = x;
+#+HTML_HEAD: 
+#+HTML_HEAD:             return local_line;
+#+HTML_HEAD:         });
+#+HTML_HEAD:     }
+#+HTML_HEAD: 
+#+HTML_HEAD:     connectedCallback() {
+#+HTML_HEAD:         setTimeout(() => {
+#+HTML_HEAD:             const shadow = this.attachShadow({ mode: "open" })
+#+HTML_HEAD: 
+#+HTML_HEAD:             this.data = JSON.parse(this.textContent);
+#+HTML_HEAD: 
+#+HTML_HEAD:             const style = document.createElement("style");
+#+HTML_HEAD:             style.textContent = `
+#+HTML_HEAD: code {
+#+HTML_HEAD:   width: 100%;
+#+HTML_HEAD:   font-size: 18px;
+#+HTML_HEAD:   counter-reset: line;
+#+HTML_HEAD:   display: grid;
+#+HTML_HEAD:   grid-template-columns: min-content 1fr;
+#+HTML_HEAD:   white-space: pre-wrap;
+#+HTML_HEAD: }
+#+HTML_HEAD: code > span:nth-child(odd) {
+#+HTML_HEAD:   counter-increment: line;
+#+HTML_HEAD:   justify-self: end;
+#+HTML_HEAD: }
+#+HTML_HEAD: code > span:nth-child(odd)::before {
+#+HTML_HEAD:   content: counter(line);
+#+HTML_HEAD:   margin-right: 0.5em;
+#+HTML_HEAD:   color: var(--wln--color, gray);
+#+HTML_HEAD: }
+#+HTML_HEAD: code > span:nth-child(even) {
+#+HTML_HEAD:   border-left: 1px solid var(--wln--color, gray);
+#+HTML_HEAD:   padding-left: 0.5em;
+#+HTML_HEAD: }
+#+HTML_HEAD: .highlight {
+#+HTML_HEAD:   background: yellow;
+#+HTML_HEAD: }
+#+HTML_HEAD: `
+#+HTML_HEAD: 
+#+HTML_HEAD:             console.log(this.data);
+#+HTML_HEAD:             this.rows = this.data.source.trim().split("\n")
+#+HTML_HEAD:                 .map((x) => {
+#+HTML_HEAD:                     let line = document.createElement("span");
+#+HTML_HEAD:                     line.textContent = document.createTextNode(x).textContent;
+#+HTML_HEAD:                     return line;
+#+HTML_HEAD:                 });
+#+HTML_HEAD:             
+#+HTML_HEAD:             this.innerHTML = null
+#+HTML_HEAD:             
+#+HTML_HEAD:             let file_name = document.createElement("span");
+#+HTML_HEAD:             file_name.textContent = this.data.steps[0].line.split(":")[0];
+#+HTML_HEAD: 
+#+HTML_HEAD:             shadow.appendChild(file_name);
+#+HTML_HEAD:             shadow.appendChild(style);
+#+HTML_HEAD:             
+#+HTML_HEAD:             let pre = document.createElement("code");
+#+HTML_HEAD:             this.rows.forEach((x) => {
+#+HTML_HEAD:                 pre.appendChild(document.createElement("span"));
+#+HTML_HEAD:                 pre.appendChild(x); 
+#+HTML_HEAD:             });
+#+HTML_HEAD: 
+#+HTML_HEAD:             let vertical = document.createElement("div");
+#+HTML_HEAD:             vertical.style.display = "flex";
+#+HTML_HEAD:             vertical.style.flexDirection = "column";
+#+HTML_HEAD:             vertical.style.width = "100%";
+#+HTML_HEAD: 
+#+HTML_HEAD:             this.stack_frames = document.createElement("div");
+#+HTML_HEAD:             this.stack_frames.style.height = "100%";
+#+HTML_HEAD:             this.stack_frames.replaceChildren(...this.createStackFrames());
+#+HTML_HEAD:             
+#+HTML_HEAD:             this.locals = document.createElement("div");            
+#+HTML_HEAD:             this.locals.style.height = "100%";
+#+HTML_HEAD:             this.locals.replaceChildren(...this.createLocals());
+#+HTML_HEAD:             
+#+HTML_HEAD:             this.args = document.createElement("div");            
+#+HTML_HEAD:             this.args.style.height = "100%";
+#+HTML_HEAD:             this.args.replaceChildren(...this.createArgs());
+#+HTML_HEAD: 
+#+HTML_HEAD:             let sf_header = document.createElement("b");
+#+HTML_HEAD:             sf_header.textContent = "Stack Frames";
+#+HTML_HEAD:             let l_header = document.createElement("b");
+#+HTML_HEAD:             l_header.textContent = "Local Variables";
+#+HTML_HEAD:             let a_header = document.createElement("b");
+#+HTML_HEAD:             a_header.textContent = "Function Arguments";
+#+HTML_HEAD:             
+#+HTML_HEAD:             vertical.appendChild(sf_header);
+#+HTML_HEAD:             vertical.appendChild(this.stack_frames);
+#+HTML_HEAD:             vertical.appendChild(l_header);
+#+HTML_HEAD:             vertical.appendChild(this.locals);
+#+HTML_HEAD:             vertical.appendChild(a_header);
+#+HTML_HEAD:             vertical.appendChild(this.args);
+#+HTML_HEAD: 
+#+HTML_HEAD:             let container = document.createElement("div");
+#+HTML_HEAD:             container.style.display = "flex";
+#+HTML_HEAD:             container.style.width = "100%";
+#+HTML_HEAD: 
+#+HTML_HEAD:             container.append(pre);
+#+HTML_HEAD:             container.append(vertical);
+#+HTML_HEAD:             
+#+HTML_HEAD:             shadow.appendChild(container);
+#+HTML_HEAD: 
+#+HTML_HEAD:             this.back_button = document.createElement("button");
+#+HTML_HEAD:             this.back_button.textContent = "back";
+#+HTML_HEAD:             this.forward_button = document.createElement("button");
+#+HTML_HEAD:             this.forward_button.textContent = "forward";
+#+HTML_HEAD: 
+#+HTML_HEAD:             this.back_button.addEventListener("click", () => {
+#+HTML_HEAD:                 this.move(-1);
+#+HTML_HEAD:             })
+#+HTML_HEAD:             this.forward_button.addEventListener("click", () => {
+#+HTML_HEAD:                 this.move(1);
+#+HTML_HEAD:             })
+#+HTML_HEAD: 
+#+HTML_HEAD:             shadow.appendChild(this.back_button);
+#+HTML_HEAD:             shadow.appendChild(this.forward_button);
+#+HTML_HEAD: 
+#+HTML_HEAD:             this.current_line = document.createElement("span");
+#+HTML_HEAD:             shadow.appendChild(this.current_line);
+#+HTML_HEAD:             
+#+HTML_HEAD:             this.move(0);
+#+HTML_HEAD:             this.highlightRows();
+#+HTML_HEAD:         }, 0);
+#+HTML_HEAD:         // callback can be called more than once
+#+HTML_HEAD:     }
+#+HTML_HEAD: }
+#+HTML_HEAD: 
+#+HTML_HEAD: customElements.define('with-line-numbers', WithLineNumbers)
+#+HTML_HEAD: </script>

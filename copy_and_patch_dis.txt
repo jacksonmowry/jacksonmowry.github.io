@@ -1,0 +1,95 @@
+
+copy_and_patch.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <load_int_reg1>:
+   0:	41 bc 00 00 00 00    	mov    $0x0,%r12d
+   6:	e9 00 00 00 00       	jmp    b <load_int_reg1+0xb>
+   b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+
+0000000000000010 <load_int_reg2>:
+  10:	41 bd 00 00 00 00    	mov    $0x0,%r13d
+  16:	e9 00 00 00 00       	jmp    1b <load_int_reg2+0xb>
+  1b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+
+0000000000000020 <add_int1_int2>:
+  20:	45 01 ec             	add    %r13d,%r12d
+  23:	e9 00 00 00 00       	jmp    28 <add_int1_int2+0x8>
+  28:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+  2f:	00 
+
+0000000000000030 <return_int1>:
+  30:	44 89 e0             	mov    %r12d,%eax
+  33:	c3                   	ret
+
+Disassembly of section .comment:
+
+0000000000000000 <.comment>:
+   0:	00 63 6c             	add    %ah,0x6c(%rbx)
+   3:	61                   	(bad)
+   4:	6e                   	outsb  (%rsi),(%dx)
+   5:	67 20 76 65          	and    %dh,0x65(%esi)
+   9:	72 73                	jb     7e <return_int1+0x4e>
+   b:	69 6f 6e 20 32 31 2e 	imul   $0x2e313220,0x6e(%rdi),%ebp
+  12:	31 2e                	xor    %ebp,(%rsi)
+  14:	36                   	ss
+	...
+
+Disassembly of section .eh_frame:
+
+0000000000000000 <.eh_frame>:
+   0:	14 00                	adc    $0x0,%al
+   2:	00 00                	add    %al,(%rax)
+   4:	00 00                	add    %al,(%rax)
+   6:	00 00                	add    %al,(%rax)
+   8:	01 7a 52             	add    %edi,0x52(%rdx)
+   b:	00 01                	add    %al,(%rcx)
+   d:	78 10                	js     1f <.eh_frame+0x1f>
+   f:	01 1b                	add    %ebx,(%rbx)
+  11:	0c 07                	or     $0x7,%al
+  13:	08 90 01 00 00 10    	or     %dl,0x10000001(%rax)
+  19:	00 00                	add    %al,(%rax)
+  1b:	00 1c 00             	add    %bl,(%rax,%rax,1)
+  1e:	00 00                	add    %al,(%rax)
+  20:	00 00                	add    %al,(%rax)
+  22:	00 00                	add    %al,(%rax)
+  24:	0b 00                	or     (%rax),%eax
+  26:	00 00                	add    %al,(%rax)
+  28:	00 00                	add    %al,(%rax)
+  2a:	00 00                	add    %al,(%rax)
+  2c:	10 00                	adc    %al,(%rax)
+  2e:	00 00                	add    %al,(%rax)
+  30:	30 00                	xor    %al,(%rax)
+  32:	00 00                	add    %al,(%rax)
+  34:	00 00                	add    %al,(%rax)
+  36:	00 00                	add    %al,(%rax)
+  38:	0b 00                	or     (%rax),%eax
+  3a:	00 00                	add    %al,(%rax)
+  3c:	00 00                	add    %al,(%rax)
+  3e:	00 00                	add    %al,(%rax)
+  40:	10 00                	adc    %al,(%rax)
+  42:	00 00                	add    %al,(%rax)
+  44:	44 00 00             	add    %r8b,(%rax)
+  47:	00 00                	add    %al,(%rax)
+  49:	00 00                	add    %al,(%rax)
+  4b:	00 08                	add    %cl,(%rax)
+  4d:	00 00                	add    %al,(%rax)
+  4f:	00 00                	add    %al,(%rax)
+  51:	00 00                	add    %al,(%rax)
+  53:	00 10                	add    %dl,(%rax)
+  55:	00 00                	add    %al,(%rax)
+  57:	00 58 00             	add    %bl,0x0(%rax)
+  5a:	00 00                	add    %al,(%rax)
+  5c:	00 00                	add    %al,(%rax)
+  5e:	00 00                	add    %al,(%rax)
+  60:	04 00                	add    $0x0,%al
+  62:	00 00                	add    %al,(%rax)
+  64:	00 00                	add    %al,(%rax)
+	...
+
+Disassembly of section .llvm_addrsig:
+
+0000000000000000 <.llvm_addrsig>:
+   0:	04                   	.byte 0x4

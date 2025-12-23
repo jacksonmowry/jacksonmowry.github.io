@@ -65,6 +65,9 @@ int main() {
 
                     Line l = lines[line];
 
+                    printf("Checking against (%ld,%ld) (%ld,%ld)\n", l.start.x,
+                           l.start.y, l.end.x, l.end.y);
+
                     if (l.end.x > x1 && l.start.x < x2 && l.end.y > y1 &&
                         l.start.y < y2) {
                         goto END;

@@ -1,0 +1,45 @@
+#+title: Html Testing
+#+setupfile: plain.theme
+#+options: toc:nil
+
+#+begin_special
+Question: What is the correct data type for storing whole numbers?
+
+Incorrect: float
+Incorrect: char
+Correct: int
+Incorrect: char*
+#+end_special
+
+-----
+
+#+begin_special
+#include <stdio.h>
+#include <stdlib.h>
+
+int foo(int x) {
+    int *a;
+    a = malloc(sizeof(a));
+    return x * 2;
+}
+
+int main() {
+    int x = 42;
+
+    printf("x is %d\n", x);
+
+    int arr[5] = {x};
+    arr[1] = foo(x);
+
+    return arr[4];
+}
+#+end_special
+
+-----
+
+* Hi
+blah[fn:1]
+
+* Footnotes
+
+[fn:1] This is a footnote 
