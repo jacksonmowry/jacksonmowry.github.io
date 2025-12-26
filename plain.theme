@@ -210,7 +210,6 @@
 #+HTML_HEAD: }
 #+HTML_HEAD: `
 #+HTML_HEAD: 
-#+HTML_HEAD:             console.log(this.data);
 #+HTML_HEAD:             this.rows = this.data.source.trim().split("\n")
 #+HTML_HEAD:                 .map((x) => {
 #+HTML_HEAD:                     let line = document.createElement("span");
