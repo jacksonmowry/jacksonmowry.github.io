@@ -1,3 +1,7 @@
+#+HTML_HEAD: <style>
+#+HTML_HEAD:    hr { margin-block: 20px; }
+#+HTML_HEAD:    img { max-width: 100%; }
+#+HTML_HEAD: </style>
 #+HTML_HEAD: <script>
 #+HTML_HEAD: class MultipleChoiceQuiz extends HTMLElement {
 #+HTML_HEAD:     constructor() {
