@@ -3,12 +3,23 @@
 #+OPTIONS: toc:nil num:nil html-style:nil
 #+SETUPFILE: retro_dark.theme
 * Papers
-** VRISP: A Vectorized Open-Source Simulator for Efficient Neuromorphic Computing
+** CRISP: A JIT Compiled Neuromorphic Simulator (2026)
+*Jackson Mowry* and James S. Plank
+
+[[https://doi.org/10.1145/3822454.3822489][CRISP Paper]]
+
+** A Neuromorphic Pipeline from Training to Hardware Deployment Using SLAYER (2026)
+Karan Patel, Luke Whatley, Bryson Gullett, *Jackson Mowry*, Sree Nirmillo Biswash Tushar, Sk Hasibul Alam, Charles Rizzo, Garrett Rose, Aaron Young, James S. Plank, and Catherine Schuman
+
+[[https://doi.org/10.1145/3822454.3822469][TENNLab Slayer Paper]]
+
+** VRISP: A Vectorized Open-Source Simulator for Efficient Neuromorphic Computing (2025)
 *Jackson Mowry* and James S. Plank
 
 [[https://neuromorphic.eecs.utk.edu/publications/2025-07-30-vrisp-a-vectorized-open-source-simulator-for-efficient-neuromorphic-computing][VRISP Paper]]
-** Generating Spiking Neural Network Code Libraries for Embedded Systems
-Bryson Gullett and *Jackson Mowry* and James S. Plank and Luke Whatley and Charlie P, Rizzo and Catherine. D. Schuman
+
+** Generating Spiking Neural Network Code Libraries for Embedded Systems (2025)
+Bryson Gullett, *Jackson Mowry*, James S. Plank, Luke Whatley, Charles Rizzo, and Catherine. D. Schuman
 
 [[https://neuromorphic.eecs.utk.edu/publications/2025-07-29-generating-spiking-neural-network-code-libraries-for-embedded-systems][Framework Embedder Paper]]
 
